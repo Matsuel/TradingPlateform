@@ -16,6 +16,7 @@
 - [Événements Kafka](#événements-kafka)
 - [Données et stockages](#données-et-stockages)
 - [API et temps réel](#api-et-temps-réel)
+- [Portfolio Management Lab : portefeuille, risque et optimisation](#portfolio-management-lab--portefeuille-risque-et-optimisation)
 - [Strategy Lab : DCA, backtest et paper trading](#strategy-lab--dca-backtest-et-paper-trading)
 - [Simulation, bots et replay](#simulation-bots-et-replay)
 - [Fiabilité, sécurité et observabilité](#fiabilité-sécurité-et-observabilité)
@@ -395,6 +396,315 @@ Canal unique `/v1/ws`, authentifié lors de la connexion. Le client s’abonne �
 
 Chaque message de carnet contient `marketSequence`. À la reconnexion, le client récupère un snapshot REST, puis ignore les deltas antérieurs ou égaux à cette séquence. Prévoir heartbeat, limites de souscription et backpressure (un client lent reçoit un nouveau snapshot plutôt qu’une file infinie).
 
+
+## Portfolio Management Lab : portefeuille, risque et optimisation
+
+Le projet évolue progressivement d'un simulateur de marché vers un **laboratoire pédagogique de gestion de portefeuille**. L'objectif n'est pas de remplacer une plateforme professionnelle, mais de comprendre concrètement comment une stratégie d'investissement se comporte selon différentes périodes historiques, différents niveaux de risque et différentes allocations.
+
+### Principe central
+
+Un portefeuille fictif part d'un capital donné, par exemple `100 000 €`, reçoit une allocation entre plusieurs actifs, puis est simulé sur des données historiques.
+
+Exemple :
+
+```text
+Capital initial : 100 000 €
+Allocation       : 60 % actions / 30 % obligations / 10 % cash
+Période           : 2000 → 2026
+Rebalancement     : annuel
+Frais              : configurables
+```
+
+Le système doit permettre de déplacer la période de départ :
+
+```text
+1990 → 2026
+2000 → 2026
+2010 → 2026
+2015 → 2026
+2020 → 2026
+```
+
+Cela permet d'observer comment **la même stratégie** se comporte lorsqu'elle démarre dans des environnements de marché différents.
+
+### V1 : moteur de portefeuille et backtest
+
+La première version du Portfolio Management Lab doit permettre de :
+
+- définir plusieurs actifs et leurs poids ;
+- définir un capital initial ;
+- choisir une date de début et une date de fin ;
+- choisir une fréquence de rebalancement ;
+- configurer les frais ;
+- simuler les achats et ventes nécessaires au rebalancement ;
+- calculer la valeur quotidienne du portefeuille ;
+- comparer le portefeuille à un benchmark ;
+- comparer plusieurs dates de départ ;
+- afficher la courbe de capital ;
+- afficher la courbe de drawdown ;
+- conserver toutes les transactions simulées.
+
+### Métriques minimales
+
+Chaque simulation doit calculer au minimum :
+
+| Métrique | Question |
+| --- | --- |
+| Valeur finale | Combien vaut le portefeuille à la fin ? |
+| P&L | Combien a été gagné/perdu ? |
+| Rendement annualisé / CAGR | Quel a été le rythme de croissance annuel composé ? |
+| Volatilité | À quel point la valeur du portefeuille fluctue-t-elle ? |
+| Max drawdown | Quelle a été la plus grosse perte depuis un plus-haut ? |
+| Durée de récupération | Combien de temps a-t-il fallu pour retrouver le précédent plus-haut ? |
+| Sharpe ratio | Quel rendement a été obtenu par rapport à la volatilité prise ? |
+| Benchmark | La stratégie a-t-elle fait mieux ou moins bien qu'une référence ? |
+
+Les métriques doivent toujours être accompagnées de leur période, de la devise, des frais et de la configuration de simulation.
+
+### Comparaison de portefeuilles
+
+L'interface doit permettre de comparer par exemple :
+
+```text
+Portfolio A
+70 % actions
+20 % obligations
+10 % cash
+
+Portfolio B
+60 % actions
+30 % obligations
+10 % cash
+```
+
+Puis d'afficher côte à côte :
+
+```text
+                    Portfolio A    Portfolio B
+Rendement annuel        7,8 %          6,5 %
+Volatilité              11,2 %          9,1 %
+Max drawdown           -17,0 %        -13,0 %
+Sharpe                   0,72           0,70
+```
+
+Les valeurs ci-dessus sont uniquement illustratives.
+
+L'objectif pédagogique est de comprendre le compromis entre **rendement potentiel et risque**, et non de rechercher une performance historique maximale sans tenir compte du risque.
+
+### V2 : Risk Engine
+
+Une fois le backtest fiable, ajouter un moteur de risque indépendant du moteur de simulation.
+
+Il devra notamment pouvoir calculer :
+
+- volatilité ;
+- max drawdown ;
+- Sharpe ;
+- corrélations entre actifs ;
+- exposition par actif, secteur, zone géographique ou autre classification disponible ;
+- concentration ;
+- VaR historique en extension ;
+- CVaR en extension ;
+- contribution au risque en extension.
+
+Le système doit pouvoir répondre à des contraintes telles que :
+
+```text
+Capital : 100 000 €
+Drawdown cible : <= 15 %
+```
+
+Le résultat doit montrer **si la stratégie historique respecte ou non la contrainte**, sans présenter cette contrainte comme une garantie pour le futur.
+
+### V3 : Portfolio Optimizer
+
+Après validation du Risk Engine, ajouter une optimisation sous contraintes.
+
+Exemples de contraintes :
+
+```text
+100 % du capital investi
+0 % <= poids actif <= 50 %
+Cash >= 5 %
+Actions <= 80 %
+Objectif : maximiser le rendement historique ajusté du risque
+```
+
+Puis, dans une version plus avancée :
+
+```text
+Objectif :
+trouver une allocation satisfaisant un niveau de risque cible
+tout en maximisant une métrique choisie.
+```
+
+Les optimisations doivent toujours être testées sur une période différente de celle utilisée pour choisir les paramètres afin de limiter le **surapprentissage**.
+
+### V4 : profils de clients fictifs
+
+Créer plusieurs profils pédagogiques :
+
+```text
+Client prudent
+- faible tolérance au drawdown
+- horizon long
+- objectif de stabilité
+
+Client équilibré
+- compromis rendement/risque
+
+Client dynamique
+- accepte davantage de volatilité
+- recherche davantage de croissance
+```
+
+Chaque profil possède des contraintes différentes.
+
+Le système doit montrer :
+
+```text
+Profil
+   ↓
+Contraintes
+   ↓
+Allocation candidate
+   ↓
+Backtest
+   ↓
+Risk Engine
+   ↓
+Rapport
+```
+
+Ces profils sont fictifs et ne constituent pas une fonctionnalité de conseil financier réel.
+
+### V5 : reporting gestionnaire
+
+Générer un rapport lisible contenant :
+
+- allocation actuelle ;
+- performance ;
+- benchmark ;
+- risque ;
+- drawdown ;
+- principales contributions à la performance ;
+- historique des décisions ;
+- transactions ;
+- évolution de l'allocation ;
+- commentaires générés à partir de données mesurées.
+
+Le rapport doit permettre de répondre simplement à :
+
+> « Qu'est-ce qui s'est passé avec ce portefeuille et quel risque a été pris pour obtenir cette performance ? »
+
+### V6 : paper trading
+
+Une fois les simulations historiques fiables, permettre de lancer une stratégie **à partir d'aujourd'hui** avec de l'argent virtuel.
+
+Le portefeuille virtuel doit ensuite évoluer avec les nouvelles données disponibles.
+
+Distinction importante :
+
+```text
+BACKTEST
+"Qu'aurait donné cette stratégie dans le passé ?"
+
+PAPER TRADING
+"Que donne cette stratégie à partir de maintenant ?"
+```
+
+Le second ne prédit pas le futur : il mesure uniquement ce qui se passe après le lancement.
+
+### Principes de validité des backtests
+
+Le moteur de backtest doit explicitement lutter contre les biais classiques.
+
+#### Look-ahead bias
+
+Ne jamais utiliser une information qui n'était pas disponible au moment de la décision.
+
+Exemple : si la décision est prise avant l'ouverture, ne pas exécuter artificiellement au cours de clôture connu plus tard.
+
+Le MVP doit utiliser une règle explicite d'exécution, par exemple :
+
+```text
+Décision à la date T
+→ exécution au prochain prix d'ouverture disponible
+```
+
+#### Survivorship bias
+
+Éviter de tester une stratégie historique uniquement avec les actifs qui existent encore aujourd'hui.
+
+À terme, conserver la provenance et la version du dataset utilisé et documenter les limites de l'univers historique.
+
+#### Data snooping / overfitting
+
+Ne pas choisir une stratégie uniquement parce qu'elle donne le meilleur résultat sur la période utilisée pour la concevoir.
+
+Prévoir à terme une séparation :
+
+```text
+Période de développement
+        ↓
+Période de validation
+        ↓
+Période hors échantillon
+```
+
+#### Frais et hypothèses
+
+Les simulations doivent rendre visibles :
+
+- frais de transaction ;
+- hypothèses de slippage si utilisées ;
+- dividendes ;
+- splits ;
+- fréquence de rebalancement ;
+- règle d'exécution ;
+- devise ;
+- source et version des données.
+
+### Inspirations externes
+
+Le projet peut s'inspirer des fonctionnalités de plateformes publiques comme :
+
+- **Portfolio Visualizer** : analyse et backtest de portefeuilles ;
+- **QuantConnect** : backtesting et analyse de stratégies programmatiques.
+
+Ces plateformes servent de **références fonctionnelles**. MarketFlow ne cherche pas à les copier ; l'objectif est de construire une version cohérente avec les objectifs pédagogiques du projet et l'architecture distribuée déjà prévue.
+
+### Ordre de développement recommandé
+
+Ne pas commencer par l'optimisation ou Kubernetes.
+
+```text
+1. Données historiques fiables
+        ↓
+2. Portefeuille simple
+        ↓
+3. Backtest reproductible
+        ↓
+4. Métriques de performance
+        ↓
+5. Comparaison de dates de départ
+        ↓
+6. Risk Engine
+        ↓
+7. Optimisation sous contraintes
+        ↓
+8. Profils de clients fictifs
+        ↓
+9. Reporting
+        ↓
+10. Paper trading
+        ↓
+11. Architecture distribuée avancée
+```
+
+Le **backtest est la priorité absolue** : tant que son résultat n'est pas reproductible, explicable et correctement testé, il ne faut pas construire l'optimiseur au-dessus.
+
+
 ## Strategy Lab : DCA, backtest et paper trading
 
 Le **Strategy Lab** est la fonctionnalité qui différencie MarketFlow d’un simple tableau de trading. Il permet à une personne qui hésite à investir de tester une règle simple sur une période passée, puis de l’observer avec de l’argent virtuel à partir d’aujourd’hui. Il s’agit d’un outil pédagogique : aucun résultat historique ne constitue une prédiction ou un conseil d’investissement.
@@ -598,7 +908,13 @@ Cette roadmap suppose un travail individuel régulier. Chaque phase se termine p
 | **Mois 3** | Flux transactionnel | PostgreSQL, API, outbox, Kafka, projecteur de portefeuille, idempotence testée. |
 | **Mois 4** | MVP visible | Next.js, REST, WebSocket, carnet/transactions/portefeuille, démonstration d’un trade complet. |
 | **Mois 5** | Strategy Lab MVP | Backtest DCA sur un actif, résultats graphiques, transactions simulées, comparaison investissement unique, tests de reproductibilité. |
-| **Mois 6** | Durcissement MVP | Gestion d’erreurs, métriques, dashboard Grafana, E2E, documentation de lancement. **Gel fonctionnel MVP.** |
+| **Mois 6** | Portfolio Management V1 | Portefeuille multi-actifs, allocations, rebalancement, frais, comparaison de dates de départ, CAGR, volatilité, drawdown, Sharpe et benchmark. |
+| **Mois 7** | Risk Engine | Corrélations, expositions, concentration, contraintes de risque et premiers rapports de risque. **Gel fonctionnel du moteur de simulation avant optimisation.** |
+| **Mois 8** | Optimisation | Optimisation sous contraintes, validation hors échantillon, scénarios et profils de clients fictifs. |
+| **Mois 9** | Paper trading et reporting | Portefeuilles virtuels, suivi à partir d’aujourd’hui, reporting gestionnaire et historique des décisions. |
+| **Mois 10** | Simulation et historique | Bots seedés, plusieurs instruments, importeur optionnel de données de référence, OHLCV, ClickHouse et replay simple. |
+| **Mois 11** | Plateforme de déploiement | Images, Kubernetes, Helm, Argo CD, OpenTelemetry et environnements `dev`/`demo`. |
+| **Mois 12** | Soutenance | Résilience, tests finaux, documentation, dataset reproductible, script de démo et rapport. |
 | **Mois 7** | Simulation et historique | Bots seedés, plusieurs instruments, importeur optionnel de données de référence, OHLCV, ClickHouse et replay simple. |
 | **Mois 8** | Plateforme de déploiement | Images, Kubernetes, Helm, environnements `dev`/`demo`. |
 | **Mois 9** | GitOps et traçabilité | Argo CD, OpenTelemetry, dashboard/trace d’un ordre, runbooks. |
