@@ -3,10 +3,13 @@ import cors from 'cors';
 import { Logger } from './utils/logger';
 import errorMiddleware from './middleware/error.middleware';
 import { dbHealthCheck } from './utils/db';
+import authRouter from './routes/auth';
 
 const logger = Logger.here()
 
 const app = express();
+
+app.use(authRouter);
 
 app.use(cors());
 app.use(express.json());
