@@ -1,5 +1,5 @@
 import { toNodeHandler } from "better-auth/node";
-import { auth } from "../auth";
+import { auth } from "../lib/auth";
 import type { Request, Response } from "express";
 import { Logger } from "../utils/logger";
 
