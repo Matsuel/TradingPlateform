@@ -2,11 +2,19 @@
   "name": "core-backend",
   "module": "index.ts",
   "type": "module",
+  "scripts": {
+    "db:migrate": "prisma migrate dev",
+    "db:generate": "prisma generate"
+  },
   "private": true,
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "prisma": "6"
   },
   "peerDependencies": {
     "typescript": "^5"
+  },
+  "dependencies": {
+    "@prisma/client": "6"
   }
 }
