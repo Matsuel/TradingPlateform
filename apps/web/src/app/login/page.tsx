@@ -3,6 +3,23 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth";
+import { cn } from "cn"
+
+import { Button } from "@/components/ui/button"
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card"
+import {
+    Field,
+    FieldDescription,
+    FieldGroup,
+    FieldLabel,
+} from "@/components/ui/field"
+import { Input } from "@/components/ui/input"
 
 export default function LoginPage() {
     const router = useRouter();
@@ -28,37 +45,55 @@ export default function LoginPage() {
     }
 
     return (
-        <main className="flex min-h-screen items-center justify-center">
-            <form onSubmit={handleSubmit} className="flex w-80 flex-col gap-3">
-                <h1 className="text-2xl font-bold">Connexion</h1>
-
-                <input
-                    type="email"
-                    placeholder="Email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    className="rounded border p-2"
-                />
-                <input
-                    type="password"
-                    placeholder="Mot de passe"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    className="rounded border p-2"
-                />
-
-                {error && <p className="text-sm text-red-500">{error}</p>}
-
-                <button
-                    type="submit"
-                    disabled={loading}
-                    className="rounded bg-black p-2 text-white disabled:opacity-50"
-                >
-                    {loading ? "Connexion..." : "Se connecter"}
-                </button>
-            </form>
-        </main>
+        <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
+            <div className="w-full max-w-sm">
+                <div className={cn("flex flex-col gap-6")}>
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Login to your account</CardTitle>
+                            <CardDescription>
+                                Enter your email below to login to your account
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <form>
+                                <FieldGroup>
+                                    <Field>
+                                        <FieldLabel htmlFor="email">Email</FieldLabel>
+                                        <Input
+                                            id="email"
+                                            type="email"
+                                            placeholder="m@example.com"
+                                            required
+                                            value={email}
+                                            onChange={(e) => setEmail(e.target.value)}
+                                        />
+                                    </Field>
+                                    <Field>
+                                        <FieldLabel htmlFor="password">Password</FieldLabel>
+                                        <Input
+                                            id="password"
+                                            type="password"
+                                            required
+                                            value={password}
+                                            onChange={(e) => setPassword(e.target.value)}
+                                        />
+                                    </Field>
+                                    <Field>
+                                        <Button type="submit">Login</Button>
+                                        <Button variant="outline" type="button">
+                                            Login with Google
+                                        </Button>
+                                        <FieldDescription className="text-center">
+                                            Don&apos;t have an account? <a href="#">Sign up</a>
+                                        </FieldDescription>
+                                    </Field>
+                                </FieldGroup>
+                            </form>
+                        </CardContent>
+                    </Card>
+                </div>
+            </div>
+        </div>
     );
 }
