@@ -1,43 +1,46 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth";
-import { cn } from "cn"
+import { cn } from "cn";
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 import {
     Card,
     CardContent,
     CardDescription,
     CardHeader,
     CardTitle,
-} from "@/components/ui/card"
+} from "@/components/ui/card";
 import {
     Field,
     FieldDescription,
+    FieldError,
     FieldGroup,
     FieldLabel,
-} from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
+} from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { SubmitHandler, useForm } from "react-hook-form";
+
+type Inputs = {
+    email: string;
+    password: string;
+};
 
 export default function LoginPage() {
     const router = useRouter();
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [error, setError] = useState<string | null>(null);
-    const [loading, setLoading] = useState(false);
 
-    async function handleSubmit(e: React.FormEvent) {
-        e.preventDefault();
-        setError(null);
-        setLoading(true);
+    const {
+        register,
+        handleSubmit,
+        formState: { errors, isLoading },
+    } = useForm<Inputs>()
 
-        const { error } = await authClient.signIn.email({ email, password });
+    const onSubmit: SubmitHandler<Inputs> = async (data) => {
 
-        setLoading(false);
+        const { error } = await authClient.signIn.email({ email: data.email, password: data.password });
+
         if (error) {
-            setError(error.message ?? "Identifiants invalides");
             return;
         }
         router.push("/dashboard");
@@ -56,7 +59,7 @@ export default function LoginPage() {
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <form>
+                            <form onSubmit={handleSubmit(onSubmit)}>
                                 <FieldGroup>
                                     <Field>
                                         <FieldLabel htmlFor="email">Email</FieldLabel>
@@ -65,22 +68,27 @@ export default function LoginPage() {
                                             type="email"
                                             placeholder="m@example.com"
                                             required
-                                            value={email}
-                                            onChange={(e) => setEmail(e.target.value)}
+                                            {...register("email", { required: "Email is required" })}
                                         />
+                                        {errors.email && (
+                                            <FieldError>{errors.email.message}</FieldError>
+                                        )}
                                     </Field>
                                     <Field>
                                         <FieldLabel htmlFor="password">Password</FieldLabel>
                                         <Input
                                             id="password"
                                             type="password"
-                                            required
-                                            value={password}
-                                            onChange={(e) => setPassword(e.target.value)}
+                                            {...register("password", { required: "Password is required" })}
                                         />
+                                        {errors.password && (
+                                            <FieldError>{errors.password.message}</FieldError>
+                                        )}
                                     </Field>
                                     <Field>
-                                        <Button type="submit">Login</Button>
+                                        <Button type="submit" disabled={isLoading}>
+                                            {isLoading ? "Logging in..." : "Login"}
+                                        </Button>
                                         <Button variant="outline" type="button">
                                             Login with Google
                                         </Button>
