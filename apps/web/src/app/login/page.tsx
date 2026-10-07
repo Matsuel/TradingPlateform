@@ -3,25 +3,7 @@
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth";
 import { cn } from "cn";
-
-import { Button } from "@/components/ui/button";
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from "@/components/ui/card";
-import {
-    Field,
-    FieldDescription,
-    FieldError,
-    FieldGroup,
-    FieldLabel,
-} from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
-import { SubmitHandler, useForm } from "react-hook-form";
-import Link from "next/link";
+import Form from "@/components/Form";
 
 type Inputs = {
     email: string;
@@ -31,88 +13,29 @@ type Inputs = {
 export default function LoginPage() {
     const router = useRouter();
 
-    const {
-        register,
-        handleSubmit,
-        setError,
-        formState: { errors, isSubmitting },
-    } = useForm<Inputs>()
-
-    const onSubmit: SubmitHandler<Inputs> = async (data) => {
-        try {
-            const { error } = await authClient.signIn.email(data);
-
-            if (error) {
-                setError("root.server", {
-                    type: "server",
-                    message: error.message ?? "Identifiants invalides",
-                });
-                return;
-            }
-
-            router.push("/dashboard");
-            router.refresh();
-        } catch {
-            setError("root.server", {
-                type: "server",
-                message: "Impossible de se connecter. Réessayez.",
-            });
-        }
-    };
+    const onSubmit = async ({ email, password }: Inputs) => {
+        const { error } = await authClient.signIn.email({ email, password });
+        if (error) return error.message ?? "Invalid credentials";
+        router.push("/dashboard");
+        router.refresh();
+    }
 
     return (
         <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
             <div className="w-full max-w-sm">
                 <div className={cn("flex flex-col gap-6")}>
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Login to your account</CardTitle>
-                            <CardDescription>
-                                Enter your email below to login to your account
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <form onSubmit={handleSubmit(onSubmit)}>
-                                <FieldGroup>
-                                    <Field>
-                                        <FieldLabel htmlFor="email">Email</FieldLabel>
-                                        <Input
-                                            id="email"
-                                            type="email"
-                                            placeholder="m@example.com"
-                                            required
-                                            {...register("email", { required: "Email is required" })}
-                                        />
-                                        {errors.email && (
-                                            <FieldError>{errors.email.message}</FieldError>
-                                        )}
-                                    </Field>
-                                    <Field>
-                                        <FieldLabel htmlFor="password">Password</FieldLabel>
-                                        <Input
-                                            id="password"
-                                            type="password"
-                                            {...register("password", { required: "Password is required" })}
-                                        />
-                                        {errors.password && (
-                                            <FieldError>{errors.password.message}</FieldError>
-                                        )}
-                                        {errors.root?.server && (
-                                            <FieldError>{errors.root.server.message}</FieldError>
-                                        )}
-                                    </Field>
-                                    <Field>
-                                        <Button type="submit" disabled={isSubmitting}>
-                                            {isSubmitting ? "Logging in..." : "Login"}
-                                        </Button>
-                                        <FieldDescription className="text-center">
-                                            Don&apos;t have an account? <Link href="/register">Sign up</Link>
-                                        </FieldDescription>
-                                    </Field>
-                                </FieldGroup>
-                            </form>
-                        </CardContent>
-                    </Card>
+
+                    <Form<Inputs>
+                        title="Login to your account"
+                        description="Enter your email below to login to your account"
+                        inputs={[
+                            { name: "email", label: "Email", type: "email"},
+                            { name: "password", label: "Password", type: "password" },
+                        ]}
+                        submitText="Login"
+                        submittingText="Logging in..."
+                        onSubmit={onSubmit}
+                    />
                 </div>
             </div>
         </div>
