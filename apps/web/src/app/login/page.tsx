@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { SubmitHandler, useForm } from "react-hook-form";
+import Link from "next/link";
 
 type Inputs = {
     email: string;
@@ -33,19 +34,31 @@ export default function LoginPage() {
     const {
         register,
         handleSubmit,
-        formState: { errors, isLoading },
+        setError,
+        formState: { errors, isSubmitting },
     } = useForm<Inputs>()
 
     const onSubmit: SubmitHandler<Inputs> = async (data) => {
+        try {
+            const { error } = await authClient.signIn.email(data);
 
-        const { error } = await authClient.signIn.email({ email: data.email, password: data.password });
+            if (error) {
+                setError("root.server", {
+                    type: "server",
+                    message: error.message ?? "Identifiants invalides",
+                });
+                return;
+            }
 
-        if (error) {
-            return;
+            router.push("/dashboard");
+            router.refresh();
+        } catch {
+            setError("root.server", {
+                type: "server",
+                message: "Impossible de se connecter. Réessayez.",
+            });
         }
-        router.push("/dashboard");
-        router.refresh();
-    }
+    };
 
     return (
         <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
@@ -84,16 +97,16 @@ export default function LoginPage() {
                                         {errors.password && (
                                             <FieldError>{errors.password.message}</FieldError>
                                         )}
+                                        {errors.root?.server && (
+                                            <FieldError>{errors.root.server.message}</FieldError>
+                                        )}
                                     </Field>
                                     <Field>
-                                        <Button type="submit" disabled={isLoading}>
-                                            {isLoading ? "Logging in..." : "Login"}
-                                        </Button>
-                                        <Button variant="outline" type="button">
-                                            Login with Google
+                                        <Button type="submit" disabled={isSubmitting}>
+                                            {isSubmitting ? "Logging in..." : "Login"}
                                         </Button>
                                         <FieldDescription className="text-center">
-                                            Don&apos;t have an account? <a href="#">Sign up</a>
+                                            Don&apos;t have an account? <Link href="/register">Sign up</Link>
                                         </FieldDescription>
                                     </Field>
                                 </FieldGroup>
