@@ -4,6 +4,7 @@ import { Logger } from './utils/logger';
 import errorMiddleware from './middleware/error.middleware';
 import { dbHealthCheck } from './utils/db';
 import authRouter from './routes/auth';
+import portfolioRouter from './routes/portfolio';
 
 const logger = Logger.here()
 
@@ -19,6 +20,9 @@ app.use(cors({
 app.use(authRouter);
 
 app.use(express.json());
+
+app.use(portfolioRouter);
+
 app.use(errorMiddleware)
 
 app.listen(8000, async () => {
