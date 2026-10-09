@@ -2,7 +2,7 @@
 
 import * as React from "react";
 
-import { NavProjects } from "@/components/nav-projects";
+import SidebarNav from "@/components/SidebarNav";
 import { NavUser } from "@/components/nav-user";
 import {
   Sidebar,
@@ -12,10 +12,11 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarRail,
+  SidebarRail
 } from "@/components/ui/sidebar";
-import { FrameIcon, PieChartIcon, MapIcon, GalleryVerticalEnd } from "lucide-react";
+import { GalleryVerticalEnd } from "lucide-react";
 import Link from "next/link";
+import tabs from "@/constants/sidebar";
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   user: {
@@ -23,36 +24,6 @@ interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
     email: string;
     image?: string;
   }
-}
-
-// This is sample data.
-const data = {
-  projects: [
-    {
-      name: "Design Engineering",
-      url: "#",
-      icon: (
-        <FrameIcon
-        />
-      ),
-    },
-    {
-      name: "Sales & Marketing",
-      url: "#",
-      icon: (
-        <PieChartIcon
-        />
-      ),
-    },
-    {
-      name: "Travel",
-      url: "#",
-      icon: (
-        <MapIcon
-        />
-      ),
-    },
-  ],
 }
 
 export function AppSidebar({
@@ -79,7 +50,9 @@ export function AppSidebar({
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavProjects projects={data.projects} />
+        <SidebarNav projects={tabs.trading.tabs} name={tabs.trading.name} />
+        <SidebarNav projects={tabs.backtest.tabs} name={tabs.backtest.name} />
+        <SidebarNav projects={tabs.advanced.tabs} name={tabs.advanced.name} />
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={user} />
