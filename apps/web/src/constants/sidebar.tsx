@@ -1,7 +1,7 @@
 import { Activity, ChartCandlestick, FlaskConical, LayoutDashboard, ListOrdered, Plus, Wallet } from "lucide-react"
 
-const tabs = {
-    trading: {
+const tabs = [
+    {
         name: "Trading",
         tabs: [
             {
@@ -34,7 +34,7 @@ const tabs = {
             }
         ]
     },
-    backtest: {
+    {
         name: "Experimentation",
         tabs: [
             {
@@ -53,7 +53,7 @@ const tabs = {
             }
         ]
     },
-    advanced: {
+    {
         name: "Avancée",
         tabs: [
             {
@@ -65,6 +65,6 @@ const tabs = {
             }
         ]
     }
-}
+]
 
 export default tabs

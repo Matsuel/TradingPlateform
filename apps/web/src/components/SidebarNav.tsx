@@ -20,7 +20,7 @@ import { MoreHorizontalIcon, FolderIcon, ArrowRightIcon, Trash2Icon } from "luci
 
 interface SidebarNavProps {
   name: string
-  projects: {
+  tabs: {
     name: string
     url: string
     icon: React.ReactNode
@@ -28,7 +28,7 @@ interface SidebarNavProps {
 }
 
 const SidebarNav = ({
-  projects,
+  tabs,
   name
 }: SidebarNavProps) => {
   const { isMobile } = useSidebar()
@@ -36,7 +36,7 @@ const SidebarNav = ({
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
       <SidebarGroupLabel>{name}</SidebarGroupLabel>
       <SidebarMenu>
-        {projects.map((item) => (
+        {tabs.map((item) => (
           <SidebarMenuItem key={item.name}>
             <SidebarMenuButton render={<a href={item.url} />}>
               {item.icon}

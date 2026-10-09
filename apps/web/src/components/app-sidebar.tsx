@@ -50,9 +50,9 @@ export function AppSidebar({
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <SidebarNav projects={tabs.trading.tabs} name={tabs.trading.name} />
-        <SidebarNav projects={tabs.backtest.tabs} name={tabs.backtest.name} />
-        <SidebarNav projects={tabs.advanced.tabs} name={tabs.advanced.name} />
+        {tabs.map((parts) => (
+          <SidebarNav tabs={parts.tabs} name={parts.name} key={parts.name} />
+        ))}
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={user} />
