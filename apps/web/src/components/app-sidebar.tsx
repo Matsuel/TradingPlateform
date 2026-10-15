@@ -17,19 +17,24 @@ import {
 import { GalleryVerticalEnd } from "lucide-react";
 import Link from "next/link";
 import tabs from "@/constants/sidebar";
-
-interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
-  user: {
-    name: string;
-    email: string;
-    image?: string;
-  }
-}
+import { useSession } from "@/lib/auth";
+import { useRouter } from "next/navigation";
 
 export function AppSidebar({
-  user,
   ...props
-}: AppSidebarProps) {
+}: React.ComponentProps<typeof Sidebar>) {
+
+  const { data: session, isPending } = useSession();
+    const router = useRouter();
+  
+    React.useEffect(() => {
+      if (!isPending && !session) router.replace("/login");
+    }, [isPending, session, router]);
+  
+    if (isPending) return <p>Chargement...</p>;
+    if (!session) return null;
+  
+    const { user } = session;
 
   return (
     <Sidebar collapsible="icon" {...props}>

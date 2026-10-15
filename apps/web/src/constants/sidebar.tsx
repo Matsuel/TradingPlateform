@@ -1,33 +1,35 @@
 import { Activity, ChartCandlestick, FlaskConical, LayoutDashboard, ListOrdered, Plus, Wallet } from "lucide-react"
 
+const prefix = "/app";
+
 const tabs = [
     {
         name: "Trading",
         tabs: [
             {
                 name: "Dashboard",
-                url: "/dashboard",
+                url: `${prefix}`,
                 icon: (
                     <LayoutDashboard />
                 )
             },
             {
                 name: "Marché",
-                url: "/market",
+                url: `${prefix}/market`,
                 icon: (
                     <ChartCandlestick />
                 )
             },
             {
                 name: "Portefeuille",
-                url: "/portfolio",
+                url: `${prefix}/portfolio`,
                 icon: (
                     <Wallet />
                 )
             },
             {
                 name: "Ordres",
-                url: "/orders",
+                url: `${prefix}/orders`,
                 icon: (
                     <ListOrdered />
                 )
@@ -39,14 +41,14 @@ const tabs = [
         tabs: [
             {
                 name: "Backtests",
-                url: "/backtest",
+                url: `${prefix}/backtest`,
                 icon: (
                     <FlaskConical />
                 )
             },
             {
                 name: "Nouveau backtest",
-                url: "/newbacktest",
+                url: `${prefix}/newbacktest`,
                 icon: (
                     <Plus />
                 )
@@ -58,7 +60,7 @@ const tabs = [
         tabs: [
             {
                 name: "Surveillance",
-                url: "/monitoring",
+                url: `${prefix}/monitoring`,
                 icon: (
                     <Activity />
                 )
