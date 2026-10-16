@@ -12,7 +12,7 @@ class MarketController {
     searchMarket = async(req: Request, res: Response) => {
         const { query } = req.query
 
-        logger.info("Searching market with query:", query)
+        logger.info(`Handling search market request ${req.method} ${req.originalUrl}`)
         
         const result = await this.marketService.searchMarket(query as string)
         res.json(result)
@@ -22,15 +22,14 @@ class MarketController {
         const { id } = req.params
         const { period } = req.query
 
-        logger.debug("Getting market details for id:", id)
-        logger.info("Period:", period)
+        logger.info(`Handling market details request ${req.method} ${req.originalUrl} ${id} for period ${period}`)
         
         const result = await this.marketService.getMarketDetails(id as string, period as Period)
         res.json(result)
     }
 
-    getDefaultsAssets = async(_req: Request, res: Response) => {
-        logger.info("New request for getting defaults assets")
+    getDefaultsAssets = async(req: Request, res: Response) => {
+        logger.info(`Handling defaults market request ${req.method} ${req.originalUrl}`)
 
         const result = await this.marketService.getDefaultsMarketAssets()
         res.json(result)
