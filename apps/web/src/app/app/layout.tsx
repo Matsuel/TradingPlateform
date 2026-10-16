@@ -1,6 +1,7 @@
 import { AppSidebar } from '@/components/app-sidebar';
 import Header from '@/components/Header';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
+import { requireSession } from '@/lib/session';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -8,11 +9,13 @@ export const metadata: Metadata = {
     description: "Oui",
 };
 
-const AppLayout = ({ children }: LayoutProps<"/">) => {
+const AppLayout = async ({ children }: LayoutProps<"/">) => {
+
+    const { user } = await requireSession()
 
     return (
         <SidebarProvider>
-            <AppSidebar />
+            <AppSidebar user={user} />
             <main className='w-full'>
                 <SidebarInset>
                     <Header />
