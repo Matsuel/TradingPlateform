@@ -14,7 +14,7 @@ const PageLayout = ({
     ...props
 }: PageLayoutProps) => {
     return (
-        <div className={cn("w-full min-h-screen px-8 py-6", className)} {...props}>
+        <div className={cn("w-full min-h-screen px-8 py-6 flex flex-col gap-6", className)} {...props}>
             <div>
                 <h2 className='text-h2'>
                     {title}
