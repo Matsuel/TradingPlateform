@@ -20,6 +20,10 @@ class MarketService {
         }
         return this.repo.getDetails(id.trim(), period)
     }
+
+    async getDefaultsMarketAssets() {
+        return this.repo.getDefaultAssets()
+    }
 }
 
 export default MarketService;

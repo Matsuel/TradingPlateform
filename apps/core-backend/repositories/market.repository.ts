@@ -1,15 +1,17 @@
 import YahooFinance from "yahoo-finance2";
-import type { MarketData, MarketDetails, Period } from "../interfaces/market.interface";
+import type { MarketAsset, MarketData, MarketDetails, Period } from "../interfaces/market.interface";
 import { env } from "../env";
+import { DEFAULT_TICKERS } from "../constants/market.constants";
 
 export interface IMarketRepository {
     search(query: string): Promise<MarketData[]>
     getDetails(id: string, period: Period): Promise<MarketDetails[]>
+    getDefaultAssets(): Promise<MarketAsset[]>;
 }
 
 class MarketRepository implements IMarketRepository {
 
-    private static yahooFinance = new YahooFinance();
+    private static yahooFinance = new YahooFinance({ suppressNotices: ['yahooSurvey']});
 
     async search(query: string): Promise<MarketData[]> {
         const results = await MarketRepository.yahooFinance.search(query)
@@ -55,6 +57,59 @@ class MarketRepository implements IMarketRepository {
         }))
 
         return formattedResult
+    }
+
+    /**
+     * Récupère les cotations des 15 actifs par défaut.
+     * Un actif indisponible ne bloque pas les autres.
+     */
+    async getDefaultAssets(): Promise<MarketAsset[]> {
+        const results = await Promise.allSettled(
+            DEFAULT_TICKERS.map(async (symbol) => {
+                const [quote, chart] = await Promise.all([
+                    MarketRepository.yahooFinance.quote(symbol),
+                    MarketRepository.yahooFinance.chart(symbol, {
+                        period1: new Date(
+                            Date.now() - 24 * 60 * 60 * 1000,
+                        ),
+                        interval: "1h",
+                    }),
+                ]);
+
+                const history: MarketDetails[] = chart.quotes
+                    .filter((point: any) => point.close != null)
+                    .map((point: any) => ({
+                        date: point.date,
+                        price: point.close,
+                    }));
+
+                return {
+                    symbol: quote.symbol,
+                    name:
+                        quote.shortName ??
+                        quote.longName ??
+                        quote.symbol,
+                    price: quote.regularMarketPrice ?? null,
+                    change24h:
+                        quote.regularMarketChangePercent ?? null,
+                    volume24h: quote.regularMarketVolume ?? null,
+                    history,
+                } satisfies MarketAsset;
+            }),
+        );
+
+        return results.flatMap((result, index) => {
+            if (result.status === "fulfilled") {
+                return [result.value];
+            }
+
+            console.error(
+                `Impossible de récupérer ${DEFAULT_TICKERS[index]}:`,
+                result.reason,
+            );
+
+            return [];
+        });
     }
 }
 

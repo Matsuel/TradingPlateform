@@ -1,7 +1,9 @@
 import type { Request, Response } from "express";
 import MarketService from "../services/market.service";
 import type { Period } from "../interfaces/market.interface";
+import { Logger } from "../utils/logger";
 
+const logger = Logger.here();
 
 class MarketController {
 
@@ -10,7 +12,7 @@ class MarketController {
     searchMarket = async(req: Request, res: Response) => {
         const { query } = req.query
 
-        console.log("Searching market with query:", query)
+        logger.info("Searching market with query:", query)
         
         const result = await this.marketService.searchMarket(query as string)
         res.json(result)
@@ -20,10 +22,17 @@ class MarketController {
         const { id } = req.params
         const { period } = req.query
 
-        console.log("Getting market details for id:", id)
-        console.log("Period:", period)
+        logger.debug("Getting market details for id:", id)
+        logger.info("Period:", period)
         
         const result = await this.marketService.getMarketDetails(id as string, period as Period)
+        res.json(result)
+    }
+
+    getDefaultsAssets = async(_req: Request, res: Response) => {
+        logger.info("New request for getting defaults assets")
+
+        const result = await this.marketService.getDefaultsMarketAssets()
         res.json(result)
     }
 

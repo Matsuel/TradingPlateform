@@ -6,6 +6,15 @@ export interface MarketData {
     logoUrl?: string
 }
 
+export interface MarketAsset {
+    symbol: string;
+    name: string;
+    price: number | null;
+    change24h: number | null;
+    volume24h: number | null;
+    history: MarketDetails[];
+}
+
 export interface MarketDetails {
     date: string
     price: number
