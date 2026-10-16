@@ -5,6 +5,7 @@ import errorMiddleware from './middleware/error.middleware';
 import { dbHealthCheck } from './utils/db';
 import authRouter from './routes/auth';
 import portfolioRouter from './routes/portfolio';
+import marketRouter from './routes/market';
 
 const logger = Logger.here()
 
@@ -23,7 +24,9 @@ app.use(express.json());
 
 app.use(portfolioRouter);
 
-app.use(errorMiddleware)
+app.use(errorMiddleware);
+
+app.use(marketRouter);
 
 app.listen(8000, async () => {
     await dbHealthCheck();
