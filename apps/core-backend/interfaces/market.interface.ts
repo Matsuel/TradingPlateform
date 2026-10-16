@@ -13,6 +13,7 @@ export interface MarketAsset {
     change24h: number | null;
     volume24h: number | null;
     history: MarketDetails[];
+    logoUrl: string | undefined;
 }
 
 export interface MarketDetails {

@@ -94,6 +94,9 @@ class MarketRepository implements IMarketRepository {
                         quote.regularMarketChangePercent ?? null,
                     volume24h: quote.regularMarketVolume ?? null,
                     history,
+                    logoUrl: quote.symbol && env.LOGO_DEV_TOKEN
+                ? `https://img.logo.dev/ticker/${quote.symbol}?token=${env.LOGO_DEV_TOKEN}&size=64`
+                : undefined,
                 } satisfies MarketAsset;
             }),
         );
