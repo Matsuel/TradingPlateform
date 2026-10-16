@@ -1,5 +1,6 @@
 import { AppSidebar } from '@/components/app-sidebar';
-import { SidebarProvider } from '@/components/ui/sidebar';
+import Header from '@/components/Header';
+import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -8,12 +9,15 @@ export const metadata: Metadata = {
 };
 
 const AppLayout = ({ children }: LayoutProps<"/">) => {
-    
+
     return (
         <SidebarProvider>
             <AppSidebar />
-            <main>
-                {children}
+            <main className='w-full'>
+                <SidebarInset>
+                    <Header />
+                    {children}
+                </SidebarInset>
             </main>
         </SidebarProvider>
     )

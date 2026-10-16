@@ -16,7 +16,7 @@ export default function LoginPage() {
     const onSubmit = async ({ email, password }: Inputs) => {
         const { error } = await authClient.signIn.email({ email, password });
         if (error) return error.message ?? "Invalid credentials";
-        router.push("/dashboard");
+        router.push("/app");
         router.refresh();
     }
 
