@@ -4,6 +4,44 @@
 
 @custom-variant dark (&:is(.dark *));
 
+@theme {
+  --text-h1: 30px;
+  --text-h1--line-height: 36px;
+  --text-h1--font-weight: 600;
+
+  --text-h2: 24px;
+  --text-h2--line-height: 32px;
+  --text-h2--font-weight: 600;
+
+  --text-h3: 18px;
+  --text-h3--line-height: 28px;
+  --text-h3--font-weight: 600;
+
+  --text-stat: 28px;
+  --text-stat--line-height: 32px;
+  --text-stat--font-weight: 600;
+
+  --text-body: 14px;
+  --text-body--line-height: 20px;
+  --text-body--font-weight: 400;
+
+  --text-body-medium: 14px;
+  --text-body-medium--line-height: 20px;
+  --text-body-medium--font-weight: 500;
+
+  --text-body-semibold: 14px;
+  --text-body-semibold--line-height: 20px;
+  --text-body-semibold--font-weight: 600;
+
+  --text-small: 12px;
+  --text-small--line-height: 16px;
+  --text-small--font-weight: 400;
+
+  --text-small-medium: 12px;
+  --text-small-medium--line-height: 16px;
+  --text-small-medium--font-weight: 500;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

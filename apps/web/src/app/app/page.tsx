@@ -1,9 +1,15 @@
 "use client"
 
+import PageLayout from "@/components/PageLayout"
+
 export default function Page() {
 
   return (
-    <div className="w-full min-h-screen bg-green-300">
-    </div>
+    <PageLayout
+      title="Dashboard"
+      description="Vue d’ensemble de votre portefeuille virtuel."
+    >
+
+    </PageLayout>
   )
 }
