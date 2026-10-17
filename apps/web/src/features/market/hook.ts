@@ -1,10 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { apiFetch } from "@/lib/api";
-import { MarketAsset } from "../../types/market";
-
-async function getDefaultAssets(): Promise<MarketAsset[]> {
-    return apiFetch<MarketAsset[]>("/market/defaults");
-}
+import { getDefaultAssets } from "./api";
 
 export function useDefaultAssets() {
     return useQuery({
