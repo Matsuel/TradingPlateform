@@ -43,46 +43,48 @@ export function DataTable<T>({
     )
 
     return (
-        <Table className={className}>
-            <TableHeader>
-                <TableRow>
-                    {columns.map((col, i) => (
-                        <TableHead key={i} className={col.className}>
-                            {col.header}
-                        </TableHead>
-                    ))}
-                </TableRow>
-            </TableHeader>
-            <TableBody>
-                {isPending ? (
-                    status(loader)
-                ) : isError ? (
-                    status(
-                        <>
-                            <p className="text-sm text-destructive">{error?.message}</p>
-                            <Button variant="outline" size="sm" onClick={() => refetch()}>
-                                Réessayer
-                            </Button>
-                        </>
-                    )
-                ) : data && data.length === 0 ? (
-                    status(<span className="text-sm text-muted-foreground">{emptyMessage}</span>)
-                ) : (
-                    data && data.map((row) => (
-                        <TableRow
-                            key={rowKey(row)}
-                            onClick={onRowClick ? () => onRowClick(row) : undefined}
-                            className={cn(onRowClick && "cursor-pointer")}
-                        >
-                            {columns.map((col, i) => (
-                                <TableCell key={i} className={col.className}>
-                                    {col.cell(row)}
-                                </TableCell>
-                            ))}
-                        </TableRow>
-                    ))
-                )}
-            </TableBody>
-        </Table>
+        <div className="p-6 border rounded-xl">
+            <Table className={className}>
+                <TableHeader>
+                    <TableRow>
+                        {columns.map((col, i) => (
+                            <TableHead key={i} className={col.className}>
+                                {col.header}
+                            </TableHead>
+                        ))}
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {isPending ? (
+                        status(loader)
+                    ) : isError ? (
+                        status(
+                            <>
+                                <p className="text-sm text-destructive">{error?.message}</p>
+                                <Button variant="outline" size="sm" onClick={() => refetch()}>
+                                    Réessayer
+                                </Button>
+                            </>
+                        )
+                    ) : data && data.length === 0 ? (
+                        status(<span className="text-sm text-muted-foreground">{emptyMessage}</span>)
+                    ) : (
+                        data && data.map((row) => (
+                            <TableRow
+                                key={rowKey(row)}
+                                onClick={onRowClick ? () => onRowClick(row) : undefined}
+                                className={cn(onRowClick && "cursor-pointer")}
+                            >
+                                {columns.map((col, i) => (
+                                    <TableCell key={i} className={col.className}>
+                                        {col.cell(row)}
+                                    </TableCell>
+                                ))}
+                            </TableRow>
+                        ))
+                    )}
+                </TableBody>
+            </Table>
+        </div>
     )
 }

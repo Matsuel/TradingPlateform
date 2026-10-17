@@ -5,11 +5,13 @@ import { Input } from "@/components/ui/input"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { marketColumns } from "@/features/market/column"
 import { useDefaultAssets } from "@/features/market/hook"
+import { useRouter } from "next/navigation"
 
 
 const MarketPage = () => {
 
     const query = useDefaultAssets()
+    const router = useRouter()
 
     return (
         <PageLayout
@@ -33,7 +35,12 @@ const MarketPage = () => {
                 />
             </div>
 
-            <DataTable query={query} columns={marketColumns} rowKey={(a) => a.symbol} />
+            <DataTable
+                query={query}
+                columns={marketColumns}
+                rowKey={(a) => a.symbol}
+                onRowClick={(a) => router.push(`/market?symbol=${a.symbol}`)}
+            />
         </PageLayout>
     )
 }
