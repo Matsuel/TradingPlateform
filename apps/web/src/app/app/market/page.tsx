@@ -39,7 +39,7 @@ const MarketPage = () => {
                 query={query}
                 columns={marketColumns}
                 rowKey={(a) => a.symbol}
-                onRowClick={(a) => router.push(`/market?symbol=${a.symbol}`)}
+                onRowClick={(a) => router.push(`/app/market/${a.symbol}`)}
             />
         </PageLayout>
     )
