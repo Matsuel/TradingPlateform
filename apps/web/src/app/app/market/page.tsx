@@ -1,6 +1,7 @@
 "use client"
 import { DataTable } from "@/components/data-table/data-table"
-import PageLayout from "@/components/PageLayout"
+import PageLayout from "@/components/page-layout"
+import PageHeader from "@/components/page-layout/header"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { marketColumns } from "@/features/market/column"
@@ -14,10 +15,12 @@ const MarketPage = () => {
     const router = useRouter()
 
     return (
-        <PageLayout
-            title="Marché"
-            description="Prix en temps réel via la plateforme Yahoo finance"
-        >
+        <PageLayout>
+            <PageHeader
+                title="Marché"
+                description="Prix en temps réel via Yahoo Finance"
+            />
+
             <div className="w-full h-auto flex flex-row justify-between items-center">
 
                 <Tabs defaultValue="all">

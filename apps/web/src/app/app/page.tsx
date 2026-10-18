@@ -1,6 +1,6 @@
 "use client"
 
-import PageLayout from "@/components/PageLayout"
+import PageLayout from "@/components/page-layout"
 
 export default function Page() {
 

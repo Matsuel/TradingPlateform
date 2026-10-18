@@ -1,4 +1,5 @@
-import PageLayout from "@/components/PageLayout"
+import { SymbolCell } from "@/components/data-table/cells"
+import PageLayout from "@/components/page-layout"
 
 type Props = {
     params: Promise<{ symbol: string }>
@@ -8,12 +9,9 @@ const SymbolPage = async ({ params }: Props) => {
 
     const { symbol } = await params
 
-
     return (
-        <PageLayout
-            title="test"
-            description="fiejoiz"
-        >
+        <PageLayout>
+            <SymbolCell symbol={symbol} name={"test"} logoUrl={undefined} size="lg" />
 
             {symbol}
 
