@@ -1,5 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
-import { getDefaultAssets } from "./api";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { getAssetsDetails, getDefaultAssets, Period } from "./api";
 
 export function useDefaultAssets() {
     return useQuery({
@@ -7,4 +7,13 @@ export function useDefaultAssets() {
         queryFn: getDefaultAssets,
         refetchInterval: 30_000,
     });
+}
+
+export function useMarketDetails (symbol: string, period: Period) {
+    return useQuery({
+        queryKey: ["market", "details", symbol, period],
+        queryFn: () => getAssetsDetails(symbol, period),
+        placeholderData: keepPreviousData, // pas de loader plein écran quand on change d'onglet
+        staleTime: 60_000,
+    })
 }

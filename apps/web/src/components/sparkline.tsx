@@ -1,7 +1,7 @@
 "use client"
-import type { MarketDetails } from "../../types/market"
 import { Line, LineChart, YAxis } from "recharts"
 import { ChartContainer, type ChartConfig } from "@/components/ui/chart"
+import { MarketDetails } from "@/features/market/types"
 
 const config = { value: { label: "Prix" } } satisfies ChartConfig
 

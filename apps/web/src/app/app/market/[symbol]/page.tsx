@@ -1,3 +1,4 @@
+import { PriceChart } from "@/components/chart"
 import { SymbolCell } from "@/components/data-table/cells"
 import PageLayout from "@/components/page-layout"
 
@@ -13,7 +14,7 @@ const SymbolPage = async ({ params }: Props) => {
         <PageLayout>
             <SymbolCell symbol={symbol} name={"test"} logoUrl={undefined} size="lg" />
 
-            {symbol}
+            <PriceChart symbol={symbol} />
 
         </PageLayout>
     )
