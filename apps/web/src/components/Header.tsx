@@ -1,13 +1,13 @@
 "use client"
 import { SidebarTrigger } from './ui/sidebar'
 import { Separator } from './ui/separator'
-import { Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from './ui/breadcrumb'
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from './ui/breadcrumb'
 import { getActive } from '@/lib/path'
 import { usePathname } from 'next/navigation'
 
 const Header = () => {
 
-    const { name, parent } = getActive(usePathname())
+    const { name, parent, url } = getActive(usePathname())
 
     return (
         <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
@@ -24,7 +24,9 @@ const Header = () => {
                         </BreadcrumbItem>
                         <BreadcrumbSeparator className="hidden md:block" />
                         <BreadcrumbItem>
-                            <BreadcrumbPage>{name}</BreadcrumbPage>
+                            <BreadcrumbLink href={url as string}>
+                                <BreadcrumbPage>{name}</BreadcrumbPage>
+                            </BreadcrumbLink>
                         </BreadcrumbItem>
                     </BreadcrumbList>
                 </Breadcrumb>
