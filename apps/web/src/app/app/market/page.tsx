@@ -2,7 +2,7 @@
 import { DataTable } from "@/components/data-table/data-table"
 import PageLayout from "@/components/page-layout"
 import PageHeader from "@/components/page-layout/header"
-import { Input } from "@/components/ui/input"
+import SymbolSearch from "@/components/symbol-search"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { marketColumns } from "@/features/market/column"
 import { useDefaultAssets } from "@/features/market/hook"
@@ -32,10 +32,7 @@ const MarketPage = () => {
                     </TabsList>
                 </Tabs>
 
-                <Input
-                    className="w-70 focus-visible:ring-0"
-                    placeholder="Rechercher un symbole…"
-                />
+                <SymbolSearch />
             </div>
 
             <DataTable
