@@ -74,11 +74,15 @@ export function NavUser({
               </DropdownMenuLabel>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuGroup>
+            <DropdownMenuGroup
+              onClick={()=>{
+                router.push('/app/settings')
+              }}
+            >
               <DropdownMenuItem>
                 <BadgeCheckIcon
                 />
-                Account
+                Compte
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
