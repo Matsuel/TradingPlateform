@@ -6,6 +6,7 @@ import { dbHealthCheck } from './utils/db';
 import authRouter from './routes/auth';
 import portfolioRouter from './routes/portfolio';
 import marketRouter from './routes/market';
+import backtestRouter from './routes/backtest';
 
 const logger = Logger.here()
 
@@ -27,6 +28,8 @@ app.use(portfolioRouter);
 app.use(errorMiddleware);
 
 app.use(marketRouter);
+
+app.use(backtestRouter)
 
 app.listen(8000, async () => {
     await dbHealthCheck();
