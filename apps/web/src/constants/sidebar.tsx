@@ -48,7 +48,7 @@ const tabs = [
             },
             {
                 name: "Nouveau backtest",
-                url: `${prefix}/newbacktest`,
+                url: `${prefix}/backtest/new`,
                 icon: (
                     <Plus />
                 )
