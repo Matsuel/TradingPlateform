@@ -14,6 +14,27 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum BacktestStatus {
+  DRAFT
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum InvestmentMode {
+  LUMP_SUM
+  RECURRING
+}
+
+enum InvestmentFrequency {
+  DAILY
+  WEEKLY
+  MONTHLY
+  YEARLY
+}
+
 model User {
   id            String   @id @default(cuid())
   name          String
@@ -26,6 +47,7 @@ model User {
   accounts   Account[]
   sessions   Session[]
   portfolios Portfolio[]
+  backtests  Backtest[]
 
   @@map("user")
 }
@@ -112,4 +134,51 @@ model Jwks {
   crv        String?
 
   @@map("jwks")
+}
+
+model Backtest {
+  id                  String               @id
+  userId              String
+  name                String
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  capital             Decimal              @db.Decimal(18, 2)
+  recurringAmount     Decimal?             @db.Decimal(18, 2)
+  investmentMode      InvestmentMode
+  investmentFrequency InvestmentFrequency?
+
+  status BacktestStatus @default(DRAFT)
+
+  assets BacktestAsset[]
+  user   User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([status])
+}
+
+model BacktestAsset {
+  id         String  @id @default(uuid())
+  backtestId String
+  symbol     String
+  weight     Decimal @db.Decimal(7, 4)
+
+  backtest Backtest @relation(fields: [backtestId], references: [id], onDelete: Cascade)
+
+  @@unique([backtestId, symbol])
+}
+
+model BacktestResult {
+  id          String @id @default(uuid())
+  executionId String @unique
+
+  finalValue       Decimal? @db.Decimal(18, 2)
+  totalReturn      Decimal? @db.Decimal(12, 6)
+  annualizedReturn Decimal? @db.Decimal(12, 6)
+  maxDrawdown      Decimal? @db.Decimal(12, 6)
+  totalTrades      Int      @default(0)
+
+  metrics     Json?
+  equityCurve Json?
+
+  createdAt DateTime @default(now())
 }
