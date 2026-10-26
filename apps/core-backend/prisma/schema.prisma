@@ -30,18 +30,22 @@ enum InvestmentFrequency {
 }
 
 model User {
-  id            String   @id @default(cuid())
+  id            String    @id @default(cuid())
   name          String
-  email         String   @unique
-  emailVerified Boolean  @default(false)
+  email         String    @unique
+  emailVerified Boolean   @default(false)
   image         String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  role          String?
+  banned        Boolean?
+  banReason     String?
+  banExpires    DateTime? @db.Timestamptz(3)
 
-  accounts        Account[]
-  sessions        Session[]
-  portfolios      Portfolio[]
-  backtests       Backtest[]
+  accounts   Account[]
+  sessions   Session[]
+  portfolios Portfolio[]
+  backtests  Backtest[]
 
   @@map("user")
 }
@@ -68,14 +72,15 @@ model Account {
 }
 
 model Session {
-  id        String   @id
-  expiresAt DateTime
-  token     String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  ipAddress String?
-  userAgent String?
-  userId    String
+  id             String   @id
+  expiresAt      DateTime
+  token          String   @unique
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  ipAddress      String?
+  userAgent      String?
+  userId         String
+  impersonatedBy String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -141,28 +146,28 @@ model Backtest {
   startDate           DateTime
   endDate             DateTime
   investmentMode      InvestmentMode
-  initialAmount       Decimal  @db.Decimal(18, 2)
-  recurringAmount     Decimal? @db.Decimal(18, 2)
+  initialAmount       Decimal              @db.Decimal(18, 2)
+  recurringAmount     Decimal?             @db.Decimal(18, 2)
   investmentFrequency InvestmentFrequency?
-  feeRate             Decimal  @default(0) @db.Decimal(8, 6)
+  feeRate             Decimal              @default(0) @db.Decimal(8, 6)
 
-  user       User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user       User                @relation(fields: [userId], references: [id], onDelete: Cascade)
   executions BacktestExecution[]
 
   @@index([userId, createdAt])
 }
 
 model BacktestExecution {
-  id          String         @id @default(cuid())
-  backtestId  String
-  status      BacktestStatus @default(PENDING)
-  attempt     Int            @default(1)
-  startedAt   DateTime?
-  finishedAt  DateTime?
-  error       String?
-  createdAt   DateTime       @default(now())
+  id         String         @id @default(cuid())
+  backtestId String
+  status     BacktestStatus @default(PENDING)
+  attempt    Int            @default(1)
+  startedAt  DateTime?
+  finishedAt DateTime?
+  error      String?
+  createdAt  DateTime       @default(now())
 
-  backtest Backtest       @relation(fields: [backtestId], references: [id], onDelete: Cascade)
+  backtest Backtest        @relation(fields: [backtestId], references: [id], onDelete: Cascade)
   result   BacktestResult?
 
   @@index([backtestId, createdAt])

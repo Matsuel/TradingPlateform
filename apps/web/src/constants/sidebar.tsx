@@ -1,4 +1,4 @@
-import { Activity, ChartCandlestick, FlaskConical, LayoutDashboard, ListOrdered, Plus, Wallet } from "lucide-react"
+import { Activity, ChartCandlestick, FlaskConical, LayoutDashboard, ListOrdered, Plus, User, Wallet } from "lucide-react"
 
 const prefix = "/app";
 
@@ -63,6 +63,13 @@ const tabs = [
                 url: `${prefix}/monitoring`,
                 icon: (
                     <Activity />
+                )
+            },
+            {
+                name: "Utilisateurs",
+                url: `${prefix}/utilisateurs`,
+                icon: (
+                    <User />
                 )
             }
         ]

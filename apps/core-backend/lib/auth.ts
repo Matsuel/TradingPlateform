@@ -1,7 +1,7 @@
 import { prismaAdapter } from "@better-auth/prisma-adapter";
 import { betterAuth } from "better-auth";
 import { prisma } from "../prisma";
-import { jwt, bearer } from "better-auth/plugins";
+import { jwt, bearer, admin } from "better-auth/plugins";
 
 export const auth = betterAuth({
 
@@ -20,7 +20,7 @@ export const auth = betterAuth({
         enabled: true,
     },
 
-    session : {
+    session: {
         cookieCache: {
             enabled: true,
             maxAge: 5 * 60
@@ -28,6 +28,7 @@ export const auth = betterAuth({
     },
 
     plugins: [
+        admin(),
         jwt(),
         bearer(),
     ],
