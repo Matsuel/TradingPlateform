@@ -20,15 +20,19 @@ import tabs from "@/constants/sidebar";
 import { User } from "better-auth";
 
 
-interface SidebarProps extends React.ComponentProps<typeof Sidebar>{
+interface SidebarProps extends React.ComponentProps<typeof Sidebar> {
   user: User
+  isAdmin: boolean
 }
 
 export function AppSidebar({
   user,
+  isAdmin,
   ...props
 }: SidebarProps) {
-  
+
+  const visibleSections = tabs.filter((section) => !section.adminOnly || isAdmin)
+
 
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -49,7 +53,7 @@ export function AppSidebar({
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        {tabs.map((parts) => (
+        {visibleSections.map((parts) => (
           <SidebarNav tabs={parts.tabs} name={parts.name} key={parts.name} />
         ))}
       </SidebarContent>

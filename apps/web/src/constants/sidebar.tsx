@@ -5,6 +5,7 @@ const prefix = "/app";
 const tabs = [
     {
         name: "Trading",
+        adminOnly: false,
         tabs: [
             {
                 name: "Dashboard",
@@ -38,6 +39,7 @@ const tabs = [
     },
     {
         name: "Experimentation",
+        adminOnly: false,
         tabs: [
             {
                 name: "Backtests",
@@ -57,6 +59,7 @@ const tabs = [
     },
     {
         name: "Avancée",
+        adminOnly: true,
         tabs: [
             {
                 name: "Surveillance",
@@ -67,7 +70,7 @@ const tabs = [
             },
             {
                 name: "Utilisateurs",
-                url: `${prefix}/utilisateurs`,
+                url: `${prefix}/users`,
                 icon: (
                     <User />
                 )

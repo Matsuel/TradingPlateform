@@ -1,7 +1,7 @@
 import { AppSidebar } from '@/components/app-sidebar';
 import Header from '@/components/Header';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
-import { requireSession } from '@/lib/session';
+import { hasAdminRole, requireSession } from '@/lib/session';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -10,12 +10,12 @@ export const metadata: Metadata = {
 };
 
 const AppLayout = async ({ children }: LayoutProps<"/">) => {
-
-    const { user } = await requireSession()
+    const session = await requireSession();
+    const admin = hasAdminRole(session.user.role);
 
     return (
         <SidebarProvider>
-            <AppSidebar user={user} />
+            <AppSidebar user={session.user} isAdmin={admin} />
             <main className='w-full'>
                 <SidebarInset>
                     <Header />
