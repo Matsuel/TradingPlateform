@@ -5,7 +5,7 @@
         "packages/*"
     ],
     "scripts": {
-        "dev": "concurrently --kill-others --names API,WEB \"bun run --cwd apps/core-backend index.ts\" \"bun run --cwd apps/web dev\"",
+        "dev": "concurrently --kill-others --names API,WEB,BACKTEST \"bun run --cwd apps/core-backend index.ts\" \"bun run --cwd apps/web dev\" \"bun run --cwd apps/backtest-engine index.ts\"",
         "dev:backend": "bun run --cwd apps/core-backend index.ts",
         "dev:web": "bun run --cwd apps/web dev",
         "dev:backtest": "bun run --cwd apps/backtest-engine index.ts"

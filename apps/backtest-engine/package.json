@@ -10,8 +10,9 @@
     "typescript": "^7"
   },
   "dependencies": {
-    "@trading-plateform/kafka": "workspace:*",
     "@trading-plateform/contracts": "workspace:*",
-    "@trading-plateform/utils": "workspace:*"
+    "@trading-plateform/kafka": "workspace:*",
+    "@trading-plateform/utils": "workspace:*",
+    "kafkajs": "^2.2.4"
   }
 }

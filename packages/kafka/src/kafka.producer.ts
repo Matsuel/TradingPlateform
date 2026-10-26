@@ -1,5 +1,5 @@
 import type { Producer } from "kafkajs";
-import type { KafkaMessage } from "./kafka.types";
+import { KafkaMessage } from "./kafka.types";
 
 export class KafkaProducer {
     constructor(private readonly producer: Producer) { }

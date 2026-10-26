@@ -13,6 +13,7 @@
         "@trading-plateform/contracts": "workspace:*",
         "@trading-plateform/kafka": "workspace:*",
         "@trading-plateform/utils": "workspace:*",
+        "kafkajs": "^2.2.4",
       },
       "devDependencies": {
         "@types/bun": "latest",

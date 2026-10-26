@@ -1,0 +1,5 @@
+export { KafkaClient } from "./kafka.client"
+export { KafkaConsumer } from "./kafka.consumer"
+export { KafkaProducer } from "./kafka.producer"
+export { kafkaConfig } from "./config/kafka.config"
+export type { BacktestCompletedEvent, KafkaEvent, KafkaMessage } from "./kafka.types"
