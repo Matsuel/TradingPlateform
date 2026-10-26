@@ -1,7 +1,14 @@
 {
     "private": true,
+    "workspaces": [
+        "apps/*",
+        "packages/*"
+    ],
     "scripts": {
-        "dev": "concurrently --kill-others --names API,WEB \"cd apps/core-backend && bun run index.ts\" \"cd apps/web && bun run dev\""
+        "dev": "concurrently --kill-others --names API,WEB \"bun run --cwd apps/core-backend index.ts\" \"bun run --cwd apps/web dev\"",
+        "dev:backend": "bun run --cwd apps/core-backend index.ts",
+        "dev:web": "bun run --cwd apps/web dev",
+        "dev:backtest": "bun run --cwd apps/backtest-engine index.ts"
     },
     "devDependencies": {
         "concurrently": "^10.0.6"

@@ -1,0 +1,16 @@
+{
+  "name": "backtest-engine",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^7"
+  },
+  "dependencies": {
+    "@trading-plateform/kafka": "workspace:*",
+    "@trading-plateform/contracts": "workspace:*"
+  }
+}

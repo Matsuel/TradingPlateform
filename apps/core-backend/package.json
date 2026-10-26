@@ -9,6 +9,7 @@
   "private": true,
   "devDependencies": {
     "@types/bun": "latest",
+    "@types/pg": "^8.23.1",
     "prisma": "6"
   },
   "peerDependencies": {
@@ -18,11 +19,16 @@
     "@better-auth/prisma-adapter": "^1.7.7",
     "@prisma/adapter-pg": "^7.10.0",
     "@prisma/client": "6",
+    "@trading-plateform/contracts": "workspace:*",
+    "@trading-plateform/kafka": "workspace:*",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "better-auth": "^1.7.7",
     "cors": "^2.8.6",
     "express": "^5.2.1",
-    "yahoo-finance2": "^4.0.4"
+    "pg": "^8.23.1",
+    "yahoo-finance2": "^4.0.4",
+    "z": "^1.0.9",
+    "zod": "^4.6.7"
   }
 }

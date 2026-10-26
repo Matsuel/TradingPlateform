@@ -1,0 +1,12 @@
+{
+    "name": "@trading-plateform/kafka",
+    "version": "1.0.0",
+    "private": true,
+    "type": "module",
+    "exports": {
+        ".": "./src/index.ts"
+    },
+    "dependencies": {
+        "kafkajs": "^2.2.4"
+    }
+}
