@@ -17,7 +17,7 @@ export default function RegisterPage() {
     const onSubmit = async ({ name, email, password }: Inputs) => {
         const { error } = await authClient.signUp.email({ name, email, password });
         if (error) return error.message ?? "Invalid credentials";
-        router.push("/dashboard");
+        router.push("/app");
         router.refresh();
     }
 
