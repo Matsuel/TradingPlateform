@@ -1,9 +1,9 @@
-import { Logger } from "../utils/logger"
 import BadRequestError from "../errors/badrequest.error"
 import NotFoundError from "../errors/notfound.error"
 import ForbiddenError from "../errors/forbidden.error"
 import PortfolioRepository, { type IPortfolioRepository } from "../repositories/portfolio.repository"
 import type { UpdatePortfolioDTO } from "../interfaces/portfolio.interface"
+import { Logger } from "@trading-plateform/utils"
 
 const logger = Logger.here()
 

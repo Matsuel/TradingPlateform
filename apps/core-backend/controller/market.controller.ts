@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 import MarketService from "../services/market.service";
 import type { Period } from "../interfaces/market.interface";
-import { Logger } from "../utils/logger";
+import { Logger } from "@trading-plateform/utils";
 
 const logger = Logger.here();
 

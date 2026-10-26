@@ -1,12 +1,12 @@
 import express from 'express';
 import cors from 'cors';
-import { Logger } from './utils/logger';
 import errorMiddleware from './middleware/error.middleware';
 import { dbHealthCheck } from './utils/db';
 import authRouter from './routes/auth';
 import portfolioRouter from './routes/portfolio';
 import marketRouter from './routes/market';
 import backtestRouter from './routes/backtest';
+import { Logger } from '@trading-plateform/utils';
 
 const logger = Logger.here()
 

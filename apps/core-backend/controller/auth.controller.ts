@@ -1,7 +1,7 @@
 import { toNodeHandler } from "better-auth/node";
 import { auth } from "../lib/auth";
 import type { Request, Response } from "express";
-import { Logger } from "../utils/logger";
+import { Logger } from "@trading-plateform/utils";
 
 const logger = Logger.here();
 

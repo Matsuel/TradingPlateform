@@ -1,8 +1,8 @@
+import { Logger } from "@trading-plateform/utils";
 import ForbiddenError from "../errors/forbidden.error";
 import NotFoundError from "../errors/notfound.error";
 import type { IBacktestRepository } from "../repositories/backtest.repository";
 import BacktestRepository from "../repositories/backtest.repository";
-import { Logger } from "../utils/logger";
 
 const logger = Logger.here()
 

@@ -1,5 +1,5 @@
+import { Logger } from "@trading-plateform/utils";
 import { prisma } from "../prisma";
-import { Logger } from "./logger";
 
 const logger = Logger.here()
 

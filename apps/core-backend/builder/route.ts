@@ -1,6 +1,6 @@
 import type { Router } from "express";
-import { Logger } from "../utils/logger";
 import type { RouteDescriptor } from "../models/route.model";
+import { Logger } from "@trading-plateform/utils";
 
 const logger = Logger.here();
 

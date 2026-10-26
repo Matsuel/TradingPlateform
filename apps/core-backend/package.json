@@ -21,6 +21,7 @@
     "@prisma/client": "6",
     "@trading-plateform/contracts": "workspace:*",
     "@trading-plateform/kafka": "workspace:*",
+    "@trading-plateform/utils": "workspace:*",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "better-auth": "^1.7.7",
