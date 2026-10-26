@@ -1,10 +1,11 @@
-import { Activity, ChartCandlestick, FlaskConical, LayoutDashboard, ListOrdered, Plus, Wallet } from "lucide-react"
+import { Activity, ChartCandlestick, FlaskConical, LayoutDashboard, ListOrdered, Plus, User, Wallet } from "lucide-react"
 
 const prefix = "/app";
 
 const tabs = [
     {
         name: "Trading",
+        adminOnly: false,
         tabs: [
             {
                 name: "Dashboard",
@@ -38,6 +39,7 @@ const tabs = [
     },
     {
         name: "Experimentation",
+        adminOnly: false,
         tabs: [
             {
                 name: "Backtests",
@@ -57,12 +59,20 @@ const tabs = [
     },
     {
         name: "Avancée",
+        adminOnly: true,
         tabs: [
             {
                 name: "Surveillance",
                 url: `${prefix}/monitoring`,
                 icon: (
                     <Activity />
+                )
+            },
+            {
+                name: "Utilisateurs",
+                url: `${prefix}/users`,
+                icon: (
+                    <User />
                 )
             }
         ]
