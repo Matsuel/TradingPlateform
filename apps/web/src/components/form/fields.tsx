@@ -99,21 +99,24 @@ export function DateField<T extends FieldValues>({
         <AppField {...base}>
             {({ field, invalid }) => (
                 <Popover>
-                    <PopoverTrigger>
-                        <Button
-                            id={field.name}
-                            type="button"
-                            variant="outline"
-                            aria-invalid={invalid}
-                            className={cn("w-full justify-between font-normal", !field.value && "text-muted-foreground")}
-                        >
-                            {field.value ? format(field.value, "dd/MM/yyyy") : placeholder}
-                            <CalendarIcon className="size-4 opacity-50" />
-                        </Button>
+                    <PopoverTrigger
+                        render={
+                            <Button
+                                id={field.name}
+                                type="button"
+                                variant="outline"
+                                aria-invalid={invalid}
+                                className={cn("w-full justify-between font-normal", !field.value && "text-muted-foreground")}
+                            />
+                        }
+                    >
+                        {field.value ? format(field.value, "dd/MM/yyyy") : placeholder}
+                        <CalendarIcon className="size-4 opacity-50" />
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
                         <Calendar
                             mode="single"
+                            captionLayout="dropdown"
                             locale={fr}
                             selected={field.value}
                             onSelect={field.onChange}

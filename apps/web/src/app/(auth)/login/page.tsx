@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth";
 import { cn } from "cn";
-import Form from "@/components/Form";
+import Form from "@/components/OldForm";
 
 type Inputs = {
     email: string;
