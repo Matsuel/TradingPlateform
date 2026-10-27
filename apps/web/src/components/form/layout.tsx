@@ -1,22 +1,24 @@
 import { cn } from "@/lib/utils"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
+interface FormSectionProps {
+    title: string
+    description?: string
+    className?: string
+    children: React.ReactNode
+}
+
 export function FormSection({
     title,
     description,
     className,
     children,
-}: {
-    title: string
-    description?: string
-    className?: string
-    children: React.ReactNode
-}) {
+}: FormSectionProps) {
     return (
         <Card className={className}>
             <CardHeader>
-                <CardTitle className="text-sm">{title}</CardTitle>
-                {description && <CardDescription className="text-xs">{description}</CardDescription>}
+                <CardTitle>{title}</CardTitle>
+                {description && <CardDescription>{description}</CardDescription>}
             </CardHeader>
             <CardContent className="grid gap-4">{children}</CardContent>
         </Card>

@@ -3,10 +3,7 @@
 import { DateField, FieldRow, FormSection, NumberField, SelectField, TextField } from "@/components/form"
 
 const strategies = [
-    { value: "ma-cross", label: "Croisement de moyennes mobiles" },
-    { value: "rsi", label: "RSI (surachat/survente)" },
-    { value: "bollinger", label: "Bandes de Bollinger" },
-    { value: "breakout", label: "Cassure de canal" },
+    { value: "dca", label: "Simulation DCA dans le passé" }
 ]
 
 export function GeneralSection() {
