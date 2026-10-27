@@ -142,7 +142,7 @@ model Backtest {
   updatedAt DateTime @updatedAt
 
   // Paramètres conservés pour relancer le même backtest
-  symbol              String
+  symbols             String[]
   startDate           DateTime
   endDate             DateTime
   investmentMode      InvestmentMode

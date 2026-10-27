@@ -10,6 +10,12 @@ const createBacktestRoutes = (): RouteDescriptor[] => {
 
     return [
         {
+            method: "post",
+            path: `${prefix}`,
+            middlewares: [authMiddleware],
+            handler: asyncHandler(controller.createBacktest)
+        },
+        {
             method: "get",
             path: `${prefix}/:id`,
             middlewares: [authMiddleware],

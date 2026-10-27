@@ -20,6 +20,9 @@ type DataTableProps<T> = {
     onRowClick?: (row: T) => void
     emptyMessage?: ReactNode
     loader?: ReactNode
+    title?: ReactNode
+    description?: ReactNode
+    actions?: ReactNode // ex. onglets de filtre, à droite du titre
     className?: string
 }
 
@@ -30,6 +33,9 @@ export function DataTable<T>({
     onRowClick,
     emptyMessage = "Aucune donnée.",
     loader = <Loader2 className="size-6 animate-spin text-muted-foreground" />,
+    title,
+    description,
+    actions,
     className,
 }: DataTableProps<T>) {
     const { data, isPending, isError, error, refetch } = query
@@ -43,7 +49,16 @@ export function DataTable<T>({
     )
 
     return (
-        <div className="p-6 border rounded-xl">
+        <div className="flex flex-col gap-4 p-6 border rounded-xl">
+            {(title || description || actions) && (
+                <div className="flex items-center justify-between gap-4">
+                    <div className="flex flex-col">
+                        {title && <span className="text-body-semibold">{title}</span>}
+                        {description && <span className="text-small text-muted-foreground">{description}</span>}
+                    </div>
+                    {actions}
+                </div>
+            )}
             <Table className={className}>
                 <TableHeader>
                     <TableRow>

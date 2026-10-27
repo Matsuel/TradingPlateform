@@ -14,3 +14,5 @@ export const formatVolume = new Intl.NumberFormat(fr, {
 
 export const formatDate = (d: string | Date) =>
     new Intl.DateTimeFormat(fr, { dateStyle: "short", timeStyle: "short" }).format(new Date(d))
+export const formatDay = (d: string | Date) =>
+    new Intl.DateTimeFormat(fr, { day: "2-digit", month: "2-digit", year: "2-digit" }).format(new Date(d))
