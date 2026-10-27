@@ -73,9 +73,16 @@ export function SelectField<T extends FieldValues>({
     return (
         <AppField {...base}>
             {({ field, invalid }) => (
-                <Select value={field.value} onValueChange={field.onChange}>
+                <Select
+                    value={field.value || null}
+                    onValueChange={(v) => field.onChange(v ?? "")}
+                >
                     <SelectTrigger id={field.name} aria-invalid={invalid} className="w-full">
-                        <SelectValue placeholder={placeholder} />
+                        <SelectValue placeholder={placeholder}>
+                            {(value: string | null) =>
+                                options.find((o) => o.value === value)?.label ?? placeholder
+                            }
+                        </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                         {options.map((o) => (
