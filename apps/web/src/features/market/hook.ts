@@ -20,7 +20,7 @@ export function useMarketDetails(symbol: string, period: Period) {
 
 export function useMarketSerach(symbol: string) {
     return useQuery({
-        queryKey: ["search", "search-assets"],
+        queryKey: ["search", "search-assets", symbol],
         queryFn: () => getSearchAssets(symbol),
         enabled: symbol.length > 2
     })

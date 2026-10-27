@@ -6,6 +6,7 @@ const general = {
 }
 
 const market = {
+    symbols: z.array(z.string()).min(1, "Ajoute au moins un symbole"),
     start: z.date({ error: "Requis" }),
     end: z.date({ error: "Requis" }),
     capital: z.number({ error: "Requis" }).positive(),

@@ -1,6 +1,6 @@
 "use client"
 
-import { DateField, FieldRow, FormSection, NumberField, SelectField, TextField } from "@/components/form"
+import { DateField, FieldRow, FormSection, NumberField, SelectField, SymbolsField, TextField } from "@/components/form"
 
 const strategies = [
     { value: "dca", label: "Simulation DCA dans le passé" }
@@ -18,6 +18,7 @@ export function GeneralSection() {
 export function MarketSection() {
     return (
         <FormSection title="Marché et période" description="Symboles et fenêtre historique">
+            <SymbolsField name="symbols" label="Symboles" />
             <FieldRow>
                 <DateField name="start" label="Début" />
                 <DateField name="end" label="Fin" />
