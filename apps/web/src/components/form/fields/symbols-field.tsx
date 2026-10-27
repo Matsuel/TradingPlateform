@@ -27,7 +27,7 @@ export function SymbolsField<T extends FieldValues>({
                     <>
                         <div id={field.name} className="flex flex-wrap items-center gap-2" aria-invalid={invalid}>
                             {symbols.map((symbol) => (
-                                <Badge key={symbol} variant="outline" className="h-6.5 gap-1.5 px-3 text-xs">
+                                <Badge key={symbol} variant="outline" className="h-auto py-1 gap-1.5 px-2 text-xs">
                                     {symbol}
                                     <button
                                         type="button"
@@ -35,7 +35,7 @@ export function SymbolsField<T extends FieldValues>({
                                         className="rounded-full text-muted-foreground hover:text-foreground"
                                         onClick={() => field.onChange(symbols.filter((s) => s !== symbol))}
                                     >
-                                        <X className="w-3 h-3 cursor-pointer" />
+                                        <X className="cursor-pointer" width={12} height={12} />
                                     </button>
                                 </Badge>
                             ))}
