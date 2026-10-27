@@ -1,9 +1,12 @@
 "use client"
 
+import { useWatch } from "react-hook-form"
+
 import { DateField, FieldRow, FormSection, NumberField, SelectField, SymbolsField, TextField } from "@/components/form"
 
 const strategies = [
-    { value: "dca", label: "Simulation DCA dans le passé" }
+    { value: "dca", label: "DCA — investir un montant chaque mois" },
+    { value: "lump_sum", label: "Lump sum — investir en une seule fois" },
 ]
 
 export function GeneralSection() {
@@ -16,6 +19,8 @@ export function GeneralSection() {
 }
 
 export function MarketSection() {
+    const strategy = useWatch({ name: "strategy" })
+
     return (
         <FormSection title="Marché et période" description="Symboles et fenêtre historique">
             <SymbolsField name="symbols" label="Symboles" />
@@ -24,7 +29,10 @@ export function MarketSection() {
                 <DateField name="end" label="Fin" />
             </FieldRow>
             <FieldRow>
-                <NumberField name="capital" label="Capital initial (€)" />
+                <NumberField
+                    name="amount"
+                    label={strategy === "lump_sum" ? "Montant investi (€)" : "Montant investi chaque mois (€)"}
+                />
                 <NumberField name="fee" label="Frais par ordre (%)" />
             </FieldRow>
         </FormSection>

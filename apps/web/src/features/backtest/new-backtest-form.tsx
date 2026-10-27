@@ -10,7 +10,7 @@ import { backtestSchema, type BacktestValues } from "./schema"
 export function NewBacktestForm({ onSubmit }: { onSubmit: (values: BacktestValues) => Promise<void> | void }) {
     const form = useForm<BacktestValues>({
         resolver: zodResolver(backtestSchema),
-        defaultValues: { name: "", strategy: "", symbols: [], capital: 100_000, fee: 0.1 },
+        defaultValues: { name: "", strategy: "dca", symbols: [], amount: 1_000, fee: 0.1 },
     })
 
     return (
