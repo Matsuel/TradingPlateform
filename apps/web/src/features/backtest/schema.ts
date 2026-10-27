@@ -2,9 +2,7 @@ import { z } from "zod"
 
 const general = {
     name: z.string().min(1, "Requis"),
-    strategy: z.string().min(1, "Requis"),
-    shortMa: z.number({ error: "Requis" }).int().positive(),
-    longMa: z.number({ error: "Requis" }).int().positive(),
+    strategy: z.string().min(1, "Requis")
 }
 
 const market = {
@@ -17,10 +15,6 @@ const market = {
 // Un seul schéma : les règles croisées (général <-> marché) se déclarent ici
 export const backtestSchema = z
     .object({ ...general, ...market })
-    .refine((v) => v.shortMa < v.longMa, {
-        path: ["longMa"],
-        message: "Doit être supérieure à la moyenne courte",
-    })
     .refine((v) => v.start < v.end, {
         path: ["end"],
         message: "Doit être après la date de début",

@@ -14,10 +14,6 @@ export function GeneralSection() {
         <FormSection title="Général" description="Nom et stratégie à tester">
             <TextField name="name" label="Nom du backtest" />
             <SelectField name="strategy" label="Stratégie" options={strategies} />
-            <FieldRow>
-                <NumberField name="shortMa" label="Moyenne mobile courte" description="Nombre de bougies" />
-                <NumberField name="longMa" label="Moyenne mobile longue" description="Nombre de bougies" />
-            </FieldRow>
         </FormSection>
     )
 }
