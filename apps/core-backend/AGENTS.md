@@ -12,6 +12,7 @@ routes/<domaine>/   →  controller/  →  services/  →  repositories/  →  p
 | Dossier | Rôle |
 | --- | --- |
 | `routes/<domaine>/` | `<domaine>.routes.ts` (descripteurs) + `index.ts` (Router). |
+| `consumers/` | Consumers Kafka `<domaine>.consumer.ts` : valident le message (zod, `@trading-plateform/contracts`) et appellent le service (≈ controller). Branchés dans `index.ts`. |
 | `controller/` | Classes `<Domaine>Controller`, parsing req/res uniquement. |
 | `services/` | Classes `<Domaine>Service`, logique métier, erreurs `AppError`. |
 | `repositories/` | Interface `I<Domaine>Repository` + classe, seul lieu où vit `prisma`. |
@@ -22,7 +23,7 @@ routes/<domaine>/   →  controller/  →  services/  →  repositories/  →  p
 | `builder/` | `registerRoutes`. |
 | `constants/` | Constantes (`<domaine>.constants.ts`). |
 | `utils/` | Helpers (`asyncHandler`, `db`). |
-| `lib/`, `types/` | Config better-auth, augmentations de types Express. |
+| `lib/`, `types/` | Config better-auth, producer/consumer Kafka (`lib/kafka.ts`), augmentations de types Express. |
 | `prisma/`, `generated/` | Schéma et migrations ; `generated/` ne s'édite jamais. |
 
 ## Conventions
@@ -59,6 +60,7 @@ bunx tsc --noEmit
 6. `routes/<domaine>/<domaine>.routes.ts` + `index.ts` (copie `routes/backtest/`), préfixe `/api/<domaine>`, `authMiddleware`.
 7. Enregistrer le router dans `index.ts`.
 8. Nouvelle erreur → `errors/<nom>.error.ts` étendant `AppError` ; nouvelle env → `env.ts`.
-9. Publier un événement Kafka → via `@trading-plateform/kafka`, type dans `packages/kafka`.
+9. Publier un événement Kafka → `producer` de `lib/kafka.ts` + `createKafkaEvent`, contrat (topic + schéma zod) dans `packages/contracts`.
+10. Consommer un événement → `consumers/<domaine>.consumer.ts` + abonnement dans `index.ts`. core-backend est **le seul service qui écrit en base** : les autres services publient, core-backend applique (transitions gardées par statut pour l'idempotence).
 
 Règles par couche : controller sans métier ni `prisma` ; service sans `req`/`res` ; repository sans règle métier ni `AppError` ; `error.middleware` seul formateur d'erreurs ; jamais `res.status` hors middleware.
