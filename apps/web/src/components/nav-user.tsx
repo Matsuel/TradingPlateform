@@ -21,7 +21,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 import { signOut } from "@/lib/auth"
-import { prefix } from "@/lib/path"
+import { authPaths, prefix } from "@/lib/path"
 import type { User } from "better-auth"
 import { ChevronsUpDownIcon, BadgeCheckIcon, LogOutIcon } from "lucide-react"
 import { useRouter } from "next/navigation"
@@ -90,7 +90,7 @@ export function NavUser({
             <DropdownMenuItem
               onClick={async () => {
                 await signOut();
-                router.push("/login");
+                router.push(authPaths.login);
               }}
             >
               <LogOutIcon

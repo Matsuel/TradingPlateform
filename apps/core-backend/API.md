@@ -52,8 +52,8 @@ Catalogue des routes HTTP exposées par core-backend (port 8000) et appelées pa
 - **Erreurs** : format better-auth, pas celui de `error.middleware`.
 - **Effets** : écritures `User`, `Account`, `Session`, `Verification`, `Jwks` via `prismaAdapter`. Aucun événement Kafka.
 - **Appelant** : `authClient` de `apps/web/src/lib/auth.ts` (better-auth/react, `baseURL: "http://localhost:8000"`, `basePath` par défaut `/api/auth`, plugin `adminClient`) :
-  - `authClient.signIn.email({ email, password })` : `LoginForm` (`features/auth/login-form.tsx`) ;
-  - `authClient.signUp.email({ name, email, password })` : `RegisterForm` (`features/auth/register-form.tsx`) ;
+  - `signIn.email({ email, password })` : `login` de `features/auth/api.ts`, via `useLogin` dans `LoginForm` ;
+  - `signUp.email({ name, email, password })` : `register` de `features/auth/api.ts`, via `useRegister` dans `RegisterForm` ;
   - `signOut()` : `components/nav-user.tsx` ;
   - `authClient.getSession(...)` côté serveur : `getSession`/`requireSession`/`isAdmin` de `apps/web/src/lib/session.ts`, utilisés par `apps/web/src/app/app/layout.tsx` et `apps/web/src/app/app/(admin)/layout.tsx`.
 - **Source** : `routes/auth/auth.routes.ts`, `controller/auth.controller.ts`, `lib/auth.ts`.

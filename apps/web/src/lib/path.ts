@@ -2,6 +2,12 @@ import tabs, { prefix } from "@/constants/sidebar";
 
 export { prefix }
 
+// Pages publiques d'authentification (proxy.ts garde ses littéraux : son matcher doit être statique)
+export const authPaths = {
+    login: "/login",
+    register: "/register",
+} as const
+
 function isMatch(pathname: string, url: string) {
     if (url === prefix) return pathname === url // la racine ne matche qu'exactement
     return pathname === url || pathname.startsWith(url + "/")

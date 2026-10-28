@@ -3,6 +3,7 @@ import { cache } from "react"
 import { headers } from "next/headers"
 import { redirect } from "next/navigation"
 import { authClient } from "./auth"
+import { authPaths } from "./path"
 
 export const getSession = cache(async () => {
     const cookie = (await headers()).get("cookie") ?? ""
@@ -14,7 +15,7 @@ export const getSession = cache(async () => {
 
 export async function requireSession() {
     const session = await getSession()
-    if (!session) redirect("/login")
+    if (!session) redirect(authPaths.login)
     return session
 }
 

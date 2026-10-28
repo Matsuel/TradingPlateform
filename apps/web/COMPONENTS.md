@@ -44,7 +44,6 @@ Module de fonctions, hooks, constantes ou types (`lib/*.ts`, `features/<domaine>
 - [Données et tableaux](#données-et-tableaux) : `DataTable` (`Column`), `SymbolCell`, `ChangeCell`, `Dash`, `FilterTabs`, `StatCard`
 - [Graphiques](#graphiques) : `PriceAreaChart` (`PricePoint`), `Sparkline`
 - [Symboles](#symboles) : `SymbolPicker`
-- [Ancien formulaire](#ancien-formulaire) : `Form` (`OldForm.tsx`)
 - [Formulaires (`components/form`)](#formulaires-componentsform) : `AppField`, `TextField`, `NumberField`, `TextareaField`, `SelectField`, `DateField`, `CheckboxField`, `SwitchField`, `SymbolsField`, `FormSection`, `FieldRow`
 - [`lib`](#lib) : `format.ts`, `api.ts`, `path.ts`, `utils.ts`, `auth.ts`, `session.ts`
 - [`features/auth`](#featuresauth)
@@ -409,41 +408,6 @@ Primitives shadcn (base-ui), voir la doc shadcn. Ne les modifie qu'en cas de bes
 - **Utilisé par** : `src/features/market/symbol-search.tsx`, `src/components/form/fields/symbols-field.tsx`.
 - **Source** : `src/components/symbol-picker.tsx`.
 
-## Ancien formulaire
-
-### Form (`OldForm.tsx`)
-
-- **Import** : `import Form, { type FormInput } from "@/components/OldForm"`.
-- **Rôle** : formulaire carte à champs texte générés (react-hook-form sans zod), réservé à `features/auth`. Pour tout nouveau formulaire, utiliser `components/form`.
-- **Props** :
-
-  | Nom | Type | Requis | Défaut | Description |
-  | --- | --- | --- | --- | --- |
-  | `title` | `string` | oui | — | Titre de la carte. |
-  | `description` | `string` | non | — | Sous le titre. |
-  | `inputs` | `FormInput<T>[]` | oui | — | Champs : `{ name: Path<T>; label: string; type?: string (défaut "text"); placeholder?: string; autoComplete?: string }`, tous requis. |
-  | `submitText` | `string` | oui | — | Libellé du bouton. |
-  | `submittingText` | `string` | non | `"Loading..."` | Libellé pendant l'envoi. |
-  | `onSubmit` | `(data: T) => Promise<string \| void> \| string \| void` | oui | — | Une string renvoyée (ou une exception) s'affiche comme erreur globale. |
-  | `footer` | `ReactNode` | non | — | Sous le bouton. |
-
-- **Exemple** (tiré de `src/features/auth/login-form.tsx`) :
-  ```tsx
-  <Form<Inputs>
-      title="Login to your account"
-      description="Enter your email below to login to your account"
-      inputs={[
-          { name: "email", label: "Email", type: "email"},
-          { name: "password", label: "Password", type: "password" },
-      ]}
-      submitText="Login"
-      submittingText="Logging in..."
-      onSubmit={onSubmit}
-  />
-  ```
-- **Utilisé par** : `src/features/auth/login-form.tsx`, `src/features/auth/register-form.tsx`.
-- **Source** : `src/components/OldForm.tsx`.
-
 ## Formulaires (`components/form`)
 
 Tous les champs se placent sous un `FormProvider` de react-hook-form (ils lisent `useFormContext`) et affichent eux-mêmes libellé, description et erreur zod. `@/components/form` exporte les champs de `fields/index.ts` plus `FormSection` et `FieldRow` ; `AppField` s'importe de `@/components/form/field`.
@@ -489,7 +453,7 @@ Props communes `BaseProps<T>` (exportées par `field.tsx`), répétées dans cha
   ```tsx
   <TextField name="name" label="Nom du backtest" />
   ```
-- **Utilisé par** : `src/features/backtest/sections.tsx`.
+- **Utilisé par** : `src/features/backtest/sections.tsx`, `src/features/auth/login-form.tsx`, `src/features/auth/register-form.tsx`.
 - **Source** : `src/components/form/fields/text-field.tsx`.
 
 ### NumberField
@@ -617,7 +581,7 @@ Props communes `BaseProps<T>` (exportées par `field.tsx`), répétées dans cha
       <SelectField name="strategy" label="Stratégie" options={strategyOptions} />
   </FormSection>
   ```
-- **Utilisé par** : `src/features/backtest/sections.tsx`.
+- **Utilisé par** : `src/features/backtest/sections.tsx`, `src/features/auth/login-form.tsx`, `src/features/auth/register-form.tsx`.
 - **Source** : `src/components/form/layout.tsx`.
 
 ### FieldRow
@@ -674,11 +638,12 @@ Source : `src/lib/api.ts`.
 
 ### `lib/path.ts`
 
-- **Import** : `import { prefix, getActive } from "@/lib/path"`.
+- **Import** : `import { prefix, authPaths, getActive } from "@/lib/path"`.
 
 | Export | Signature / valeur | Rôle | Utilisé par |
 | --- | --- | --- | --- |
 | `prefix` | `"/app"` (défini dans `constants/sidebar.tsx`, ré-exporté ici) | Préfixe des routes de l'espace connecté : `` `${prefix}/backtest/${id}` ``. Importer depuis `@/lib/path`. | `app/not-found.tsx`, `app/app/backtest/page.tsx`, `app/app/(admin)/layout.tsx`, `components/nav-user.tsx`, `features/auth/*`, `features/backtest/backtest-list.tsx`, `new-backtest-form.tsx`, `quick-backtest-form.tsx`, `features/market/market-list.tsx`, `symbol-search.tsx` |
+| `authPaths` | `{ login: "/login", register: "/register" }` | Pages publiques d'authentification. `proxy.ts` garde ses littéraux (son `matcher` doit être statique). | `features/auth/*`, `components/nav-user.tsx`, `lib/session.ts` |
 | `findActive` | `(pathname: string) => { name, url, icon, group } \| undefined` | Onglet de `constants/sidebar.tsx` le plus spécifique qui correspond au chemin. | `components/SidebarNav.tsx` |
 | `getActive` | `(pathname: string) => { parent: string \| null; name: string \| null; url: string \| null }` | Groupe, nom et URL de l'onglet actif (fil d'Ariane). | `components/Header.tsx` |
 
@@ -700,8 +665,8 @@ Source : `src/lib/utils.ts`.
 
 | Export | Signature / valeur | Rôle | Utilisé par |
 | --- | --- | --- | --- |
-| `authClient` | client better-auth/react (`baseURL: "http://localhost:8000"`, plugin `adminClient`) | Connexion, inscription, session. | `features/auth/login-form.tsx`, `features/auth/register-form.tsx`, `lib/session.ts` |
-| `signIn`, `signUp`, `signOut`, `useSession` | méthodes déstructurées de `authClient` | Raccourcis ; seul `signOut` est utilisé. | `components/nav-user.tsx` (`signOut`) |
+| `authClient` | client better-auth/react (`baseURL: "http://localhost:8000"`, plugin `adminClient`) | Session côté serveur. | `lib/session.ts` |
+| `signIn`, `signUp`, `signOut`, `useSession` | méthodes déstructurées de `authClient` | `signIn`/`signUp` ne s'appellent que via `features/auth/api.ts` ; `useSession` n'est pas utilisé. | `features/auth/api.ts` (`signIn`, `signUp`), `components/nav-user.tsx` (`signOut`) |
 
 Source : `src/lib/auth.ts`.
 
@@ -712,7 +677,7 @@ Source : `src/lib/auth.ts`.
 | Export | Signature | Rôle | Utilisé par |
 | --- | --- | --- | --- |
 | `getSession` | `() => Promise<{ session, user } \| null>` (mis en cache par requête) | Session courante lue depuis le cookie entrant. | `requireSession`, `isAdmin` |
-| `requireSession` | `() => Promise<{ session, user }>` | Session ou redirection vers `/login`. | `app/app/layout.tsx`, `app/app/(admin)/layout.tsx` |
+| `requireSession` | `() => Promise<{ session, user }>` | Session ou redirection vers `authPaths.login`. | `app/app/layout.tsx`, `app/app/(admin)/layout.tsx` |
 | `isAdmin` | `() => Promise<boolean>` | La session a le rôle `admin`. | `app/app/(admin)/layout.tsx` |
 | `hasAdminRole` | `(role?: string \| null) => boolean` | `role` (liste séparée par des virgules) contient `admin`. | `app/app/layout.tsx`, `isAdmin` |
 
@@ -720,10 +685,12 @@ Source : `src/lib/session.ts`.
 
 ## `features/auth`
 
+Écrans : `LoginForm`, `RegisterForm`. Données : `api.ts`, `hook.ts`, `schema.ts`. Même forme que `features/backtest` : react-hook-form + schéma zod + champs de `components/form`.
+
 ### LoginForm
 
 - **Import** : `import { LoginForm } from "@/features/auth/login-form"`.
-- **Rôle** : formulaire de connexion email + mot de passe (`authClient.signIn.email`) ; redirige vers `prefix` en cas de succès, sinon affiche le message d'erreur better-auth (« Invalid credentials » par défaut).
+- **Rôle** : formulaire de connexion (email + mot de passe) dans une `FormSection` ; valide avec `loginSchema`, appelle `useLogin`, puis redirige vers `prefix` et rafraîchit la session serveur. L'erreur better-auth s'affiche sous les champs ; lien vers `authPaths.register`.
 - **Props** : aucune.
 - **Exemple** (tiré de `src/app/(auth)/login/page.tsx`) :
   ```tsx
@@ -737,7 +704,7 @@ Source : `src/lib/session.ts`.
 ### RegisterForm
 
 - **Import** : `import { RegisterForm } from "@/features/auth/register-form"`.
-- **Rôle** : formulaire d'inscription nom + email + mot de passe (`authClient.signUp.email`) ; redirige vers `prefix` en cas de succès.
+- **Rôle** : formulaire d'inscription (nom + email + mot de passe) dans une `FormSection` ; valide avec `registerSchema`, appelle `useRegister`, puis redirige vers `prefix`. Lien vers `authPaths.login`.
 - **Props** : aucune.
 - **Exemple** (tiré de `src/app/(auth)/register/page.tsx`) :
   ```tsx
@@ -745,6 +712,40 @@ Source : `src/lib/session.ts`.
   ```
 - **Utilisé par** : `src/app/(auth)/register/page.tsx`.
 - **Source** : `src/features/auth/register-form.tsx`.
+
+### `features/auth/api.ts`
+
+- **Import** : `import { login } from "@/features/auth/api"`. Appeler via les hooks plutôt que directement.
+- Les routes d'auth passent par le client better-auth (`signIn`/`signUp` de `lib/auth.ts`, cookies de session), pas par `apiFetch`. Une erreur better-auth est relancée en `Error(message)`.
+
+| Export | Signature | Route (`apps/core-backend/API.md`) | Utilisé par |
+| --- | --- | --- | --- |
+| `login` | `(values: LoginValues) => Promise<void>` ; erreur → `Error(message ?? "Identifiants invalides")` | `ALL /api/auth/{*path}` (`sign-in/email`) | `useLogin` |
+| `register` | `(values: RegisterValues) => Promise<void>` ; erreur → `Error(message ?? "Inscription impossible")` | `ALL /api/auth/{*path}` (`sign-up/email`) | `useRegister` |
+
+Source : `src/features/auth/api.ts`.
+
+### `features/auth/hook.ts`
+
+- **Import** : `import { useLogin } from "@/features/auth/hook"`.
+
+| Export | Signature | Clé / comportement | Utilisé par |
+| --- | --- | --- | --- |
+| `useLogin` | `() => UseMutationResult<void, Error, LoginValues>` | Mutation sans invalidation ; la redirection et `router.refresh()` sont faites par le formulaire. | `login-form.tsx` |
+| `useRegister` | `() => UseMutationResult<void, Error, RegisterValues>` | Idem. | `register-form.tsx` |
+
+Source : `src/features/auth/hook.ts`.
+
+### `features/auth/schema.ts`
+
+- **Import** : `import { loginSchema, type LoginValues } from "@/features/auth/schema"`.
+
+| Export | Valeur | Rôle | Utilisé par |
+| --- | --- | --- | --- |
+| `loginSchema` / `LoginValues` | `{ email: email valide, password: string non vide }` | Connexion : le serveur juge le mot de passe. | `login-form.tsx`, `api.ts` |
+| `registerSchema` / `RegisterValues` | `{ name: string non vide (trim), email: email valide, password: 8 à 128 caractères }` | Inscription : bornes = défauts `emailAndPassword` de better-auth côté core-backend. | `register-form.tsx`, `api.ts` |
+
+Source : `src/features/auth/schema.ts`.
 
 ## `features/backtest`
 

@@ -1,38 +1,48 @@
-"use client";
+"use client"
 
-import { useRouter } from "next/navigation";
-import Form from "@/components/OldForm";
-import { authClient } from "@/lib/auth";
-import { prefix } from "@/lib/path";
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { FormProvider, useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
 
-type Inputs = {
-    name: string;
-    email: string;
-    password: string;
-};
+import { FormSection, TextField } from "@/components/form"
+import { Button } from "@/components/ui/button"
+import { authPaths, prefix } from "@/lib/path"
+import { useRegister } from "./hook"
+import { registerSchema, type RegisterValues } from "./schema"
 
 export function RegisterForm() {
-    const router = useRouter();
+    const router = useRouter()
+    const { mutateAsync, error } = useRegister()
+    const form = useForm<RegisterValues>({
+        resolver: zodResolver(registerSchema),
+        defaultValues: { name: "", email: "", password: "" },
+    })
 
-    const onSubmit = async ({ name, email, password }: Inputs) => {
-        const { error } = await authClient.signUp.email({ name, email, password });
-        if (error) return error.message ?? "Invalid credentials";
-        router.push(prefix);
-        router.refresh();
+    const onSubmit = async (values: RegisterValues) => {
+        await mutateAsync(values)
+        router.push(prefix)
+        router.refresh() // relit la session côté serveur
     }
 
     return (
-        <Form<Inputs>
-            title="Register a new account"
-            description="Enter your details below to create an account"
-            inputs={[
-                { name: "name", label: "Name", type: "text" },
-                { name: "email", label: "Email", type: "email"},
-                { name: "password", label: "Password", type: "password" },
-            ]}
-            submitText="Register"
-            submittingText="Creating account..."
-            onSubmit={onSubmit}
-        />
-    );
+        <FormProvider {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} noValidate>
+                <FormSection title="Créer un compte" description="Renseignez vos informations pour créer votre compte">
+                    <TextField name="name" label="Nom" />
+                    <TextField name="email" label="Email" type="email" />
+                    <TextField name="password" label="Mot de passe" type="password" />
+
+                    {error && <p className="text-sm text-destructive">{error.message}</p>}
+
+                    <Button type="submit" disabled={form.formState.isSubmitting}>
+                        Créer le compte
+                    </Button>
+                    <p className="text-center text-sm text-muted-foreground">
+                        Déjà un compte ? <Link href={authPaths.login} className="underline">Se connecter</Link>
+                    </p>
+                </FormSection>
+            </form>
+        </FormProvider>
+    )
 }
