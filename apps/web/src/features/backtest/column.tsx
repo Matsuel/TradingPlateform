@@ -1,9 +1,9 @@
 import type { Column } from "@/components/data-table/data-table"
-import { ChangeCell } from "@/components/data-table/cells"
+import { ChangeCell, SymbolCell } from "@/components/data-table/cells"
 import { Badge } from "@/components/ui/badge"
 import { formatDay } from "@/lib/format"
 import { statusBadges, strategyLabels } from "./constants"
-import type { Backtest } from "./types"
+import type { Backtest, Trade } from "./types"
 import { getDuration, getExecution } from "./utils"
 import Dash from "@/components/custom/Dash"
 
@@ -31,4 +31,14 @@ export const backtestColumns: Column<Backtest>[] = [
         },
     },
     { header: "Durée", className: "text-right", cell: (b) => getDuration(b) ?? <Dash /> },
+]
+
+export const tradeColumns: Column<Trade>[] = [
+    { header: "Date", cell: (t) => formatDay(t.date) },
+    { header: "Symbole", cell: (t) => <SymbolCell symbol={t.symbol} /> },
+    {
+        header: "Prix d'achat",
+        className: "text-right",
+        cell: (t) => t.price.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+    },
 ]

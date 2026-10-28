@@ -7,6 +7,9 @@ import portfolioRouter from './routes/portfolio';
 import marketRouter from './routes/market';
 import backtestRouter from './routes/backtest';
 import { Logger } from '@trading-plateform/utils';
+import { BACKTEST_TOPICS } from '@trading-plateform/contracts';
+import { consumer, kafkaClient, producer } from './lib/kafka';
+import BacktestConsumer from './consumers/backtest.consumer';
 
 const logger = Logger.here()
 
@@ -34,5 +37,14 @@ app.use(errorMiddleware);
 
 app.listen(8000, async () => {
     await dbHealthCheck();
+
+    await kafkaClient.ensureTopics(Object.values(BACKTEST_TOPICS));
+    await producer.connect();
+    await consumer.connect();
+    await consumer.subscribe(BACKTEST_TOPICS.started);
+    await consumer.subscribe(BACKTEST_TOPICS.completed);
+    await consumer.subscribe(BACKTEST_TOPICS.failed);
+    await consumer.consume(new BacktestConsumer().handle);
+
     logger.info('Server is running on port 8000');
 });

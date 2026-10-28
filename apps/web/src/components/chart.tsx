@@ -40,17 +40,85 @@ const formatTooltipDate = (date: string, period: Period) =>
 const formatAxisPrice = (v: number) =>
     v.toLocaleString("fr-FR", { maximumFractionDigits: v < 10 ? 2 : 0 })
 
+type PricePoint = { date: string; price: number }
+
+interface PriceAreaChartProps {
+    data: PricePoint[]
+    formatTick: (date: string) => string
+    formatTooltipDate: (date: string) => string
+    label?: string
+    currency?: string
+    positive?: boolean // vert/rouge ; par défaut : dernier point ≥ premier
+    className?: string
+}
+
+export function PriceAreaChart({
+    data,
+    formatTick,
+    formatTooltipDate,
+    label = "Prix",
+    currency,
+    positive = data.length < 2 || data[data.length - 1].price >= data[0].price,
+    className,
+}: PriceAreaChartProps) {
+    const color = positive ? "#16a34a" : "var(--destructive)"
+    const config = {
+        price: { label, color },
+    } satisfies ChartConfig
+
+    return (
+        <ChartContainer config={config} className={cn("aspect-auto h-82.5 w-full", className)}>
+            <AreaChart data={data} margin={{ top: 8, right: 0, bottom: 0, left: 0 }}>
+                <CartesianGrid vertical={false} />
+                <XAxis
+                    dataKey="date"
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={8}
+                    minTickGap={48}
+                    tickFormatter={formatTick}
+                />
+                <YAxis
+                    orientation="left"
+                    width={64}
+                    tickLine={false}
+                    axisLine={false}
+                    tickCount={5}
+                    domain={["auto", "auto"]}
+                    tickFormatter={formatAxisPrice}
+                />
+                <ChartTooltip
+                    cursor={false}
+                    content={
+                        <ChartTooltipContent
+                            hideIndicator
+                            labelFormatter={(_, payload) =>
+                                payload?.[0] ? formatTooltipDate(payload[0].payload.date) : ""
+                            }
+                            formatter={(value) => (
+                                <span className="text-body-medium">{formatPrice(Number(value), currency)}</span>
+                            )}
+                        />
+                    }
+                />
+                <Area
+                    dataKey="price"
+                    type="monotone"
+                    stroke="var(--color-price)"
+                    strokeWidth={2}
+                    fill="var(--color-price)"
+                    fillOpacity={0.12}
+                    dot={false}
+                    isAnimationActive={false}
+                />
+            </AreaChart>
+        </ChartContainer>
+    )
+}
+
 export function PriceChart({ symbol }: { symbol: string }) {
     const [period, setPeriod] = useState<Period>("1d")
     const { data, isPending, isError, error, refetch, isPlaceholderData } = useMarketDetails(symbol, period)
-    const positive = data && data.length > 1
-        ? data[data.length - 1].price >= data[0].price
-        : true
-    const color = positive ? "#16a34a" : "var(--destructive)"
-    const config = {
-        price: { label: "Prix", color },
-    } satisfies ChartConfig
-
     const interval = PERIODS.find((p) => p.value === period)!.interval
 
     const status = (content: React.ReactNode) => (
@@ -88,55 +156,12 @@ export function PriceChart({ symbol }: { symbol: string }) {
                 ) : data.length === 0 ? (
                     status(<p className="text-sm text-muted-foreground">Aucune donnée pour cette période.</p>)
                 ) : (
-                    <ChartContainer
-                        config={config}
-                        className={cn("aspect-auto h-82.5 w-full transition-opacity", isPlaceholderData && "opacity-50")}
-                    >
-                        <AreaChart data={data} margin={{ top: 8, right: 0, bottom: 0, left: 0 }}>
-                            <CartesianGrid vertical={false} />
-                            <XAxis
-                                dataKey="date"
-                                tickLine={false}
-                                axisLine={false}
-                                tickMargin={8}
-                                minTickGap={48}
-                                tickFormatter={(d) => formatTick(d, period)}
-                            />
-                            <YAxis
-                                orientation="left"
-                                width={64}
-                                tickLine={false}
-                                axisLine={false}
-                                tickCount={5}
-                                domain={["auto", "auto"]}
-                                tickFormatter={formatAxisPrice}
-                            />
-                            <ChartTooltip
-                                cursor={false}
-                                content={
-                                    <ChartTooltipContent
-                                        hideIndicator
-                                        labelFormatter={(_, payload) =>
-                                            payload?.[0] ? formatTooltipDate(payload[0].payload.date, period) : ""
-                                        }
-                                        formatter={(value) => (
-                                            <span className="text-body-medium">{formatPrice(Number(value))}</span>
-                                        )}
-                                    />
-                                }
-                            />
-                            <Area
-                                dataKey="price"
-                                type="monotone"
-                                stroke="var(--color-price)"
-                                strokeWidth={2}
-                                fill="var(--color-price)"
-                                fillOpacity={0.12}
-                                dot={false}
-                                isAnimationActive={false}
-                            />
-                        </AreaChart>
-                    </ChartContainer>
+                    <PriceAreaChart
+                        data={data}
+                        formatTick={(d) => formatTick(d, period)}
+                        formatTooltipDate={(d) => formatTooltipDate(d, period)}
+                        className={cn("transition-opacity", isPlaceholderData && "opacity-50")}
+                    />
                 )}
             </CardContent>
         </Card>

@@ -1,7 +1,18 @@
 import { Logger } from "@trading-plateform/utils";
+import { createKafkaEvent } from "@trading-plateform/kafka";
+import {
+    BACKTEST_TOPICS,
+    type BacktestCompletedPayload,
+    type BacktestFailedPayload,
+    type BacktestRequestedPayload,
+    type BacktestStartedPayload,
+} from "@trading-plateform/contracts";
 import ForbiddenError from "../errors/forbidden.error";
+import InternalError from "../errors/internal.error";
 import NotFoundError from "../errors/notfound.error";
+import { producer } from "../lib/kafka";
 import BacktestRepository, { type IBacktestRepository } from "../repositories/backtest.repository";
+import type { Backtest } from "../generated/prisma/client";
 import type { CreateBacktestInput } from "../interfaces/backtest.interface";
 
 const logger = Logger.here()
@@ -25,7 +36,17 @@ class BacktestService {
             feeRate: input.fee / 100,
         })
         logger.info("Backtest created", { id: backtest.id, userId })
+        await this.requestExecution(backtest, backtest.executions[0]!.id)
         return backtest
+    }
+
+    async rerun(id: string, userId: string) {
+        const backtest = await this.getById(id, userId)
+        const attempt = (backtest.executions[0]?.attempt ?? 0) + 1
+        const execution = await this.repo.createExecution(id, attempt)
+        logger.info("Backtest execution created", { id, executionId: execution.id, attempt })
+        await this.requestExecution(backtest, execution.id)
+        return execution
     }
 
     async getById(id: string, userId: string) {
@@ -41,6 +62,64 @@ class BacktestService {
         const result = await this.repo.getAllByUserId(userId)
         logger.info("Backtests fetched", { userId, count: result.count })
         return result
+    }
+
+    // Transitions gardées : un événement rejoué ou arrivé trop tard est ignoré (Kafka at-least-once)
+    async markRunning({ executionId, startedAt }: BacktestStartedPayload) {
+        const updated = await this.repo.updateExecution(executionId, ["PENDING"], {
+            status: "RUNNING",
+            startedAt: new Date(startedAt),
+        })
+        logger.info(updated ? "Backtest execution running" : "Backtest started event ignored", { executionId })
+    }
+
+    async complete({ executionId, finishedAt, maxDrawdownDate, ...result }: BacktestCompletedPayload) {
+        const updated = await this.repo.completeExecution(executionId, ["PENDING", "RUNNING"], {
+            finishedAt: new Date(finishedAt),
+            maxDrawdownDate: maxDrawdownDate ? new Date(maxDrawdownDate) : null,
+            ...result,
+        })
+        logger.info(updated ? "Backtest execution completed" : "Backtest completed event ignored", { executionId })
+    }
+
+    async fail({ executionId, finishedAt, error }: BacktestFailedPayload) {
+        const updated = await this.repo.updateExecution(executionId, ["PENDING", "RUNNING"], {
+            status: "FAILED",
+            finishedAt: new Date(finishedAt),
+            error,
+        })
+        logger.info(updated ? "Backtest execution failed" : "Backtest failed event ignored", { executionId, error })
+    }
+
+    private async requestExecution(backtest: Backtest, executionId: string) {
+        const payload: BacktestRequestedPayload = {
+            executionId,
+            backtestId: backtest.id,
+            userId: backtest.userId,
+            symbols: backtest.symbols,
+            startDate: backtest.startDate.toISOString(),
+            endDate: backtest.endDate.toISOString(),
+            investmentMode: backtest.investmentMode,
+            initialAmount: backtest.initialAmount.toNumber(),
+            recurringAmount: backtest.recurringAmount?.toNumber() ?? null,
+            investmentFrequency: backtest.investmentFrequency,
+            feeRate: backtest.feeRate.toNumber(),
+        }
+        try {
+            await producer.publish(BACKTEST_TOPICS.requested, {
+                key: executionId,
+                value: createKafkaEvent(BACKTEST_TOPICS.requested, payload),
+            })
+            logger.info("Backtest execution requested", { executionId })
+        } catch (error) {
+            logger.error("Failed to publish backtest request", { executionId, error })
+            await this.repo.updateExecution(executionId, ["PENDING"], {
+                status: "FAILED",
+                finishedAt: new Date(),
+                error: "Backtest could not be queued",
+            })
+            throw new InternalError("Backtest could not be queued")
+        }
     }
 }
 

@@ -19,6 +19,11 @@ class BacktestController {
         res.json(result)
     }
 
+    rerunBacktest = async (req: Request, res: Response) => {
+        const execution = await this.backtestService.rerun(req.params.id as string, req.userId!)
+        res.status(202).json(execution)
+    }
+
     getAllBacktests = async (req: Request, res: Response) => {
         const result = await this.backtestService.getAll(req.userId!)
         res.json(result)

@@ -23,4 +23,20 @@ export class KafkaClient {
     createConsumer(groupId: string) {
         return this.kafka.consumer({ groupId });
     }
+
+    async ensureTopics(topics: string[]): Promise<void> {
+        const admin = this.kafka.admin();
+        await admin.connect();
+        try {
+            const existing = await admin.listTopics();
+            const missing = topics.filter((topic) => !existing.includes(topic));
+            if (missing.length === 0) return;
+            await admin.createTopics({
+                topics: missing.map((topic) => ({ topic })),
+                waitForLeaders: true,
+            });
+        } finally {
+            await admin.disconnect();
+        }
+    }
 }

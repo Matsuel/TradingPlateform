@@ -1,5 +1,6 @@
 import { z } from "zod";
-import type { Prisma } from "../generated/prisma/client";
+import type { EquityPoint, Trade } from "@trading-plateform/contracts";
+import type { BacktestResult, Prisma } from "../generated/prisma/client";
 
 export const createBacktestSchema = z
     .object({
@@ -20,6 +21,20 @@ export type CreateBacktestInput = z.infer<typeof createBacktestSchema>;
 
 export type CreateBacktestDTO = Prisma.BacktestUncheckedCreateInput;
 
+// Courbe et ordres omis des exécutions : seul le dernier résultat terminé les porte
 export type BacktestWithExecutions = Prisma.BacktestGetPayload<{
-    include: { executions: { include: { result: true } } };
+    include: { executions: { include: { result: { omit: { equityCurve: true; trades: true } } } } };
 }>;
+
+export type BacktestDetails = BacktestWithExecutions & { result: BacktestResult | null };
+
+export type CompleteExecutionDTO = {
+    finishedAt: Date;
+    finalValue: number;
+    totalReturn: number;
+    totalTrades: number;
+    maxDrawdown: number;
+    maxDrawdownDate: Date | null;
+    equityCurve: EquityPoint[];
+    trades: Trade[];
+};

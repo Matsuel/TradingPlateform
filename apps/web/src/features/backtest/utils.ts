@@ -1,4 +1,4 @@
-import type { Backtest, ExecutionStatus } from "./types"
+import type { Backtest, BacktestExecution, ExecutionStatus } from "./types"
 
 export const getExecution = (b: Backtest) => b.executions[0]
 
@@ -12,4 +12,11 @@ export function getDuration(b: Backtest) {
     if (!e?.startedAt || !e.finishedAt) return null
     const minutes = Math.max(1, Math.round((+new Date(e.finishedAt) - +new Date(e.startedAt)) / 60_000))
     return `${minutes} min`
+}
+
+export function getExecutionDuration(e: BacktestExecution) {
+    if (!e.finishedAt) return null
+    const seconds = Math.max(1, Math.round((+new Date(e.finishedAt) - +new Date(e.startedAt ?? e.createdAt)) / 1000))
+    const minutes = Math.floor(seconds / 60)
+    return minutes ? `${minutes} min ${seconds % 60} s` : `${seconds} s`
 }

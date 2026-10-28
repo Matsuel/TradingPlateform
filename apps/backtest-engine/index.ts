@@ -3,7 +3,11 @@ import {
     KafkaConsumer,
     KafkaProducer,
 } from "@trading-plateform/kafka";
+import { BACKTEST_TOPICS } from "@trading-plateform/contracts";
 import { Logger } from "@trading-plateform/utils";
+import BacktestConsumer from "./consumers/backtest.consumer";
+import BacktestPublisher from "./publishers/backtest.publisher";
+import BacktestService from "./services/backtest.service";
 
 const logger = Logger.here();
 
@@ -15,25 +19,19 @@ const consumer = new KafkaConsumer(
     client.createConsumer("backtest-engine-events"),
 );
 
-interface BacktestRequestedEvent {
-    backtestId: string;
-    userId: string;
-}
+const backtestConsumer = new BacktestConsumer(
+    new BacktestService(new BacktestPublisher(producer)),
+);
 
 async function main(): Promise<void> {
+    await client.ensureTopics(Object.values(BACKTEST_TOPICS));
+
     await producer.connect();
     await consumer.connect();
 
-    await consumer.subscribe("backtest.requested");
+    await consumer.subscribe(BACKTEST_TOPICS.requested);
 
-    await consumer.consume<BacktestRequestedEvent>(
-        async (event) => {
-            logger.info("Backtest requested", event);
-
-            // TODO : lancer le calcul du backtest.
-            // TODO : publier backtest.started puis completed/failed.
-        },
-    );
+    await consumer.consume(backtestConsumer.handle);
 
     logger.info("Backtest engine is listening to Kafka");
 }

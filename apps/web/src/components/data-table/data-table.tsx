@@ -14,7 +14,7 @@ export type Column<T> = {
 }
 
 type DataTableProps<T> = {
-    query: Pick<UseQueryResult<T[], Error>, "data" | "isPending" | "isError" | "error" | "refetch">
+    query: Pick<UseQueryResult<T[], Error>, "data" | "isPending" | "isError" | "error"> & { refetch: () => unknown }
     columns: Column<T>[]
     rowKey: (row: T) => string
     onRowClick?: (row: T) => void
