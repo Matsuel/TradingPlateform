@@ -1,5 +1,7 @@
 export type ExecutionStatus = "PENDING" | "RUNNING" | "COMPLETED" | "FAILED" | "CANCELLED"
 
+export type InvestmentMode = "LUMP_SUM" | "RECURRING"
+
 export interface BacktestExecution {
     id: string
     status: ExecutionStatus
@@ -14,7 +16,7 @@ export interface Backtest {
     symbols: string[]
     startDate: string
     endDate: string
-    investmentMode: "LUMP_SUM" | "RECURRING"
+    investmentMode: InvestmentMode
     createdAt: string
     executions: BacktestExecution[] // la plus récente en premier
 }

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { Prisma } from "../generated/prisma/client";
 
 export const createBacktestSchema = z
     .object({
@@ -16,3 +17,9 @@ export const createBacktestSchema = z
     });
 
 export type CreateBacktestInput = z.infer<typeof createBacktestSchema>;
+
+export type CreateBacktestDTO = Prisma.BacktestUncheckedCreateInput;
+
+export type BacktestWithExecutions = Prisma.BacktestGetPayload<{
+    include: { executions: { include: { result: true } } };
+}>;

@@ -1,8 +1,12 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createBacktest, getBacktests } from "./api";
 
 export function useCreateBacktest() {
-    return useMutation({ mutationFn: createBacktest })
+    const queryClient = useQueryClient()
+    return useMutation({
+        mutationFn: createBacktest,
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ["backtest", "list"] }),
+    })
 }
 
 export function useBacktests() {

@@ -1,11 +1,11 @@
-
 import {
     KafkaClient,
     KafkaConsumer,
     KafkaProducer,
 } from "@trading-plateform/kafka";
+import { Logger } from "@trading-plateform/utils";
 
-import type { EachMessagePayload } from "kafkajs";
+const logger = Logger.here();
 
 const client = new KafkaClient();
 
@@ -27,18 +27,18 @@ async function main(): Promise<void> {
     await consumer.subscribe("backtest.requested");
 
     await consumer.consume<BacktestRequestedEvent>(
-        async (event, context: EachMessagePayload) => {
-            console.log("Backtest requested:", event);
+        async (event) => {
+            logger.info("Backtest requested", event);
 
             // TODO : lancer le calcul du backtest.
             // TODO : publier backtest.started puis completed/failed.
         },
     );
 
-    console.log("Backtest engine is listening to Kafka.");
+    logger.info("Backtest engine is listening to Kafka");
 }
 
 main().catch((error) => {
-    console.error("Failed to start backtest engine:", error);
+    logger.error("Failed to start backtest engine", error);
     process.exitCode = 1;
 });

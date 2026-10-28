@@ -3,17 +3,13 @@
 import { useWatch } from "react-hook-form"
 
 import { DateField, FieldRow, FormSection, NumberField, SelectField, SymbolsField, TextField } from "@/components/form"
-
-const strategies = [
-    { value: "dca", label: "DCA — investir un montant chaque mois" },
-    { value: "lump_sum", label: "Lump sum — investir en une seule fois" },
-]
+import { strategyOptions } from "./constants"
 
 export function GeneralSection() {
     return (
         <FormSection title="Général" description="Nom et stratégie à tester">
             <TextField name="name" label="Nom du backtest" />
-            <SelectField name="strategy" label="Stratégie" options={strategies} />
+            <SelectField name="strategy" label="Stratégie" options={strategyOptions} />
         </FormSection>
     )
 }

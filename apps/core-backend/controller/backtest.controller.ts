@@ -19,7 +19,7 @@ class BacktestController {
         res.json(result)
     }
 
-    getAllBacktest = async (req: Request, res: Response) => {
+    getAllBacktests = async (req: Request, res: Response) => {
         const result = await this.backtestService.getAll(req.userId!)
         res.json(result)
     }

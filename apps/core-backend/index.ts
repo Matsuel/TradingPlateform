@@ -25,11 +25,11 @@ app.use(express.json());
 
 app.use(portfolioRouter);
 
-app.use(errorMiddleware);
-
 app.use(marketRouter);
 
-app.use(backtestRouter)
+app.use(backtestRouter);
+
+app.use(errorMiddleware);
 
 app.listen(8000, async () => {
     await dbHealthCheck();
