@@ -24,8 +24,8 @@ export function QuickBacktestForm({ symbol }: { symbol: string }) {
     const days = start && end ? differenceInCalendarDays(end, start) : null
 
     const onSubmit = async (values: QuickBacktestValues) => {
-        await mutateAsync({ ...values, name: `Test rapide ${symbol}`, symbols: [symbol] })
-        router.push(`${prefix}/backtest`)
+        const backtest = await mutateAsync({ ...values, name: `Test rapide ${symbol}`, symbols: [symbol] })
+        router.push(`${prefix}/backtest/${backtest.id}`)
     }
 
     return (

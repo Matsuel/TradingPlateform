@@ -100,6 +100,7 @@ export default function runBacktest(params: BacktestParams, prices: PriceSeries)
 
     return {
         finalValue,
+        totalInvested: round(invested, 2),
         totalReturn: round((finalValue - invested) / invested, 6),
         totalTrades: trades.length,
         maxDrawdown: round(maxDrawdown, 6),

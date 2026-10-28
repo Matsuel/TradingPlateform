@@ -7,6 +7,8 @@ import {
     type BacktestRequestedPayload,
     type BacktestStartedPayload,
 } from "@trading-plateform/contracts";
+import { ACTIVE_STATUSES } from "../constants/backtest.constants";
+import ConflictError from "../errors/conflict.error";
 import ForbiddenError from "../errors/forbidden.error";
 import InternalError from "../errors/internal.error";
 import NotFoundError from "../errors/notfound.error";
@@ -41,8 +43,13 @@ class BacktestService {
     }
 
     async rerun(id: string, userId: string) {
-        const backtest = await this.getById(id, userId)
-        const attempt = (backtest.executions[0]?.attempt ?? 0) + 1
+        logger.info("Rerunning backtest", { id, userId })
+        const backtest = this.assertOwner(await this.repo.getById(id), userId)
+        const latest = backtest.executions[0]
+        if (latest && ACTIVE_STATUSES.includes(latest.status)) {
+            throw new ConflictError("An execution is already in progress", { executionId: latest.id })
+        }
+        const attempt = (latest?.attempt ?? 0) + 1
         const execution = await this.repo.createExecution(id, attempt)
         logger.info("Backtest execution created", { id, executionId: execution.id, attempt })
         await this.requestExecution(backtest, execution.id)
@@ -51,10 +58,7 @@ class BacktestService {
 
     async getById(id: string, userId: string) {
         logger.info("Fetching backtest", { id, userId })
-        const backtest = await this.repo.getById(id)
-        if (!backtest) throw new NotFoundError("Backtest not found")
-        if (backtest.userId !== userId) throw new ForbiddenError("Access denied")
-        return backtest
+        return this.assertOwner(await this.repo.getDetailsById(id), userId)
     }
 
     async getAll(userId: string) {
@@ -74,7 +78,7 @@ class BacktestService {
     }
 
     async complete({ executionId, finishedAt, maxDrawdownDate, ...result }: BacktestCompletedPayload) {
-        const updated = await this.repo.completeExecution(executionId, ["PENDING", "RUNNING"], {
+        const updated = await this.repo.completeExecution(executionId, ACTIVE_STATUSES, {
             finishedAt: new Date(finishedAt),
             maxDrawdownDate: maxDrawdownDate ? new Date(maxDrawdownDate) : null,
             ...result,
@@ -83,12 +87,18 @@ class BacktestService {
     }
 
     async fail({ executionId, finishedAt, error }: BacktestFailedPayload) {
-        const updated = await this.repo.updateExecution(executionId, ["PENDING", "RUNNING"], {
+        const updated = await this.repo.updateExecution(executionId, ACTIVE_STATUSES, {
             status: "FAILED",
             finishedAt: new Date(finishedAt),
             error,
         })
         logger.info(updated ? "Backtest execution failed" : "Backtest failed event ignored", { executionId, error })
+    }
+
+    private assertOwner<T extends Backtest>(backtest: T | null, userId: string): T {
+        if (!backtest) throw new NotFoundError("Backtest not found")
+        if (backtest.userId !== userId) throw new ForbiddenError("Access denied")
+        return backtest
     }
 
     private async requestExecution(backtest: Backtest, executionId: string) {

@@ -16,5 +16,5 @@ export type BacktestParams = Pick<
 
 export type BacktestOutcome = Pick<
     BacktestCompletedPayload,
-    "finalValue" | "totalReturn" | "totalTrades" | "maxDrawdown" | "maxDrawdownDate" | "equityCurve" | "trades"
+    "finalValue" | "totalInvested" | "totalReturn" | "totalTrades" | "maxDrawdown" | "maxDrawdownDate" | "equityCurve" | "trades"
 >;

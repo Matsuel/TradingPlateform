@@ -1,5 +1,11 @@
 import type { ExecutionStatus, InvestmentMode } from "./types"
 
+// Devise des montants saisis : les cours ne sont pas convertis
+export const BACKTEST_CURRENCY = "EUR"
+
+// Une exécution dans ces statuts peut encore évoluer
+export const activeStatuses = ["PENDING", "RUNNING"] as const satisfies readonly ExecutionStatus[]
+
 export const strategyOptions = [
     { value: "dca", label: "DCA — investir un montant chaque mois" },
     { value: "lump_sum", label: "Lump sum — investir en une seule fois" },
@@ -20,7 +26,7 @@ export const statusBadges: Record<ExecutionStatus, { label: string; variant: "ou
 
 export const statusFilters = {
     all: { label: "Tous", statuses: [] },
-    running: { label: "En cours", statuses: ["PENDING", "RUNNING"] },
+    running: { label: "En cours", statuses: activeStatuses },
     done: { label: "Terminés", statuses: ["COMPLETED"] },
     failed: { label: "Échoués", statuses: ["FAILED"] },
 } as const satisfies Record<string, { label: string; statuses: readonly ExecutionStatus[] }>

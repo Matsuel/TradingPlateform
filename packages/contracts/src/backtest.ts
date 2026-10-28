@@ -46,6 +46,8 @@ export const backtestCompletedPayloadSchema = z.object({
     executionId: z.string().min(1),
     finishedAt: z.iso.datetime(),
     finalValue: z.number(),
+    // Total versé, frais compris
+    totalInvested: z.number().positive(),
     totalReturn: z.number(),
     totalTrades: z.number().int().min(0),
     // Ratio ≤ 0, mesuré hors versements (performance pondérée dans le temps)

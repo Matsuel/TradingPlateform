@@ -4,7 +4,8 @@ import type { BacktestDetails, BacktestWithExecutions, CompleteExecutionDTO, Cre
 
 export interface IBacktestRepository {
     create(data: CreateBacktestDTO): Promise<BacktestWithExecutions>
-    getById(id: string): Promise<BacktestDetails | null>
+    getById(id: string): Promise<BacktestWithExecutions | null>
+    getDetailsById(id: string): Promise<BacktestDetails | null>
     getAllByUserId(userId: string): Promise<{ data: BacktestWithExecutions[], count: number }>
     createExecution(backtestId: string, attempt: number): Promise<BacktestExecution>
     updateExecution(id: string, from: BacktestStatus[], data: Prisma.BacktestExecutionUpdateManyMutationInput): Promise<boolean>
@@ -28,7 +29,14 @@ class BacktestRepository implements IBacktestRepository {
         })
     }
 
-    async getById(id: string): Promise<BacktestDetails | null> {
+    async getById(id: string): Promise<BacktestWithExecutions | null> {
+        return prisma.backtest.findUnique({
+            where: { id },
+            include: latestExecution,
+        })
+    }
+
+    async getDetailsById(id: string): Promise<BacktestDetails | null> {
         const [backtest, result] = await prisma.$transaction([
             prisma.backtest.findUnique({
                 where: { id },

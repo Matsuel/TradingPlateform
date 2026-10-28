@@ -1,15 +1,14 @@
 # @trading-plateform/kafka
 
-Wrappers `kafkajs` génériques : `KafkaClient` (dont `ensureTopics`), `KafkaProducer`, `KafkaConsumer`, `kafkaConfig`, `createKafkaEvent`, types `KafkaEvent<T>` / `KafkaMessage<T>`. Les événements métier (topic + schéma zod) vivent dans `packages/contracts`, pas ici.
+Wrappers `kafkajs` génériques : `KafkaClient` (dont `ensureTopics`), `KafkaProducer`, `KafkaConsumer`, `kafkaConfig`, `createKafkaEvent`, types `KafkaEvent<T>` / `KafkaMessage<T>` / `MessageHandler<T>`. Aucune logique métier : les événements (topic + schéma zod) vivent dans `packages/contracts`. Respecte `../../AGENTS.md`.
 
-- Un fichier par classe : `kafka.<nom>.ts`, config dans `config/`, tout réexporté par `src/index.ts`.
-- Pas de logique métier d'une app ici.
-- Respecte `../../AGENTS.md`.
+- Un fichier par classe ou sujet : `src/kafka.<nom>.ts`, config dans `src/config/`, tout réexporté par `src/index.ts`.
+- `KafkaConsumer.consume` écarte (log `warn`) un message vide ou non-JSON ; le handler reçoit un objet à valider avec zod, typé `unknown` côté app.
+- `ensureTopics` ne crée que les topics manquants.
+- Les apps utilisent ces classes telles quelles ; pas de wrapper Kafka par app.
 
-## Ajouter un événement / un topic
+## Publier / consommer un événement
 
-1. Contrat dans `packages/contracts` : constante de topic `domaine.action` + schéma zod de l'enveloppe (`version: 1`).
-2. Producteur : `producer.publish(TOPIC, { key, value: createKafkaEvent(TOPIC, payload) })`.
-3. Consommateur : `client.ensureTopics([...])` avant `subscribe`, puis validation zod du message reçu.
-4. Utiliser `KafkaProducer`/`KafkaConsumer` existants ; ne pas créer de wrapper par app.
-5. Changement de payload = rétrocompatible ou nouvelle `version` ; vérifier core-backend et backtest-engine.
+1. Contrat dans `packages/contracts` (topic + schéma).
+2. Producteur : `producer.publish(TOPIC, { key, value: createKafkaEvent(TOPIC, payload) })`, `key` = identifiant de l'agrégat (ex. `executionId`) pour garder l'ordre de ses événements.
+3. Consommateur : `client.ensureTopics([...])` avant `subscribe`, un handler `MessageHandler<unknown>` qui valide avec le schéma du contrat.

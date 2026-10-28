@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { EquityPoint, Trade } from "@trading-plateform/contracts";
+import type { BacktestCompletedPayload } from "@trading-plateform/contracts";
 import type { BacktestResult, Prisma } from "../generated/prisma/client";
 
 export const createBacktestSchema = z
@@ -28,13 +28,7 @@ export type BacktestWithExecutions = Prisma.BacktestGetPayload<{
 
 export type BacktestDetails = BacktestWithExecutions & { result: BacktestResult | null };
 
-export type CompleteExecutionDTO = {
+export type CompleteExecutionDTO = Omit<BacktestCompletedPayload, "executionId" | "finishedAt" | "maxDrawdownDate"> & {
     finishedAt: Date;
-    finalValue: number;
-    totalReturn: number;
-    totalTrades: number;
-    maxDrawdown: number;
     maxDrawdownDate: Date | null;
-    equityCurve: EquityPoint[];
-    trades: Trade[];
 };

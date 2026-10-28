@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createBacktest, getBacktest, getBacktests, rerunBacktest } from "./api";
+import { activeStatuses } from "./constants";
 import { hasStatus } from "./utils";
 
 export function useCreateBacktest() {
@@ -22,7 +23,7 @@ export function useBacktest(id: string) {
         queryKey: ["backtest", "detail", id],
         queryFn: () => getBacktest(id),
         // Rafraîchit tant que la dernière exécution n'est pas terminée
-        refetchInterval: (query) => query.state.data && hasStatus(query.state.data, ["PENDING", "RUNNING"]) ? 2000 : false,
+        refetchInterval: (query) => query.state.data && hasStatus(query.state.data, activeStatuses) ? 2000 : false,
     })
 }
 

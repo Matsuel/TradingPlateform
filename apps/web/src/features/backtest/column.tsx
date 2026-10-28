@@ -1,10 +1,10 @@
 import type { Column } from "@/components/data-table/data-table"
 import { ChangeCell, SymbolCell } from "@/components/data-table/cells"
 import { Badge } from "@/components/ui/badge"
-import { formatDay } from "@/lib/format"
+import { formatDay, formatNumber } from "@/lib/format"
 import { statusBadges, strategyLabels } from "./constants"
 import type { Backtest, Trade } from "./types"
-import { getDuration, getExecution } from "./utils"
+import { getExecution, getExecutionDuration } from "./utils"
 import Dash from "@/components/custom/Dash"
 
 export const backtestColumns: Column<Backtest>[] = [
@@ -30,7 +30,10 @@ export const backtestColumns: Column<Backtest>[] = [
             return <Badge variant={variant}>{label}</Badge>
         },
     },
-    { header: "Durée", className: "text-right", cell: (b) => getDuration(b) ?? <Dash /> },
+    { header: "Durée", className: "text-right", cell: (b) => {
+        const e = getExecution(b)
+        return (e && getExecutionDuration(e)) ?? <Dash />
+    } },
 ]
 
 export const tradeColumns: Column<Trade>[] = [
@@ -39,6 +42,6 @@ export const tradeColumns: Column<Trade>[] = [
     {
         header: "Prix d'achat",
         className: "text-right",
-        cell: (t) => t.price.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+        cell: (t) => formatNumber(t.price),
     },
 ]

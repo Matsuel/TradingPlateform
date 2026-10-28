@@ -115,6 +115,7 @@
       "name": "@trading-plateform/kafka",
       "version": "1.0.0",
       "dependencies": {
+        "@trading-plateform/utils": "workspace:*",
         "kafkajs": "^2.2.4",
         "zod": "^4.6.7",
       },

@@ -27,6 +27,7 @@ describe("runBacktest", () => {
             { date: "2024-01-04", value: 1500, invested: 1000 },
         ]);
         expect(result.finalValue).toBe(1500);
+        expect(result.totalInvested).toBe(1000);
         expect(result.totalReturn).toBe(0.5);
         expect(result.totalTrades).toBe(1);
     });
@@ -54,6 +55,7 @@ describe("runBacktest", () => {
 
         expect(result.equityCurve.map((point) => point.invested)).toEqual([100, 100, 200]);
         expect(result.finalValue).toBe(300);
+        expect(result.totalInvested).toBe(200);
         expect(result.totalTrades).toBe(2);
     });
 

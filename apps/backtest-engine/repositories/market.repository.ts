@@ -18,10 +18,12 @@ class MarketRepository implements IMarketRepository {
                     interval: "1d",
                 });
 
+                // Jour de cotation dans le fuseau de la place : en UTC, Tokyo ou Sydney tomberaient la veille
+                const toDay = new Intl.DateTimeFormat("en-CA", { timeZone: chart.meta.exchangeTimezoneName });
                 const points: PricePoint[] = chart.quotes
                     .filter((quote) => quote.close != null)
                     .map((quote) => ({
-                        date: quote.date.toISOString().slice(0, 10),
+                        date: toDay.format(quote.date),
                         close: quote.close!,
                     }));
 

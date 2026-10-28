@@ -28,6 +28,7 @@ export interface Trade {
 // Decimal sérialisés en string ; ratios en fraction
 export interface BacktestResult {
     finalValue: string | null
+    totalInvested: string | null
     totalReturn: string | null
     totalTrades: number
     maxDrawdown: string | null

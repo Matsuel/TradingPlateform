@@ -2,6 +2,7 @@
 
 import { PriceAreaChart } from "@/components/chart"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { BACKTEST_CURRENCY } from "./constants"
 import type { EquityPoint } from "./types"
 
 const formatTick = (date: string) =>
@@ -24,7 +25,7 @@ export function EquityChart({ data, positive }: { data: EquityPoint[]; positive:
                     formatTick={formatTick}
                     formatTooltipDate={formatTooltipDate}
                     label="Valeur"
-                    currency="EUR"
+                    currency={BACKTEST_CURRENCY}
                     positive={positive}
                 />
             </CardContent>

@@ -19,8 +19,8 @@ export function NewBacktestForm() {
     })
 
     const onSubmit = async (values: BacktestValues) => {
-        await mutateAsync(values)
-        router.push(`${prefix}/backtest`)
+        const backtest = await mutateAsync(values)
+        router.push(`${prefix}/backtest/${backtest.id}`)
     }
 
     return (

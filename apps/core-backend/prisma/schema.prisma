@@ -170,6 +170,7 @@ model BacktestExecution {
   backtest Backtest        @relation(fields: [backtestId], references: [id], onDelete: Cascade)
   result   BacktestResult?
 
+  @@unique([backtestId, attempt])
   @@index([backtestId, createdAt])
   @@index([status])
 }
@@ -178,6 +179,8 @@ model BacktestResult {
   id          String   @id @default(cuid())
   executionId String   @unique
   finalValue  Decimal? @db.Decimal(18, 2)
+  // Total versé, frais compris
+  totalInvested Decimal? @db.Decimal(18, 2)
   totalReturn Decimal? @db.Decimal(12, 6)
   totalTrades Int      @default(0)
   // Ratio ≤ 0, hors versements

@@ -8,6 +8,10 @@ export const formatChange = new Intl.NumberFormat(fr, {
     minimumFractionDigits: 2, maximumFractionDigits: 2, signDisplay: "always",
 }).format
 
+export const formatNumber = new Intl.NumberFormat(fr, {
+    minimumFractionDigits: 2, maximumFractionDigits: 2,
+}).format
+
 export const formatVolume = new Intl.NumberFormat(fr, {
     notation: "compact", maximumFractionDigits: 2,
 }).format
