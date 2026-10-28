@@ -1,7 +1,7 @@
-import { cn } from 'cn'
-import React, { ReactNode } from 'react'
+import { cn } from '@/lib/utils'
+import type { HTMLAttributes, ReactNode } from 'react'
 
-interface PageHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
+interface PageHeaderProps extends HTMLAttributes<HTMLDivElement> {
     title?: string
     badge?: ReactNode // à droite du titre, ex. statut
     description?: string

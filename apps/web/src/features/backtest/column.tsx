@@ -1,7 +1,7 @@
 import type { Column } from "@/components/data-table/data-table"
 import { ChangeCell, SymbolCell } from "@/components/data-table/cells"
 import { Badge } from "@/components/ui/badge"
-import { formatDay, formatNumber } from "@/lib/format"
+import { formatDay, formatDayRange, formatNumber } from "@/lib/format"
 import { statusBadges, strategyLabels } from "./constants"
 import type { Backtest, Trade } from "./types"
 import { getExecution, getExecutionDuration } from "./utils"
@@ -11,7 +11,7 @@ export const backtestColumns: Column<Backtest>[] = [
     { header: "Nom", cell: (b) => <span className="text-body-medium">{b.name}</span> },
     { header: "Stratégie", cell: (b) => strategyLabels[b.investmentMode] },
     { header: "Symboles", cell: (b) => `${b.symbols.length} symbole${b.symbols.length > 1 ? "s" : ""}` },
-    { header: "Période", cell: (b) => `${formatDay(b.startDate)} – ${formatDay(b.endDate)}` },
+    { header: "Période", cell: (b) => formatDayRange(b.startDate, b.endDate) },
     {
         header: "Rendement",
         className: "text-right",

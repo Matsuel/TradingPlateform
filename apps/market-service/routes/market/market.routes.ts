@@ -12,7 +12,6 @@ const createMarketRoutes = (): RouteDescriptor[] => {
         {
             method: "get",
             path: `${prefix}/search`,
-            // middlewares: [authMiddleware],
             handler: asyncHandler(controller.searchMarket)
         },
         {
@@ -23,7 +22,6 @@ const createMarketRoutes = (): RouteDescriptor[] => {
         {
             method: "get",
             path: `${prefix}/defaults`,
-            // middlewares: [authMiddleware],
             handler: asyncHandler(controller.getDefaultsAssets)
         },
     ];

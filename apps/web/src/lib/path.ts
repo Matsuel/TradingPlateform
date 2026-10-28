@@ -1,6 +1,6 @@
-import tabs from "@/constants/sidebar";
+import tabs, { prefix } from "@/constants/sidebar";
 
-export const prefix = "/app"
+export { prefix }
 
 function isMatch(pathname: string, url: string) {
     if (url === prefix) return pathname === url // la racine ne matche qu'exactement

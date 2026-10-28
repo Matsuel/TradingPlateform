@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
+import { prefix } from "@/lib/path"
 
 const NotFoundPage = () => {
     return (
@@ -15,13 +16,13 @@ const NotFoundPage = () => {
                     La page que vous cherchez n’existe pas ou a été déplacée.
                 </p>
                 <div className="flex flex-row gap-3">
-                    <Link href={"/app"}>
+                    <Link href={prefix}>
                         <Button size={"lg"}>
                             Retour au dashboard
                         </Button>
                     </Link>
 
-                    <Link href={"/app/market"}>
+                    <Link href={`${prefix}/market`}>
                         <Button size={"lg"} variant={"outline"}>
                             Voir le marché
                         </Button>

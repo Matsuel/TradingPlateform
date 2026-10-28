@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { prefix } from "@/lib/path";
 import { isAdmin, requireSession } from "@/lib/session";
 
 interface AdminLayoutProps {
@@ -11,7 +12,7 @@ export default async function AdminLayout({
     await requireSession();
 
     if (!(await isAdmin())) {
-        redirect("/app");
+        redirect(prefix);
     }
 
     return children;

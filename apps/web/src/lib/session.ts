@@ -20,9 +20,7 @@ export async function requireSession() {
 
 export async function isAdmin(): Promise<boolean> {
     const session = await getSession();
-    const roles = session?.user.role?.split(",").map((role) => role.trim()) ?? [];
-
-    return roles.includes("admin");
+    return hasAdminRole(session?.user.role);
 }
 
 export function hasAdminRole(role?: string | null): boolean {

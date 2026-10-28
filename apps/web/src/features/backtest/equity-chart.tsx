@@ -2,14 +2,15 @@
 
 import { PriceAreaChart } from "@/components/chart"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { LOCALE } from "@/lib/format"
 import { BACKTEST_CURRENCY } from "./constants"
 import type { EquityPoint } from "./types"
 
 const formatTick = (date: string) =>
-    new Intl.DateTimeFormat("fr-FR", { month: "short", year: "2-digit" }).format(new Date(date))
+    new Intl.DateTimeFormat(LOCALE, { month: "short", year: "2-digit" }).format(new Date(date))
 
 const formatTooltipDate = (date: string) =>
-    new Intl.DateTimeFormat("fr-FR", { dateStyle: "medium" }).format(new Date(date))
+    new Intl.DateTimeFormat(LOCALE, { dateStyle: "medium" }).format(new Date(date))
 
 // Vert si le backtest est en plus-value : en DCA la valeur monte aussi avec les versements
 export function EquityChart({ data, positive }: { data: EquityPoint[]; positive: boolean }) {

@@ -1,10 +1,13 @@
 import YahooFinance from "yahoo-finance2";
+import type { ChartOptions } from "yahoo-finance2/modules/chart";
 import type { MarketAsset, MarketData, MarketDetails, Period } from "../interfaces/market.interface";
 import { env } from "../env";
 import { DEFAULT_TICKERS } from "../constants/market.constants";
 import { Logger } from "@trading-plateform/utils";
 
 const logger = Logger.here();
+
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 export interface IMarketRepository {
     search(query: string): Promise<MarketData[]>
@@ -19,15 +22,16 @@ class MarketRepository implements IMarketRepository {
     async search(query: string): Promise<MarketData[]> {
         const results = await MarketRepository.yahooFinance.search(query)
 
-        const formattedResults: MarketData[] = results.quotes.map((quote: any) => ({
-            symbol: quote.symbol,
-            name: quote.shortname || quote.longname || quote.symbol,
-            exchange: quote.exchange,
-            assetType: quote.quoteType,
-            logoUrl: quote.symbol && env.LOGO_DEV_TOKEN
-                ? `https://img.logo.dev/ticker/${quote.symbol}?token=${env.LOGO_DEV_TOKEN}&size=64`
-                : undefined,
-        }))
+        // Les résultats hors Yahoo n'ont ni symbole ni place de cotation : ils seraient filtrés plus bas
+        const formattedResults: MarketData[] = results.quotes
+            .filter((quote) => quote.isYahooFinance)
+            .map((quote) => ({
+                symbol: quote.symbol,
+                name: quote.shortname || quote.longname || quote.symbol,
+                exchange: quote.exchange,
+                assetType: quote.quoteType,
+                logoUrl: MarketRepository.logoUrl(quote.symbol),
+            }))
 
         return formattedResults.filter((item) => item.name && item.exchange && item.assetType)
     }
@@ -35,9 +39,9 @@ class MarketRepository implements IMarketRepository {
     async getDetails(id: string, period: Period): Promise<MarketDetails[]> {
         const now = new Date()
 
-        const config: Record<Period, { period1: Date, interval: string }> = {
-            '1d': { period1: new Date(now.getTime() - 24 * 60 * 60 * 1000), interval: '5m' },
-            '1w': { period1: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000), interval: '1h' },
+        const config: Record<Period, { period1: Date, interval: ChartOptions["interval"] }> = {
+            '1d': { period1: new Date(now.getTime() - DAY_MS), interval: '5m' },
+            '1w': { period1: new Date(now.getTime() - 7 * DAY_MS), interval: '1h' },
             '1m': { period1: new Date(now.getFullYear(), now.getMonth() - 1, now.getDate()), interval: '1d' },
             '1y': { period1: new Date(now.getFullYear() - 1, now.getMonth(), now.getDate()), interval: '1wk' },
             'max': { period1: new Date(0), interval: '1mo' },
@@ -47,14 +51,14 @@ class MarketRepository implements IMarketRepository {
 
         const details = await MarketRepository.yahooFinance.chart(id, {
             period1: period1,
-            interval: interval as any,
+            interval: interval,
         })
 
         if (!details) {
             throw new Error(`No details found for id: ${id}`)
         }
 
-        const formattedResult: MarketDetails[] = details.quotes.map((quote: any) => ({
+        const formattedResult: MarketDetails[] = details.quotes.map((quote) => ({
             date: quote.date,
             price: quote.close,
         }))
@@ -72,16 +76,14 @@ class MarketRepository implements IMarketRepository {
                 const [quote, chart] = await Promise.all([
                     MarketRepository.yahooFinance.quote(symbol),
                     MarketRepository.yahooFinance.chart(symbol, {
-                        period1: new Date(
-                            Date.now() - 24 * 60 * 60 * 1000,
-                        ),
+                        period1: new Date(Date.now() - DAY_MS),
                         interval: "1h",
                     }),
                 ]);
 
                 const history: MarketDetails[] = chart.quotes
-                    .filter((point: any) => point.close != null)
-                    .map((point: any) => ({
+                    .filter((point) => point.close != null)
+                    .map((point) => ({
                         date: point.date,
                         price: point.close,
                     }));
@@ -97,9 +99,7 @@ class MarketRepository implements IMarketRepository {
                         quote.regularMarketChangePercent ?? null,
                     volume24h: quote.regularMarketVolume ?? null,
                     history,
-                    logoUrl: quote.symbol && env.LOGO_DEV_TOKEN
-                ? `https://img.logo.dev/ticker/${quote.symbol}?token=${env.LOGO_DEV_TOKEN}&size=64`
-                : undefined,
+                    logoUrl: MarketRepository.logoUrl(quote.symbol),
                 } satisfies MarketAsset;
             }),
         );
@@ -115,6 +115,12 @@ class MarketRepository implements IMarketRepository {
 
             return [];
         });
+    }
+
+    private static logoUrl(symbol: string): string | undefined {
+        return symbol && env.LOGO_DEV_TOKEN
+            ? `https://img.logo.dev/ticker/${symbol}?token=${env.LOGO_DEV_TOKEN}&size=64`
+            : undefined
     }
 }
 

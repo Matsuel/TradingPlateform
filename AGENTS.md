@@ -38,9 +38,23 @@ Chaque valeur a **un seul propriétaire**. Le propriétaire la calcule, la stock
 
 Le web se limite à : formater (devise, date, durée entre deux timestamps), convertir une unité (ratio `0,342` → `34,2 %`), trier/filtrer pour l'affichage, gérer l'état d'interface. Quand l'écran a besoin d'une valeur métier absente de l'API (un total, une métrique, une règle), **ajoute-la côté backend** (engine → contrat → base → API), puis affiche-la. Test rapide : si deux clients différents devaient montrer le même chiffre, ce chiffre vient du backend.
 
+## Catalogues d'usage
+
+Chaque app qui expose quelque chose de réutilisable tient un **catalogue** : comment l'utiliser, sans relire son code.
+
+| Catalogue | Contenu |
+| --- | --- |
+| `apps/core-backend/API.md` | Routes HTTP appelées par le web : méthode, chemin, auth, entrée, réponse, erreurs, effets (événements publiés), appelant web. |
+| `apps/market-service/API.md` | Routes internes relayées par le proxy de core-backend. |
+| `apps/web/COMPONENTS.md` | Composants partagés (`components/`), champs de formulaire, formatters de `lib/format.ts`, exports publics de chaque `features/<domaine>`. |
+
+- **Lis le catalogue d'abord** : avant d'appeler une route, d'utiliser un composant ou d'en créer un, consulte le catalogue concerné. Il fait foi pour l'usage (props, body, réponses).
+- **Documente dès la création** : créer, modifier ou supprimer une route ou un composant catalogué met à jour son entrée dans le même diff, selon le gabarit écrit en tête du catalogue.
+- Catalogue et code divergent → le code fait foi ; corrige l'entrée dans ton diff.
+
 ## Rangement : une signification, un seul endroit
 
-- **Cherche avant de créer** : `grep` le nom ou la valeur. Un helper, une constante ou un composant équivalent existe → réutilise-le ou étends-le.
+- **Cherche avant de créer** : catalogue d'usage, puis `grep` du nom ou de la valeur. Un helper, une constante ou un composant équivalent existe → réutilise-le ou étends-le.
 - **Constantes** : une valeur métier écrite deux fois (statuts, devise, topic, fréquence) devient une constante nommée dans `constants/` (backend) ou `features/<domaine>/constants.ts` (web).
 - **Types** : un type qui décrit une donnée d'un contrat ou de Prisma en est **dérivé** (`z.infer`, `Pick`, `Omit`, `Prisma.XGetPayload`), jamais recopié champ par champ.
 - **Helpers** : un helper vit dans la couche de sa responsabilité (formatage web → `lib/format.ts`, helper de domaine → `features/<domaine>/utils.ts`, calcul → `engine/`). Code partagé entre apps → `packages/*`, importé par `@trading-plateform/<nom>` ; jamais d'import relatif entre apps.
@@ -79,4 +93,5 @@ Chaque point est vérifié, pas supposé :
 1. `bunx tsc --noEmit` passe dans chaque app/package touché ; `bun run lint` dans `apps/web` si le front change ; `bun test` dans `apps/backtest-engine` si l'engine change.
 2. Responsabilités : le diff web ne contient que de l'affichage ; tout nouveau calcul vit chez son propriétaire.
 3. Rangement : aucune constante, helper ou type dupliqué introduit (`grep` les nouveaux noms et littéraux).
-4. Diff relu : rien hors périmètre, aucun fichier généré ou de debug oublié.
+4. Catalogues : chaque route ou composant catalogué créé, modifié ou supprimé a son entrée à jour.
+5. Diff relu : rien hors périmètre, aucun fichier généré ou de debug oublié.

@@ -14,7 +14,7 @@ Mêmes dossiers que core-backend (`builder/`, `models/`, `errors/`, `middleware/
 ## Conventions
 
 - Identiques à core-backend : nommage `<domaine>.<couche>.ts`, `export default`, controllers en méthodes fléchées, erreurs lancées (`AppError`) et formatées par `error.middleware`, handlers enveloppés par `asyncHandler`.
-- Routes : préfixe `/api/market`.
+- Routes : préfixe `/api/market`, chacune documentée dans `API.md` dès sa création.
 - Env via `env.ts` (zod).
 - Logs : `Logger.here()` de `@trading-plateform/utils`, pas de `console.log`.
 - **N'ajoute pas d'accès DB ici** : core-backend est le seul service qui écrit en base.

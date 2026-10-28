@@ -1,0 +1,207 @@
+# API core-backend
+
+Catalogue des routes HTTP exposées par core-backend (port 8000) et appelées par le web : comment les appeler sans relire le code. Toute création, modification ou suppression de route met à jour son entrée **dans le même diff que le code**, selon le gabarit ci-dessous. En cas d'écart entre ce fichier et le code, le code fait foi : corrige l'entrée.
+
+## Gabarit d'entrée
+
+````markdown
+### METHOD /api/<domaine>/<chemin>
+
+- **Auth** : session better-auth requise (`authMiddleware`) | publique.
+- **Entrée** :
+  - params : `id` (string, cuid).
+  - query : aucune.
+  - body : `<schemaZod>` (`interfaces/<domaine>.interface.ts`), champs avec unité.
+    ```json
+    { "champ": "valeur" }
+    ```
+- **Réponse** : `200` | `201` | `202` | `204`, forme JSON (types sérialisés : `Decimal` → string, dates → ISO).
+  ```json
+  { "id": "cm…" }
+  ```
+- **Erreurs** : `400` → validation ; `401` → pas de session ; `404` → … ; `409` → …
+- **Effets** : événement Kafka publié (topic, clé), écritures en base | aucun.
+- **Appelant** : `fonction()` de `apps/web/src/features/<domaine>/api.ts`, hook `useX()` de `hook.ts` | aucun.
+- **Source** : `routes/<domaine>/<domaine>.routes.ts`, `controller/…`, `services/…`.
+````
+
+## Sommaire
+
+- [Conventions communes](#conventions-communes)
+- [Auth](#auth) : `ALL /api/auth/{*path}`
+- [Market (proxy)](#market-proxy) : `ALL /api/market/{*path}`
+- [Portfolio](#portfolio) : `POST`, `GET`, `GET /:id`, `PATCH /:id`, `DELETE /:id`
+- [Backtest](#backtest) : `POST`, `POST /:id/executions`, `GET /:id`, `GET`
+
+## Conventions communes
+
+- **Base** : `http://localhost:8000`. Le web appelle via `apiFetch(path)` (`apps/web/src/lib/api.ts`) avec `NEXT_PUBLIC_API_URL=http://localhost:8000/api` : `apiFetch("/backtest")` → `GET /api/backtest`. Cookies envoyés (`credentials: "include"`), CORS limité à `env.WEB_URL` (défaut `http://localhost:3000`, `env.ts`).
+- **Ordre d'enregistrement** (`index.ts`) : `authRouter`, `marketRouter` (avant `express.json()` pour garder le body brut), puis `express.json()`, `portfolioRouter`, `backtestRouter`, `errorMiddleware`.
+- **Auth** : `authMiddleware` lit la session better-auth depuis les en-têtes (cookie, ou `Authorization: Bearer` via le plugin `bearer`) et pose `req.userId`. Sans session : `401 { "error": "Unauthorized" }`.
+- **Erreurs** : toute `AppError` est rendue par `error.middleware` en `{ "error": "<message>", ...data }` avec son statut. Toute autre exception : `500 { "error": "Internal server error" }`. Côté web, `apiFetch` lève `Error("Erreur API : <status> <statusText>")` et ignore le corps d'erreur.
+- **Sérialisation** : `Decimal` Prisma → string (`"0.001"`), `DateTime` → ISO 8601 (`"2026-01-31T00:00:00.000Z"`). Ratios en fraction (`0.342` = 34,2 %).
+- **Propriété** : une ressource d'un autre utilisateur → `403 { "error": "Access denied" }` ; inexistante → `404`.
+
+## Auth
+
+### ALL /api/auth/{*path}
+
+- **Auth** : publique (c'est le point d'entrée de l'authentification).
+- **Entrée** : définie par better-auth (`lib/auth.ts`) : email + mot de passe (`emailAndPassword`), plugins `admin`, `jwt`, `bearer`. Routeur monté avant `express.json()` : better-auth lit le body brut.
+- **Réponse** : définie par better-auth ; la connexion pose le cookie de session (cache cookie de 5 min, `session.cookieCache.maxAge = 300` s).
+- **Erreurs** : format better-auth, pas celui de `error.middleware`.
+- **Effets** : écritures `User`, `Account`, `Session`, `Verification`, `Jwks` via `prismaAdapter`. Aucun événement Kafka.
+- **Appelant** : `authClient` de `apps/web/src/lib/auth.ts` (better-auth/react, `baseURL: "http://localhost:8000"`, `basePath` par défaut `/api/auth`, plugin `adminClient`) :
+  - `authClient.signIn.email({ email, password })` : `LoginForm` (`features/auth/login-form.tsx`) ;
+  - `authClient.signUp.email({ name, email, password })` : `RegisterForm` (`features/auth/register-form.tsx`) ;
+  - `signOut()` : `components/nav-user.tsx` ;
+  - `authClient.getSession(...)` côté serveur : `getSession`/`requireSession`/`isAdmin` de `apps/web/src/lib/session.ts`, utilisés par `apps/web/src/app/app/layout.tsx` et `apps/web/src/app/app/(admin)/layout.tsx`.
+- **Source** : `routes/auth/auth.routes.ts`, `controller/auth.controller.ts`, `lib/auth.ts`.
+
+## Market (proxy)
+
+### ALL /api/market/{*path}
+
+- **Auth** : session requise (`authMiddleware`).
+- **Entrée** : requête relayée telle quelle (méthode, chemin complet `/api/market/...`, query, body) vers `env.MARKET_SERVICE_URL` (défaut `http://localhost:8001`, `env.ts`). L'en-tête `x-user-id` entrant est supprimé puis remplacé par `req.userId` (anti-usurpation).
+- **Réponse** : statut et corps de market-service, inchangés. Routes disponibles : voir [`apps/market-service/API.md`](../market-service/API.md).
+- **Erreurs** : `401` → pas de session ; `502 { "error": "Service unavailable" }` → market-service injoignable ou sans réponse sous 10 s (`proxyTimeout: 10_000`) ; erreurs de market-service relayées avec leur statut.
+- **Effets** : aucun.
+- **Appelant** : fonctions de `apps/web/src/features/market/api.ts` (détail dans `apps/market-service/API.md`).
+- **Source** : `routes/market/market.routes.ts`, `utils/proxy.ts`, `env.ts`.
+
+## Portfolio
+
+Réponse `Portfolio` commune :
+
+```json
+{ "id": "cm…", "userId": "…", "name": "Principal", "createdAt": "2026-10-28T09:00:00.000Z", "updatedAt": "2026-10-28T09:00:00.000Z" }
+```
+
+### POST /api/portfolio
+
+- **Auth** : session requise.
+- **Entrée** : body `portfolioSchema` (`interfaces/portfolio.interface.ts`) : `name` string non vide.
+  ```json
+  { "name": "Principal" }
+  ```
+- **Réponse** : `201`, `Portfolio` créé.
+- **Erreurs** : `400 { "error": "Name is required" }` → body absent ou invalide (`name` absent, vide ou non string ; pas de `issues`) ; `401`.
+- **Effets** : écrit un `Portfolio` (`userId` = session). Aucun événement.
+- **Appelant** : aucun.
+- **Source** : `routes/portfolio/portfolio.routes.ts`, `controller/portfolio.controller.ts`, `services/portfolio.service.ts`.
+
+### GET /api/portfolio
+
+- **Auth** : session requise.
+- **Entrée** : aucune.
+- **Réponse** : `200`, portefeuilles de l'utilisateur, plus récents d'abord.
+  ```json
+  { "data": [{ "id": "cm…", "name": "Principal", "...": "…" }], "count": 1 }
+  ```
+- **Erreurs** : `401`.
+- **Effets** : aucun.
+- **Appelant** : aucun.
+- **Source** : `routes/portfolio/portfolio.routes.ts`, `controller/portfolio.controller.ts`, `services/portfolio.service.ts`.
+
+### GET /api/portfolio/:id
+
+- **Auth** : session requise.
+- **Entrée** : params `id` (cuid du portefeuille).
+- **Réponse** : `200`, `Portfolio`.
+- **Erreurs** : `401` ; `403 { "error": "Access denied" }` → autre propriétaire ; `404 { "error": "Portfolio not found" }`.
+- **Effets** : aucun.
+- **Appelant** : aucun.
+- **Source** : `routes/portfolio/portfolio.routes.ts`, `controller/portfolio.controller.ts`, `services/portfolio.service.ts`.
+
+### PATCH /api/portfolio/:id
+
+- **Auth** : session requise.
+- **Entrée** : params `id` ; body `portfolioSchema` (`interfaces/portfolio.interface.ts`) : `name` string non vide, **requis** (pas de mise à jour partielle).
+- **Réponse** : `200`, `Portfolio` mis à jour.
+- **Erreurs** : `400 { "error": "Name is required" }` → body absent ou invalide ; `401` ; `403 { "error": "Access denied" }` ; `404 { "error": "Portfolio not found" }`.
+- **Effets** : met à jour `Portfolio.name`.
+- **Appelant** : aucun.
+- **Source** : `routes/portfolio/portfolio.routes.ts`, `controller/portfolio.controller.ts`, `services/portfolio.service.ts`.
+
+### DELETE /api/portfolio/:id
+
+- **Auth** : session requise.
+- **Entrée** : params `id`.
+- **Réponse** : `204`, corps vide.
+- **Erreurs** : `401` ; `403 { "error": "Access denied" }` ; `404 { "error": "Portfolio not found" }`.
+- **Effets** : supprime le `Portfolio` et, en cascade, ses `TradingAccount`.
+- **Appelant** : aucun.
+- **Source** : `routes/portfolio/portfolio.routes.ts`, `controller/portfolio.controller.ts`, `services/portfolio.service.ts`.
+
+## Backtest
+
+Formes de réponse communes (`interfaces/backtest.interface.ts`, `prisma/schema.prisma`) :
+
+- **`Backtest`** : `id`, `userId`, `name`, `symbols` (string[]), `startDate`, `endDate` (ISO), `investmentMode` (`"LUMP_SUM"` | `"RECURRING"`), `initialAmount` (Decimal string, devise de saisie), `recurringAmount` (Decimal string | null, montant par versement), `investmentFrequency` (`"DAILY"` | `"WEEKLY"` | `"MONTHLY"` | `"YEARLY"` | null), `feeRate` (Decimal string, fraction : `"0.001"` = 0,1 % par achat), `createdAt`, `updatedAt`.
+- **`BacktestExecution`** : `id`, `backtestId`, `status` (`"PENDING"` | `"RUNNING"` | `"COMPLETED"` | `"FAILED"` | `"CANCELLED"`), `attempt` (int, 1 pour la première), `startedAt`, `finishedAt` (ISO | null), `error` (string | null), `createdAt`.
+- **Résumé de résultat** (dans `executions[].result`, sans `equityCurve` ni `trades`) : `id`, `executionId`, `finalValue`, `totalInvested` (Decimal string | null, devise, frais compris), `totalReturn` (Decimal string | null, fraction), `totalTrades` (int), `maxDrawdown` (Decimal string | null, fraction ≤ 0, hors versements), `maxDrawdownDate` (ISO | null), `createdAt`.
+- **`BacktestResult`** complet : résumé + `equityCurve` (`[{ "date": "YYYY-MM-DD", "value": number, "invested": number }]`) et `trades` (`[{ "date": "YYYY-MM-DD", "symbol": string, "price": number }]`, achats exécutés, `price` = cours d'achat).
+
+Les montants sont dans la devise saisie, affichée `EUR` par le web (`BACKTEST_CURRENCY`) ; les cours ne sont pas convertis.
+
+### POST /api/backtest
+
+- **Auth** : session requise.
+- **Entrée** : body `createBacktestSchema` (`interfaces/backtest.interface.ts`) :
+  - `name` : string non vide ;
+  - `strategy` : `"dca"` (versement mensuel de `amount`) | `"lump_sum"` (versement unique de `amount`) ;
+  - `symbols` : string[] non vide ;
+  - `start`, `end` : dates (coercées depuis ISO), `start < end` ;
+  - `amount` : number > 0, devise de saisie ;
+  - `fee` : number de 0 à 100, **pourcentage** par ordre (`0.1` = 0,1 %), stocké en `feeRate = fee / 100`.
+  ```json
+  { "name": "Test rapide AAPL", "strategy": "dca", "symbols": ["AAPL"], "start": "2025-10-28T00:00:00.000Z", "end": "2026-10-28T00:00:00.000Z", "amount": 10000, "fee": 0.1 }
+  ```
+- **Réponse** : `202`, `Backtest` créé avec `executions: [execution PENDING, attempt 1, result null]`. Le calcul est asynchrone : suivre via `GET /api/backtest/:id`.
+  ```json
+  { "id": "cm…", "name": "Test rapide AAPL", "investmentMode": "RECURRING", "initialAmount": "0", "recurringAmount": "10000", "investmentFrequency": "MONTHLY", "feeRate": "0.001", "...": "…", "executions": [{ "id": "cm…", "status": "PENDING", "attempt": 1, "result": null, "...": "…" }] }
+  ```
+- **Erreurs** : `400 { "error": "Invalid backtest", "issues": [ZodIssue] }` → body invalide (`end` avant `start` : issue sur `path: ["end"]`, `"Must be after start"`) ; `401` ; `500 { "error": "Backtest could not be queued" }` → publication Kafka impossible (le backtest reste créé, son exécution passe `FAILED`).
+- **Effets** : écrit `Backtest` (`dca` → `investmentMode: RECURRING`, `initialAmount: 0`, `recurringAmount: amount`, `investmentFrequency: MONTHLY` ; `lump_sum` → `LUMP_SUM`, `initialAmount: amount`) et une `BacktestExecution` `PENDING`. Publie `backtest.requested` (clé `executionId`, payload `BacktestRequestedPayload` de `@trading-plateform/contracts`). Les événements `backtest.started|completed|failed` font ensuite évoluer l'exécution.
+- **Appelant** : `createBacktest(values)` de `apps/web/src/features/backtest/api.ts`, hook `useCreateBacktest()` (invalide `["backtest", "list"]`) ; utilisé par `NewBacktestForm` et `QuickBacktestForm`.
+- **Source** : `routes/backtest/backtest.routes.ts`, `controller/backtest.controller.ts`, `services/backtest.service.ts`, `interfaces/backtest.interface.ts`.
+
+### POST /api/backtest/:id/executions
+
+- **Auth** : session requise.
+- **Entrée** : params `id` (cuid du backtest) ; pas de body.
+- **Réponse** : `202`, `BacktestExecution` créée (`status: "PENDING"`, `attempt` = dernière + 1).
+  ```json
+  { "id": "cm…", "backtestId": "cm…", "status": "PENDING", "attempt": 2, "startedAt": null, "finishedAt": null, "error": null, "createdAt": "…" }
+  ```
+- **Erreurs** : `401` ; `403 { "error": "Access denied" }` ; `404 { "error": "Backtest not found" }` ; `409 { "error": "An execution is already in progress", "executionId": "…" }` → dernière exécution `PENDING` ou `RUNNING` (`ACTIVE_STATUSES`) ; `500 { "error": "Backtest could not be queued" }` → publication Kafka impossible (l'exécution passe `FAILED`).
+- **Effets** : écrit une `BacktestExecution`, publie `backtest.requested` (clé `executionId`) avec les paramètres stockés du backtest.
+- **Appelant** : `rerunBacktest(id)` de `apps/web/src/features/backtest/api.ts`, hook `useRerunBacktest(id)` (invalide `["backtest"]`) ; utilisé par `BacktestDetail`.
+- **Source** : `routes/backtest/backtest.routes.ts`, `controller/backtest.controller.ts`, `services/backtest.service.ts`, `constants/backtest.constants.ts`.
+
+### GET /api/backtest/:id
+
+- **Auth** : session requise.
+- **Entrée** : params `id`.
+- **Réponse** : `200`, `BacktestDetails` : `Backtest` + `executions` (toutes, plus récente d'abord, chacune avec son résumé de résultat ou `null`) + `result` (`BacktestResult` complet de la dernière exécution `COMPLETED`, ou `null`).
+  ```json
+  { "id": "cm…", "name": "…", "executions": [{ "status": "COMPLETED", "attempt": 1, "result": { "totalReturn": "0.123456", "totalTrades": 12, "...": "…" } }], "result": { "finalValue": "11234.56", "totalInvested": "10010", "totalReturn": "0.123456", "maxDrawdown": "-0.08", "maxDrawdownDate": "2026-03-10T00:00:00.000Z", "equityCurve": [{ "date": "2025-11-03", "value": 1000, "invested": 1001 }], "trades": [{ "date": "2025-11-03", "symbol": "AAPL", "price": 268.5 }], "...": "…" } }
+  ```
+- **Erreurs** : `401` ; `403 { "error": "Access denied" }` ; `404 { "error": "Backtest not found" }`.
+- **Effets** : aucun.
+- **Appelant** : `getBacktest(id)` de `apps/web/src/features/backtest/api.ts`, hook `useBacktest(id)` (clé `["backtest", "detail", id]`, rafraîchi toutes les 2 s tant que la dernière exécution est active) ; utilisé par `BacktestDetail`.
+- **Source** : `routes/backtest/backtest.routes.ts`, `controller/backtest.controller.ts`, `services/backtest.service.ts`, `repositories/backtest.repository.ts`.
+
+### GET /api/backtest
+
+- **Auth** : session requise.
+- **Entrée** : aucune.
+- **Réponse** : `200`, backtests de l'utilisateur, plus récents d'abord ; chacun porte `executions` limité à **la dernière** exécution (avec résumé de résultat ou `null`).
+  ```json
+  { "data": [{ "id": "cm…", "name": "…", "executions": [{ "status": "RUNNING", "attempt": 1, "result": null, "...": "…" }], "...": "…" }], "count": 1 }
+  ```
+- **Erreurs** : `401`.
+- **Effets** : aucun.
+- **Appelant** : `getBacktests()` de `apps/web/src/features/backtest/api.ts` (renvoie `data` seul), hook `useBacktests()` (clé `["backtest", "list"]`) ; utilisé par `BacktestList`.
+- **Source** : `routes/backtest/backtest.routes.ts`, `controller/backtest.controller.ts`, `services/backtest.service.ts`, `repositories/backtest.repository.ts`.

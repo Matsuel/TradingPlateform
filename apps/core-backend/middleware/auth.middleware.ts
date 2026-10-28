@@ -1,7 +1,10 @@
 import type { Request, Response, NextFunction } from 'express'
 import { fromNodeHeaders } from 'better-auth/node'
+import { Logger } from '@trading-plateform/utils'
 import { auth } from '../lib/auth'
-import AppError from '../models/error.model'
+import UnauthorizedError from '../errors/unauthorized.error'
+
+const logger = Logger.here()
 
 const authMiddleware = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -9,13 +12,13 @@ const authMiddleware = async (req: Request, res: Response, next: NextFunction) =
             headers: fromNodeHeaders(req.headers),
         })
 
-        if (!session?.user) return next(new AppError('Unauthorized', 401))
+        if (!session?.user) return next(new UnauthorizedError())
 
         req.userId = session.user.id
         next()
     } catch (error) {
-        console.error('Authentication error:', error)
-        next(new AppError('Unauthorized', 401))
+        logger.error('Authentication error', { error: error instanceof Error ? error.message : String(error) })
+        next(new UnauthorizedError())
     }
 }
 

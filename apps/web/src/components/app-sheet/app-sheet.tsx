@@ -1,4 +1,4 @@
-import { ReactElement, ReactNode } from "react"
+import type { ReactElement, ReactNode } from "react"
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "../ui/sheet"
 
 interface AppSheetProps {

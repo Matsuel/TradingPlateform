@@ -3,7 +3,7 @@
 import type { FieldValues } from "react-hook-form"
 
 import { Input } from "@/components/ui/input"
-import { AppField, BaseProps } from "../field"
+import { AppField, type BaseProps } from "../field"
 
 export function NumberField<T extends FieldValues>({
     placeholder,

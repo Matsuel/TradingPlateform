@@ -1,3 +1,15 @@
+import { z } from "zod";
+
+export const searchMarketSchema = z.object({
+    query: z.string().trim().min(2),
+});
+
+export const marketIdSchema = z.string().trim().min(1);
+
+export const periodSchema = z.enum(["1d", "1w", "1m", "1y", "max"]);
+
+export type Period = z.infer<typeof periodSchema>;
+
 export interface MarketData {
     symbol: string
     name: string
@@ -16,9 +28,8 @@ export interface MarketAsset {
     logoUrl: string | undefined;
 }
 
+// Sérialisé en JSON : date ISO, prix null quand Yahoo n'a pas de clôture
 export interface MarketDetails {
-    date: string
-    price: number
+    date: Date
+    price: number | null
 }
-
-export type Period = '1d' | '1w' | '1m' | '1y' | 'max' ;

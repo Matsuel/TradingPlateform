@@ -1,53 +1,21 @@
 "use client"
 
-import { useState } from "react"
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts"
-import { Loader2 } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { cn } from "@/lib/utils"
-import { formatPrice } from "@/lib/format"
-import { Period } from "@/features/market/api"
-import { useMarketDetails } from "@/features/market/hook"
-
-const PERIODS: { value: Period; label: string; interval: string }[] = [
-    { value: "1d", label: "1J", interval: "5 min" },
-    { value: "1w", label: "1S", interval: "1 h" },
-    { value: "1m", label: "1M", interval: "1 jour" },
-    { value: "1y", label: "1A", interval: "1 semaine" },
-    { value: "max", label: "Max", interval: "1 mois" },
-]
-
-const tickFormats: Record<Period, Intl.DateTimeFormatOptions> = {
-    "1d": { hour: "2-digit", minute: "2-digit" },
-    "1w": { weekday: "short", day: "numeric" },
-    "1m": { day: "numeric", month: "short" },
-    "1y": { month: "short", year: "2-digit" },
-    max: { year: "numeric" },
-}
-
-const formatTick = (date: string, period: Period) =>
-    new Intl.DateTimeFormat("fr-FR", tickFormats[period]).format(new Date(date))
-
-const formatTooltipDate = (date: string, period: Period) =>
-    new Intl.DateTimeFormat("fr-FR", {
-        dateStyle: "medium",
-        ...(period === "1d" || period === "1w" ? { timeStyle: "short" } : {}),
-    }).format(new Date(date))
+import { formatPrice, LOCALE } from "@/lib/format"
 
 const formatAxisPrice = (v: number) =>
-    v.toLocaleString("fr-FR", { maximumFractionDigits: v < 10 ? 2 : 0 })
+    v.toLocaleString(LOCALE, { maximumFractionDigits: v < 10 ? 2 : 0 })
 
-type PricePoint = { date: string; price: number }
+export type PricePoint = { date: string; price: number }
 
 interface PriceAreaChartProps {
     data: PricePoint[]
     formatTick: (date: string) => string
     formatTooltipDate: (date: string) => string
     label?: string
-    currency?: string
+    currency: string
     positive?: boolean // vert/rouge ; par défaut : dernier point ≥ premier
     className?: string
 }
@@ -113,57 +81,5 @@ export function PriceAreaChart({
                 />
             </AreaChart>
         </ChartContainer>
-    )
-}
-
-export function PriceChart({ symbol }: { symbol: string }) {
-    const [period, setPeriod] = useState<Period>("1d")
-    const { data, isPending, isError, error, refetch, isPlaceholderData } = useMarketDetails(symbol, period)
-    const interval = PERIODS.find((p) => p.value === period)!.interval
-
-    const status = (content: React.ReactNode) => (
-        <div className="flex h-82.5 flex-col items-center justify-center gap-3 text-center">{content}</div>
-    )
-
-    return (
-        <Card className="gap-4">
-            <CardHeader>
-                <CardTitle className="text-body-semibold">Prix</CardTitle>
-                <CardDescription className="text-small">
-                    {symbol} · points toutes les {interval}
-                </CardDescription>
-                <CardAction>
-                    <Tabs value={period} onValueChange={(v) => setPeriod(v as Period)}>
-                        <TabsList>
-                            {PERIODS.map((p) => (
-                                <TabsTrigger key={p.value} value={p.value}>{p.label}</TabsTrigger>
-                            ))}
-                        </TabsList>
-                    </Tabs>
-                </CardAction>
-            </CardHeader>
-
-            <CardContent>
-                {isPending ? (
-                    status(<Loader2 className="size-6 animate-spin text-muted-foreground" />)
-                ) : isError ? (
-                    status(
-                        <>
-                            <p className="text-sm text-destructive">{error.message}</p>
-                            <Button variant="outline" size="sm" onClick={() => refetch()}>Réessayer</Button>
-                        </>
-                    )
-                ) : data.length === 0 ? (
-                    status(<p className="text-sm text-muted-foreground">Aucune donnée pour cette période.</p>)
-                ) : (
-                    <PriceAreaChart
-                        data={data}
-                        formatTick={(d) => formatTick(d, period)}
-                        formatTooltipDate={(d) => formatTooltipDate(d, period)}
-                        className={cn("transition-opacity", isPlaceholderData && "opacity-50")}
-                    />
-                )}
-            </CardContent>
-        </Card>
     )
 }

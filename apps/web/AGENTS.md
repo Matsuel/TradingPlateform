@@ -53,7 +53,7 @@ Règles :
 
 - Un formatter utilisé par ≥ 2 fichiers vit dans `lib/format.ts` ; un formatter propre à un seul composant (ticks d'un graphique) est une constante en tête de ce fichier.
 - Une mutation est instanciée **une fois** par écran, dans le composant d'écran ; les sections reçoivent l'action ou le bouton par props (`actions`).
-- Composants partagés : réutilise-les en priorité (`DataTable`, `StatCard`, `PriceAreaChart`, `SymbolCell`, `PageHeader`). Un besoin manquant s'ajoute par une prop optionnelle rétrocompatible (slot `ReactNode` nommé `actions`, `badge`, `leading`), jamais par une copie. Ne modifie un composant `ui/` shadcn qu'en cas de besoin réel.
+- Composants partagés : consulte `COMPONENTS.md`, réutilise-les en priorité (`DataTable`, `StatCard`, `PriceAreaChart`, `SymbolCell`, `PageHeader`). Un besoin manquant s'ajoute par une prop optionnelle rétrocompatible (slot `ReactNode` nommé `actions`, `badge`, `leading`), jamais par une copie. Ne modifie un composant `ui/` shadcn qu'en cas de besoin réel.
 - Formulaires : react-hook-form + schéma de `schema.ts` + champs de `components/form/fields`. Après création, redirige vers la page de détail de la ressource.
 - Server Component par défaut ; `"use client"` seulement si le fichier utilise hooks, état ou événements.
 - Classes via `cn` de `lib/utils`.
@@ -64,5 +64,5 @@ Règles :
 1. Données ou métriques manquantes → backend d'abord (voir `../../AGENTS.md`).
 2. `types.ts`, `api.ts`, `hook.ts`, puis `constants.ts`/`utils.ts` si besoin.
 3. `schema.ts` si formulaire ; `column.tsx` si table ; `stats.tsx` si cartes.
-4. Composants `<sujet>.tsx` composés de `components/`.
+4. Composants `<sujet>.tsx` composés de `components/` (catalogue `COMPONENTS.md`) ; nouvelle entrée dans `COMPONENTS.md` pour chaque composant partagé ou export de feature créé.
 5. Page `app/app/<domaine>/page.tsx` fine ; entrée sidebar dans `constants/sidebar.tsx`.

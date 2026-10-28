@@ -3,7 +3,7 @@
 import type { FieldValues } from "react-hook-form"
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { AppField, BaseProps } from "../field"
+import { AppField, type BaseProps } from "../field"
 
 export function SelectField<T extends FieldValues>({
     options,

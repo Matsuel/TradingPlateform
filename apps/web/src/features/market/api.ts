@@ -1,8 +1,5 @@
 import { apiFetch } from "@/lib/api";
-import { MarketAsset, MarketData } from "./types";
-
-export type Period = "1d" | "1w" | "1m" | "1y" | "max"
-export type MarketDetails = { date: string; price: number } // les dates arrivent en string via le JSON
+import type { MarketAsset, MarketData, MarketDetails, Period } from "./types";
 
 export async function getDefaultAssets(): Promise<MarketAsset[]> {
     return apiFetch<MarketAsset[]>("/market/defaults");

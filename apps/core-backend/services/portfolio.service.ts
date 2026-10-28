@@ -1,8 +1,8 @@
-import BadRequestError from "../errors/badrequest.error"
 import NotFoundError from "../errors/notfound.error"
 import ForbiddenError from "../errors/forbidden.error"
 import PortfolioRepository, { type IPortfolioRepository } from "../repositories/portfolio.repository"
-import type { UpdatePortfolioDTO } from "../interfaces/portfolio.interface"
+import type { Portfolio } from "../generated/prisma/client"
+import type { PortfolioInput } from "../interfaces/portfolio.interface"
 import { Logger } from "@trading-plateform/utils"
 
 const logger = Logger.here()
@@ -10,22 +10,16 @@ const logger = Logger.here()
 class PortfolioService {
     repo: IPortfolioRepository = new PortfolioRepository()
 
-    async create(userId: string, name: string) {
-        if (!name) {
-            throw new BadRequestError("Name is required")
-        }
-        logger.info("Creating portfolio", { userId, name })
-        const portfolio = await this.repo.create(userId, { name })
-        logger.info("Portfolio created", { id: portfolio.id, userId, name })
+    async create(userId: string, input: PortfolioInput) {
+        logger.info("Creating portfolio", { userId, name: input.name })
+        const portfolio = await this.repo.create({ userId, name: input.name })
+        logger.info("Portfolio created", { id: portfolio.id, userId, name: input.name })
         return portfolio
     }
 
     async getById(id: string, userId: string) {
         logger.info("Fetching portfolio", { id, userId })
-        const portfolio = await this.repo.getById(id)
-        if (!portfolio) throw new NotFoundError("Portfolio not found")
-        if (portfolio.userId !== userId) throw new ForbiddenError("Access denied")
-        return portfolio
+        return this.assertOwner(await this.repo.getById(id), userId)
     }
 
     async getAll(userId: string) {
@@ -35,26 +29,25 @@ class PortfolioService {
         return result
     }
 
-    async update(id: string, userId: string, data: UpdatePortfolioDTO) {
-        if (!data.name) {
-            throw new BadRequestError("Name is required")
-        }
-        logger.info("Updating portfolio", { id, userId, fields: Object.keys(data) })
-        const portfolio = await this.repo.getById(id)
-        if (!portfolio) throw new NotFoundError("Portfolio not found")
-        if (portfolio.userId !== userId) throw new ForbiddenError("Access denied")
-        const updated = await this.repo.update(id, data)
+    async update(id: string, userId: string, input: PortfolioInput) {
+        logger.info("Updating portfolio", { id, userId, fields: Object.keys(input) })
+        this.assertOwner(await this.repo.getById(id), userId)
+        const updated = await this.repo.update(id, { name: input.name })
         logger.info("Portfolio updated", { id, userId })
         return updated
     }
 
     async delete(id: string, userId: string) {
         logger.info("Deleting portfolio", { id, userId })
-        const portfolio = await this.repo.getById(id)
-        if (!portfolio) throw new NotFoundError("Portfolio not found")
-        if (portfolio.userId !== userId) throw new ForbiddenError("Access denied")
+        this.assertOwner(await this.repo.getById(id), userId)
         await this.repo.delete(id)
         logger.info("Portfolio deleted", { id, userId })
+    }
+
+    private assertOwner(portfolio: Portfolio | null, userId: string): Portfolio {
+        if (!portfolio) throw new NotFoundError("Portfolio not found")
+        if (portfolio.userId !== userId) throw new ForbiddenError("Access denied")
+        return portfolio
     }
 }
 

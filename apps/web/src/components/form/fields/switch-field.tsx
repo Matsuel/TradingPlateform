@@ -3,7 +3,7 @@
 import type { FieldValues } from "react-hook-form"
 
 import { Switch } from "@/components/ui/switch"
-import { AppField, BaseProps } from "../field"
+import { AppField, type BaseProps } from "../field"
 
 export function SwitchField<T extends FieldValues>(base: BaseProps<T>) {
     return (

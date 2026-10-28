@@ -6,7 +6,7 @@ import PageHeader from "@/components/page-layout/header"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { formatDay } from "@/lib/format"
+import { formatDayRange } from "@/lib/format"
 import { tradeColumns } from "./column"
 import { statusBadges, strategyLabels } from "./constants"
 import { EquityChart } from "./equity-chart"
@@ -22,7 +22,7 @@ function describe(backtest: BacktestDetails) {
     return [
         strategyLabels[backtest.investmentMode],
         backtest.symbols.join(", "),
-        `${formatDay(backtest.startDate)} – ${formatDay(backtest.endDate)}`,
+        formatDayRange(backtest.startDate, backtest.endDate),
         duration && `exécuté en ${duration}`,
     ].filter(Boolean).join(" · ")
 }

@@ -80,7 +80,7 @@ export class Logger {
     }
 
     private write(level: Level, parts: unknown[]) {
-        // Ne rien loguer pendant les tests (Jest)
+        // Ne rien loguer pendant les tests (bun test fixe NODE_ENV=test)
         if (process.env.NODE_ENV === "test") return;
 
         if (!this.shouldLog(level)) return;

@@ -14,10 +14,9 @@ import {
     CommandList,
 } from "@/components/ui/command"
 import { Skeleton } from "@/components/ui/skeleton"
-import { useMarketSerach } from "@/features/market/hook"
+import { MIN_SEARCH_LENGTH } from "@/features/market/constants"
+import { useMarketSearch } from "@/features/market/hook"
 import type { MarketData } from "@/features/market/types"
-
-const MIN_QUERY_LENGTH = 3
 
 export function SymbolPicker({
     open,
@@ -41,10 +40,10 @@ export function SymbolPicker({
         return () => clearTimeout(timer)
     }, [query])
 
-    const { data, error, isLoading } = useMarketSerach(debouncedQuery)
+    const { data, error, isLoading } = useMarketSearch(debouncedQuery)
 
     const trimmed = query.trim()
-    const tooShort = trimmed.length < MIN_QUERY_LENGTH
+    const tooShort = trimmed.length < MIN_SEARCH_LENGTH
     // couvre aussi le délai du debounce, pour ne pas afficher "aucun résultat" trop tôt
     const isSearching = !tooShort && (trimmed !== debouncedQuery || isLoading)
     const results = data?.filter((item) => !exclude.includes(item.symbol))
@@ -64,7 +63,7 @@ export function SymbolPicker({
                 <CommandList>
                     {tooShort && (
                         <p className="py-6 text-center text-sm text-muted-foreground">
-                            Saisis au moins {MIN_QUERY_LENGTH} caractères.
+                            Saisis au moins {MIN_SEARCH_LENGTH} caractères.
                         </p>
                     )}
 

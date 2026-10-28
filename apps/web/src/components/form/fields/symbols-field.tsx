@@ -7,7 +7,7 @@ import type { FieldValues } from "react-hook-form"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { SymbolPicker } from "@/components/symbol-picker"
-import { AppField, BaseProps } from "../field"
+import { AppField, type BaseProps } from "../field"
 
 /** Champ de formulaire : liste de symboles (string[]) affichés en chips, ajout via recherche. */
 export function SymbolsField<T extends FieldValues>({

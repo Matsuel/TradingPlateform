@@ -2,10 +2,11 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Search } from "lucide-react"
-import { Button } from "./ui/button"
-import { SymbolPicker } from "./symbol-picker"
+import { Button } from "@/components/ui/button"
+import { SymbolPicker } from "@/components/symbol-picker"
+import { prefix } from "@/lib/path"
 
-const SymbolSearch = () => {
+export function SymbolSearch() {
     const [open, setOpen] = useState(false)
     const router = useRouter()
 
@@ -23,10 +24,8 @@ const SymbolSearch = () => {
             <SymbolPicker
                 open={open}
                 onOpenChange={setOpen}
-                onSelect={(item) => router.push(`/app/market/${encodeURIComponent(item.symbol)}`)}
+                onSelect={(item) => router.push(`${prefix}/market/${encodeURIComponent(item.symbol)}`)}
             />
         </>
     )
 }
-
-export default SymbolSearch

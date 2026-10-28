@@ -1,6 +1,6 @@
 import { Activity, ChartCandlestick, FlaskConical, LayoutDashboard, ListOrdered, Plus, User, Wallet } from "lucide-react"
 
-const prefix = "/app";
+export const prefix = "/app";
 
 const tabs = [
     {

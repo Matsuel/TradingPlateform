@@ -1,9 +1,9 @@
-// components/form.tsx
 "use client";
 
 import type { ReactNode } from "react";
 import {
     get,
+    type FieldError as FieldErrorType,
     useForm,
     type FieldValues,
     type Path,
@@ -75,7 +75,7 @@ const Form = <T extends FieldValues>({
                 <form onSubmit={handleSubmit(submit)} noValidate>
                     <FieldGroup>
                         {inputs.map(({ name, label, type = "text", placeholder, autoComplete }) => {
-                            const message = get(errors, name)?.message as string | undefined;
+                            const message = (get(errors, name) as FieldErrorType | undefined)?.message;
                             return (
                                 <Field key={name}>
                                     <FieldLabel htmlFor={name}>{label}</FieldLabel>

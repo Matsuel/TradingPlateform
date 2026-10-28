@@ -3,7 +3,7 @@
 import type { ReactNode } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { formatChange, formatDate } from "@/lib/format"
+import { formatDate, formatRatio } from "@/lib/format"
 import { cn } from "@/lib/utils"
 import { statusBadges } from "./constants"
 import type { BacktestExecution } from "./types"
@@ -19,7 +19,7 @@ function describe(e: BacktestExecution) {
             return e.error ?? "Erreur inconnue"
         case "COMPLETED":
             return e.result
-                ? `${e.result.totalTrades} ordres · ${formatChange(Number(e.result.totalReturn) * 100)} %`
+                ? `${e.result.totalTrades} ordres · ${formatRatio(Number(e.result.totalReturn))}`
                 : "Terminé"
         default:
             return statusBadges[e.status].label

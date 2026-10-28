@@ -3,7 +3,7 @@ import type { CreatePortfolioDTO, UpdatePortfolioDTO } from "../interfaces/portf
 import { prisma } from "../prisma"
 
 export interface IPortfolioRepository {
-    create(userId: string, data: CreatePortfolioDTO): Promise<Portfolio>
+    create(data: CreatePortfolioDTO): Promise<Portfolio>
     getById(id: string): Promise<Portfolio | null>
     getAllByUserId(userId: string): Promise<{ data: Portfolio[], count: number }>
     update(id: string, data: UpdatePortfolioDTO): Promise<Portfolio>
@@ -11,9 +11,9 @@ export interface IPortfolioRepository {
 }
 
 class PortfolioRepository implements IPortfolioRepository {
-    async create(userId: string, data: CreatePortfolioDTO): Promise<Portfolio> {
+    async create(data: CreatePortfolioDTO): Promise<Portfolio> {
         return prisma.portfolio.create({
-            data: { ...data, userId },
+            data,
         })
     }
 

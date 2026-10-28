@@ -1,41 +1,11 @@
-"use client";
-
-import { useRouter } from "next/navigation";
-import { authClient } from "@/lib/auth";
-import { cn } from "cn";
-import Form from "@/components/OldForm";
-
-type Inputs = {
-    email: string;
-    password: string;
-};
+import { LoginForm } from "@/features/auth/login-form";
 
 export default function LoginPage() {
-    const router = useRouter();
-
-    const onSubmit = async ({ email, password }: Inputs) => {
-        const { error } = await authClient.signIn.email({ email, password });
-        if (error) return error.message ?? "Invalid credentials";
-        router.push("/app");
-        router.refresh();
-    }
-
     return (
         <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
             <div className="w-full max-w-sm">
-                <div className={cn("flex flex-col gap-6")}>
-
-                    <Form<Inputs>
-                        title="Login to your account"
-                        description="Enter your email below to login to your account"
-                        inputs={[
-                            { name: "email", label: "Email", type: "email"},
-                            { name: "password", label: "Password", type: "password" },
-                        ]}
-                        submitText="Login"
-                        submittingText="Logging in..."
-                        onSubmit={onSubmit}
-                    />
+                <div className="flex flex-col gap-6">
+                    <LoginForm />
                 </div>
             </div>
         </div>

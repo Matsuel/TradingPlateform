@@ -10,13 +10,14 @@ import { Logger } from '@trading-plateform/utils';
 import { BACKTEST_TOPICS } from '@trading-plateform/contracts';
 import { consumer, kafkaClient, producer } from './lib/kafka';
 import BacktestConsumer from './consumers/backtest.consumer';
+import { env } from './env';
 
 const logger = Logger.here()
 
 const app = express();
 
 app.use(cors({
-    origin: "http://localhost:3000",
+    origin: env.WEB_URL,
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],

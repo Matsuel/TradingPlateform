@@ -1,5 +1,3 @@
-"use client"
-
 import PageLayout from "@/components/page-layout"
 import PageHeader from "@/components/page-layout/header"
 

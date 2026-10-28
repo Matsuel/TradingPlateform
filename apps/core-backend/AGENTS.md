@@ -63,7 +63,7 @@ Invariant : une seule exécution active (`ACTIVE_STATUSES`) par backtest ; une r
 2. `interfaces/<domaine>.interface.ts` : schéma zod d'entrée + types/DTO dérivés.
 3. `repositories/<domaine>.repository.ts` : `I<Domaine>Repository` + classe.
 4. `services/<domaine>.service.ts` : métier + autorisation, constantes dans `constants/`.
-5. `controller/<domaine>.controller.ts`, puis `routes/<domaine>/` (copie `routes/backtest/`), préfixe `/api/<domaine>`, `authMiddleware` ; router enregistré dans `index.ts`.
+5. `controller/<domaine>.controller.ts`, puis `routes/<domaine>/` (copie `routes/backtest/`), préfixe `/api/<domaine>`, `authMiddleware` ; router enregistré dans `index.ts`. Entrée de chaque route dans `API.md`.
 6. Événement publié → contrat dans `packages/contracts`, publication depuis le service. Événement consommé → `consumers/<domaine>.consumer.ts` + abonnement dans `index.ts`.
 7. Domaine porté par un microservice HTTP → descripteur `method: "all"` sur `${prefix}/{*path}` avec `authMiddleware` et `handler: proxyTo(env.<SERVICE>_URL)` (cf. `routes/market/`), router enregistré **avant** `express.json()`.
 8. Nouvelle env → `env.ts` (zod), lue via `env.<NOM>`.
