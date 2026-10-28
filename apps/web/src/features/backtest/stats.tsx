@@ -12,7 +12,7 @@ export function BacktestStats({ backtests }: { backtests: Backtest[] }) {
     return (
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
             <StatCard label="Backtests au total" value={total} caption="Depuis la création" />
-            <StatCard label="En cours" value={count("PENDING", "RUNNING")} caption="Workflows actifs" />
+            <StatCard label="En cours" value={count("PENDING", "RUNNING")} caption="Backtests actifs" />
             <StatCard label="Terminés" value={completed} caption="Taux de réussite" delta={rate(completed)} trend="up" />
             <StatCard label="Échoués" value={failed} caption="Runs en erreur" delta={rate(failed)} trend="down" />
         </div>
