@@ -22,7 +22,7 @@ routes/<domaine>/   →  controller/  →  services/  →  repositories/  →  p
 | `models/` | `AppError`, `RouteDescriptor`. |
 | `builder/` | `registerRoutes`. |
 | `constants/` | Constantes (`<domaine>.constants.ts`). |
-| `utils/` | Helpers (`asyncHandler`, `db`). |
+| `utils/` | Helpers (`asyncHandler`, `db`, `proxyTo`). |
 | `lib/`, `types/` | Config better-auth, producer/consumer Kafka (`lib/kafka.ts`), augmentations de types Express. |
 | `prisma/`, `generated/` | Schéma et migrations ; `generated/` ne s'édite jamais. |
 
@@ -61,6 +61,7 @@ bunx tsc --noEmit
 7. Enregistrer le router dans `index.ts`.
 8. Nouvelle erreur → `errors/<nom>.error.ts` étendant `AppError` ; nouvelle env → `env.ts`.
 9. Publier un événement Kafka → `producer` de `lib/kafka.ts` + `createKafkaEvent`, contrat (topic + schéma zod) dans `packages/contracts`.
-10. Consommer un événement → `consumers/<domaine>.consumer.ts` + abonnement dans `index.ts`. core-backend est **le seul service qui écrit en base** : les autres services publient, core-backend applique (transitions gardées par statut pour l'idempotence).
+10. Domaine porté par un microservice HTTP → `routes/<domaine>/` comme les autres, un descripteur `method: "all"` sur `${prefix}/{*path}` avec `middlewares: [authMiddleware]` et `handler: proxyTo(env.<SERVICE>_URL)` (cf. `routes/market/`) ; router enregistré dans `index.ts` **avant** `express.json()`. `proxyTo` retire le `x-user-id` client, transmet l'`userId` vérifié et renvoie 502 si le service est injoignable. Le web n'appelle que core-backend.
+11. Consommer un événement → `consumers/<domaine>.consumer.ts` + abonnement dans `index.ts`. core-backend est **le seul service qui écrit en base** : les autres services publient, core-backend applique (transitions gardées par statut pour l'idempotence).
 
 Règles par couche : controller sans métier ni `prisma` ; service sans `req`/`res` ; repository sans règle métier ni `AppError` ; `error.middleware` seul formateur d'erreurs ; jamais `res.status` hors middleware.

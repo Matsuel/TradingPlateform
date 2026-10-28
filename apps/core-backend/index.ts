@@ -21,11 +21,12 @@ app.use(cors({
 
 app.use(authRouter);
 
+// Routes proxifiées vers les microservices : avant express.json() pour garder le body intact.
+app.use(marketRouter);
+
 app.use(express.json());
 
 app.use(portfolioRouter);
-
-app.use(marketRouter);
 
 app.use(backtestRouter);
 
