@@ -1,8 +1,10 @@
 import { apiFetch } from "@/lib/api";
+import type { Paginated, PaginationParams } from "@/lib/pagination";
 import type { MarketAsset, MarketData, MarketDetails, Period } from "./types";
 
-export async function getDefaultAssets(): Promise<MarketAsset[]> {
-    return apiFetch<MarketAsset[]>("/market/defaults");
+export async function getDefaultAssets({ page, pageSize }: PaginationParams): Promise<Paginated<MarketAsset>> {
+    const params = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
+    return apiFetch<Paginated<MarketAsset>>(`/market/defaults?${params.toString()}`);
 }
 
 export async function getAssetsDetails(symbol: string, period: Period): Promise<MarketDetails[]> {

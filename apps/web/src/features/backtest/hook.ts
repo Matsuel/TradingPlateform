@@ -1,5 +1,5 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createBacktest, getBacktest, getBacktests, rerunBacktest } from "./api";
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { createBacktest, getBacktest, getBacktests, getBacktestStats, rerunBacktest } from "./api";
 import { activeStatuses } from "./constants";
 import { hasStatus } from "./utils";
 
@@ -7,14 +7,25 @@ export function useCreateBacktest() {
     const queryClient = useQueryClient()
     return useMutation({
         mutationFn: createBacktest,
-        onSuccess: () => queryClient.invalidateQueries({ queryKey: ["backtest", "list"] }),
+        onSuccess: () => Promise.all([
+            queryClient.invalidateQueries({ queryKey: ["backtest", "list"] }),
+            queryClient.invalidateQueries({ queryKey: ["backtest", "stats"] }),
+        ]),
     })
 }
 
-export function useBacktests() {
+export function useBacktests(params: Parameters<typeof getBacktests>[0]) {
     return useQuery({
-        queryKey: ["backtest", "list"],
-        queryFn: getBacktests,
+        queryKey: ["backtest", "list", params],
+        queryFn: () => getBacktests(params),
+        placeholderData: keepPreviousData, // garde la page affichée pendant le chargement de la suivante
+    })
+}
+
+export function useBacktestStats() {
+    return useQuery({
+        queryKey: ["backtest", "stats"],
+        queryFn: getBacktestStats,
     })
 }
 

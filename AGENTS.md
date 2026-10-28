@@ -74,6 +74,7 @@ Chaque app qui expose quelque chose de réutilisable tient un **catalogue** : co
 - Indentation 4 espaces dans les apps backend et packages ; `web` suit le style de ses fichiers voisins.
 - Logs via `Logger.here()` de `@trading-plateform/utils`.
 - Validation des entrées, messages et env avec `zod`.
+- **Base de données : Prisma Client uniquement** (`findMany`, `count`, `groupBy`, `$transaction`…), jamais de SQL écrit à la main (`$queryRaw`, `$executeRaw`, `Prisma.sql` et leurs variantes `Unsafe`). Une requête que l'API Prisma ne sait pas exprimer se règle par le modèle (relation ou champ dénormalisé, maintenu dans le repository), pas par du SQL. Seule exception : le SQL des fichiers de migration (`prisma/migrations/`), y compris un backfill de données.
 - Ne commit jamais de `.env` ni de secret.
 
 ## Commandes

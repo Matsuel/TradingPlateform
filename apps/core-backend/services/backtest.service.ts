@@ -6,6 +6,7 @@ import {
     type BacktestFailedPayload,
     type BacktestRequestedPayload,
     type BacktestStartedPayload,
+    type Paginated,
 } from "@trading-plateform/contracts";
 import { ACTIVE_STATUSES } from "../constants/backtest.constants";
 import ConflictError from "../errors/conflict.error";
@@ -14,8 +15,8 @@ import InternalError from "../errors/internal.error";
 import NotFoundError from "../errors/notfound.error";
 import { producer } from "../lib/kafka";
 import BacktestRepository, { type IBacktestRepository } from "../repositories/backtest.repository";
-import type { Backtest } from "../generated/prisma/client";
-import type { CreateBacktestInput } from "../interfaces/backtest.interface";
+import type { Backtest, BacktestStatus } from "../generated/prisma/client";
+import type { BacktestListQuery, BacktestStats, BacktestWithExecutions, CreateBacktestInput } from "../interfaces/backtest.interface";
 
 const logger = Logger.here()
 
@@ -61,11 +62,30 @@ class BacktestService {
         return this.assertOwner(await this.repo.getDetailsById(id), userId)
     }
 
-    async getAll(userId: string) {
-        logger.info("Fetching all backtests", { userId })
-        const result = await this.repo.getAllByUserId(userId)
+    async getAll(userId: string, { status, ...pagination }: BacktestListQuery): Promise<Paginated<BacktestWithExecutions>> {
+        logger.info("Fetching all backtests", { userId, ...pagination, status })
+        const result = await this.repo.getAllByUserId(userId, pagination, status)
         logger.info("Backtests fetched", { userId, count: result.count })
-        return result
+        return { ...result, ...pagination }
+    }
+
+    async getStats(userId: string): Promise<BacktestStats> {
+        logger.info("Fetching backtest stats", { userId })
+        const { total, byStatus } = await this.repo.countByLatestStatus(userId)
+        const sum = (statuses: BacktestStatus[]) => byStatus
+            .filter(({ status }) => statuses.includes(status))
+            .reduce((n, { count }) => n + count, 0)
+        const completed = sum(["COMPLETED"])
+        const failed = sum(["FAILED"])
+        const rate = (n: number) => (total ? n / total : 0)
+        return {
+            total,
+            active: sum(ACTIVE_STATUSES),
+            completed,
+            failed,
+            completedRate: rate(completed),
+            failedRate: rate(failed),
+        }
     }
 
     // Transitions gardées : un événement rejoué ou arrivé trop tard est ignoré (Kafka at-least-once)

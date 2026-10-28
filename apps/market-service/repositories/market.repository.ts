@@ -2,7 +2,6 @@ import YahooFinance from "yahoo-finance2";
 import type { ChartOptions } from "yahoo-finance2/modules/chart";
 import type { MarketAsset, MarketData, MarketDetails, Period } from "../interfaces/market.interface";
 import { env } from "../env";
-import { DEFAULT_TICKERS } from "../constants/market.constants";
 import { Logger } from "@trading-plateform/utils";
 
 const logger = Logger.here();
@@ -12,7 +11,7 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 export interface IMarketRepository {
     search(query: string): Promise<MarketData[]>
     getDetails(id: string, period: Period): Promise<MarketDetails[]>
-    getDefaultAssets(): Promise<MarketAsset[]>;
+    getAssets(symbols: string[]): Promise<MarketAsset[]>;
 }
 
 class MarketRepository implements IMarketRepository {
@@ -67,12 +66,12 @@ class MarketRepository implements IMarketRepository {
     }
 
     /**
-     * Récupère les cotations des 15 actifs par défaut.
-     * Un actif indisponible ne bloque pas les autres.
+     * Récupère les cotations des symboles demandés, dans leur ordre.
+     * Un actif indisponible est omis et ne bloque pas les autres.
      */
-    async getDefaultAssets(): Promise<MarketAsset[]> {
+    async getAssets(symbols: string[]): Promise<MarketAsset[]> {
         const results = await Promise.allSettled(
-            DEFAULT_TICKERS.map(async (symbol) => {
+            symbols.map(async (symbol) => {
                 const [quote, chart] = await Promise.all([
                     MarketRepository.yahooFinance.quote(symbol),
                     MarketRepository.yahooFinance.chart(symbol, {
@@ -109,7 +108,7 @@ class MarketRepository implements IMarketRepository {
                 return [result.value];
             }
 
-            logger.error(`Impossible de récupérer ${DEFAULT_TICKERS[index]}`, {
+            logger.error(`Impossible de récupérer ${symbols[index]}`, {
                 reason: result.reason,
             });
 

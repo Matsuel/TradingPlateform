@@ -23,6 +23,12 @@ const createBacktestRoutes = (): RouteDescriptor[] => {
         },
         {
             method: "get",
+            path: `${prefix}/stats`,
+            middlewares: [authMiddleware],
+            handler: asyncHandler(controller.getBacktestStats)
+        },
+        {
+            method: "get",
             path: `${prefix}/:id`,
             middlewares: [authMiddleware],
             handler: asyncHandler(controller.getBacktest)

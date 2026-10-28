@@ -34,7 +34,7 @@ Catalogue des routes internes de market-service (port 8001, données yahoo-finan
 - **Chemin** : identique de bout en bout. Web `apiFetch("/market/search?…")` → core-backend `/api/market/search` → market-service `/api/market/search`.
 - **Auth** : aucune vérification ici ; ne pas exposer ce service publiquement. `x-user-id` est posé par le proxy mais aucune route ne le lit aujourd'hui.
 - **Erreurs** : `AppError` → `{ "error": "<message>", ...data }` avec son statut ; toute autre exception (erreur yahoo-finance2) → `500 { "error": "Internal server error" }`. Seules les routes `GET` ci-dessous existent : une autre méthode ou un autre chemin reçoit la 404 par défaut d'Express (HTML).
-- **Types** : `interfaces/market.interface.ts` : schémas zod d'entrée (`searchMarketSchema`, `marketIdSchema`, `periodSchema`) et types de réponse (`MarketData`, `MarketAsset`, `MarketDetails`, `Period`). Dates sérialisées en ISO 8601. Prix dans la devise de cotation du symbole, sans conversion.
+- **Types** : `interfaces/market.interface.ts` : schémas zod d'entrée (`searchMarketSchema`, `marketIdSchema`, `periodSchema`) et types de réponse (`MarketData`, `MarketAsset`, `MarketDetails`, `Period`) ; pagination (`paginationQuerySchema`, `Paginated<T>`) depuis `@trading-plateform/contracts`. Dates sérialisées en ISO 8601. Prix dans la devise de cotation du symbole, sans conversion.
 - **Logos** : `logoUrl` vaut `https://img.logo.dev/ticker/<symbol>?token=…&size=64` si `LOGO_DEV_TOKEN` est défini (`env.ts`), sinon absent.
 
 ### GET /api/market/search
@@ -68,16 +68,27 @@ Catalogue des routes internes de market-service (port 8001, données yahoo-finan
 ### GET /api/market/defaults
 
 - **Auth** : aucune ici (proxy core-backend) ; `x-user-id` non lu.
-- **Entrée** : aucune.
-- **Réponse** : `200`, `MarketAsset[]` pour les 15 symboles de `DEFAULT_TICKERS` (`constants/market.constants.ts`), dans cet ordre ; un symbole en échec est omis (loggué), sans faire échouer la route.
+- **Entrée** : query `paginationQuerySchema` (`@trading-plateform/contracts`), valeurs coercées depuis la query string :
+  - `page` (entier ≥ 1, défaut `1`) ;
+  - `pageSize` (entier de 1 à 100, défaut `20`).
+- **Réponse** : `200`, `Paginated<MarketAsset>` (`@trading-plateform/contracts`). La pagination porte sur les 15 symboles de `DEFAULT_TICKERS` (`constants/market.constants.ts`), dans cet ordre : seuls les symboles de la page demandée sont interrogés sur yahoo-finance2.
+  - `count` : nombre total de symboles par défaut (`DEFAULT_TICKERS.length`, soit 15), toutes pages confondues ;
+  - `page`, `pageSize` : valeurs appliquées (défauts inclus) ;
+  - `data` : `MarketAsset[]` de la page ; `[]` si `page` dépasse la dernière page (`200`, pas d'erreur). Un symbole en échec est omis (loggué en `error`) sans faire échouer la route : `data.length` peut alors être inférieur à `pageSize` même hors dernière page, et ne doit pas servir à calculer le nombre de pages (utiliser `count`).
   - `price` : `regularMarketPrice`, devise de cotation | null ;
   - `change24h` : `regularMarketChangePercent`, **pourcentage** (`1.5` = +1,5 %) | null ;
   - `volume24h` : `regularMarketVolume`, nombre d'unités échangées | null ;
   - `history` : `MarketDetails[]` des dernières 24 h, points horaires, clôtures `null` exclues.
   ```json
-  [{ "symbol": "AAPL", "name": "Apple Inc.", "price": 268.41, "change24h": 1.23, "volume24h": 41234567, "history": [{ "date": "2026-10-27T14:30:00.000Z", "price": 266.9 }], "logoUrl": "https://img.logo.dev/ticker/AAPL?token=…&size=64" }]
+  // GET /api/market/defaults?page=1&pageSize=5
+  {
+    "data": [{ "symbol": "AAPL", "name": "Apple Inc.", "price": 268.41, "change24h": 1.23, "volume24h": 41234567, "history": [{ "date": "2026-10-27T14:30:00.000Z", "price": 266.9 }], "logoUrl": "https://img.logo.dev/ticker/AAPL?token=…&size=64" }],
+    "count": 15,
+    "page": 1,
+    "pageSize": 5
+  }
   ```
-- **Erreurs** : aucune propre (échecs par symbole absorbés) ; `500` seulement sur exception inattendue.
+- **Erreurs** : `400 { "error": "Invalid pagination", "issues": [ZodIssue] }` → `page` ou `pageSize` non entier ou hors bornes ; `500` seulement sur exception inattendue (échecs par symbole absorbés).
 - **Effets** : aucun.
-- **Appelant** : `getDefaultAssets()` de `apps/web/src/features/market/api.ts`, hook `useDefaultAssets()` (clé `["market", "list"]`, rafraîchi toutes les 30 s) ; utilisé par `MarketList` (`features/market/market-list.tsx`).
-- **Source** : `routes/market/market.routes.ts`, `controller/market.controller.ts` (`getDefaultsAssets`), `services/market.service.ts`, `repositories/market.repository.ts`, `constants/market.constants.ts`.
+- **Appelant** : `getDefaultAssets(params)` de `apps/web/src/features/market/api.ts`, hook `useDefaultAssets(params)` (clé `["market", "list", params]`, `keepPreviousData`, rafraîchi toutes les 30 s) ; utilisé par `MarketList` (`features/market/market-list.tsx`).
+- **Source** : `routes/market/market.routes.ts`, `controller/market.controller.ts` (`getDefaultsAssets`), `services/market.service.ts` (`getDefaultsMarketAssets`, découpage de la page), `repositories/market.repository.ts` (`getAssets`), `constants/market.constants.ts`.

@@ -55,6 +55,7 @@
     "apps/market-service": {
       "name": "market-service",
       "dependencies": {
+        "@trading-plateform/contracts": "workspace:*",
         "@trading-plateform/utils": "workspace:*",
         "@types/express": "^5.0.6",
         "express": "^5.2.1",

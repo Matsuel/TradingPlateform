@@ -1,4 +1,5 @@
 import type { Request, Response } from "express"
+import { paginationQuerySchema } from "@trading-plateform/contracts"
 import BadRequestError from "../errors/badrequest.error"
 import { portfolioSchema } from "../interfaces/portfolio.interface"
 import PortfolioService from "../services/portfolio.service"
@@ -20,7 +21,9 @@ class PortfolioController {
     }
 
     getAllPortfolios = async (req: Request, res: Response) => {
-        const result = await this.portfolioService.getAll(req.userId!)
+        const parsed = paginationQuerySchema.safeParse(req.query)
+        if (!parsed.success) throw new BadRequestError("Invalid query", { issues: parsed.error.issues })
+        const result = await this.portfolioService.getAll(req.userId!, parsed.data)
         res.json(result)
     }
 

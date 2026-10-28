@@ -48,6 +48,16 @@ export interface Backtest {
     executions: BacktestExecution[] // la plus récente en premier
 }
 
+// Réponse de GET /api/backtest/stats (BacktestStats côté backend), selon le statut de la dernière exécution ; rates en fraction
+export interface BacktestListStats {
+    total: number
+    active: number
+    completed: number
+    failed: number
+    completedRate: number
+    failedRate: number
+}
+
 export interface BacktestDetails extends Backtest {
     executions: BacktestExecution[] // toutes, la plus récente en premier
     result: BacktestResult | null // dernier résultat terminé

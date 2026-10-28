@@ -1,3 +1,4 @@
+import type { PaginationQuery } from "@trading-plateform/contracts"
 import type { Portfolio } from "../generated/prisma/client"
 import type { CreatePortfolioDTO, UpdatePortfolioDTO } from "../interfaces/portfolio.interface"
 import { prisma } from "../prisma"
@@ -5,7 +6,7 @@ import { prisma } from "../prisma"
 export interface IPortfolioRepository {
     create(data: CreatePortfolioDTO): Promise<Portfolio>
     getById(id: string): Promise<Portfolio | null>
-    getAllByUserId(userId: string): Promise<{ data: Portfolio[], count: number }>
+    getAllByUserId(userId: string, pagination: PaginationQuery): Promise<{ data: Portfolio[], count: number }>
     update(id: string, data: UpdatePortfolioDTO): Promise<Portfolio>
     delete(id: string): Promise<Portfolio>
 }
@@ -23,9 +24,14 @@ class PortfolioRepository implements IPortfolioRepository {
         })
     }
 
-    async getAllByUserId(userId: string): Promise<{ data: Portfolio[], count: number }> {
+    async getAllByUserId(userId: string, { page, pageSize }: PaginationQuery): Promise<{ data: Portfolio[], count: number }> {
         const [data, count] = await prisma.$transaction([
-            prisma.portfolio.findMany({ where: { userId }, orderBy: { createdAt: "desc" } }),
+            prisma.portfolio.findMany({
+                where: { userId },
+                orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+                skip: (page - 1) * pageSize,
+                take: pageSize,
+            }),
             prisma.portfolio.count({ where: { userId } }),
         ])
         return { data, count }

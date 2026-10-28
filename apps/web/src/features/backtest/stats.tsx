@@ -1,23 +1,29 @@
 import Dash from "@/components/custom/Dash"
 import { StatCard } from "@/components/stat-card"
-import { formatDay, formatPrice, formatRatio } from "@/lib/format"
-import { activeStatuses, BACKTEST_CURRENCY } from "./constants"
-import type { Backtest, BacktestResult, ExecutionStatus } from "./types"
-import { hasStatus } from "./utils"
+import { formatDay, formatPrice, formatRate, formatRatio } from "@/lib/format"
+import { BACKTEST_CURRENCY } from "./constants"
+import type { BacktestListStats, BacktestResult } from "./types"
 
-export function BacktestStats({ backtests }: { backtests: Backtest[] }) {
-    const count = (...statuses: readonly ExecutionStatus[]) => backtests.filter((b) => hasStatus(b, statuses)).length
-    const total = backtests.length
-    const rate = (n: number) => `${total ? Math.round((n / total) * 100) : 0} %`
-    const completed = count("COMPLETED")
-    const failed = count("FAILED")
-
+// Compteurs et taux calculés par le backend ; undefined pendant le chargement
+export function BacktestStats({ stats }: { stats: BacktestListStats | undefined }) {
     return (
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-            <StatCard label="Backtests au total" value={total} caption="Depuis la création" />
-            <StatCard label="En cours" value={count(...activeStatuses)} caption="Backtests actifs" />
-            <StatCard label="Terminés" value={completed} caption="Taux de réussite" delta={rate(completed)} trend="up" />
-            <StatCard label="Échoués" value={failed} caption="Runs en erreur" delta={rate(failed)} trend="down" />
+            <StatCard label="Backtests au total" value={stats?.total ?? <Dash />} caption="Depuis la création" />
+            <StatCard label="En cours" value={stats?.active ?? <Dash />} caption="Backtests actifs" />
+            <StatCard
+                label="Terminés"
+                value={stats?.completed ?? <Dash />}
+                caption="Taux de réussite"
+                delta={stats && formatRate(stats.completedRate)}
+                trend="up"
+            />
+            <StatCard
+                label="Échoués"
+                value={stats?.failed ?? <Dash />}
+                caption="Runs en erreur"
+                delta={stats && formatRate(stats.failedRate)}
+                trend="down"
+            />
         </div>
     )
 }

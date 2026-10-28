@@ -45,7 +45,8 @@ Module de fonctions, hooks, constantes ou types (`lib/*.ts`, `features/<domaine>
 - [Graphiques](#graphiques) : `PriceAreaChart` (`PricePoint`), `Sparkline`
 - [Symboles](#symboles) : `SymbolPicker`
 - [Formulaires (`components/form`)](#formulaires-componentsform) : `AppField`, `TextField`, `NumberField`, `TextareaField`, `SelectField`, `DateField`, `CheckboxField`, `SwitchField`, `SymbolsField`, `FormSection`, `FieldRow`
-- [`lib`](#lib) : `format.ts`, `api.ts`, `path.ts`, `utils.ts`, `auth.ts`, `session.ts`
+- [`lib`](#lib) : `format.ts`, `api.ts`, `pagination.ts`, `path.ts`, `utils.ts`, `auth.ts`, `session.ts`
+- [`constants`](#constants) : `pagination.ts`
 - [`features/auth`](#featuresauth)
 - [`features/backtest`](#featuresbacktest)
 - [`features/market`](#featuresmarket)
@@ -53,6 +54,8 @@ Module de fonctions, hooks, constantes ou types (`lib/*.ts`, `features/<domaine>
 ## `components/ui`
 
 Primitives shadcn (base-ui), voir la doc shadcn. Ne les modifie qu'en cas de besoin réel.
+
+- `ui/pagination.tsx` (`Pagination`, `PaginationContent`, `PaginationItem`, `PaginationLink`, `PaginationPrevious`, `PaginationNext`, `PaginationEllipsis`) : généré par `bunx --bun shadcn@latest add pagination`, non modifié ; libellés anglais par défaut, passer `text` et `aria-label` en français. Utilisé seulement via la prop `pagination` de `DataTable`.
 
 ## Mise en page et navigation
 
@@ -202,7 +205,7 @@ Primitives shadcn (base-ui), voir la doc shadcn. Ne les modifie qu'en cas de bes
 ### DataTable
 
 - **Import** : `import { DataTable, type Column } from "@/components/data-table/data-table"`.
-- **Rôle** : tableau branché sur une requête TanStack Query : gère chargement, erreur (bouton « Réessayer »), vide et clic de ligne. Colonnes déclarées dans `features/<domaine>/column.tsx`.
+- **Rôle** : tableau branché sur une requête TanStack Query : gère chargement, erreur (bouton « Réessayer »), vide, clic de ligne et pagination optionnelle. Colonnes déclarées dans `features/<domaine>/column.tsx`.
 - **Props** :
 
   | Nom | Type | Requis | Défaut | Description |
@@ -217,20 +220,34 @@ Primitives shadcn (base-ui), voir la doc shadcn. Ne les modifie qu'en cas de bes
   | `description` | `ReactNode` | non | — | Sous le titre. |
   | `actions` | `ReactNode` | non | — | À droite du titre (ex. `FilterTabs`). |
   | `className` | `string` | non | — | Sur l'élément `Table` (pas le cadre). |
+  | `pagination` | `{ page: number; pageSize: number; count: number; onPageChange: (page: number) => void }` | non | — | Pied de tableau `ui/pagination` : libellé « 21–40 sur 57 », précédent / numéros (ellipses au-delà de 7 pages, `getPageItems`) / suivant, désactivés aux bornes. Masqué s'il n'y a qu'une page. `page` commence à 1 ; `count` = total toutes pages confondues. `data` ne contient que la page affichée : page serveur (`Paginated<T>.data`) ou découpage client (`paginate`). |
 
   `Column<T>` : `{ header: ReactNode; cell: (row: T) => ReactNode; className?: string }` (`className` appliquée à l'en-tête et aux cellules).
 
 - **Exemple** (tiré de `src/features/backtest/backtest-list.tsx`) :
   ```tsx
   <DataTable
-      query={{ ...query, data }}
+      query={{ ...query, data: query.data?.data }}
       columns={backtestColumns}
       rowKey={(b) => b.id}
       onRowClick={(b) => router.push(`${prefix}/backtest/${b.id}`)}
       title="Tous les backtests"
       description="Triés par date de lancement"
-      actions={<FilterTabs value={filter} onChange={setFilter} options={filterOptions} />}
+      actions={<FilterTabs value={filter} onChange={changeFilter} options={filterOptions} />}
       emptyMessage="Aucun backtest."
+      pagination={{ page, pageSize: PAGE_SIZE, count: query.data?.count ?? 0, onPageChange: setPage }}
+  />
+  ```
+  Pagination client (tiré de `src/features/backtest/backtest-detail.tsx`) :
+  ```tsx
+  <DataTable
+      query={{ ...query, data: paginate(result.trades.toReversed(), tradePage, PAGE_SIZE) }}
+      columns={tradeColumns}
+      rowKey={(t) => `${t.date}-${t.symbol}`}
+      title="Ordres"
+      description="Achats exécutés, du plus récent au plus ancien"
+      emptyMessage="Aucun ordre."
+      pagination={{ page: tradePage, pageSize: PAGE_SIZE, count: result.trades.length, onPageChange: setTradePage }}
   />
   ```
 - **Utilisé par** : `src/features/market/market-list.tsx`, `src/features/backtest/backtest-list.tsx`, `src/features/backtest/backtest-detail.tsx` ; `Column` par `src/features/backtest/column.tsx`, `src/features/market/column.tsx`.
@@ -301,7 +318,7 @@ Primitives shadcn (base-ui), voir la doc shadcn. Ne les modifie qu'en cas de bes
 
 - **Exemple** (tiré de `src/features/backtest/backtest-list.tsx`) :
   ```tsx
-  <FilterTabs value={filter} onChange={setFilter} options={filterOptions} />
+  <FilterTabs value={filter} onChange={changeFilter} options={filterOptions} />
   ```
 - **Utilisé par** : `src/features/backtest/backtest-list.tsx`.
 - **Source** : `src/components/filter-tabs.tsx`.
@@ -323,7 +340,7 @@ Primitives shadcn (base-ui), voir la doc shadcn. Ne les modifie qu'en cas de bes
 
 - **Exemple** (tiré de `src/features/backtest/stats.tsx`) :
   ```tsx
-  <StatCard label="Terminés" value={completed} caption="Taux de réussite" delta={rate(completed)} trend="up" />
+  <StatCard label="En cours" value={stats?.active ?? <Dash />} caption="Backtests actifs" />
   ```
 - **Utilisé par** : `src/features/backtest/stats.tsx`.
 - **Source** : `src/components/stat-card.tsx`.
@@ -610,14 +627,15 @@ Props communes `BaseProps<T>` (exportées par `field.tsx`), répétées dans cha
 ### `lib/format.ts`
 
 - **Import** : `import { formatPrice, formatRatio } from "@/lib/format"`.
-- Tous en locale `LOCALE` (`fr-FR`). Seul `formatRatio` convertit une unité (fraction → pourcentage).
+- Tous en locale `LOCALE` (`fr-FR`). `formatRatio` et `formatRate` convertissent une fraction en pourcentage : `formatRatio` pour une variation (signée), `formatRate` pour une proportion (non signée).
 
 | Export | Signature / valeur | Rôle (et unité) | Utilisé par |
 | --- | --- | --- | --- |
 | `LOCALE` | `"fr-FR"` | Locale des formats `Intl` locaux à un composant (ticks de graphique). | `components/chart.tsx`, `features/backtest/equity-chart.tsx`, `features/market/price-chart.tsx` |
 | `formatPrice` | `(v: number, currency: string) => string` | Montant dans la devise ISO **obligatoire** : `formatPrice(1234.5, "EUR")` → « 1 234,50 € ». | `components/chart.tsx`, `features/market/column.tsx`, `features/backtest/stats.tsx` |
 | `formatChange` | `(v: number) => string` | Nombre signé, 2 décimales, sans « % » : `1.5` → « +1,50 ». Pour un pourcentage déjà en %. | `components/data-table/cells.tsx`, `formatRatio` |
-| `formatRatio` | `(ratio: number) => string` | Ratio en **fraction** → variation signée en % : `0.342` → « +34,20 % ». | `features/backtest/stats.tsx`, `features/backtest/execution-history.tsx` |
+| `formatRatio` | `(ratio: number) => string` | Ratio en **fraction** → variation signée en % : `0.342` → « +34,20 % ». Rendement, drawdown. | `features/backtest/stats.tsx`, `features/backtest/execution-history.tsx` |
+| `formatRate` | `(ratio: number) => string` | Proportion en **fraction** → % non signé, arrondi à l'unité : `0.3846` → « 38 % ». Taux de réussite/échec. | `features/backtest/stats.tsx` |
 | `formatNumber` | `(v: number) => string` | Nombre à 2 décimales : « 268,50 ». | `features/backtest/column.tsx` |
 | `formatVolume` | `(v: number) => string` | Notation compacte : `41234567` → « 41,23 M ». | `features/market/column.tsx` |
 | `formatDate` | `(d: string \| Date) => string` | Date et heure courtes : « 28/10/2026 09:00 ». | `features/backtest/execution-history.tsx` |
@@ -635,6 +653,19 @@ Source : `src/lib/format.ts`.
 | `apiFetch` | `<T>(path: string, init?: RequestInit) => Promise<T>` | Seul point d'appel HTTP : préfixe `path` par `NEXT_PUBLIC_API_URL` (`http://localhost:8000/api`), envoie les cookies, ajoute `Accept: application/json`. Statut non 2xx → `Error("Erreur API : <status> <statusText>")` (corps ignoré). Routes : `apps/core-backend/API.md`. | `features/backtest/api.ts`, `features/market/api.ts` |
 
 Source : `src/lib/api.ts`.
+
+### `lib/pagination.ts`
+
+- **Import** : `import { getPageItems, paginate, type Paginated } from "@/lib/pagination"`.
+
+| Export | Signature / valeur | Rôle | Utilisé par |
+| --- | --- | --- | --- |
+| `Paginated<T>` | `{ data: T[]; count: number; page: number; pageSize: number }` | Réponse d'une route de liste paginée, alignée sur `packages/contracts/src/pagination.ts` (non importé par le web) : `count` = total des éléments filtrés, toutes pages confondues ; `page` commence à 1. | `features/backtest/api.ts`, `features/market/api.ts` |
+| `PaginationParams` | `{ page: number; pageSize: number }` | Query `?page&pageSize` d'une route de liste (`page` ≥ 1, `pageSize` 1 à 100). | `features/backtest/api.ts`, `features/market/api.ts`, `features/market/hook.ts` |
+| `getPageItems` | `(page: number, pageCount: number) => (number \| "ellipsis")[]` | Numéros affichés par la pagination : toutes les pages jusqu'à 7 ; au-delà, 7 éléments : `1 2 3 4 5 … 20`, `1 … 4 5 6 … 20`, `1 … 16 17 18 19 20`. | `components/data-table/data-table.tsx` |
+| `paginate` | `<T>(items: T[], page: number, pageSize: number) => T[]` | Découpe une liste complète en page (pagination client) ; `[]` au-delà de la dernière page. | `features/backtest/backtest-detail.tsx` |
+
+Source : `src/lib/pagination.ts`.
 
 ### `lib/path.ts`
 
@@ -682,6 +713,18 @@ Source : `src/lib/auth.ts`.
 | `hasAdminRole` | `(role?: string \| null) => boolean` | `role` (liste séparée par des virgules) contient `admin`. | `app/app/layout.tsx`, `isAdmin` |
 
 Source : `src/lib/session.ts`.
+
+## `constants`
+
+### `constants/pagination.ts`
+
+- **Import** : `import { PAGE_SIZE } from "@/constants/pagination"`.
+
+| Export | Valeur | Rôle | Utilisé par |
+| --- | --- | --- | --- |
+| `PAGE_SIZE` | `20` | Lignes par page des tableaux (`pageSize` envoyé au backend, découpage client). | `features/backtest/backtest-list.tsx`, `features/backtest/backtest-detail.tsx`, `features/market/market-list.tsx` |
+
+Source : `src/constants/pagination.ts`.
 
 ## `features/auth`
 
@@ -754,7 +797,7 @@ Source : `src/features/auth/schema.ts`.
 ### BacktestList
 
 - **Import** : `import { BacktestList } from "@/features/backtest/backtest-list"`.
-- **Rôle** : écran liste : `BacktestStats` puis `DataTable` des backtests filtrable par statut ; clic → détail.
+- **Rôle** : écran liste : `BacktestStats` (`useBacktestStats`) puis `DataTable` des backtests paginée côté serveur (`useBacktests`, `PAGE_SIZE` par page) et filtrable par statut (filtre envoyé au backend ; changer de filtre revient à la page 1) ; clic → détail. Page et filtre vivent dans l'état du composant.
 - **Props** : aucune.
 - **Exemple** (tiré de `src/app/app/backtest/page.tsx`) :
   ```tsx
@@ -766,7 +809,7 @@ Source : `src/features/auth/schema.ts`.
 ### BacktestDetail
 
 - **Import** : `import { BacktestDetail } from "@/features/backtest/backtest-detail"`.
-- **Rôle** : écran détail : en-tête avec statut et relance, métriques, courbe d'equity, ordres, historique d'exécution. Instancie `useBacktest` et `useRerunBacktest`.
+- **Rôle** : écran détail : en-tête avec statut et relance, métriques, courbe d'equity, ordres (paginés côté client avec `paginate`, `PAGE_SIZE` par page), historique d'exécution. Instancie `useBacktest` et `useRerunBacktest`.
 - **Props** :
 
   | Nom | Type | Requis | Défaut | Description |
@@ -877,16 +920,16 @@ Source : `src/features/auth/schema.ts`.
 ### BacktestStats
 
 - **Import** : `import { BacktestStats } from "@/features/backtest/stats"`.
-- **Rôle** : 4 `StatCard` de la liste : total, en cours, terminés et échoués (avec part en % du total), d'après le statut de la dernière exécution.
+- **Rôle** : 4 `StatCard` de la liste : total, en cours, terminés et échoués (avec taux `formatRate`), valeurs de `GET /api/backtest/stats` affichées telles quelles ; `Dash` pendant le chargement.
 - **Props** :
 
   | Nom | Type | Requis | Défaut | Description |
   | --- | --- | --- | --- | --- |
-  | `backtests` | `Backtest[]` | oui | — | Liste non filtrée. |
+  | `stats` | `BacktestListStats \| undefined` | oui | — | `useBacktestStats().data` ; `undefined` pendant le chargement. |
 
 - **Exemple** (tiré de `src/features/backtest/backtest-list.tsx`) :
   ```tsx
-  <BacktestStats backtests={query.data ?? []} />
+  <BacktestStats stats={stats.data} />
   ```
 - **Utilisé par** : `src/features/backtest/backtest-list.tsx`.
 - **Source** : `src/features/backtest/stats.tsx`.
@@ -915,7 +958,8 @@ Source : `src/features/auth/schema.ts`.
 | Export | Signature | Route (`apps/core-backend/API.md`) | Utilisé par |
 | --- | --- | --- | --- |
 | `createBacktest` | `(values: BacktestValues) => Promise<Backtest>` | `POST /api/backtest` | `useCreateBacktest` |
-| `getBacktests` | `() => Promise<Backtest[]>` (renvoie `data`, ignore `count`) | `GET /api/backtest` | `useBacktests` |
+| `getBacktests` | `(params: PaginationParams & { status: readonly ExecutionStatus[] }) => Promise<Paginated<Backtest>>` | `GET /api/backtest?page&pageSize&status` (`status` = statuts séparés par des virgules, omis si vide) | `useBacktests` |
+| `getBacktestStats` | `() => Promise<BacktestListStats>` | `GET /api/backtest/stats` | `useBacktestStats` |
 | `getBacktest` | `(id: string) => Promise<BacktestDetails>` | `GET /api/backtest/:id` | `useBacktest` |
 | `rerunBacktest` | `(id: string) => Promise<BacktestExecution>` | `POST /api/backtest/:id/executions` | `useRerunBacktest` |
 
@@ -927,10 +971,11 @@ Source : `src/features/backtest/api.ts`.
 
 | Export | Signature | Clé / comportement | Utilisé par |
 | --- | --- | --- | --- |
-| `useCreateBacktest` | `() => UseMutationResult<Backtest, Error, BacktestValues>` | Invalide `["backtest", "list"]` au succès. | `new-backtest-form.tsx`, `quick-backtest-form.tsx` |
-| `useBacktests` | `() => UseQueryResult<Backtest[]>` | `["backtest", "list"]`. | `backtest-list.tsx` |
+| `useCreateBacktest` | `() => UseMutationResult<Backtest, Error, BacktestValues>` | Invalide `["backtest", "list"]` et `["backtest", "stats"]` au succès. | `new-backtest-form.tsx`, `quick-backtest-form.tsx` |
+| `useBacktests` | `(params: Parameters<typeof getBacktests>[0]) => UseQueryResult<Paginated<Backtest>>` | `["backtest", "list", params]` ; page précédente gardée pendant le chargement (`keepPreviousData`). | `backtest-list.tsx` |
+| `useBacktestStats` | `() => UseQueryResult<BacktestListStats>` | `["backtest", "stats"]`. | `backtest-list.tsx` |
 | `useBacktest` | `(id: string) => UseQueryResult<BacktestDetails>` | `["backtest", "detail", id]` ; rafraîchi toutes les 2 s tant que la dernière exécution est dans `activeStatuses`. | `backtest-detail.tsx` |
-| `useRerunBacktest` | `(id: string) => UseMutationResult<BacktestExecution>` (`mutate()` sans argument) | Invalide `["backtest"]` au succès. | `backtest-detail.tsx` |
+| `useRerunBacktest` | `(id: string) => UseMutationResult<BacktestExecution>` (`mutate()` sans argument) | Invalide `["backtest"]` au succès (liste, stats et détail). | `backtest-detail.tsx` |
 
 Source : `src/features/backtest/hook.ts`.
 
@@ -954,11 +999,11 @@ Source : `src/features/backtest/schema.ts`.
 | Export | Valeur | Rôle | Utilisé par |
 | --- | --- | --- | --- |
 | `BACKTEST_CURRENCY` | `"EUR"` | Devise d'affichage des montants (cours non convertis). | `equity-chart.tsx`, `stats.tsx` |
-| `activeStatuses` | `["PENDING", "RUNNING"]` | Statuts d'une exécution qui peut encore évoluer (miroir de `ACTIVE_STATUSES` backend). | `hook.ts`, `utils.ts`, `stats.tsx`, `statusFilters` |
+| `activeStatuses` | `["PENDING", "RUNNING"]` | Statuts d'une exécution qui peut encore évoluer (miroir de `ACTIVE_STATUSES` backend). | `hook.ts`, `utils.ts`, `statusFilters` |
 | `strategyOptions` | `{ value: "dca" \| "lump_sum"; label: string }[]` | Options du `SelectField` `strategy`. | `sections.tsx`, `quick-backtest-form.tsx` |
 | `strategyLabels` | `Record<InvestmentMode, string>` : `RECURRING` → « DCA mensuel », `LUMP_SUM` → « Lump sum » | Libellé de stratégie d'un backtest stocké. | `column.tsx`, `backtest-detail.tsx` |
 | `statusBadges` | `Record<ExecutionStatus, { label; variant: "outline" \| "destructive" \| "secondary" \| "success" }>` | Badge de statut d'exécution. | `column.tsx`, `backtest-detail.tsx`, `execution-history.tsx` |
-| `statusFilters` | `{ all, running, done, failed }` → `{ label, statuses: ExecutionStatus[] }` | Onglets de filtre de la liste (`all` = aucun filtre). | `backtest-list.tsx` |
+| `statusFilters` | `{ all, running, done, failed }` → `{ label, statuses: ExecutionStatus[] }` | Onglets de filtre de la liste ; `statuses` envoyés en `status` à `getBacktests` (`all` = vide, aucun filtre). | `backtest-list.tsx` |
 | `StatusFilter` | `keyof typeof statusFilters` | Type de l'onglet actif. | `backtest-list.tsx` |
 
 Source : `src/features/backtest/constants.ts`.
@@ -970,7 +1015,7 @@ Source : `src/features/backtest/constants.ts`.
 | Export | Signature | Rôle | Utilisé par |
 | --- | --- | --- | --- |
 | `getExecution` | `(b: Backtest) => BacktestExecution \| undefined` | Dernière exécution (`executions[0]`). | `column.tsx`, `backtest-detail.tsx` |
-| `hasStatus` | `(b: Backtest, statuses: readonly ExecutionStatus[]) => boolean` | Statut de la dernière exécution dans la liste. | `hook.ts`, `backtest-list.tsx`, `stats.tsx` |
+| `hasStatus` | `(b: Backtest, statuses: readonly ExecutionStatus[]) => boolean` | Statut de la dernière exécution dans la liste. | `hook.ts` |
 | `isActive` | `(e: BacktestExecution) => boolean` | Exécution `PENDING` ou `RUNNING`. | `backtest-detail.tsx`, `execution-history.tsx` |
 | `getExecutionDuration` | `(e: BacktestExecution) => string \| null` | Durée `finishedAt − (startedAt ?? createdAt)`, « 2 min 5 s » ou « 12 s » (minimum 1 s) ; `null` si non terminée. | `column.tsx`, `backtest-detail.tsx`, `execution-history.tsx` |
 
@@ -993,13 +1038,14 @@ Source : `src/features/backtest/column.tsx`.
 
 | Export | Forme | Utilisé par |
 | --- | --- | --- |
-| `ExecutionStatus` | `"PENDING" \| "RUNNING" \| "COMPLETED" \| "FAILED" \| "CANCELLED"` | `utils.ts`, `constants.ts`, `stats.tsx` |
+| `ExecutionStatus` | `"PENDING" \| "RUNNING" \| "COMPLETED" \| "FAILED" \| "CANCELLED"` | `utils.ts`, `constants.ts`, `api.ts` |
 | `InvestmentMode` | `"LUMP_SUM" \| "RECURRING"` | `constants.ts` |
 | `BacktestExecution` | `{ id, status, attempt, createdAt, startedAt, finishedAt, error, result?: { totalReturn: string \| null (fraction); totalTrades: number } \| null }` | `api.ts`, `utils.ts`, `execution-history.tsx` |
 | `EquityPoint` | `{ date: "YYYY-MM-DD"; value: number; invested: number }` (devise, `invested` frais compris) | `equity-chart.tsx` |
 | `Trade` | `{ date: "YYYY-MM-DD"; symbol: string; price: number }` (cours d'achat) | `column.tsx` |
 | `BacktestResult` | `{ finalValue, totalInvested, totalReturn, maxDrawdown: string \| null; totalTrades: number; maxDrawdownDate: string \| null; equityCurve: EquityPoint[]; trades: Trade[] }` (ratios en fraction) | `stats.tsx` |
-| `Backtest` | `{ id, name, symbols, startDate, endDate, investmentMode, createdAt, executions: BacktestExecution[] }` (plus récente d'abord) | `api.ts`, `utils.ts`, `stats.tsx`, `column.tsx` |
+| `Backtest` | `{ id, name, symbols, startDate, endDate, investmentMode, createdAt, executions: BacktestExecution[] }` (plus récente d'abord) | `api.ts`, `utils.ts`, `column.tsx` |
+| `BacktestListStats` | `{ total, active, completed, failed: number; completedRate, failedRate: number (fraction) }` (`BacktestStats` côté backend), d'après le statut de la dernière exécution | `api.ts`, `stats.tsx` |
 | `BacktestDetails` | `Backtest & { executions (toutes); result: BacktestResult \| null }` | `api.ts`, `backtest-detail.tsx` |
 
 Source : `src/features/backtest/types.ts`.
@@ -1009,7 +1055,7 @@ Source : `src/features/backtest/types.ts`.
 ### MarketList
 
 - **Import** : `import { MarketList } from "@/features/market/market-list"`.
-- **Rôle** : écran marché : onglets de catégorie, `SymbolSearch`, puis `DataTable` des actifs par défaut (`useDefaultAssets`) ; clic → `${prefix}/market/<symbol>`.
+- **Rôle** : écran marché : onglets de catégorie, `SymbolSearch`, puis `DataTable` des actifs par défaut paginée côté serveur (`useDefaultAssets`, `PAGE_SIZE` par page, page dans l'état du composant) ; clic → `${prefix}/market/<symbol>`.
 - **Props** : aucune.
 - **Exemple** (tiré de `src/app/app/market/page.tsx`) :
   ```tsx
@@ -1093,7 +1139,7 @@ Source : `src/features/backtest/types.ts`.
 
 | Export | Signature | Route | Utilisé par |
 | --- | --- | --- | --- |
-| `getDefaultAssets` | `() => Promise<MarketAsset[]>` | `GET /api/market/defaults` | `useDefaultAssets` |
+| `getDefaultAssets` | `(params: PaginationParams) => Promise<Paginated<MarketAsset>>` | `GET /api/market/defaults?page&pageSize` | `useDefaultAssets` |
 | `getAssetsDetails` | `(symbol: string, period: Period) => Promise<MarketDetails[]>` | `GET /api/market/details/:id?period=` | `useMarketDetails` |
 | `getSearchAssets` | `(query: string) => Promise<MarketData[]>` | `GET /api/market/search?query=` | `useMarketSearch` |
 
@@ -1105,7 +1151,7 @@ Source : `src/features/market/api.ts`.
 
 | Export | Signature | Clé / comportement | Utilisé par |
 | --- | --- | --- | --- |
-| `useDefaultAssets` | `() => UseQueryResult<MarketAsset[]>` | `["market", "list"]`, rafraîchi toutes les 30 s. | `market-list.tsx` |
+| `useDefaultAssets` | `(params: PaginationParams) => UseQueryResult<Paginated<MarketAsset>>` | `["market", "list", params]`, rafraîchi toutes les 30 s, page précédente gardée pendant le chargement (`keepPreviousData`). | `market-list.tsx` |
 | `useMarketDetails` | `(symbol: string, period: Period) => UseQueryResult<MarketDetails[]>` | `["market", "detail", symbol, period]`, `staleTime` 60 s, données précédentes gardées au changement de période. | `price-chart.tsx` |
 | `useMarketSearch` | `(query: string) => UseQueryResult<MarketData[]>` | `["market", "search", query]`, actif si `query.length >= MIN_SEARCH_LENGTH`. | `components/symbol-picker.tsx` |
 

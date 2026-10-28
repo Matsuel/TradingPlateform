@@ -31,7 +31,7 @@ Catalogue des routes HTTP exposées par core-backend (port 8000) et appelées pa
 - [Auth](#auth) : `ALL /api/auth/{*path}`
 - [Market (proxy)](#market-proxy) : `ALL /api/market/{*path}`
 - [Portfolio](#portfolio) : `POST`, `GET`, `GET /:id`, `PATCH /:id`, `DELETE /:id`
-- [Backtest](#backtest) : `POST`, `POST /:id/executions`, `GET /:id`, `GET`
+- [Backtest](#backtest) : `POST`, `POST /:id/executions`, `GET /stats`, `GET /:id`, `GET`
 
 ## Conventions communes
 
@@ -41,6 +41,18 @@ Catalogue des routes HTTP exposées par core-backend (port 8000) et appelées pa
 - **Erreurs** : toute `AppError` est rendue par `error.middleware` en `{ "error": "<message>", ...data }` avec son statut. Toute autre exception : `500 { "error": "Internal server error" }`. Côté web, `apiFetch` lève `Error("Erreur API : <status> <statusText>")` et ignore le corps d'erreur.
 - **Sérialisation** : `Decimal` Prisma → string (`"0.001"`), `DateTime` → ISO 8601 (`"2026-01-31T00:00:00.000Z"`). Ratios en fraction (`0.342` = 34,2 %).
 - **Propriété** : une ressource d'un autre utilisateur → `403 { "error": "Access denied" }` ; inexistante → `404`.
+
+### Pagination
+
+Les routes de liste (`GET /api/portfolio`, `GET /api/backtest`) suivent le contrat de `packages/contracts/src/pagination.ts` (`@trading-plateform/contracts`) :
+
+- **Query** `paginationQuerySchema` : `page` (int ≥ 1, défaut `1`), `pageSize` (int de 1 à 100, défaut `20`), coercés depuis la query string.
+- **Réponse** `Paginated<T>` : `data` (éléments de la page), `count` (total des éléments correspondant au filtre, toutes pages confondues), `page`, `pageSize` (valeurs appliquées, défauts compris).
+  ```json
+  { "data": [], "count": 42, "page": 3, "pageSize": 20 }
+  ```
+- Page au-delà de la dernière → `200` avec `data: []` et le `count` réel.
+- Query invalide (`page=0`, `pageSize=101`, `page=abc`…) → `400 { "error": "Invalid query", "issues": [ZodIssue] }`.
 
 ## Auth
 
@@ -94,12 +106,12 @@ Réponse `Portfolio` commune :
 ### GET /api/portfolio
 
 - **Auth** : session requise.
-- **Entrée** : aucune.
-- **Réponse** : `200`, portefeuilles de l'utilisateur, plus récents d'abord.
+- **Entrée** : query `page`, `pageSize` ([Pagination](#pagination)).
+- **Réponse** : `200`, `Paginated<Portfolio>` ([Pagination](#pagination)) : portefeuilles de l'utilisateur, plus récents d'abord (`createdAt desc`).
   ```json
-  { "data": [{ "id": "cm…", "name": "Principal", "...": "…" }], "count": 1 }
+  { "data": [{ "id": "cm…", "name": "Principal", "...": "…" }], "count": 1, "page": 1, "pageSize": 20 }
   ```
-- **Erreurs** : `401`.
+- **Erreurs** : `400 { "error": "Invalid query", "issues": [ZodIssue] }` → pagination invalide ; `401`.
 - **Effets** : aucun.
 - **Appelant** : aucun.
 - **Source** : `routes/portfolio/portfolio.routes.ts`, `controller/portfolio.controller.ts`, `services/portfolio.service.ts`.
@@ -138,7 +150,7 @@ Réponse `Portfolio` commune :
 
 Formes de réponse communes (`interfaces/backtest.interface.ts`, `prisma/schema.prisma`) :
 
-- **`Backtest`** : `id`, `userId`, `name`, `symbols` (string[]), `startDate`, `endDate` (ISO), `investmentMode` (`"LUMP_SUM"` | `"RECURRING"`), `initialAmount` (Decimal string, devise de saisie), `recurringAmount` (Decimal string | null, montant par versement), `investmentFrequency` (`"DAILY"` | `"WEEKLY"` | `"MONTHLY"` | `"YEARLY"` | null), `feeRate` (Decimal string, fraction : `"0.001"` = 0,1 % par achat), `createdAt`, `updatedAt`.
+- **`Backtest`** : `id`, `userId`, `name`, `symbols` (string[]), `startDate`, `endDate` (ISO), `investmentMode` (`"LUMP_SUM"` | `"RECURRING"`), `initialAmount` (Decimal string, devise de saisie), `recurringAmount` (Decimal string | null, montant par versement), `investmentFrequency` (`"DAILY"` | `"WEEKLY"` | `"MONTHLY"` | `"YEARLY"` | null), `feeRate` (Decimal string, fraction : `"0.001"` = 0,1 % par achat), `latestExecutionId` (string | null, id de la dernière exécution créée : sert au filtre `status` et aux stats), `createdAt`, `updatedAt`.
 - **`BacktestExecution`** : `id`, `backtestId`, `status` (`"PENDING"` | `"RUNNING"` | `"COMPLETED"` | `"FAILED"` | `"CANCELLED"`), `attempt` (int, 1 pour la première), `startedAt`, `finishedAt` (ISO | null), `error` (string | null), `createdAt`.
 - **Résumé de résultat** (dans `executions[].result`, sans `equityCurve` ni `trades`) : `id`, `executionId`, `finalValue`, `totalInvested` (Decimal string | null, devise, frais compris), `totalReturn` (Decimal string | null, fraction), `totalTrades` (int), `maxDrawdown` (Decimal string | null, fraction ≤ 0, hors versements), `maxDrawdownDate` (ISO | null), `createdAt`.
 - **`BacktestResult`** complet : résumé + `equityCurve` (`[{ "date": "YYYY-MM-DD", "value": number, "invested": number }]`) et `trades` (`[{ "date": "YYYY-MM-DD", "symbol": string, "price": number }]`, achats exécutés, `price` = cours d'achat).
@@ -164,7 +176,7 @@ Les montants sont dans la devise saisie, affichée `EUR` par le web (`BACKTEST_C
   ```
 - **Erreurs** : `400 { "error": "Invalid backtest", "issues": [ZodIssue] }` → body invalide (`end` avant `start` : issue sur `path: ["end"]`, `"Must be after start"`) ; `401` ; `500 { "error": "Backtest could not be queued" }` → publication Kafka impossible (le backtest reste créé, son exécution passe `FAILED`).
 - **Effets** : écrit `Backtest` (`dca` → `investmentMode: RECURRING`, `initialAmount: 0`, `recurringAmount: amount`, `investmentFrequency: MONTHLY` ; `lump_sum` → `LUMP_SUM`, `initialAmount: amount`) et une `BacktestExecution` `PENDING`. Publie `backtest.requested` (clé `executionId`, payload `BacktestRequestedPayload` de `@trading-plateform/contracts`). Les événements `backtest.started|completed|failed` font ensuite évoluer l'exécution.
-- **Appelant** : `createBacktest(values)` de `apps/web/src/features/backtest/api.ts`, hook `useCreateBacktest()` (invalide `["backtest", "list"]`) ; utilisé par `NewBacktestForm` et `QuickBacktestForm`.
+- **Appelant** : `createBacktest(values)` de `apps/web/src/features/backtest/api.ts`, hook `useCreateBacktest()` (invalide `["backtest", "list"]` et `["backtest", "stats"]`) ; utilisé par `NewBacktestForm` et `QuickBacktestForm`.
 - **Source** : `routes/backtest/backtest.routes.ts`, `controller/backtest.controller.ts`, `services/backtest.service.ts`, `interfaces/backtest.interface.ts`.
 
 ### POST /api/backtest/:id/executions
@@ -179,6 +191,19 @@ Les montants sont dans la devise saisie, affichée `EUR` par le web (`BACKTEST_C
 - **Effets** : écrit une `BacktestExecution`, publie `backtest.requested` (clé `executionId`) avec les paramètres stockés du backtest.
 - **Appelant** : `rerunBacktest(id)` de `apps/web/src/features/backtest/api.ts`, hook `useRerunBacktest(id)` (invalide `["backtest"]`) ; utilisé par `BacktestDetail`.
 - **Source** : `routes/backtest/backtest.routes.ts`, `controller/backtest.controller.ts`, `services/backtest.service.ts`, `constants/backtest.constants.ts`.
+
+### GET /api/backtest/stats
+
+- **Auth** : session requise.
+- **Entrée** : aucune. Route enregistrée avant `/:id` (sinon `stats` serait lu comme un id).
+- **Réponse** : `200`, `BacktestStats` (`interfaces/backtest.interface.ts`) : backtests de l'utilisateur comptés selon le statut de leur **dernière** exécution. `total` = tous les backtests ; `active` = dernière exécution `PENDING` ou `RUNNING` (`ACTIVE_STATUSES`) ; `completed` = `COMPLETED` ; `failed` = `FAILED` ; `completedRate` = `completed / total`, `failedRate` = `failed / total` (fractions non arrondies, `0` si `total = 0`).
+  ```json
+  { "total": 13, "active": 6, "completed": 5, "failed": 2, "completedRate": 0.38461538461538464, "failedRate": 0.15384615384615385 }
+  ```
+- **Erreurs** : `401`.
+- **Effets** : aucun.
+- **Appelant** : `getBacktestStats()` de `apps/web/src/features/backtest/api.ts`, hook `useBacktestStats()` (clé `["backtest", "stats"]`) ; utilisé par `BacktestList` → `BacktestStats`.
+- **Source** : `routes/backtest/backtest.routes.ts`, `controller/backtest.controller.ts`, `services/backtest.service.ts`, `repositories/backtest.repository.ts`, `constants/backtest.constants.ts`.
 
 ### GET /api/backtest/:id
 
@@ -196,12 +221,17 @@ Les montants sont dans la devise saisie, affichée `EUR` par le web (`BACKTEST_C
 ### GET /api/backtest
 
 - **Auth** : session requise.
-- **Entrée** : aucune.
-- **Réponse** : `200`, backtests de l'utilisateur, plus récents d'abord ; chacun porte `executions` limité à **la dernière** exécution (avec résumé de résultat ou `null`).
-  ```json
-  { "data": [{ "id": "cm…", "name": "…", "executions": [{ "status": "RUNNING", "attempt": 1, "result": null, "...": "…" }], "...": "…" }], "count": 1 }
+- **Entrée** : query `backtestListQuerySchema` (`interfaces/backtest.interface.ts`) :
+  - `page`, `pageSize` ([Pagination](#pagination)) ;
+  - `status` (optionnel) : statuts séparés par des virgules parmi `DRAFT`, `PENDING`, `RUNNING`, `COMPLETED`, `FAILED`, `CANCELLED` ; ne garde que les backtests dont la **dernière** exécution a l'un de ces statuts (`count` en tient compte). Absent = tous.
   ```
-- **Erreurs** : `401`.
+  GET /api/backtest?page=1&pageSize=20&status=PENDING,RUNNING
+  ```
+- **Réponse** : `200`, `Paginated<BacktestWithExecutions>` ([Pagination](#pagination)) : backtests de l'utilisateur, plus récents d'abord (`createdAt desc`) ; chacun porte `executions` limité à **la dernière** exécution (avec résumé de résultat ou `null`).
+  ```json
+  { "data": [{ "id": "cm…", "name": "…", "executions": [{ "status": "RUNNING", "attempt": 1, "result": null, "...": "…" }], "...": "…" }], "count": 6, "page": 1, "pageSize": 20 }
+  ```
+- **Erreurs** : `400 { "error": "Invalid query", "issues": [ZodIssue] }` → pagination invalide ou `status` inconnu (`status=FOO`, `status=PENDING,`) ; `401`.
 - **Effets** : aucun.
-- **Appelant** : `getBacktests()` de `apps/web/src/features/backtest/api.ts` (renvoie `data` seul), hook `useBacktests()` (clé `["backtest", "list"]`) ; utilisé par `BacktestList`.
+- **Appelant** : `getBacktests(params)` de `apps/web/src/features/backtest/api.ts`, hook `useBacktests(params)` (clé `["backtest", "list", params]`, `keepPreviousData`) ; utilisé par `BacktestList`.
 - **Source** : `routes/backtest/backtest.routes.ts`, `controller/backtest.controller.ts`, `services/backtest.service.ts`, `repositories/backtest.repository.ts`.

@@ -32,7 +32,7 @@ Chaque couche fait **exactement** son travail ; une ligne qui relève d'une autr
 - **Controller** : valide `req` avec le schéma zod de `interfaces/` (`BadRequestError` si invalide), appelle **une** méthode de service, répond (`res.json`, `res.status(201|202)` pour création/asynchrone). Méthodes en propriétés fléchées ; `userId` vient de `req.userId`.
 - **Consumer** : valide le message avec le schéma d'événement de `@trading-plateform/contracts`, appelle **une** méthode de service. Message invalide → `logger.warn` et retour, sans exception.
 - **Service** : décide. Autorisation (propriétaire → `NotFoundError`/`ForbiddenError` via un seul helper privé `assertOwner` par service), invariants métier, transitions de statut, mapping entrée API → DTO, publication Kafka (`producer` de `lib/kafka.ts` + `createKafkaEvent`), logs. Ne connaît ni `req`/`res` ni `prisma`.
-- **Repository** : exécute. Une méthode par besoin d'accès, paramétrée par ce que le service a décidé (les statuts autorisés sont passés en argument, pas choisis ici). Aucune règle métier, aucune `AppError`. Lecture légère (`getById`) pour autoriser/décider, lecture complète (`getDetailsById`) seulement pour la réponse : on ne charge jamais une colonne lourde (JSON de courbe, listes) pour une vérification.
+- **Repository** : exécute, avec Prisma Client uniquement (règle « Base de données » du `../../AGENTS.md` : aucun SQL écrit à la main). Une méthode par besoin d'accès, paramétrée par ce que le service a décidé (les statuts autorisés sont passés en argument, pas choisis ici). Aucune règle métier, aucune `AppError`. Lecture légère (`getById`) pour autoriser/décider, lecture complète (`getDetailsById`) seulement pour la réponse : on ne charge jamais une colonne lourde (JSON de courbe, listes) pour une vérification.
 - Les erreurs se **lancent** ; seul `error.middleware` formate la réponse d'erreur.
 
 ## Types et données
@@ -52,6 +52,8 @@ core-backend est **le seul service qui écrit en base** : les autres services pu
 | `backtest.failed` | `PENDING`/`RUNNING` → `FAILED` |
 
 Invariant : une seule exécution active (`ACTIVE_STATUSES`) par backtest ; une relance pendant une exécution active lève `ConflictError`.
+
+`Backtest.latestExecution` pointe vers la dernière exécution créée : c'est elle qui sert à filtrer la liste par statut et à calculer les stats avec Prisma. Le repository la met à jour dans la même transaction que toute création d'exécution (`create`, `createExecution`) ; toute nouvelle façon de créer une exécution doit faire de même.
 
 ## Migrations
 

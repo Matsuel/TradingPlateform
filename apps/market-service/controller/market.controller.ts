@@ -2,6 +2,7 @@ import type { Request, Response } from "express";
 import MarketService from "../services/market.service";
 import BadRequestError from "../errors/badrequest.error";
 import { marketIdSchema, periodSchema, searchMarketSchema } from "../interfaces/market.interface";
+import { paginationQuerySchema } from "@trading-plateform/contracts";
 import { Logger } from "@trading-plateform/utils";
 
 const logger = Logger.here();
@@ -38,7 +39,10 @@ class MarketController {
     getDefaultsAssets = async(req: Request, res: Response) => {
         logger.info(`Handling defaults market request ${req.method} ${req.originalUrl}`)
 
-        const result = await this.marketService.getDefaultsMarketAssets()
+        const parsed = paginationQuerySchema.safeParse(req.query)
+        if (!parsed.success) throw new BadRequestError("Invalid pagination", { issues: parsed.error.issues })
+
+        const result = await this.marketService.getDefaultsMarketAssets(parsed.data)
         res.json(result)
     }
 

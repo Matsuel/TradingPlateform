@@ -5,8 +5,8 @@ const logger = Logger.here()
 
 export const dbHealthCheck = async () => {
     try {
-        // Requête de test simple pour vérifier que la base de données répond
-        await prisma.$queryRaw`SELECT 1`;
+        // Lecture minimale via Prisma pour vérifier que la base de données répond
+        await prisma.user.findFirst({ select: { id: true } });
         logger.info("🔌 Database connection successful, API can start...");
     } catch (_error) {
         logger.error("⚠️ Database connection failed, API cannot start exiting...");
@@ -16,7 +16,7 @@ export const dbHealthCheck = async () => {
 
 export const isDbConnected = async (): Promise<boolean> => {
     try {
-        await prisma.$queryRaw`SELECT 1`;
+        await prisma.user.findFirst({ select: { id: true } });
         return true;
     } catch (_error) {
         logger.error("⚠️ Database connection failed");

@@ -1,6 +1,7 @@
 import NotFoundError from "../errors/notfound.error"
 import ForbiddenError from "../errors/forbidden.error"
 import PortfolioRepository, { type IPortfolioRepository } from "../repositories/portfolio.repository"
+import type { Paginated, PaginationQuery } from "@trading-plateform/contracts"
 import type { Portfolio } from "../generated/prisma/client"
 import type { PortfolioInput } from "../interfaces/portfolio.interface"
 import { Logger } from "@trading-plateform/utils"
@@ -22,11 +23,11 @@ class PortfolioService {
         return this.assertOwner(await this.repo.getById(id), userId)
     }
 
-    async getAll(userId: string) {
-        logger.info("Fetching all portfolios", { userId })
-        const result = await this.repo.getAllByUserId(userId)
+    async getAll(userId: string, pagination: PaginationQuery): Promise<Paginated<Portfolio>> {
+        logger.info("Fetching all portfolios", { userId, ...pagination })
+        const result = await this.repo.getAllByUserId(userId, pagination)
         logger.info("Portfolios fetched", { userId, count: result.count })
-        return result
+        return { ...result, ...pagination }
     }
 
     async update(id: string, userId: string, input: PortfolioInput) {

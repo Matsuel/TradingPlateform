@@ -1,6 +1,7 @@
 import { apiFetch } from "@/lib/api";
+import type { Paginated, PaginationParams } from "@/lib/pagination";
 import type { BacktestValues } from "./schema";
-import type { Backtest, BacktestDetails, BacktestExecution } from "./types";
+import type { Backtest, BacktestDetails, BacktestExecution, BacktestListStats, ExecutionStatus } from "./types";
 
 export async function createBacktest(values: BacktestValues): Promise<Backtest> {
     return apiFetch<Backtest>("/backtest", {
@@ -10,9 +11,15 @@ export async function createBacktest(values: BacktestValues): Promise<Backtest> 
     });
 }
 
-export async function getBacktests(): Promise<Backtest[]> {
-    const { data } = await apiFetch<{ data: Backtest[]; count: number }>("/backtest");
-    return data;
+// status vide = tous les backtests
+export async function getBacktests({ page, pageSize, status }: PaginationParams & { status: readonly ExecutionStatus[] }): Promise<Paginated<Backtest>> {
+    const params = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
+    if (status.length) params.set("status", status.join(","));
+    return apiFetch<Paginated<Backtest>>(`/backtest?${params.toString()}`);
+}
+
+export async function getBacktestStats(): Promise<BacktestListStats> {
+    return apiFetch<BacktestListStats>("/backtest/stats");
 }
 
 export async function getBacktest(id: string): Promise<BacktestDetails> {

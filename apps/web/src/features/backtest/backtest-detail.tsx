@@ -1,12 +1,15 @@
 "use client"
 
+import { useState } from "react"
 import { Loader2 } from "lucide-react"
 import { DataTable } from "@/components/data-table/data-table"
 import PageHeader from "@/components/page-layout/header"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { PAGE_SIZE } from "@/constants/pagination"
 import { formatDayRange } from "@/lib/format"
+import { paginate } from "@/lib/pagination"
 import { tradeColumns } from "./column"
 import { statusBadges, strategyLabels } from "./constants"
 import { EquityChart } from "./equity-chart"
@@ -45,6 +48,7 @@ function NoResult({ backtest }: { backtest: BacktestDetails }) {
 export function BacktestDetail({ id }: { id: string }) {
     const query = useBacktest(id)
     const rerun = useRerunBacktest(id)
+    const [tradePage, setTradePage] = useState(1)
     const { data: backtest, isPending, isError, error, refetch } = query
 
     if (isPending) {
@@ -83,12 +87,13 @@ export function BacktestDetail({ id }: { id: string }) {
                     <BacktestResultStats result={result} />
                     <EquityChart data={result.equityCurve} positive={Number(result.totalReturn) >= 0} />
                     <DataTable
-                        query={{ ...query, data: result.trades.toReversed() }}
+                        query={{ ...query, data: paginate(result.trades.toReversed(), tradePage, PAGE_SIZE) }}
                         columns={tradeColumns}
                         rowKey={(t) => `${t.date}-${t.symbol}`}
                         title="Ordres"
                         description="Achats exécutés, du plus récent au plus ancien"
                         emptyMessage="Aucun ordre."
+                        pagination={{ page: tradePage, pageSize: PAGE_SIZE, count: result.trades.length, onPageChange: setTradePage }}
                     />
                 </>
             ) : (
