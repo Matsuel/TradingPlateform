@@ -1,9 +1,9 @@
 "use client"
 
 import { useState } from "react"
-import { Loader2 } from "lucide-react"
 import { DataTable } from "@/components/data-table/data-table"
 import PageHeader from "@/components/page-layout/header"
+import { ErrorState, LoadingState } from "@/components/query-status"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -24,7 +24,6 @@ function describe(backtest: BacktestDetails) {
     const duration = e?.status === "COMPLETED" && getExecutionDuration(e)
     return [
         strategyLabels[backtest.investmentMode],
-        backtest.symbols.join(", "),
         formatDayRange(backtest.startDate, backtest.endDate),
         duration && `exécuté en ${duration}`,
     ].filter(Boolean).join(" · ")
@@ -51,22 +50,9 @@ export function BacktestDetail({ id }: { id: string }) {
     const [tradePage, setTradePage] = useState(1)
     const { data: backtest, isPending, isError, error, refetch } = query
 
-    if (isPending) {
-        return (
-            <div className="flex h-64 items-center justify-center">
-                <Loader2 className="size-6 animate-spin text-muted-foreground" />
-            </div>
-        )
-    }
+    if (isPending) return <LoadingState className="h-64" />
 
-    if (isError) {
-        return (
-            <div className="flex h-64 flex-col items-center justify-center gap-3">
-                <p className="text-sm text-destructive">{error.message}</p>
-                <Button variant="outline" size="sm" onClick={() => refetch()}>Réessayer</Button>
-            </div>
-        )
-    }
+    if (isError) return <ErrorState message={error.message} onRetry={refetch} className="h-64" />
 
     const execution = getExecution(backtest)
     const { result } = backtest
@@ -75,12 +61,19 @@ export function BacktestDetail({ id }: { id: string }) {
 
     return (
         <>
-            <PageHeader
-                title={backtest.name}
-                badge={execution && <Badge variant={statusBadges[execution.status].variant}>{statusBadges[execution.status].label}</Badge>}
-                description={describe(backtest)}
-                actions={<Button onClick={() => rerun.mutate()} disabled={!canRerun}>Relancer</Button>}
-            />
+            <div className="flex flex-col gap-3">
+                <PageHeader
+                    title={backtest.name}
+                    badge={execution && <Badge variant={statusBadges[execution.status].variant}>{statusBadges[execution.status].label}</Badge>}
+                    description={describe(backtest)}
+                    actions={<Button onClick={() => rerun.mutate()} disabled={!canRerun}>Relancer</Button>}
+                />
+                <div className="flex flex-wrap items-center gap-2">
+                    {backtest.symbols.map((symbol) => (
+                        <Badge key={symbol} variant="outline" className="h-auto py-1 px-2 text-xs">{symbol}</Badge>
+                    ))}
+                </div>
+            </div>
 
             {result ? (
                 <>

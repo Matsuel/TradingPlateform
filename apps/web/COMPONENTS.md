@@ -41,7 +41,7 @@ Module de fonctions, hooks, constantes ou types (`lib/*.ts`, `features/<domaine>
 
 - [`components/ui`](#componentsui)
 - [Mise en page et navigation](#mise-en-page-et-navigation) : `PageLayout`, `PageHeader`, `Header`, `AppSidebar`, `SidebarNav`, `NavUser`, `AppSheet`
-- [Données et tableaux](#données-et-tableaux) : `DataTable` (`Column`), `SymbolCell`, `ChangeCell`, `Dash`, `FilterTabs`, `StatCard`
+- [Données et tableaux](#données-et-tableaux) : `DataTable` (`Column`), `SymbolCell`, `ChangeCell`, `Dash`, `FilterTabs`, `StatCard`, `LoadingState`, `ErrorState`
 - [Graphiques](#graphiques) : `PriceAreaChart` (`PricePoint`), `Sparkline`
 - [Symboles](#symboles) : `SymbolPicker`
 - [Formulaires (`components/form`)](#formulaires-componentsform) : `AppField`, `TextField`, `NumberField`, `TextareaField`, `SelectField`, `DateField`, `CheckboxField`, `SwitchField`, `SymbolsField`, `FormSection`, `FieldRow`
@@ -205,7 +205,7 @@ Primitives shadcn (base-ui), voir la doc shadcn. Ne les modifie qu'en cas de bes
 ### DataTable
 
 - **Import** : `import { DataTable, type Column } from "@/components/data-table/data-table"`.
-- **Rôle** : tableau branché sur une requête TanStack Query : gère chargement, erreur (bouton « Réessayer »), vide, clic de ligne et pagination optionnelle. Colonnes déclarées dans `features/<domaine>/column.tsx`.
+- **Rôle** : tableau branché sur une requête TanStack Query : gère chargement, erreur (`ErrorState`), vide, clic de ligne et pagination optionnelle. Colonnes déclarées dans `features/<domaine>/column.tsx`.
 - **Props** :
 
   | Nom | Type | Requis | Défaut | Description |
@@ -215,7 +215,7 @@ Primitives shadcn (base-ui), voir la doc shadcn. Ne les modifie qu'en cas de bes
   | `rowKey` | `(row: T) => string` | oui | — | Clé React de ligne. |
   | `onRowClick` | `(row: T) => void` | non | — | Rend les lignes cliquables. |
   | `emptyMessage` | `ReactNode` | non | `"Aucune donnée."` | Affiché si `data` est vide. |
-  | `loader` | `ReactNode` | non | spinner `Loader2` | Affiché si `isPending`. |
+  | `loader` | `ReactNode` | non | `<LoadingState />` | Affiché si `isPending`. |
   | `title` | `ReactNode` | non | — | Titre au-dessus du tableau. |
   | `description` | `ReactNode` | non | — | Sous le titre. |
   | `actions` | `ReactNode` | non | — | À droite du titre (ex. `FilterTabs`). |
@@ -344,6 +344,42 @@ Primitives shadcn (base-ui), voir la doc shadcn. Ne les modifie qu'en cas de bes
   ```
 - **Utilisé par** : `src/features/backtest/stats.tsx`.
 - **Source** : `src/components/stat-card.tsx`.
+
+### LoadingState
+
+- **Import** : `import { LoadingState } from "@/components/query-status"`.
+- **Rôle** : spinner `Loader2` centré, pendant le chargement d'une requête (`isPending`). La hauteur de la zone se passe par `className`.
+- **Props** :
+
+  | Nom | Type | Requis | Défaut | Description |
+  | --- | --- | --- | --- | --- |
+  | `className` | `string` | non | — | Sur le conteneur (ex. `h-64`). |
+
+- **Exemple** (tiré de `src/features/backtest/backtest-detail.tsx`) :
+  ```tsx
+  if (isPending) return <LoadingState className="h-64" />
+  ```
+- **Utilisé par** : `src/features/backtest/backtest-detail.tsx`, `src/features/market/price-chart.tsx`, `src/components/data-table/data-table.tsx`.
+- **Source** : `src/components/query-status.tsx`.
+
+### ErrorState
+
+- **Import** : `import { ErrorState } from "@/components/query-status"`.
+- **Rôle** : message d'erreur d'une requête et bouton « Réessayer », centrés (`isError`).
+- **Props** :
+
+  | Nom | Type | Requis | Défaut | Description |
+  | --- | --- | --- | --- | --- |
+  | `message` | `string` | non | — | Texte affiché, en général `error.message`. |
+  | `onRetry` | `() => unknown` | oui | — | Appelé au clic sur « Réessayer » (ex. `refetch`). |
+  | `className` | `string` | non | — | Sur le conteneur (ex. `h-64`). |
+
+- **Exemple** (tiré de `src/features/backtest/backtest-detail.tsx`) :
+  ```tsx
+  if (isError) return <ErrorState message={error.message} onRetry={refetch} className="h-64" />
+  ```
+- **Utilisé par** : `src/features/backtest/backtest-detail.tsx`, `src/features/market/price-chart.tsx`, `src/components/data-table/data-table.tsx`.
+- **Source** : `src/components/query-status.tsx`.
 
 ## Graphiques
 

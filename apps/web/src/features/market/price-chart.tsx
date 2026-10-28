@@ -1,9 +1,8 @@
 "use client"
 
 import { useState } from "react"
-import { Loader2 } from "lucide-react"
 import { PriceAreaChart } from "@/components/chart"
-import { Button } from "@/components/ui/button"
+import { ErrorState, LoadingState } from "@/components/query-status"
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { LOCALE } from "@/lib/format"
@@ -58,14 +57,9 @@ export function PriceChart({ symbol }: { symbol: string }) {
 
             <CardContent>
                 {isPending ? (
-                    status(<Loader2 className="size-6 animate-spin text-muted-foreground" />)
+                    <LoadingState className="h-82.5" />
                 ) : isError ? (
-                    status(
-                        <>
-                            <p className="text-sm text-destructive">{error.message}</p>
-                            <Button variant="outline" size="sm" onClick={() => refetch()}>Réessayer</Button>
-                        </>
-                    )
+                    <ErrorState message={error.message} onRetry={refetch} className="h-82.5" />
                 ) : data.length === 0 ? (
                     status(<p className="text-sm text-muted-foreground">Aucune donnée pour cette période.</p>)
                 ) : (

@@ -24,6 +24,6 @@ export const formatVolume = new Intl.NumberFormat(LOCALE, {
 export const formatDate = (d: string | Date) =>
     new Intl.DateTimeFormat(LOCALE, { dateStyle: "short", timeStyle: "short" }).format(new Date(d))
 export const formatDay = (d: string | Date) =>
-    new Intl.DateTimeFormat(LOCALE, { day: "2-digit", month: "2-digit", year: "2-digit" }).format(new Date(d))
+    new Intl.DateTimeFormat(LOCALE, { day: "2-digit", month: "2-digit", year: "numeric" }).format(new Date(d))
 export const formatDayRange = (start: string | Date, end: string | Date) =>
     `${formatDay(start)} – ${formatDay(end)}`

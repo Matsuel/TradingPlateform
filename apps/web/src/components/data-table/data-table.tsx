@@ -2,8 +2,7 @@
 
 import type { MouseEvent, ReactNode } from "react"
 import type { UseQueryResult } from "@tanstack/react-query"
-import { Loader2 } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { ErrorState, LoadingState } from "@/components/query-status"
 import {
     Pagination,
     PaginationContent,
@@ -106,7 +105,7 @@ export function DataTable<T>({
     rowKey,
     onRowClick,
     emptyMessage = "Aucune donnée.",
-    loader = <Loader2 className="size-6 animate-spin text-muted-foreground" />,
+    loader = <LoadingState />,
     title,
     description,
     actions,
@@ -148,14 +147,7 @@ export function DataTable<T>({
                     {isPending ? (
                         status(loader)
                     ) : isError ? (
-                        status(
-                            <>
-                                <p className="text-sm text-destructive">{error?.message}</p>
-                                <Button variant="outline" size="sm" onClick={() => refetch()}>
-                                    Réessayer
-                                </Button>
-                            </>
-                        )
+                        status(<ErrorState message={error?.message} onRetry={refetch} />)
                     ) : data && data.length === 0 ? (
                         status(<span className="text-sm text-muted-foreground">{emptyMessage}</span>)
                     ) : (
