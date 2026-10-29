@@ -1,6 +1,6 @@
-# MarketFlow — Distributed Exchange Simulator
+# MarketFlow — Distributed Portfolio Lab
 
-> Plateforme de marché financier **simulée**, distribuée et pilotée par événements. Projet de mastère conçu pour démontrer des choix d’architecture, de fiabilité et d’exploitation — sans prétendre reproduire une bourse réelle ni fournir un conseil financier.
+> Laboratoire **simulé** de stratégie et de gestion de portefeuille, distribué et piloté par événements. Projet de mastère conçu pour apprendre et démontrer les concepts de la gestion d’actifs (backtest, risque, optimisation, projection) ainsi que des choix d’architecture, de fiabilité et d’exploitation — sans prétendre reproduire une plateforme professionnelle ni fournir un conseil financier.
 
 ## Table des matières
 
@@ -29,22 +29,25 @@
 
 ## Vision
 
-MarketFlow simule une place de marché : des utilisateurs et des agents automatisés envoient des ordres d’achat ou de vente ; un moteur de matching les exécute selon des règles déterministes ; les positions, le portefeuille et les données de marché sont mis à jour en temps réel.
+MarketFlow est un laboratoire de portefeuille : l’utilisateur décrit une stratégie (actifs, poids, versements, rebalancement, frais), la simule sur des données historiques, mesure son rendement et son risque, compare des alternatives et projette des scénarios futurs plausibles. Les calculs lourds tournent dans des workers asynchrones pilotés par Kafka.
 
-Le but n’est pas de bâtir une plateforme de trading prête pour la production. Le but est de rendre démontrables, à une échelle maîtrisable, les propriétés d’une infrastructure de marché :
+Le but n’est pas de bâtir un outil de gestion prêt pour la production. Le but est de comprendre, à une échelle maîtrisable, comment une stratégie se comporte selon la période, l’allocation et le niveau de risque, et de rendre démontrables les propriétés d’une architecture distribuée :
 
 - traitement asynchrone et orienté événements ;
-- ordre total et déterminisme là où cela est indispensable ;
-- séparation entre données transactionnelles, données chaudes et analytique ;
-- traçabilité d’un ordre de l’interface jusqu’à son exécution ;
+- calculs financiers purs, déterministes et reproductibles ;
+- séparation entre données transactionnelles, données de marché et analytique ;
+- traçabilité d’une simulation de la demande jusqu’au résultat ;
 - déploiement reproductible et observabilité exploitable.
+
+Le marché simulé (carnet d’ordres, matching engine, trading entre comptes) est un **module bonus** (COULD) : sa conception est conservée dans ce document, mais il ne conditionne ni le MVP ni la soutenance.
 
 ### Objectifs pédagogiques
 
-1. Concevoir un système où la cohérence d’un carnet d’ordres est prioritaire sur la distribution maximale.
-2. Justifier l’usage de Kafka, PostgreSQL, Redis et ClickHouse par des besoins distincts.
-3. Mettre en place une chaîne de livraison moderne : conteneurs, Kubernetes, Helm et GitOps.
-4. Prouver le comportement par des tests, des métriques, des traces et une démonstration de panne maîtrisée.
+1. Implémenter et expliquer les concepts de gestion de portefeuille : rendement, volatilité, drawdown, Sharpe, corrélation, rebalancement, frontière efficiente, Monte Carlo.
+2. Concevoir des moteurs de calcul purs, testés et reproductibles, séparés de l’orchestration.
+3. Justifier l’usage de Kafka, PostgreSQL, Redis et ClickHouse par des besoins distincts.
+4. Mettre en place une chaîne de livraison moderne : conteneurs, Kubernetes, Helm et GitOps.
+5. Prouver le comportement par des tests, des métriques, des traces et une démonstration de panne maîtrisée.
 
 ### Hors périmètre
 
@@ -64,32 +67,34 @@ Les étiquettes suivantes évitent de sacrifier un projet fini à une architectu
 
 ### MVP réaliste (MUST)
 
-- Un marché simulé, avec **un seul instrument** (`ACME-EUR`) et une monnaie virtuelle (`EUR`).
-- Comptes de démonstration, portefeuille virtuel et solde initial fixe.
-- Ordres limités `BUY`/`SELL`, création et annulation.
-- Carnet d’ordres centralisé par instrument, priorité prix-temps, exécutions partielles.
-- Publication d’événements Kafka et projection de portefeuille transactionnelle.
-- Interface Next.js : graphique simple, carnet, derniers échanges, portefeuille, formulaire d’ordre.
-- Mises à jour WebSocket, Docker Compose local, tests essentiels et tableau Grafana de base.
+- Comptes authentifiés, recherche d’actifs et graphiques historiques servis par MarketFlow.
+- Backtest asynchrone via Kafka : DCA ou investissement unique, frais, courbe de valeur, transactions simulées, comparaison DCA / investissement unique.
+- Portefeuille multi-actifs avec poids, rebalancement et benchmark.
+- Métriques : CAGR, volatilité, max drawdown, durée de récupération, Sharpe.
+- Résultats reproductibles (moteur pur, tests automatisés) et hypothèses affichées (période, devise, frais, règle d’exécution, source des données).
+- Docker Compose local, tests essentiels et tableau Grafana de base.
 
 ### Après le MVP
 
-- **SHOULD** : plusieurs instruments, bots, replay, ClickHouse, Kubernetes, Helm, CI/CD, OpenTelemetry et GitOps.
-- **COULD** : MinIO, chaos engineering avancé, Keycloak, scénarios de backtesting complets, multi-région simulée.
+- **SHOULD** : métriques glissantes, Risk Engine, projection Monte Carlo, optimisation, reporting, paper trading, ClickHouse, Kubernetes, Helm, CI/CD, OpenTelemetry et GitOps.
+- **COULD** : marché simulé (carnet d’ordres, matching engine, bots, replay), MinIO, chaos engineering avancé, Keycloak, multi-région simulée.
 
 ## Fonctionnalités
 
 | Domaine | MUST | SHOULD | COULD |
 | --- | --- | --- | --- |
-| Trading | Ordres limités, annulation, remplissages partiels | Ordres au marché, expiration, plusieurs instruments | Stop orders, auctions d’ouverture/clôture |
-| Marché | Carnet L2, derniers trades, prix de référence | OHLCV et profondeur configurable | Indicateurs techniques |
-| Portefeuille | Cash réservé, positions, P&L simple | P&L réalisé/non réalisé, historique | Risque et limites par compte |
-| Strategy Lab | Backtest DCA historique, frais, comparaison DCA/investissement unique | Portefeuille virtuel planifié à partir d’aujourd’hui, plusieurs actifs, dividendes | Rééquilibrage et scénarios de crise personnalisés |
-| Simulation | Prix initial et bots simples | Scénarios de volatilité, seed déterministe | Modèles statistiques plus riches |
+| Strategy Lab | Backtest DCA / investissement unique, frais, comparaison des deux | Paper trading à partir d’aujourd’hui, dividendes | Scénarios de crise personnalisés |
+| Portefeuille | Poids, rebalancement, benchmark, CAGR, volatilité, drawdown, Sharpe | Métriques glissantes, comparaison de dates de départ, effet devise | Attribution de performance |
+| Risque | Drawdown et durée de récupération | Corrélations, VaR/CVaR, contribution au risque, contraintes | Analyse factorielle |
+| Projection | — | Monte Carlo seedé, objectifs financiers et taux de retrait | Modèles statistiques plus riches |
+| Optimisation | — | Explorateur d’allocations, frontière efficiente, validation hors échantillon | Profils de clients fictifs avancés |
+| Marché simulé (bonus) | — | — | Carnet d’ordres, ordres limités, matching engine, bots, replay |
 | Exploitation | Logs, métriques et dashboard minimal | Traces distribuées, alertes | Chaos testing programmé |
 | Déploiement | Compose local | Kubernetes + Helm + Argo CD | Environnement éphémère par PR |
 
 ## Architecture cible
+
+> Le schéma ci-dessous inclut le module bonus « marché simulé » (matching engine). Dans le MVP, le calcul asynchrone est porté par `backtest-engine` (consomme `backtest.requested`, publie le résultat) et les données de marché par `market-service`, appelé via le proxy du `core-backend`.
 
 Le front-end ne parle jamais directement au moteur de matching **ni à un fournisseur de données externe**. Il lit exclusivement les API et WebSockets de MarketFlow. Les commandes synchrones passent par une API ; les faits de marché circulent ensuite comme événements. Kafka est le journal d’intégration, pas une base de données ni un RPC déguisé.
 
@@ -162,13 +167,15 @@ Il ne doit ni gérer les comptes, ni détenir les portefeuilles, ni décider les
 
 ## Services et responsabilités
 
-Le MVP ne comporte que **trois déploiements**. Le backend est un monolithe modulaire : plus rapide à construire, plus facile à déboguer, tout en gardant Kafka et le matching engine séparés là où la frontière apporte une vraie valeur.
+Le MVP comporte **quatre déploiements**. Le backend est un monolithe modulaire : plus rapide à construire, plus facile à déboguer, tout en gardant les calculs lourds dans un worker séparé là où la frontière apporte une vraie valeur.
 
 | Déploiement | Priorité | Responsabilité | Modules internes / dépendances |
 | --- | --- | --- | --- |
-| `web` | MUST | Pages connexion, portefeuilles, recherche, fiche actif, Strategy Lab et administration | Next.js ; REST + WebSocket du backend |
-| `core-backend` | MUST | Toute l’application métier hors matching : API, autorisation, portefeuilles, ordres, ledger, catalogue, Strategy Lab, admin, logs métier, WebSocket et projections Kafka | Modules `auth`, `portfolio`, `orders`, `market-data`, `instruments`, `strategy-lab`, `admin` ; PostgreSQL, Redis, Kafka |
-| `matching-engine` | MUST | Consomme les commandes ordonnées, maintient les carnets et produit les événements d’ordre/trade | Kafka ; snapshot de récupération PostgreSQL au départ |
+| `web` | MUST | Pages connexion, recherche, fiche actif, Strategy Lab, portefeuilles et rapports | Next.js ; REST + WebSocket du backend |
+| `core-backend` | MUST | Toute l’application métier hors calcul : API, autorisation, portefeuilles, catalogue, Strategy Lab, statuts d’exécution, projections Kafka | Modules `auth`, `portfolio`, `backtest`, `market` ; PostgreSQL, Kafka |
+| `backtest-engine` | MUST | Worker Kafka sans HTTP ni base : calcule backtests, métriques, projections et optimisations, publie le résultat | Kafka ; données de marché |
+| `market-service` | MUST | Données de marché (recherche, historiques), appelé uniquement via le proxy du `core-backend` | yahoo-finance2 |
+| `matching-engine` | COULD | Module bonus : consomme les commandes ordonnées, maintient les carnets et produit les événements d’ordre/trade | Kafka ; snapshot de récupération PostgreSQL au départ |
 
 Les éléments suivants ne sont **pas** des services permanents :
 
@@ -176,13 +183,15 @@ Les éléments suivants ne sont **pas** des services permanents :
 | --- | --- | --- |
 | `reference-data-import` | SHOULD | Commande planifiée ou manuelle qui importe instruments, informations et bougies dans PostgreSQL. |
 | `strategy-scheduler` | SHOULD | Déclenche les échéances des stratégies de paper trading ; le calcul reste dans le module `strategy-lab`. |
-| `market-bots` | SHOULD | Module/worker lancé pour une session de simulation ; utilise les mêmes commandes que les utilisateurs. |
+| `market-bots` | COULD | Module/worker lancé pour une session de simulation ; utilise les mêmes commandes que les utilisateurs. |
 | `replay` | SHOULD | Commande de maintenance qui rejoue un scénario isolé. |
 | `analytics-export` | COULD | Consumer déclenché seulement lorsque ClickHouse est réellement introduit. |
 
 Ainsi, `portfolio-projector`, `market-data-projector`, `analytics-projector`, `risk-service` et `api-gateway` **ne sont pas des microservices séparés**. Les deux premiers sont des consumers/modules du `core-backend`; l’analytique et le risque restent des extensions futures. PostgreSQL, Redis et Kafka sont des dépendances d’infrastructure, pas des services métier supplémentaires à développer.
 
 ## Cycle de vie d’un ordre
+
+> Module bonus « marché simulé » (COULD).
 
 ```text
 1. UI -> POST /v1/orders (JWT + Idempotency-Key)
@@ -200,6 +209,8 @@ L’API répond **`202 Accepted`** après persistance de la commande et publicat
 Éviter le double problème « ligne écrite en base mais message non publié » : dans une transaction PostgreSQL, créer l’ordre/réservation **et** une ligne `outbox`. Un relay publie ensuite cette ligne vers Kafka puis la marque comme publiée. C’est plus réaliste qu’une prétendue transaction distribuée PostgreSQL–Kafka.
 
 ## Matching engine et carnet d’ordres
+
+> Module bonus « marché simulé » (COULD).
 
 ### Pourquoi ce service existe
 
@@ -987,35 +998,35 @@ Cette roadmap suppose un travail individuel régulier. Chaque phase se termine p
 
 | Période | Objectif | Livrables / preuve |
 | --- | --- | --- |
-| **Mois 1** | Cadrage et socle local | ADR initiaux, monorepo, Compose, CI minimale, modèle de domaine, catalogue local d’instruments et maquette UI. |
-| **Mois 2** | Moteur déterministe | Carnet en mémoire, ordres limités, annulation, tests unitaires/propriété, CLI de scénario. |
-| **Mois 3** | Flux transactionnel | PostgreSQL, API, outbox, Kafka, projecteur de portefeuille, idempotence testée. |
-| **Mois 4** | MVP visible | Next.js, REST, WebSocket, carnet/transactions/portefeuille, démonstration d’un trade complet. |
-| **Mois 5** | Strategy Lab MVP | Backtest DCA sur un actif, résultats graphiques, transactions simulées, comparaison investissement unique, tests de reproductibilité. |
-| **Mois 6** | Portfolio Management V1 | Portefeuille multi-actifs, allocations, rebalancement, frais, comparaison de dates de départ, CAGR, volatilité, drawdown, Sharpe, benchmark et métriques glissantes. |
-| **Mois 7** | Risk Engine | Corrélations, expositions, concentration, contraintes de risque, premiers rapports de risque, effet devise et projection Monte Carlo seedée. **Gel fonctionnel du moteur de simulation avant optimisation.** |
+| **Mois 1** | Cadrage et socle local | ADR initiaux, monorepo, Compose, CI minimale, auth, Kafka, `market-service` et maquette UI. |
+| **Mois 2** | Strategy Lab MVP | Backtest asynchrone DCA / investissement unique, frais, courbe de valeur, transactions simulées, historique des exécutions, tests du moteur. |
+| **Mois 3** | Clôture du Strategy Lab | Comparaison DCA / investissement unique, total des frais, quantités accumulées, règle d’exécution et source des données affichées, tests de reproductibilité. |
+| **Mois 4** | Portfolio Management V1 | Poids par actif, rebalancement, benchmark, CAGR, volatilité, durée de récupération et Sharpe. |
+| **Mois 5** | Robustesse | Comparaison de dates de départ, métriques glissantes, effet devise. |
+| **Mois 6** | Risk Engine | Corrélations, expositions, concentration, VaR/CVaR, contribution au risque, contraintes de risque et premiers rapports. **Gel fonctionnel du moteur de simulation avant optimisation.** |
+| **Mois 7** | Projection | Projection Monte Carlo seedée (fan chart, percentiles, probabilité de perte), objectifs financiers et taux de retrait. |
 | **Mois 8** | Optimisation | Explorateur d'allocations (balayage de poids, frontière efficiente, objectifs Sharpe/min variance/risk parity), optimisation sous contraintes, validation hors échantillon face au mix équipondéré, profils de clients fictifs. |
-| **Mois 9** | Paper trading et reporting | Portefeuilles virtuels, suivi à partir d’aujourd’hui, objectifs financiers et taux de retrait, reporting gestionnaire et historique des décisions. |
-| **Mois 10** | Simulation et historique | Bots seedés, plusieurs instruments, importeur optionnel de données de référence, OHLCV, ClickHouse et replay simple. |
-| **Mois 11** | Plateforme de déploiement | Images, Kubernetes, Helm, Argo CD, OpenTelemetry, dashboard/trace d’un ordre, runbooks et environnements `dev`/`demo`. |
-| **Mois 12** | Résilience et soutenance | Reprise projecteur/moteur, sauvegarde-restauration, scénarios de panne contrôlés, charge mesurée, tests de non-régression, audit sécurité de base, documentation, dataset reproductible, schémas, métriques avant/après panne, script de démo et rapport. |
+| **Mois 9** | Reporting et paper trading | Reporting gestionnaire, historique des décisions, portefeuilles virtuels suivis à partir d’aujourd’hui. |
+| **Mois 10** | Données et historique | Importeur de données de référence, dataset versionné, dividendes et splits, ClickHouse si une requête analytique le justifie. |
+| **Mois 11** | Plateforme de déploiement | Images, Kubernetes, Helm, Argo CD, OpenTelemetry, trace d’une simulation de bout en bout, runbooks et environnements `dev`/`demo`. |
+| **Mois 12** | Résilience et soutenance | Reprise des consumers et du worker, sauvegarde-restauration, scénarios de panne contrôlés, charge mesurée, tests de non-régression, audit sécurité de base, documentation, dataset reproductible, schémas, métriques avant/après panne, script de démo et rapport. |
+| **Bonus** | Marché simulé | Carnet en mémoire, ordres limités, matching engine, outbox, WebSocket, bots et replay — seulement si le reste est stable. |
 
 ### Ordre strict de priorité
 
-Si le temps manque : finir le MVP du mois 6, documenter ses limites et préparer une excellente démo. ClickHouse, Kubernetes, Argo CD et chaos engineering sont des extensions, pas des prérequis au succès du projet.
+Si le temps manque : finir le MVP du mois 4, documenter ses limites et préparer une excellente démo. Le marché simulé, ClickHouse, Kubernetes, Argo CD et chaos engineering sont des extensions, pas des prérequis au succès du projet.
 
 ## Définition de terminé
 
 ### MVP terminé lorsque
 
 - [ ] Un nouvel environnement démarre avec une commande documentée et un jeu de données de démo.
-- [ ] Un utilisateur authentifié ou un compte de démonstration peut soumettre et annuler un ordre limite.
-- [ ] Deux ordres compatibles produisent une exécution, une mise à jour de portefeuille et une mise à jour UI.
 - [ ] Un backtest DCA mensuel sur un actif historique est reproductible, liste ses transactions et affiche sa courbe de valeur.
 - [ ] Le résultat compare explicitement le DCA à un investissement unique et indique les frais, période et règle d’exécution.
-- [ ] Une répétition de requête avec la même `Idempotency-Key` ne crée pas de double ordre.
-- [ ] Les règles de matching et invariants critiques sont couverts par des tests automatisés.
-- [ ] Kafka, PostgreSQL et Redis sont observables ; un dashboard montre au moins ordre, lag et erreurs.
+- [ ] Un portefeuille multi-actifs avec poids et rebalancement affiche CAGR, volatilité, max drawdown, durée de récupération, Sharpe et benchmark.
+- [ ] Un message `backtest.requested` rejoué ne crée ni double exécution ni double résultat.
+- [ ] Les calculs du moteur et les invariants critiques sont couverts par des tests automatisés.
+- [ ] Kafka et PostgreSQL sont observables ; un dashboard montre au moins simulations, lag et erreurs.
 - [ ] La recherche d’instruments, la fiche et le graphique lisent les données persistées par MarketFlow, sans appel navigateur vers un fournisseur externe.
 - [ ] Le README contient l’installation, les limites et le scénario de démo.
 
@@ -1030,20 +1041,21 @@ Si le temps manque : finir le MVP du mois 6, documenter ses limites et préparer
 
 ### Démonstration principale (5 à 7 minutes)
 
-1. Ouvrir deux comptes virtuels et le tableau de marché.
-2. Montrer le carnet vide, puis placer un ordre vendeur depuis le premier compte.
-3. Placer un ordre acheteur compatible depuis le second ; montrer l’exécution partielle et la priorité prix-temps.
-4. Suivre le même `correlationId` dans la trace, les logs et les métriques.
-5. Montrer la mise à jour cohérente : derniers trades, carnet, cash, position et ledger.
-6. Arrêter un projecteur, générer quelques événements, puis le redémarrer pour prouver qu’il rattrape son retard sans doubler les écritures.
+1. Composer un portefeuille (par exemple 60 % `AAPL` / 40 % `MSFT`, rebalancement annuel, frais) et lancer le backtest.
+2. Montrer le traitement asynchrone : statut `PENDING` → `RUNNING` → `COMPLETED`, puis la courbe de valeur, le drawdown et les métriques face au benchmark.
+3. Comparer deux allocations et deux dates de départ ; expliquer le compromis rendement/risque.
+4. Lancer l’explorateur d’allocations et montrer la frontière efficiente, puis la validation hors échantillon face au mix équipondéré.
+5. Afficher la projection Monte Carlo (fan chart, probabilité de perte).
+6. Suivre le même `executionId` dans la trace, les logs et les métriques.
+7. Arrêter le worker, lancer quelques backtests, puis le redémarrer pour prouver qu’il rattrape son retard sans doubler les résultats.
 
 ### Questions auxquelles le projet doit répondre clairement
 
-- Pourquoi Kafka plutôt qu’un appel HTTP direct entre tous les services ?
-- Comment l’ordre est-il garanti pour un instrument sans prétendre à un ordre global ?
-- Pourquoi PostgreSQL, Redis et ClickHouse coexistent-ils ?
-- Comment évitez-vous les doubles exécutions et les doubles mises à jour de portefeuille ?
-- Quelle est la frontière entre ce simulateur et une vraie plateforme de trading réglementée ?
+- Pourquoi Kafka plutôt qu’un appel HTTP direct entre le backend et le moteur de calcul ?
+- Comment un résultat de simulation est-il rendu reproductible et testable ?
+- Pourquoi une allocation « optimale » sur le passé n’est-elle pas une prévision, et comment le projet le montre-t-il ?
+- Comment évitez-vous les doubles exécutions et les doubles résultats ?
+- Quelle est la frontière entre ce laboratoire et un vrai service de conseil en investissement réglementé ?
 
 Préparer une fiche d’architecture d’une page, un diagramme de séquence d’ordre, un dashboard propre et une vidéo de secours de la démo. Une démonstration reproductible vaut mieux qu’un grand nombre de technologies simplement installées.
 

@@ -1,6 +1,6 @@
 # TradingPlateform (MarketFlow)
 
-Monorepo Bun (`workspaces`: `apps/*`, `packages/*`). Plateforme de marché simulée, pilotée par événements Kafka. Vision complète : `README.md`.
+Monorepo Bun (`workspaces`: `apps/*`, `packages/*`). Laboratoire de portefeuille simulé (backtest, risque, optimisation), piloté par événements Kafka. Vision complète : `README.md`.
 
 Ces règles sont **strictes** : un écart doit être justifié dans le résumé rendu à l'utilisateur. Chaque dossier a son `AGENTS.md` (règles de ses couches) : lis celui du dossier où tu travailles, en plus de celui-ci.
 
