@@ -540,6 +540,33 @@ tout en maximisant une métrique choisie.
 
 Les optimisations doivent toujours être testées sur une période différente de celle utilisée pour choisir les paramètres afin de limiter le **surapprentissage**.
 
+#### Explorateur d'allocations
+
+Première forme concrète de l'optimiseur : à partir d'un panier choisi par l'utilisateur (par exemple `AAPL` + `MSFT`), tester automatiquement de nombreuses répartitions et montrer laquelle a offert le meilleur compromis rendement/risque.
+
+L'objectif n'est **jamais** « maximiser le rendement passé » : sans contrainte, la réponse serait toujours 100 % sur l'actif qui a le plus monté. Les objectifs proposés sont ajustés du risque :
+
+| Objectif | Question |
+| --- | --- |
+| Max Sharpe | Quel mix offre le meilleur rendement par unité de volatilité ? |
+| Min variance | Quel mix fluctue le moins ? |
+| Risk parity | Quel mix fait contribuer chaque actif autant au risque ? |
+| Rendement sous contrainte | Quel mix rapporte le plus avec, par exemple, un drawdown ≤ 20 % ? |
+
+Fonctionnement :
+
+```text
+1. Balayage   : grille de poids (pas de 5 %) → un backtest par mix, calculé dans backtest-engine
+2. Frontière  : chaque mix placé sur un graphe volatilité / rendement (frontière efficiente)
+3. Validation : allocation choisie sur la période d'apprentissage (ex. 2010 → 2018),
+                rejouée sur la période de test (ex. 2019 → 2025) et comparée au mix équipondéré
+4. Robustesse : même optimisation sur plusieurs dates de départ ; une allocation instable est signalée
+```
+
+Prérequis dans le moteur actuel : poids par actif dans `backtest.requested`, rebalancement périodique (sinon l'allocation dérive), et métriques CAGR, volatilité et Sharpe.
+
+Le résultat est formulé au passé (« ce mix **aurait** offert… ») avec sa performance hors échantillon face au mix équipondéré. Si l'allocation optimisée ne bat pas ce mix naïf sur la période de test, l'interface le dit explicitement.
+
 ### V4 : profils de clients fictifs
 
 Créer plusieurs profils pédagogiques :
@@ -614,6 +641,63 @@ PAPER TRADING
 ```
 
 Le second ne prédit pas le futur : il mesure uniquement ce qui se passe après le lancement.
+
+### Extensions d'analyse
+
+Ces analyses complètent le backtest sans le remplacer. Tous les calculs vivent dans `backtest-engine/engine/` ; le web ne fait qu'afficher.
+
+#### Métriques glissantes
+
+Un backtest donne un seul résultat pour une seule date d'entrée. Les métriques glissantes calculent le rendement, la volatilité et le drawdown sur **toutes les fenêtres** d'une durée donnée (1, 3 ou 5 ans) contenues dans la période.
+
+Question traitée :
+
+> « Dans le pire des cas, combien un investisseur entré au mauvais moment a-t-il perdu sur 3 ans ? »
+
+Affichage : courbe du rendement glissant et distribution (pire, médiane, meilleure fenêtre, part des fenêtres négatives).
+
+#### Projection Monte Carlo
+
+Le backtest raconte **le** passé ; la projection Monte Carlo montre **les** futurs plausibles construits à partir de ce passé :
+
+```text
+1. Rendements journaliers historiques de l'allocation (sur la période choisie)
+2. Construction d'une trajectoire future en tirant ces rendements au hasard (bootstrap par blocs,
+   pour conserver une partie de l'enchaînement des jours)
+3. Répétition sur 10 000 trajectoires
+4. Lecture de la distribution : percentiles 10 / 50 / 90, probabilité de perte, valeur finale
+```
+
+- Affichage en **fan chart** : médiane et bandes de percentiles dans le temps.
+- La simulation prend une **seed** explicite : même seed et mêmes entrées donnent le même résultat, ce qui rend le moteur testable.
+- Limite à afficher : les scénarios ne contiennent que des rendements déjà observés ; une crise plus grave que l'historique n'y figure pas.
+
+Le même moteur servira plus tard au pricing de produits structurés (moyenne actualisée des gains sur des trajectoires simulées).
+
+#### Objectif financier et taux de retrait
+
+Extension de la projection Monte Carlo : des flux sont ajoutés à chaque trajectoire simulée.
+
+```text
+Retrait   : 300 000 €, retrait de 1 200 €/mois pendant 30 ans
+            → probabilité que le capital ne soit jamais épuisé
+Objectif  : atteindre 100 000 € en 15 ans
+            → versement mensuel nécessaire pour 80 % de probabilité de succès
+```
+
+Le résultat est une probabilité calculée sur des scénarios historiques, jamais une promesse.
+
+#### Effet devise
+
+Un investisseur en euros qui détient une action cotée en dollars subit aussi la variation EUR/USD. L'analyse convertit chaque cours dans la devise de l'investisseur avec le taux de change du jour et compare :
+
+```text
+Rendement de l'actif en devise locale (USD)
+Rendement vu par l'investisseur (EUR)
+Contribution du change = différence entre les deux
+```
+
+Il s'agit uniquement d'une conversion analytique des historiques : les comptes, le ledger et le marché simulé restent mono-devise (`EUR`), conformément au hors périmètre.
 
 ### Principes de validité des backtests
 
@@ -908,10 +992,10 @@ Cette roadmap suppose un travail individuel régulier. Chaque phase se termine p
 | **Mois 3** | Flux transactionnel | PostgreSQL, API, outbox, Kafka, projecteur de portefeuille, idempotence testée. |
 | **Mois 4** | MVP visible | Next.js, REST, WebSocket, carnet/transactions/portefeuille, démonstration d’un trade complet. |
 | **Mois 5** | Strategy Lab MVP | Backtest DCA sur un actif, résultats graphiques, transactions simulées, comparaison investissement unique, tests de reproductibilité. |
-| **Mois 6** | Portfolio Management V1 | Portefeuille multi-actifs, allocations, rebalancement, frais, comparaison de dates de départ, CAGR, volatilité, drawdown, Sharpe et benchmark. |
-| **Mois 7** | Risk Engine | Corrélations, expositions, concentration, contraintes de risque et premiers rapports de risque. **Gel fonctionnel du moteur de simulation avant optimisation.** |
-| **Mois 8** | Optimisation | Optimisation sous contraintes, validation hors échantillon, scénarios et profils de clients fictifs. |
-| **Mois 9** | Paper trading et reporting | Portefeuilles virtuels, suivi à partir d’aujourd’hui, reporting gestionnaire et historique des décisions. |
+| **Mois 6** | Portfolio Management V1 | Portefeuille multi-actifs, allocations, rebalancement, frais, comparaison de dates de départ, CAGR, volatilité, drawdown, Sharpe, benchmark et métriques glissantes. |
+| **Mois 7** | Risk Engine | Corrélations, expositions, concentration, contraintes de risque, premiers rapports de risque, effet devise et projection Monte Carlo seedée. **Gel fonctionnel du moteur de simulation avant optimisation.** |
+| **Mois 8** | Optimisation | Explorateur d'allocations (balayage de poids, frontière efficiente, objectifs Sharpe/min variance/risk parity), optimisation sous contraintes, validation hors échantillon face au mix équipondéré, profils de clients fictifs. |
+| **Mois 9** | Paper trading et reporting | Portefeuilles virtuels, suivi à partir d’aujourd’hui, objectifs financiers et taux de retrait, reporting gestionnaire et historique des décisions. |
 | **Mois 10** | Simulation et historique | Bots seedés, plusieurs instruments, importeur optionnel de données de référence, OHLCV, ClickHouse et replay simple. |
 | **Mois 11** | Plateforme de déploiement | Images, Kubernetes, Helm, Argo CD, OpenTelemetry et environnements `dev`/`demo`. |
 | **Mois 12** | Soutenance | Résilience, tests finaux, documentation, dataset reproductible, script de démo et rapport. |
