@@ -88,6 +88,7 @@ Les étiquettes suivantes évitent de sacrifier un projet fini à une architectu
 | Risque | Drawdown et durée de récupération | Corrélations, VaR/CVaR, contribution au risque, contraintes | Analyse factorielle |
 | Projection | — | Monte Carlo seedé, objectifs financiers et taux de retrait | Modèles statistiques plus riches |
 | Optimisation | — | Explorateur d’allocations, frontière efficiente, validation hors échantillon | Profils de clients fictifs avancés |
+| Notifications | — | Toaster en bas à droite, page dédiée, lu / non lu | Préférences par type, e-mail |
 | Marché simulé (bonus) | — | — | Carnet d’ordres, ordres limités, matching engine, bots, replay |
 | Exploitation | Logs, métriques et dashboard minimal | Traces distribuées, alertes | Chaos testing programmé |
 | Déploiement | Compose local | Kubernetes + Helm + Argo CD | Environnement éphémère par PR |
@@ -405,6 +406,8 @@ Canal unique `/v1/ws`, authentifié lors de la connexion. Le client s’abonne �
 { "action": "subscribe", "channels": ["book:ACME-EUR", "trades:ACME-EUR", "portfolio"] }
 ```
 
+Le canal `notifications` pousse chaque nouvelle notification de l’utilisateur (voir [Notifications](#notifications)).
+
 Chaque message de carnet contient `marketSequence`. À la reconnexion, le client récupère un snapshot REST, puis ignore les deltas antérieurs ou égaux à cette séquence. Prévoir heartbeat, limites de souscription et backpressure (un client lent reçoit un nouveau snapshot plutôt qu’une file infinie).
 
 
@@ -710,6 +713,31 @@ Contribution du change = différence entre les deux
 
 Il s'agit uniquement d'une conversion analytique des historiques : les comptes, le ledger et le marché simulé restent mono-devise (`EUR`), conformément au hors périmètre.
 
+### Notifications
+
+Les simulations sont asynchrones : l’utilisateur doit être prévenu quand un résultat arrive ou qu’un signal mérite son attention, sans rester sur la page concernée.
+
+Sources, toutes issues d’événements déjà produits par le système :
+
+| Événement | Notification |
+| --- | --- |
+| `backtest.completed` / `backtest.failed` | « Backtest terminé » ou « Backtest en échec », avec lien vers le résultat |
+| Contrainte de risque non respectée | « Contrainte non respectée » sur le portefeuille concerné |
+| Échéance de paper trading (versement, rebalancement) | « Versement exécuté », « Rebalancement effectué » |
+| Rapport généré | « Rapport T3 disponible » |
+
+Fonctionnement :
+
+```text
+Événement Kafka → consumer core-backend → ligne `notifications` (PostgreSQL, idempotente par eventId)
+               → push WebSocket canal `notifications` → toaster côté web
+```
+
+- **Toaster** : si l’utilisateur est sur une autre page, la notification s’affiche en bas à droite de l’écran (empilement, fermeture automatique, action « Voir »).
+- **Page dédiée** `Notifications` (menu de la sidebar, avec compteur de non lues) : liste complète, filtres par type, état lu / non lu, « Tout marquer comme lu ».
+- Le `core-backend` est seul propriétaire des notifications (création, état lu) ; le web ne fait qu’afficher.
+- Une notification rejouée (Kafka at-least-once) ne crée pas de doublon : clé unique sur `eventId`.
+
 ### Principes de validité des backtests
 
 Le moteur de backtest doit explicitement lutter contre les biais classiques.
@@ -1006,7 +1034,7 @@ Cette roadmap suppose un travail individuel régulier. Chaque phase se termine p
 | **Mois 6** | Risk Engine | Corrélations, expositions, concentration, VaR/CVaR, contribution au risque, contraintes de risque et premiers rapports. **Gel fonctionnel du moteur de simulation avant optimisation.** |
 | **Mois 7** | Projection | Projection Monte Carlo seedée (fan chart, percentiles, probabilité de perte), objectifs financiers et taux de retrait. |
 | **Mois 8** | Optimisation | Explorateur d'allocations (balayage de poids, frontière efficiente, objectifs Sharpe/min variance/risk parity), optimisation sous contraintes, validation hors échantillon face au mix équipondéré, profils de clients fictifs. |
-| **Mois 9** | Reporting et paper trading | Reporting gestionnaire, historique des décisions, portefeuilles virtuels suivis à partir d’aujourd’hui. |
+| **Mois 9** | Reporting, paper trading et notifications | Reporting gestionnaire, historique des décisions, portefeuilles virtuels suivis à partir d’aujourd’hui, notifications (toaster en bas à droite, page dédiée, lu / non lu, push WebSocket). |
 | **Mois 10** | Données et historique | Importeur de données de référence, dataset versionné, dividendes et splits, ClickHouse si une requête analytique le justifie. |
 | **Mois 11** | Plateforme de déploiement | Images, Kubernetes, Helm, Argo CD, OpenTelemetry, trace d’une simulation de bout en bout, runbooks et environnements `dev`/`demo`. |
 | **Mois 12** | Résilience et soutenance | Reprise des consumers et du worker, sauvegarde-restauration, scénarios de panne contrôlés, charge mesurée, tests de non-régression, audit sécurité de base, documentation, dataset reproductible, schémas, métriques avant/après panne, script de démo et rapport. |
