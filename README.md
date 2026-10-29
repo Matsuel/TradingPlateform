@@ -997,14 +997,8 @@ Cette roadmap suppose un travail individuel régulier. Chaque phase se termine p
 | **Mois 8** | Optimisation | Explorateur d'allocations (balayage de poids, frontière efficiente, objectifs Sharpe/min variance/risk parity), optimisation sous contraintes, validation hors échantillon face au mix équipondéré, profils de clients fictifs. |
 | **Mois 9** | Paper trading et reporting | Portefeuilles virtuels, suivi à partir d’aujourd’hui, objectifs financiers et taux de retrait, reporting gestionnaire et historique des décisions. |
 | **Mois 10** | Simulation et historique | Bots seedés, plusieurs instruments, importeur optionnel de données de référence, OHLCV, ClickHouse et replay simple. |
-| **Mois 11** | Plateforme de déploiement | Images, Kubernetes, Helm, Argo CD, OpenTelemetry et environnements `dev`/`demo`. |
-| **Mois 12** | Soutenance | Résilience, tests finaux, documentation, dataset reproductible, script de démo et rapport. |
-| **Mois 7** | Simulation et historique | Bots seedés, plusieurs instruments, importeur optionnel de données de référence, OHLCV, ClickHouse et replay simple. |
-| **Mois 8** | Plateforme de déploiement | Images, Kubernetes, Helm, environnements `dev`/`demo`. |
-| **Mois 9** | GitOps et traçabilité | Argo CD, OpenTelemetry, dashboard/trace d’un ordre, runbooks. |
-| **Mois 10** | Résilience | Reprise projecteur/moteur, sauvegarde-restauration, scénarios de panne contrôlés. |
-| **Mois 11** | Stabilisation | Charge mesurée, correction de dette ciblée, tests de non-régression, audit sécurité de base. |
-| **Mois 12** | Soutenance | Script de démo, dataset reproductible, schémas, métriques avant/après panne, rapport. |
+| **Mois 11** | Plateforme de déploiement | Images, Kubernetes, Helm, Argo CD, OpenTelemetry, dashboard/trace d’un ordre, runbooks et environnements `dev`/`demo`. |
+| **Mois 12** | Résilience et soutenance | Reprise projecteur/moteur, sauvegarde-restauration, scénarios de panne contrôlés, charge mesurée, tests de non-régression, audit sécurité de base, documentation, dataset reproductible, schémas, métriques avant/après panne, script de démo et rapport. |
 
 ### Ordre strict de priorité
 
