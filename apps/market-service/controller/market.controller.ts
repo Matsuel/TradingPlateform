@@ -1,7 +1,8 @@
 import type { Request, Response } from "express";
 import MarketService from "../services/market.service";
 import BadRequestError from "../errors/badrequest.error";
-import { marketIdSchema, periodSchema, searchMarketSchema } from "../interfaces/market.interface";
+import { periodSchema } from "@trading-plateform/contracts";
+import { marketIdSchema, searchMarketSchema } from "../interfaces/market.interface";
 import { paginationQuerySchema } from "@trading-plateform/contracts";
 import { Logger } from "@trading-plateform/utils";
 

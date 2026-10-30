@@ -1,6 +1,6 @@
 import YahooFinance from "yahoo-finance2";
 import type { ChartOptions } from "yahoo-finance2/modules/chart";
-import type { MarketAsset, MarketData, MarketDetails, Period } from "../interfaces/market.interface";
+import type { MarketAsset, MarketData, MarketDetails, Period } from "@trading-plateform/contracts";
 import { env } from "../env";
 import { Logger } from "@trading-plateform/utils";
 
@@ -57,10 +57,13 @@ class MarketRepository implements IMarketRepository {
             throw new Error(`No details found for id: ${id}`)
         }
 
-        const formattedResult: MarketDetails[] = details.quotes.map((quote) => ({
-            date: quote.date,
-            price: quote.close,
-        }))
+        // Un intervalle sans clôture (marché fermé, donnée manquante) est omis, comme dans l'historique de getAssets
+        const formattedResult: MarketDetails[] = details.quotes
+            .filter((quote) => quote.close != null)
+            .map((quote) => ({
+                date: quote.date.toISOString(),
+                price: quote.close!,
+            }))
 
         return formattedResult
     }
@@ -83,8 +86,8 @@ class MarketRepository implements IMarketRepository {
                 const history: MarketDetails[] = chart.quotes
                     .filter((point) => point.close != null)
                     .map((point) => ({
-                        date: point.date,
-                        price: point.close,
+                        date: point.date.toISOString(),
+                        price: point.close!,
                     }));
 
                 return {

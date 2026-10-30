@@ -196,7 +196,7 @@ Les montants sont dans la devise saisie, affichée `EUR` par le web (`BACKTEST_C
 
 - **Auth** : session requise.
 - **Entrée** : aucune. Route enregistrée avant `/:id` (sinon `stats` serait lu comme un id).
-- **Réponse** : `200`, `BacktestStats` (`interfaces/backtest.interface.ts`) : backtests de l'utilisateur comptés selon le statut de leur **dernière** exécution. `total` = tous les backtests ; `active` = dernière exécution `PENDING` ou `RUNNING` (`ACTIVE_STATUSES`) ; `completed` = `COMPLETED` ; `failed` = `FAILED` ; `completedRate` = `completed / total`, `failedRate` = `failed / total` (fractions non arrondies, `0` si `total = 0`).
+- **Réponse** : `200`, `BacktestStats` (`@trading-plateform/contracts`, partagé avec le web) : backtests de l'utilisateur comptés selon le statut de leur **dernière** exécution. `total` = tous les backtests ; `active` = dernière exécution `PENDING` ou `RUNNING` (`ACTIVE_STATUSES`) ; `completed` = `COMPLETED` ; `failed` = `FAILED` ; `completedRate` = `completed / total`, `failedRate` = `failed / total` (fractions non arrondies, `0` si `total = 0`).
   ```json
   { "total": 13, "active": 6, "completed": 5, "failed": 2, "completedRate": 0.38461538461538464, "failedRate": 0.15384615384615385 }
   ```

@@ -6,6 +6,7 @@ import {
     type BacktestFailedPayload,
     type BacktestRequestedPayload,
     type BacktestStartedPayload,
+    type BacktestStats,
     type Paginated,
 } from "@trading-plateform/contracts";
 import { ACTIVE_STATUSES } from "../constants/backtest.constants";
@@ -16,7 +17,7 @@ import NotFoundError from "../errors/notfound.error";
 import { producer } from "../lib/kafka";
 import BacktestRepository, { type IBacktestRepository } from "../repositories/backtest.repository";
 import type { Backtest, BacktestStatus } from "../generated/prisma/client";
-import type { BacktestListQuery, BacktestStats, BacktestWithExecutions, CreateBacktestInput } from "../interfaces/backtest.interface";
+import type { BacktestListQuery, BacktestWithExecutions, CreateBacktestInput } from "../interfaces/backtest.interface";
 
 const logger = Logger.here()
 

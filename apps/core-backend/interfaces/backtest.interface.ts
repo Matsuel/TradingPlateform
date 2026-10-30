@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { paginationQuerySchema, type BacktestCompletedPayload } from "@trading-plateform/contracts";
+import { paginationQuerySchema, type BacktestCompletedPayload, type BacktestStatus as ContractBacktestStatus } from "@trading-plateform/contracts";
 import { BacktestStatus, type BacktestResult, type Prisma } from "../generated/prisma/client";
 
 export const createBacktestSchema = z
@@ -44,15 +44,10 @@ export type CompleteExecutionDTO = Omit<BacktestCompletedPayload, "executionId" 
     maxDrawdownDate: Date | null;
 };
 
-// Comptes sur le statut de la dernière exécution de chaque backtest ; taux en fraction
-export interface BacktestStats {
-    total: number;
-    active: number;
-    completed: number;
-    failed: number;
-    completedRate: number;
-    failedRate: number;
-}
+// Le contrat recopie l'enum Prisma pour le web : ce type ne compile plus si les deux listes divergent
+type AssertTrue<T extends true> = T;
+type SameUnion<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;
+export type BacktestStatusesInSync = AssertTrue<SameUnion<BacktestStatus, ContractBacktestStatus>>;
 
 export interface BacktestStatusCounts {
     total: number; // backtests de l'utilisateur, avec ou sans exécution

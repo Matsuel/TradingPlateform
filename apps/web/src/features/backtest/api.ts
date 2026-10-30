@@ -1,5 +1,6 @@
 import { apiFetch } from "@/lib/api";
-import type { Paginated, PaginationParams } from "@/lib/pagination";
+import type { Paginated } from "@trading-plateform/contracts";
+import type { PaginationParams } from "@/lib/pagination";
 import type { BacktestValues } from "./schema";
 import type { Backtest, BacktestDetails, BacktestExecution, BacktestListStats, ExecutionStatus } from "./types";
 

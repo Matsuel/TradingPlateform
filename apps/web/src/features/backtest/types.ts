@@ -1,6 +1,8 @@
 import type {
     BacktestCompletedPayload,
     BacktestRequestedPayload,
+    BacktestStats,
+    BacktestStatus,
     DataSource,
     EquityPoint,
     ExecutionRule,
@@ -12,7 +14,7 @@ import type {
 // Formes et unités des données du moteur : définies une seule fois dans les contrats
 export type { DataSource, EquityPoint, ExecutionRule, Holding, LumpSumComparison }
 
-export type ExecutionStatus = "PENDING" | "RUNNING" | "COMPLETED" | "FAILED" | "CANCELLED"
+export type ExecutionStatus = BacktestStatus
 
 export type InvestmentMode = BacktestRequestedPayload["investmentMode"]
 
@@ -56,15 +58,8 @@ export interface Backtest {
     executions: BacktestExecution[] // la plus récente en premier
 }
 
-// Réponse de GET /api/backtest/stats (BacktestStats côté backend), selon le statut de la dernière exécution ; rates en fraction
-export interface BacktestListStats {
-    total: number
-    active: number
-    completed: number
-    failed: number
-    completedRate: number
-    failedRate: number
-}
+// Réponse de GET /api/backtest/stats ; nom distinct du composant BacktestStats
+export type BacktestListStats = BacktestStats
 
 export interface BacktestDetails extends Backtest {
     executions: BacktestExecution[] // toutes, la plus récente en premier

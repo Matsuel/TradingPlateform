@@ -32,6 +32,7 @@ export const BACKTEST_DISCLAIMER =
     "Les performances passées ne préjugent pas des performances futures. Simulation pédagogique, pas un conseil en investissement."
 
 export const statusBadges: Record<ExecutionStatus, { label: string; variant: "outline" | "destructive" | "secondary" | "success" }> = {
+    DRAFT: { label: "Brouillon", variant: "secondary" },
     PENDING: { label: "En attente", variant: "outline" },
     RUNNING: { label: "En cours", variant: "outline" },
     COMPLETED: { label: "Terminé", variant: "success" },

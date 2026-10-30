@@ -1,10 +1,4 @@
-// Aligné sur packages/contracts/src/pagination.ts : count = total des éléments filtrés, toutes pages confondues
-export interface Paginated<T> {
-    data: T[]
-    count: number
-    page: number // commence à 1
-    pageSize: number
-}
+import type { Paginated } from "@trading-plateform/contracts"
 
 export type PaginationParams = Pick<Paginated<unknown>, "page" | "pageSize">
 

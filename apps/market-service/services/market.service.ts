@@ -1,5 +1,4 @@
-import type { Paginated, PaginationQuery } from "@trading-plateform/contracts";
-import type { MarketAsset, Period } from "../interfaces/market.interface";
+import type { MarketAsset, Paginated, PaginationQuery, Period } from "@trading-plateform/contracts";
 import MarketRepository, { type IMarketRepository } from "../repositories/market.repository";
 import { DEFAULT_TICKERS } from "../constants/market.constants";
 

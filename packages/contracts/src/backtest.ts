@@ -8,6 +8,20 @@ export const BACKTEST_TOPICS = {
     failed: "backtest.failed",
 } as const;
 
+// Statuts d'une exécution, recopie de l'enum Prisma `BacktestStatus` : core-backend vérifie à la compilation qu'ils restent égaux
+export const BACKTEST_STATUSES = ["DRAFT", "PENDING", "RUNNING", "COMPLETED", "FAILED", "CANCELLED"] as const;
+
+// Réponse de GET /api/backtest/stats : backtests comptés selon le statut de leur dernière exécution
+export interface BacktestStats {
+    total: number;
+    active: number;
+    completed: number;
+    failed: number;
+    // Ratios : completed / total et failed / total, 0 si total = 0
+    completedRate: number;
+    failedRate: number;
+}
+
 export const backtestRequestedPayloadSchema = z.object({
     executionId: z.string().min(1),
     backtestId: z.string().min(1),
@@ -122,6 +136,7 @@ export const backtestStartedEventSchema = kafkaEventSchema(backtestStartedPayloa
 export const backtestCompletedEventSchema = kafkaEventSchema(backtestCompletedPayloadSchema);
 export const backtestFailedEventSchema = kafkaEventSchema(backtestFailedPayloadSchema);
 
+export type BacktestStatus = (typeof BACKTEST_STATUSES)[number];
 export type BacktestRequestedPayload = z.infer<typeof backtestRequestedPayloadSchema>;
 export type BacktestStartedPayload = z.infer<typeof backtestStartedPayloadSchema>;
 export type EquityPoint = z.infer<typeof equityPointSchema>;

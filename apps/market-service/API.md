@@ -34,7 +34,7 @@ Catalogue des routes internes de market-service (port 8001, données yahoo-finan
 - **Chemin** : identique de bout en bout. Web `apiFetch("/market/search?…")` → core-backend `/api/market/search` → market-service `/api/market/search`.
 - **Auth** : aucune vérification ici ; ne pas exposer ce service publiquement. `x-user-id` est posé par le proxy mais aucune route ne le lit aujourd'hui.
 - **Erreurs** : `AppError` → `{ "error": "<message>", ...data }` avec son statut ; toute autre exception (erreur yahoo-finance2) → `500 { "error": "Internal server error" }`. Seules les routes `GET` ci-dessous existent : une autre méthode ou un autre chemin reçoit la 404 par défaut d'Express (HTML).
-- **Types** : `interfaces/market.interface.ts` : schémas zod d'entrée (`searchMarketSchema`, `marketIdSchema`, `periodSchema`) et types de réponse (`MarketData`, `MarketAsset`, `MarketDetails`, `Period`) ; pagination (`paginationQuerySchema`, `Paginated<T>`) depuis `@trading-plateform/contracts`. Dates sérialisées en ISO 8601. Prix dans la devise de cotation du symbole, sans conversion.
+- **Types** : schémas zod d'entrée propres au service dans `interfaces/market.interface.ts` (`searchMarketSchema`, `marketIdSchema`) ; `periodSchema` et types de réponse (`MarketData`, `MarketAsset`, `MarketDetails`, `Period`), unités comprises, dans `@trading-plateform/contracts` (`src/market.ts`), partagés avec le web ; pagination (`paginationQuerySchema`, `Paginated<T>`) depuis le même package. Dates sérialisées en ISO 8601. Prix dans la devise de cotation du symbole, sans conversion.
 - **Logos** : `logoUrl` vaut `https://img.logo.dev/ticker/<symbol>?token=…&size=64` si `LOGO_DEV_TOKEN` est défini (`env.ts`), sinon absent.
 
 ### GET /api/market/search
@@ -56,7 +56,7 @@ Catalogue des routes internes de market-service (port 8001, données yahoo-finan
 - **Entrée** :
   - params : `id` (`marketIdSchema`, string non vide après `trim`) = symbole yahoo (`AAPL`, `BTC-USD`, `^GSPC`), encodé par l'appelant (`encodeURIComponent`) ;
   - query : `period` (`periodSchema`) **requis** : `"1d"` (24 h, points de 5 min), `"1w"` (7 jours, 1 h), `"1m"` (1 mois, 1 jour), `"1y"` (1 an, 1 semaine), `"max"` (depuis 1970, 1 mois).
-- **Réponse** : `200`, `MarketDetails[]` : un point par intervalle, `date` ISO, `price` = cours de clôture dans la devise de cotation (`close` yahoo, `null` quand yahoo n'a pas de clôture : non filtré ici).
+- **Réponse** : `200`, `MarketDetails[]` : un point par intervalle, `date` ISO, `price` = cours de clôture dans la devise de cotation (`close` yahoo) ; un intervalle sans clôture est omis.
   ```json
   [{ "date": "2026-10-28T13:30:00.000Z", "price": 268.41 }]
   ```

@@ -693,11 +693,10 @@ Source : `src/lib/api.ts`.
 
 ### `lib/pagination.ts`
 
-- **Import** : `import { getPageItems, paginate, type Paginated } from "@/lib/pagination"`.
+- **Import** : `import { getPageItems, paginate, type PaginationParams } from "@/lib/pagination"` ; le type de réponse `Paginated<T>` s'importe de `@trading-plateform/contracts` (`import type`).
 
 | Export | Signature / valeur | Rôle | Utilisé par |
 | --- | --- | --- | --- |
-| `Paginated<T>` | `{ data: T[]; count: number; page: number; pageSize: number }` | Réponse d'une route de liste paginée, alignée sur `packages/contracts/src/pagination.ts` (non importé par le web) : `count` = total des éléments filtrés, toutes pages confondues ; `page` commence à 1. | `features/backtest/api.ts`, `features/market/api.ts` |
 | `PaginationParams` | `{ page: number; pageSize: number }` | Query `?page&pageSize` d'une route de liste (`page` ≥ 1, `pageSize` 1 à 100). | `features/backtest/api.ts`, `features/market/api.ts`, `features/market/hook.ts` |
 | `getPageItems` | `(page: number, pageCount: number) => (number \| "ellipsis")[]` | Numéros affichés par la pagination : toutes les pages jusqu'à 7 ; au-delà, 7 éléments : `1 2 3 4 5 … 20`, `1 … 4 5 6 … 20`, `1 … 16 17 18 19 20`. | `components/data-table/data-table.tsx` |
 | `paginate` | `<T>(items: T[], page: number, pageSize: number) => T[]` | Découpe une liste complète en page (pagination client) ; `[]` au-delà de la dernière page. | `features/backtest/backtest-detail.tsx` |
@@ -1116,7 +1115,7 @@ Source : `src/features/backtest/column.tsx`.
 
 | Export | Forme | Utilisé par |
 | --- | --- | --- |
-| `ExecutionStatus` | `"PENDING" \| "RUNNING" \| "COMPLETED" \| "FAILED" \| "CANCELLED"` | `utils.ts`, `constants.ts`, `api.ts` |
+| `ExecutionStatus` | contrat `BacktestStatus` : `"DRAFT" \| "PENDING" \| "RUNNING" \| "COMPLETED" \| "FAILED" \| "CANCELLED"` (`BACKTEST_STATUSES`, égal à l'enum Prisma) | `utils.ts`, `constants.ts`, `api.ts` |
 | `InvestmentMode` | `BacktestRequestedPayload["investmentMode"]` = `"LUMP_SUM" \| "RECURRING"` | `constants.ts` |
 | `BacktestExecution` | `{ id, status, attempt, createdAt, startedAt, finishedAt, error, result?: { totalReturn: string \| null (fraction); totalTrades: number } \| null }` | `api.ts`, `utils.ts`, `execution-history.tsx` |
 | `EquityPoint` | contrat : `{ date: "YYYY-MM-DD"; value; invested; lumpSumValue?: number }` (devise, `invested` frais compris, `lumpSumValue` en DCA) | `equity-chart.tsx` |
@@ -1127,7 +1126,7 @@ Source : `src/features/backtest/column.tsx`.
 | `DataSource` | contrat : `{ provider: "yahoo-finance2"; priceType: "CLOSE_SPLIT_ADJUSTED"; fetchedAt: string (ISO); fingerprint: string (SHA-256 hex) }` | `constants.ts` |
 | `BacktestResult` | `{ finalValue, totalInvested, totalFees, profit, totalReturn, maxDrawdown: string \| null; totalTrades; maxDrawdownDate: string \| null; equityCurve; trades; holdings; lumpSumComparison: LumpSumComparison \| null; executionRule: ExecutionRule \| null; dataSource: DataSource \| null }` (ratios en fraction ; hypothèses `null` pour les résultats antérieurs) | `stats.tsx`, `backtest-detail.tsx`, `assumptions.tsx` |
 | `Backtest` | `{ id, name, symbols, startDate, endDate, investmentMode, feeRate: string (Decimal, fraction par achat), createdAt, executions: BacktestExecution[] }` (plus récente d'abord) | `api.ts`, `utils.ts`, `column.tsx`, `assumptions.tsx` |
-| `BacktestListStats` | `{ total, active, completed, failed: number; completedRate, failedRate: number (fraction) }` (`BacktestStats` côté backend), d'après le statut de la dernière exécution | `api.ts`, `stats.tsx` |
+| `BacktestListStats` | contrat `BacktestStats` : `{ total, active, completed, failed: number; completedRate, failedRate: number (fraction) }`, d'après le statut de la dernière exécution ; renommé pour ne pas masquer le composant `BacktestStats` | `api.ts`, `stats.tsx` |
 | `BacktestDetails` | `Backtest & { executions (toutes); result: BacktestResult \| null }` | `api.ts`, `backtest-detail.tsx` |
 
 Source : `src/features/backtest/types.ts`.
@@ -1257,19 +1256,19 @@ Source : `src/features/market/constants.ts`.
 
 | Export | Type | Colonnes | Utilisé par |
 | --- | --- | --- | --- |
-| `marketColumns` | `Column<MarketAsset>[]` | Symbole (`SymbolCell`), Prix (`formatPrice` en `MARKET_CURRENCY`), Variation 24 h (`ChangeCell`, pourcentage), Volume 24 h (`formatVolume`), Tendance (`Sparkline` de `history`). | `market-list.tsx` |
+| `marketColumns` | `Column<MarketAsset>[]` | Symbole (`SymbolCell`), Prix (`formatPrice` en `MARKET_CURRENCY`), Variation 24 h (`ChangeCell`, pourcentage), Volume 24 h (`formatVolume`), Tendance (`Sparkline` de `history`, couleur selon le signe de la variation) ; `<Dash />` pour une valeur `null` (tendance comprise si la variation est inconnue). | `market-list.tsx` |
 
 Source : `src/features/market/column.tsx`.
 
 ### `features/market/types.ts`
 
-- **Import** : `import type { MarketAsset, Period } from "@/features/market/types"`.
+- **Import** : `import type { MarketAsset, Period } from "@/features/market/types"`. Réexport de `@trading-plateform/contracts` (`src/market.ts`), qui porte les unités.
 
 | Export | Forme | Utilisé par |
 | --- | --- | --- |
-| `Period` | `"1d" \| "1w" \| "1m" \| "1y" \| "max"` | `api.ts`, `hook.ts`, `constants.ts`, `price-chart.tsx` |
-| `MarketAsset` | `{ symbol; name; logoUrl?; price: number; change24h: number (pourcentage, 1,5 = +1,5 %); volume24h: number; history: MarketDetails[] }` | `api.ts`, `column.tsx` |
-| `MarketDetails` | `{ date: string (ISO); price: number }` | `api.ts`, `MarketAsset.history` |
-| `MarketData` | `{ symbol; name; exchange; assetType; logoUrl? }` | `api.ts`, `components/symbol-picker.tsx` |
+| `Period` | contrat : `"1d" \| "1w" \| "1m" \| "1y" \| "max"` | `api.ts`, `hook.ts`, `constants.ts`, `price-chart.tsx` |
+| `MarketAsset` | contrat : `{ symbol; name; logoUrl?; price: number \| null; change24h: number \| null (pourcentage, 1,5 = +1,5 %); volume24h: number \| null; history: MarketDetails[] }` (`null` si le fournisseur n'a pas la valeur) | `api.ts`, `column.tsx` |
+| `MarketDetails` | contrat : `{ date: string (ISO datetime); price: number }` (intervalles sans clôture omis) | `api.ts`, `MarketAsset.history` |
+| `MarketData` | contrat : `{ symbol; name; exchange; assetType; logoUrl? }` | `api.ts`, `components/symbol-picker.tsx` |
 
 Source : `src/features/market/types.ts`.
