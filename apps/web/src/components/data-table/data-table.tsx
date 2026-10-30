@@ -22,8 +22,12 @@ export type Column<T> = {
     className?: string
 }
 
-type DataTableProps<T> = {
-    query: Pick<UseQueryResult<T[], Error>, "data" | "isPending" | "isError" | "error"> & { refetch: () => unknown }
+type QueryState<T> = Pick<UseQueryResult<T[], Error>, "data" | "isPending" | "isError" | "error"> & { refetch: () => unknown }
+
+// Lignes issues d'une requête (états chargement / erreur affichés) ou déjà chargées (rows)
+type DataTableSource<T> = { query: QueryState<T>; rows?: never } | { rows: T[]; query?: never }
+
+type DataTableProps<T> = DataTableSource<T> & {
     columns: Column<T>[]
     rowKey: (row: T) => string
     onRowClick?: (row: T) => void
@@ -99,8 +103,13 @@ function TablePagination({ page, pageSize, count, onPageChange }: TablePaginatio
     )
 }
 
+/**
+ * Tableau générique : lignes d'une requête (`query`, avec états chargement / erreur / vide)
+ * ou déjà chargées (`rows`), colonnes déclarées dans `features/<domaine>/column.tsx`, pagination optionnelle.
+ */
 export function DataTable<T>({
     query,
+    rows,
     columns,
     rowKey,
     onRowClick,
@@ -112,7 +121,7 @@ export function DataTable<T>({
     className,
     pagination,
 }: DataTableProps<T>) {
-    const { data, isPending, isError, error, refetch } = query
+    const { data, isPending, isError, error, refetch } = query ?? { data: rows, isPending: false, isError: false, error: null, refetch: () => undefined }
 
     const status = (content: ReactNode) => (
         <TableRow className="hover:bg-transparent">

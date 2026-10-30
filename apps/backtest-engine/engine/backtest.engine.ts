@@ -1,34 +1,20 @@
 import type { EquityPoint, Trade } from "@trading-plateform/contracts";
 import BacktestError from "../errors/backtest.error";
 import type { BacktestOutcome, BacktestParams, PriceSeries } from "../interfaces/backtest.interface";
+import { createDrawdownTracker, periodKey, round } from "./backtest.utils";
 
-const DAY_MS = 24 * 60 * 60 * 1000;
-
-const round = (value: number, decimals: number) => {
-    const factor = 10 ** decimals;
-    return Math.round(value * factor) / factor;
-};
-
-// Clé de période : un versement récurrent a lieu au premier jour de cotation de chaque nouvelle période
-const periodKey = (date: string, frequency: BacktestParams["investmentFrequency"]) => {
-    switch (frequency) {
-        case "WEEKLY":
-            // 1970-01-01 est un jeudi : +3 jours fait commencer les semaines le lundi
-            return String(Math.floor((Date.parse(date) / DAY_MS + 3) / 7));
-        case "MONTHLY":
-            return date.slice(0, 7);
-        case "YEARLY":
-            return date.slice(0, 4);
-        default:
-            return date;
-    }
-};
+type Simulation = Omit<BacktestOutcome, "lumpSumComparison">;
 
 /**
- * Simule un portefeuille équipondéré sur les symboles demandés.
- * Les frais sont prélevés sur chaque achat ; les cours manquants sont reportés du dernier jour connu.
+ * Simule un portefeuille équipondéré sur les symboles demandés, jour de cotation par jour de cotation.
+ *
+ * - Départ : premier jour où tous les symboles ont un cours ; un cours manquant est reporté du dernier jour connu.
+ * - Versements : `initialAmount` le premier jour, puis `recurringAmount` au premier jour de chaque période (DCA).
+ * - Exécution : achat au cours de clôture du jour du versement, réparti à parts égales, frais prélevés sur chaque achat.
+ *
+ * Lève `BacktestError` sans données de marché ou si rien n'a été investi.
  */
-function simulate(params: BacktestParams, prices: PriceSeries): Omit<BacktestOutcome, "lumpSumComparison"> {
+function simulate(params: BacktestParams, prices: PriceSeries): Simulation {
     const { symbols, investmentMode, initialAmount, recurringAmount, investmentFrequency, feeRate } = params;
 
     const closes = new Map<string, Map<string, number>>();
@@ -48,15 +34,12 @@ function simulate(params: BacktestParams, prices: PriceSeries): Omit<BacktestOut
     const trades: Trade[] = [];
     const recurring = investmentMode === "RECURRING" ? recurringAmount ?? 0 : 0;
     const portfolioValue = () => symbols.reduce((sum, symbol) => sum + shares.get(symbol)! * lastClose.get(symbol)!, 0);
+    const drawdown = createDrawdownTracker();
+    // Cumuls non arrondis : seules les valeurs publiées le sont
     let invested = 0;
     let fees = 0;
     let previousPeriod: string | null = null;
-    // Indice de performance hors versements : le drawdown ne doit pas être masqué par les apports du DCA
     let previousValue = 0;
-    let index = 1;
-    let peak = 1;
-    let maxDrawdown = 0;
-    let maxDrawdownDate: string | null = null;
 
     for (const date of dates) {
         for (const symbol of symbols) {
@@ -65,14 +48,8 @@ function simulate(params: BacktestParams, prices: PriceSeries): Omit<BacktestOut
         }
         if (date < start) continue;
 
-        if (previousValue > 0) {
-            index *= portfolioValue() / previousValue;
-            peak = Math.max(peak, index);
-            if (index / peak - 1 < maxDrawdown) {
-                maxDrawdown = index / peak - 1;
-                maxDrawdownDate = date;
-            }
-        }
+        // Rendement du jour mesuré avant le versement : un apport n'est pas une performance
+        if (previousValue > 0) drawdown.record(portfolioValue() / previousValue, date);
 
         const period = periodKey(date, investmentFrequency);
         const isFirstDay = previousPeriod === null;
@@ -82,23 +59,23 @@ function simulate(params: BacktestParams, prices: PriceSeries): Omit<BacktestOut
         previousPeriod = period;
 
         if (contribution > 0) {
-            const perSymbol = contribution / symbols.length;
-            const fee = perSymbol * feeRate;
+            const amount = contribution / symbols.length;
+            const fee = amount * feeRate;
             for (const symbol of symbols) {
                 const price = lastClose.get(symbol)!;
-                const quantity = (perSymbol - fee) / price;
+                const quantity = (amount - fee) / price;
                 shares.set(symbol, shares.get(symbol)! + quantity);
+                fees += fee;
                 trades.push({
                     date,
                     symbol,
                     price: round(price, 4),
                     quantity: round(quantity, 6),
-                    amount: round(perSymbol, 2),
+                    amount: round(amount, 2),
                     fee: round(fee, 2),
                 });
             }
             invested += contribution;
-            fees += contribution * feeRate;
         }
 
         previousValue = portfolioValue();
@@ -113,10 +90,11 @@ function simulate(params: BacktestParams, prices: PriceSeries): Omit<BacktestOut
         finalValue,
         totalInvested: round(invested, 2),
         totalFees: round(fees, 2),
+        profit: round(finalValue - invested, 2),
         totalReturn: round((finalValue - invested) / invested, 6),
         totalTrades: trades.length,
-        maxDrawdown: round(maxDrawdown, 6),
-        maxDrawdownDate,
+        maxDrawdown: round(drawdown.maxDrawdown, 6),
+        maxDrawdownDate: drawdown.maxDrawdownDate,
         equityCurve,
         trades,
         holdings: symbols.map((symbol) => ({
@@ -128,8 +106,12 @@ function simulate(params: BacktestParams, prices: PriceSeries): Omit<BacktestOut
 }
 
 /**
- * Backtest complet. En DCA, rejoue le même total versé en un seul achat au premier jour :
- * même capital, même période, mêmes frais, seule la répartition dans le temps change.
+ * Point d'entrée de l'engine : simule le backtest demandé et, en DCA, le compare à un investissement unique.
+ *
+ * La comparaison rejoue le même total versé en un seul achat au premier jour : même capital, même période,
+ * mêmes frais, seule la répartition dans le temps change. Sa valeur quotidienne est ajoutée à chaque point
+ * de la courbe (`lumpSumValue`) ; ses métriques finales vont dans `lumpSumComparison`.
+ * Hors DCA, `lumpSumComparison` vaut null et la courbe n'a pas de `lumpSumValue`.
  */
 export default function runBacktest(params: BacktestParams, prices: PriceSeries): BacktestOutcome {
     const outcome = simulate(params, prices);
@@ -148,12 +130,13 @@ export default function runBacktest(params: BacktestParams, prices: PriceSeries)
 
     return {
         ...outcome,
+        // Mêmes cours, même départ : les deux courbes ont exactement les mêmes dates, alignées par indice
+        equityCurve: outcome.equityCurve.map((point, i) => ({ ...point, lumpSumValue: lumpSum.equityCurve[i]!.value })),
         lumpSumComparison: {
             finalValue: lumpSum.finalValue,
             totalReturn: lumpSum.totalReturn,
             maxDrawdown: lumpSum.maxDrawdown,
             dcaAdvantage: round(outcome.finalValue - lumpSum.finalValue, 2),
-            equityCurve: lumpSum.equityCurve.map(({ date, value }) => ({ date, value })),
         },
     };
 }

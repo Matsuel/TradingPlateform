@@ -23,6 +23,10 @@ const logger = Logger.here()
 class BacktestService {
     repo: IBacktestRepository = new BacktestRepository()
 
+    /**
+     * Crée un backtest à partir du formulaire (stratégie `dca` = versement mensuel de `amount`, `lump_sum` = versement unique ;
+     * `fee` en pourcentage stocké en fraction), avec sa première exécution `PENDING`, puis publie `backtest.requested`.
+     */
     async create(userId: string, input: CreateBacktestInput) {
         logger.info("Creating backtest", { userId, name: input.name })
         const isDca = input.strategy === "dca"
@@ -43,6 +47,10 @@ class BacktestService {
         return backtest
     }
 
+    /**
+     * Relance un backtest : nouvelle exécution (`attempt` + 1) et publication de `backtest.requested`.
+     * Lève `NotFoundError`/`ForbiddenError` si l'utilisateur n'en est pas propriétaire, `ConflictError` si une exécution est active.
+     */
     async rerun(id: string, userId: string) {
         logger.info("Rerunning backtest", { id, userId })
         const backtest = this.assertOwner(await this.repo.getById(id), userId)
@@ -69,6 +77,7 @@ class BacktestService {
         return { ...result, ...pagination }
     }
 
+    /** Compteurs des backtests de l'utilisateur selon le statut de leur dernière exécution ; taux en fraction du total (0 sans backtest). */
     async getStats(userId: string): Promise<BacktestStats> {
         logger.info("Fetching backtest stats", { userId })
         const { total, byStatus } = await this.repo.countByLatestStatus(userId)
@@ -89,6 +98,7 @@ class BacktestService {
     }
 
     // Transitions gardées : un événement rejoué ou arrivé trop tard est ignoré (Kafka at-least-once)
+    /** `backtest.started` : `PENDING` → `RUNNING`. */
     async markRunning({ executionId, startedAt }: BacktestStartedPayload) {
         const updated = await this.repo.updateExecution(executionId, ["PENDING"], {
             status: "RUNNING",
@@ -97,16 +107,17 @@ class BacktestService {
         logger.info(updated ? "Backtest execution running" : "Backtest started event ignored", { executionId })
     }
 
-    async complete({ executionId, finishedAt, maxDrawdownDate, lumpSumComparison, ...result }: BacktestCompletedPayload) {
+    /** `backtest.completed` : exécution active → `COMPLETED` et enregistrement du résultat, dans une transaction. */
+    async complete({ executionId, finishedAt, maxDrawdownDate, ...result }: BacktestCompletedPayload) {
         const updated = await this.repo.completeExecution(executionId, ACTIVE_STATUSES, {
             finishedAt: new Date(finishedAt),
             maxDrawdownDate: maxDrawdownDate ? new Date(maxDrawdownDate) : null,
-            ...(lumpSumComparison && { lumpSumComparison }),
             ...result,
         })
         logger.info(updated ? "Backtest execution completed" : "Backtest completed event ignored", { executionId })
     }
 
+    /** `backtest.failed` : exécution active → `FAILED` avec sa cause. */
     async fail({ executionId, finishedAt, error }: BacktestFailedPayload) {
         const updated = await this.repo.updateExecution(executionId, ACTIVE_STATUSES, {
             status: "FAILED",

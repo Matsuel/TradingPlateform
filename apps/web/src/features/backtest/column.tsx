@@ -1,11 +1,17 @@
 import type { Column } from "@/components/data-table/data-table"
 import { ChangeCell, SymbolCell } from "@/components/data-table/cells"
 import { Badge } from "@/components/ui/badge"
-import { formatDay, formatDayRange, formatNumber, formatPrice, formatQuantity } from "@/lib/format"
+import { formatDay, formatDayRange, formatPrice, LOCALE } from "@/lib/format"
 import { BACKTEST_CURRENCY, statusBadges, strategyLabels } from "./constants"
 import type { Backtest, Holding, Trade } from "./types"
 import { getExecution, getExecutionDuration } from "./utils"
 import Dash from "@/components/custom/Dash"
+
+// Cours d'achat sans devise : « 268,50 »
+const formatTradePrice = new Intl.NumberFormat(LOCALE, { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format
+
+// Titres fractionnaires (DCA) : jusqu'à 6 décimales
+const formatQuantity = new Intl.NumberFormat(LOCALE, { maximumFractionDigits: 6 }).format
 
 export const backtestColumns: Column<Backtest>[] = [
     { header: "Nom", cell: (b) => <span className="text-body-medium">{b.name}</span> },
@@ -42,7 +48,7 @@ export const tradeColumns: Column<Trade>[] = [
     {
         header: "Prix d'achat",
         className: "text-right",
-        cell: (t) => formatNumber(t.price),
+        cell: (t) => formatTradePrice(t.price),
     },
     {
         header: "Quantité",

@@ -11,6 +11,10 @@ class BacktestService {
 
     constructor(private readonly publisher: IBacktestPublisher) { }
 
+    /**
+     * Exécute un `backtest.requested` : publie `started`, charge les cours, calcule, puis publie `completed`.
+     * Toute erreur (données, calcul, publication du résultat) est publiée en `failed` avec sa cause ; rien n'est relancé.
+     */
     async run(request: BacktestRequestedPayload): Promise<void> {
         const { executionId } = request;
 

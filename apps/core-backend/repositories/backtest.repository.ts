@@ -1,6 +1,6 @@
 import type { PaginationQuery } from "@trading-plateform/contracts"
 import { prisma } from "../prisma"
-import type { BacktestExecution, BacktestStatus, Prisma } from "../generated/prisma/client"
+import { Prisma, type BacktestExecution, type BacktestStatus } from "../generated/prisma/client"
 import type { BacktestDetails, BacktestStatusCounts, BacktestWithExecutions, CompleteExecutionDTO, CreateBacktestDTO } from "../interfaces/backtest.interface"
 
 export interface IBacktestRepository {
@@ -113,7 +113,10 @@ class BacktestRepository implements IBacktestRepository {
                 data: { status: "COMPLETED", finishedAt },
             })
             if (count === 0) return false
-            await tx.backtestResult.create({ data: { executionId: id, ...result } })
+            await tx.backtestResult.create({
+                // Une colonne Json n'accepte pas null : DbNull écrit NULL en base
+                data: { executionId: id, ...result, lumpSumComparison: result.lumpSumComparison ?? Prisma.DbNull },
+            })
             return true
         })
     }

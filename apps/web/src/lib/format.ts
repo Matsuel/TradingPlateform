@@ -13,15 +13,6 @@ export const formatRatio = (ratio: number) => `${formatChange(ratio * 100)} %`
 // Taux en fraction (0,3846) affiché sans signe, arrondi à l'unité (38 %)
 export const formatRate = new Intl.NumberFormat(LOCALE, { style: "percent", maximumFractionDigits: 0 }).format
 
-export const formatNumber = new Intl.NumberFormat(LOCALE, {
-    minimumFractionDigits: 2, maximumFractionDigits: 2,
-}).format
-
-// Titres fractionnaires (DCA) : jusqu'à 6 décimales
-export const formatQuantity = new Intl.NumberFormat(LOCALE, {
-    maximumFractionDigits: 6,
-}).format
-
 export const formatVolume = new Intl.NumberFormat(LOCALE, {
     notation: "compact", maximumFractionDigits: 2,
 }).format

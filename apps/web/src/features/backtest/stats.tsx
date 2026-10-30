@@ -3,8 +3,9 @@ import { StatCard } from "@/components/stat-card"
 import { formatDay, formatPrice, formatRate, formatRatio } from "@/lib/format"
 import { BACKTEST_CURRENCY } from "./constants"
 import type { BacktestListStats, BacktestResult, LumpSumComparison } from "./types"
+import { fromDecimal } from "./utils"
 
-// Compteurs et taux calculés par le backend ; undefined pendant le chargement
+/** Compteurs et taux de la liste, calculés par le backend ; `stats` undefined pendant le chargement. */
 export function BacktestStats({ stats }: { stats: BacktestListStats | undefined }) {
     return (
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
@@ -28,41 +29,49 @@ export function BacktestStats({ stats }: { stats: BacktestListStats | undefined 
     )
 }
 
-// Métriques d'un résultat : toutes calculées par le moteur, le front ne fait que les formater
+/**
+ * Métriques d'un résultat, toutes calculées par le moteur : le front ne fait que les formater.
+ * Un champ absent d'un résultat antérieur s'affiche `<Dash />` ou masque sa légende.
+ */
 export function BacktestResultStats({ result }: { result: BacktestResult }) {
-    const totalReturn = Number(result.totalReturn)
-    const finalValue = Number(result.finalValue)
-    const invested = result.totalInvested == null ? null : Number(result.totalInvested)
+    const totalReturn = fromDecimal(result.totalReturn)
+    const finalValue = fromDecimal(result.finalValue)
+    const invested = fromDecimal(result.totalInvested)
+    const profit = fromDecimal(result.profit)
+    const maxDrawdown = fromDecimal(result.maxDrawdown)
+    const fees = fromDecimal(result.totalFees)
 
     return (
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
             <StatCard
                 label="Rendement total"
-                value={formatRatio(totalReturn)}
-                trend={totalReturn >= 0 ? "up" : "down"}
-                caption={invested != null && `Plus-value : ${formatPrice(finalValue - invested, BACKTEST_CURRENCY)}`}
+                value={totalReturn == null ? <Dash /> : formatRatio(totalReturn)}
+                caption={profit != null && `Plus-value : ${formatPrice(profit, BACKTEST_CURRENCY)}`}
             />
             <StatCard
                 label="Drawdown max"
-                value={result.maxDrawdown == null ? <Dash /> : formatRatio(Number(result.maxDrawdown))}
-                caption={result.maxDrawdownDate ? `Le ${formatDay(result.maxDrawdownDate)}` : result.maxDrawdown != null && "Aucune baisse"}
+                value={maxDrawdown == null ? <Dash /> : formatRatio(maxDrawdown)}
+                caption={result.maxDrawdownDate ? `Le ${formatDay(result.maxDrawdownDate)}` : maxDrawdown != null && "Aucune baisse"}
             />
             <StatCard
                 label="Valeur finale"
-                value={formatPrice(finalValue, BACKTEST_CURRENCY)}
+                value={finalValue == null ? <Dash /> : formatPrice(finalValue, BACKTEST_CURRENCY)}
                 delta={`${result.totalTrades} ordres`}
                 caption={invested != null && `${formatPrice(invested, BACKTEST_CURRENCY)} investis`}
             />
             <StatCard
                 label="Frais payés"
-                value={result.totalFees == null ? <Dash /> : formatPrice(Number(result.totalFees), BACKTEST_CURRENCY)}
+                value={fees == null ? <Dash /> : formatPrice(fees, BACKTEST_CURRENCY)}
                 caption="Inclus dans le montant investi"
             />
         </div>
     )
 }
 
-// DCA face au même total investi en une fois : écart calculé par le moteur
+/**
+ * DCA face au même total investi en une fois au premier jour (backtests DCA uniquement).
+ * L'écart `dcaAdvantage` est calculé par le moteur : > 0 si le DCA fait mieux.
+ */
 export function LumpSumComparisonStats({ comparison }: { comparison: LumpSumComparison }) {
     const { finalValue, totalReturn, maxDrawdown, dcaAdvantage } = comparison
 

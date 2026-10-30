@@ -9,6 +9,10 @@ class MarketRepository implements IMarketRepository {
 
     private static yahooFinance = new YahooFinance({ suppressNotices: ["yahooSurvey"] });
 
+    /**
+     * Cours de clôture journaliers de chaque symbole entre `start` et `end` (yahoo-finance2), triés par date.
+     * Clôtures ajustées des splits, pas des dividendes ; jours sans clôture écartés.
+     */
     async getDailyCloses(symbols: string[], start: Date, end: Date): Promise<PriceSeries> {
         const series = await Promise.all(
             symbols.map(async (symbol) => {

@@ -22,6 +22,10 @@ interface PriceAreaChartProps {
     className?: string
 }
 
+/**
+ * Courbe d'aire d'une série de prix ou de valeurs, verte ou rouge selon `positive`.
+ * Avec `compareLabel`, trace aussi la série `compare` des points en pointillés gris (ex. investissement unique).
+ */
 export function PriceAreaChart({
     data,
     formatTick,
@@ -69,7 +73,7 @@ export function PriceAreaChart({
                             }
                             formatter={(value, name) => (
                                 <span className="text-body-medium">
-                                    {compareLabel && `${config[name as keyof typeof config].label} : `}
+                                    {compareLabel && `${name === "compare" ? compareLabel : label} : `}
                                     {formatPrice(Number(value), currency)}
                                 </span>
                             )}

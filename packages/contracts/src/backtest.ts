@@ -30,11 +30,15 @@ export const backtestStartedPayloadSchema = z.object({
 
 export const equityPointSchema = z.object({
     date: z.iso.date(),
+    // Valeur du portefeuille à la clôture, devise saisie
     value: z.number(),
-    // Total versé à cette date, frais compris
+    // Total versé à cette date, frais compris, devise saisie
     invested: z.number(),
+    // Valeur du même total investi en une fois au premier jour (DCA uniquement), devise saisie
+    lumpSumValue: z.number().optional(),
 });
 
+// Montants d'un achat arrondis au centime ; les totaux du résultat sont calculés sur les valeurs non arrondies
 export const tradeSchema = z.object({
     date: z.iso.date(),
     symbol: z.string().min(1),
@@ -56,7 +60,7 @@ export const holdingSchema = z.object({
     value: z.number().min(0),
 });
 
-// Même total versé investi en une fois au premier jour de la simulation, mêmes frais
+// Métriques du même total versé investi en une fois au premier jour, mêmes frais (courbe : lumpSumValue)
 export const lumpSumComparisonSchema = z.object({
     finalValue: z.number(),
     // Ratio
@@ -65,7 +69,6 @@ export const lumpSumComparisonSchema = z.object({
     maxDrawdown: z.number().max(0),
     // Valeur finale DCA − valeur finale investissement unique, devise saisie : > 0 si le DCA fait mieux
     dcaAdvantage: z.number(),
-    equityCurve: z.array(equityPointSchema.pick({ date: true, value: true })),
 });
 
 export const backtestCompletedPayloadSchema = z.object({
@@ -76,6 +79,9 @@ export const backtestCompletedPayloadSchema = z.object({
     totalInvested: z.number().positive(),
     // Somme des frais prélevés sur les achats, dans la devise saisie (inclus dans totalInvested)
     totalFees: z.number().min(0),
+    // Plus-value : valeur finale − total versé, devise saisie
+    profit: z.number(),
+    // Ratio : profit / totalInvested
     totalReturn: z.number(),
     totalTrades: z.number().int().min(0),
     // Ratio ≤ 0, mesuré hors versements (performance pondérée dans le temps)

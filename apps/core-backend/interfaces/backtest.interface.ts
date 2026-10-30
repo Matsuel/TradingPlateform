@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { paginationQuerySchema, type BacktestCompletedPayload, type LumpSumComparison } from "@trading-plateform/contracts";
+import { paginationQuerySchema, type BacktestCompletedPayload } from "@trading-plateform/contracts";
 import { BacktestStatus, type BacktestResult, type Prisma } from "../generated/prisma/client";
 
 export const createBacktestSchema = z
@@ -39,11 +39,9 @@ export type BacktestWithExecutions = Prisma.BacktestGetPayload<{
 
 export type BacktestDetails = BacktestWithExecutions & { result: BacktestResult | null };
 
-// lumpSumComparison absent plutôt que null : Prisma n'accepte pas null sur une colonne Json, absent = NULL en base
-export type CompleteExecutionDTO = Omit<BacktestCompletedPayload, "executionId" | "finishedAt" | "maxDrawdownDate" | "lumpSumComparison"> & {
+export type CompleteExecutionDTO = Omit<BacktestCompletedPayload, "executionId" | "finishedAt" | "maxDrawdownDate"> & {
     finishedAt: Date;
     maxDrawdownDate: Date | null;
-    lumpSumComparison?: LumpSumComparison;
 };
 
 // Comptes sur le statut de la dernière exécution de chaque backtest ; taux en fraction

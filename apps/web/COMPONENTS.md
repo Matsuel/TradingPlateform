@@ -205,12 +205,13 @@ Primitives shadcn (base-ui), voir la doc shadcn. Ne les modifie qu'en cas de bes
 ### DataTable
 
 - **Import** : `import { DataTable, type Column } from "@/components/data-table/data-table"`.
-- **Rôle** : tableau branché sur une requête TanStack Query : gère chargement, erreur (`ErrorState`), vide, clic de ligne et pagination optionnelle. Colonnes déclarées dans `features/<domaine>/column.tsx`.
+- **Rôle** : tableau branché sur une requête TanStack Query (`query`) ou sur des lignes déjà chargées (`rows`) : gère chargement, erreur (`ErrorState`), vide, clic de ligne et pagination optionnelle. Colonnes déclarées dans `features/<domaine>/column.tsx`.
 - **Props** :
 
   | Nom | Type | Requis | Défaut | Description |
   | --- | --- | --- | --- | --- |
-  | `query` | `Pick<UseQueryResult<T[], Error>, "data" \| "isPending" \| "isError" \| "error"> & { refetch: () => unknown }` | oui | — | Résultat de hook ; pour filtrer, passer `{ ...query, data }`. |
+  | `query` | `Pick<UseQueryResult<T[], Error>, "data" \| "isPending" \| "isError" \| "error"> & { refetch: () => unknown }` | `query` ou `rows` | — | Résultat de hook ; pour filtrer, passer `{ ...query, data }`. |
+  | `rows` | `T[]` | `query` ou `rows` | — | Lignes déjà en mémoire (ex. `result.trades` d'un détail déjà chargé) : pas d'état chargement / erreur. |
   | `columns` | `Column<T>[]` | oui | — | Colonnes. |
   | `rowKey` | `(row: T) => string` | oui | — | Clé React de ligne. |
   | `onRowClick` | `(row: T) => void` | non | — | Rend les lignes cliquables. |
@@ -668,13 +669,11 @@ Props communes `BaseProps<T>` (exportées par `field.tsx`), répétées dans cha
 
 | Export | Signature / valeur | Rôle (et unité) | Utilisé par |
 | --- | --- | --- | --- |
-| `LOCALE` | `"fr-FR"` | Locale des formats `Intl` locaux à un composant (ticks de graphique). | `components/chart.tsx`, `features/backtest/equity-chart.tsx`, `features/market/price-chart.tsx` |
+| `LOCALE` | `"fr-FR"` | Locale des formats `Intl` locaux à un composant (ticks de graphique, colonnes). | `components/chart.tsx`, `features/backtest/equity-chart.tsx`, `features/backtest/column.tsx`, `features/market/price-chart.tsx` |
 | `formatPrice` | `(v: number, currency: string) => string` | Montant dans la devise ISO **obligatoire** : `formatPrice(1234.5, "EUR")` → « 1 234,50 € ». | `components/chart.tsx`, `features/market/column.tsx`, `features/backtest/stats.tsx`, `features/backtest/column.tsx` |
 | `formatChange` | `(v: number) => string` | Nombre signé, 2 décimales, sans « % » : `1.5` → « +1,50 ». Pour un pourcentage déjà en %. | `components/data-table/cells.tsx`, `formatRatio` |
 | `formatRatio` | `(ratio: number) => string` | Ratio en **fraction** → variation signée en % : `0.342` → « +34,20 % ». Rendement, drawdown. | `features/backtest/stats.tsx`, `features/backtest/execution-history.tsx` |
 | `formatRate` | `(ratio: number) => string` | Proportion en **fraction** → % non signé, arrondi à l'unité : `0.3846` → « 38 % ». Taux de réussite/échec. | `features/backtest/stats.tsx` |
-| `formatNumber` | `(v: number) => string` | Nombre à 2 décimales : « 268,50 ». | `features/backtest/column.tsx` |
-| `formatQuantity` | `(v: number) => string` | Quantité de titres fractionnaire, jusqu'à 6 décimales : `12.3456789` → « 12,345679 ». | `features/backtest/column.tsx` |
 | `formatVolume` | `(v: number) => string` | Notation compacte : `41234567` → « 41,23 M ». | `features/market/column.tsx` |
 | `formatDate` | `(d: string \| Date) => string` | Date et heure courtes : « 28/10/2026 09:00 ». | `features/backtest/execution-history.tsx` |
 | `formatDay` | `(d: string \| Date) => string` | Jour court : « 28/10/26 ». | `features/backtest/column.tsx`, `features/backtest/stats.tsx` |
@@ -915,18 +914,17 @@ Source : `src/features/auth/schema.ts`.
 ### EquityChart
 
 - **Import** : `import { EquityChart } from "@/features/backtest/equity-chart"`.
-- **Rôle** : carte « Courbe d'equity » : valeur du portefeuille dans le temps, en `BACKTEST_CURRENCY` ; avec `comparison`, ajoute la courbe « Investissement unique » en pointillés (jointe par date).
+- **Rôle** : carte « Courbe d'equity » : valeur du portefeuille dans le temps, en `BACKTEST_CURRENCY` ; si les points portent `lumpSumValue` (DCA), ajoute la courbe « Investissement unique » en pointillés.
 - **Props** :
 
   | Nom | Type | Requis | Défaut | Description |
   | --- | --- | --- | --- | --- |
   | `data` | `EquityPoint[]` | oui | — | `result.equityCurve` ; `value` tracée. |
   | `positive` | `boolean` | oui | — | Vert si plus-value (`totalReturn >= 0`). |
-  | `comparison` | `LumpSumComparison \| null` | non | — | `result.lumpSumComparison` ; null ou absent = courbe seule. |
 
 - **Exemple** (tiré de `src/features/backtest/backtest-detail.tsx`) :
   ```tsx
-  <EquityChart data={result.equityCurve} positive={Number(result.totalReturn) >= 0} comparison={result.lumpSumComparison} />
+  <EquityChart data={result.equityCurve} positive={Number(result.totalReturn) >= 0} />
   ```
 - **Utilisé par** : `src/features/backtest/backtest-detail.tsx`.
 - **Source** : `src/features/backtest/equity-chart.tsx`.
@@ -976,7 +974,7 @@ Source : `src/features/auth/schema.ts`.
 ### BacktestResultStats
 
 - **Import** : `import { BacktestResultStats } from "@/features/backtest/stats"`.
-- **Rôle** : 4 `StatCard` d’un résultat : rendement total, drawdown max (avec date), valeur finale (ordres, montant investi), frais payés (`<Dash />` si absents).
+- **Rôle** : 4 `StatCard` d’un résultat : rendement total (plus-value `profit`), drawdown max (avec date), valeur finale (ordres, montant investi), frais payés ; `<Dash />` ou légende masquée si un champ manque (résultat antérieur).
 - **Props** :
 
   | Nom | Type | Requis | Défaut | Description |
@@ -1074,6 +1072,7 @@ Source : `src/features/backtest/constants.ts`.
 | `hasStatus` | `(b: Backtest, statuses: readonly ExecutionStatus[]) => boolean` | Statut de la dernière exécution dans la liste. | `hook.ts` |
 | `isActive` | `(e: BacktestExecution) => boolean` | Exécution `PENDING` ou `RUNNING`. | `backtest-detail.tsx`, `execution-history.tsx` |
 | `getExecutionDuration` | `(e: BacktestExecution) => string \| null` | Durée `finishedAt − (startedAt ?? createdAt)`, « 2 min 5 s » ou « 12 s » (minimum 1 s) ; `null` si non terminée. | `column.tsx`, `backtest-detail.tsx`, `execution-history.tsx` |
+| `fromDecimal` | `(value: string \| null) => number \| null` | `Decimal` sérialisé → `number`, `null` conservé. | `stats.tsx` |
 
 Source : `src/features/backtest/utils.ts`.
 
@@ -1084,23 +1083,25 @@ Source : `src/features/backtest/utils.ts`.
 | Export | Type | Colonnes | Utilisé par |
 | --- | --- | --- | --- |
 | `backtestColumns` | `Column<Backtest>[]` | Nom, Stratégie, Symboles (nombre), Période, Rendement (`totalReturn` × 100 via `ChangeCell`), Statut (badge), Durée. | `backtest-list.tsx` |
-| `tradeColumns` | `Column<Trade>[]` | Date, Symbole (`SymbolCell`), Prix d'achat (`formatNumber`, sans devise), Quantité (`formatQuantity`), Montant et Frais (`formatPrice` en `BACKTEST_CURRENCY`) ; `Dash` si absents (résultats antérieurs). | `backtest-detail.tsx` |
-| `holdingColumns` | `Column<Holding>[]` | Symbole (`SymbolCell`), Quantité (`formatQuantity`), Valeur au dernier cours (`formatPrice` en `BACKTEST_CURRENCY`). | `backtest-detail.tsx` |
+| `tradeColumns` | `Column<Trade>[]` | Date, Symbole (`SymbolCell`), Prix d'achat (2 décimales, sans devise), Quantité (jusqu'à 6 décimales), Montant et Frais (`formatPrice` en `BACKTEST_CURRENCY`) ; `Dash` si absents (résultats antérieurs). | `backtest-detail.tsx` |
+| `holdingColumns` | `Column<Holding>[]` | Symbole (`SymbolCell`), Quantité (jusqu'à 6 décimales), Valeur au dernier cours (`formatPrice` en `BACKTEST_CURRENCY`). | `backtest-detail.tsx` |
 
 Source : `src/features/backtest/column.tsx`.
 
 ### `features/backtest/types.ts`
 
-- **Import** : `import type { Backtest } from "@/features/backtest/types"`. `Decimal` → `string`, dates → `string` ISO.
+- **Import** : `import type { Backtest } from "@/features/backtest/types"`. `Decimal` → `string`, dates → `string` ISO. Les données du moteur (`EquityPoint`, `Trade`, `Holding`, `LumpSumComparison`, `InvestmentMode`) sont **dérivées de `@trading-plateform/contracts`** (import de types uniquement) : unités dans `packages/contracts/src/backtest.ts`.
 
 | Export | Forme | Utilisé par |
 | --- | --- | --- |
 | `ExecutionStatus` | `"PENDING" \| "RUNNING" \| "COMPLETED" \| "FAILED" \| "CANCELLED"` | `utils.ts`, `constants.ts`, `api.ts` |
-| `InvestmentMode` | `"LUMP_SUM" \| "RECURRING"` | `constants.ts` |
+| `InvestmentMode` | `BacktestRequestedPayload["investmentMode"]` = `"LUMP_SUM" \| "RECURRING"` | `constants.ts` |
 | `BacktestExecution` | `{ id, status, attempt, createdAt, startedAt, finishedAt, error, result?: { totalReturn: string \| null (fraction); totalTrades: number } \| null }` | `api.ts`, `utils.ts`, `execution-history.tsx` |
-| `EquityPoint` | `{ date: "YYYY-MM-DD"; value: number; invested: number }` (devise, `invested` frais compris) | `equity-chart.tsx` |
-| `Trade` | `{ date: "YYYY-MM-DD"; symbol: string; price: number }` (cours d'achat) | `column.tsx` |
-| `BacktestResult` | `{ finalValue, totalInvested, totalReturn, maxDrawdown: string \| null; totalTrades: number; maxDrawdownDate: string \| null; equityCurve: EquityPoint[]; trades: Trade[] }` (ratios en fraction) | `stats.tsx` |
+| `EquityPoint` | contrat : `{ date: "YYYY-MM-DD"; value; invested; lumpSumValue?: number }` (devise, `invested` frais compris, `lumpSumValue` en DCA) | `equity-chart.tsx` |
+| `Trade` | contrat, `quantity`, `amount`, `fee` optionnels (absents des résultats antérieurs) | `column.tsx` |
+| `Holding` | contrat : `{ symbol; quantity; value }` (position finale au dernier cours) | `column.tsx` |
+| `LumpSumComparison` | contrat : `{ finalValue; totalReturn; maxDrawdown; dcaAdvantage }` (ratios en fraction) | `stats.tsx` |
+| `BacktestResult` | `{ finalValue, totalInvested, totalFees, profit, totalReturn, maxDrawdown: string \| null; totalTrades; maxDrawdownDate: string \| null; equityCurve; trades; holdings; lumpSumComparison: LumpSumComparison \| null }` (ratios en fraction) | `stats.tsx`, `backtest-detail.tsx` |
 | `Backtest` | `{ id, name, symbols, startDate, endDate, investmentMode, createdAt, executions: BacktestExecution[] }` (plus récente d'abord) | `api.ts`, `utils.ts`, `column.tsx` |
 | `BacktestListStats` | `{ total, active, completed, failed: number; completedRate, failedRate: number (fraction) }` (`BacktestStats` côté backend), d'après le statut de la dernière exécution | `api.ts`, `stats.tsx` |
 | `BacktestDetails` | `Backtest & { executions (toutes); result: BacktestResult \| null }` | `api.ts`, `backtest-detail.tsx` |

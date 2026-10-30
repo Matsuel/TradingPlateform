@@ -44,6 +44,10 @@ function NoResult({ backtest }: { backtest: BacktestDetails }) {
     )
 }
 
+/**
+ * Écran de détail d'un backtest : en-tête et relance, métriques, comparaison DCA / investissement unique,
+ * courbe, positions finales, ordres paginés et historique des exécutions. Rafraîchi tant qu'une exécution est active.
+ */
 export function BacktestDetail({ id }: { id: string }) {
     const query = useBacktest(id)
     const rerun = useRerunBacktest(id)
@@ -79,9 +83,9 @@ export function BacktestDetail({ id }: { id: string }) {
                 <>
                     <BacktestResultStats result={result} />
                     {result.lumpSumComparison && <LumpSumComparisonStats comparison={result.lumpSumComparison} />}
-                    <EquityChart data={result.equityCurve} positive={Number(result.totalReturn) >= 0} comparison={result.lumpSumComparison} />
+                    <EquityChart data={result.equityCurve} positive={Number(result.totalReturn) >= 0} />
                     <DataTable
-                        query={{ ...query, data: result.holdings }}
+                        rows={result.holdings}
                         columns={holdingColumns}
                         rowKey={(h) => h.symbol}
                         title="Positions finales"
@@ -89,7 +93,7 @@ export function BacktestDetail({ id }: { id: string }) {
                         emptyMessage="Positions non disponibles pour ce résultat."
                     />
                     <DataTable
-                        query={{ ...query, data: paginate(result.trades.toReversed(), tradePage, PAGE_SIZE) }}
+                        rows={paginate(result.trades.toReversed(), tradePage, PAGE_SIZE)}
                         columns={tradeColumns}
                         rowKey={(t) => `${t.date}-${t.symbol}`}
                         title="Ordres"
