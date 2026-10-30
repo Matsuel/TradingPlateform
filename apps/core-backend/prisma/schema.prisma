@@ -34,6 +34,14 @@ enum InvestmentFrequency {
   YEARLY
 }
 
+// Rebalancement vers les poids cibles (contrat : REBALANCE_FREQUENCIES)
+enum RebalanceFrequency {
+  NONE
+  MONTHLY
+  QUARTERLY
+  YEARLY
+}
+
 model User {
   id            String    @id @default(cuid())
   name          String
@@ -153,6 +161,7 @@ model Backtest {
   initialAmount       Decimal              @db.Decimal(18, 2)
   recurringAmount     Decimal?             @db.Decimal(18, 2)
   investmentFrequency InvestmentFrequency?
+  rebalanceFrequency  RebalanceFrequency   @default(NONE)
   feeRate             Decimal              @default(0) @db.Decimal(8, 6)
 
   // Dernière exécution créée : permet de filtrer/compter par statut courant avec Prisma (mise à jour à chaque création d'exécution)

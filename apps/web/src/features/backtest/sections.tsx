@@ -3,7 +3,7 @@
 import { useWatch } from "react-hook-form"
 
 import { AllocationField, DateField, FieldRow, FormSection, NumberField, SelectField, TextField } from "@/components/form"
-import { investmentModeOptions } from "./constants"
+import { investmentModeOptions, rebalanceFrequencyOptions } from "./constants"
 
 export function GeneralSection() {
     const investmentMode = useWatch({ name: "investmentMode" })
@@ -29,6 +29,12 @@ export function AllocationSection() {
                 <NumberField name="initialAmount" label="Capital initial (€)" />
                 <NumberField name="fee" label="Frais par ordre (%)" />
             </FieldRow>
+            <SelectField
+                name="rebalanceFrequency"
+                label="Rebalancement"
+                description="Ramène les poids à la cible"
+                options={rebalanceFrequencyOptions}
+            />
         </FormSection>
     )
 }

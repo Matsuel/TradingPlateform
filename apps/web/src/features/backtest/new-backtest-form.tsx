@@ -8,6 +8,7 @@ import { allocationTotal, FULL_PERCENT } from "@/components/form"
 import { Button } from "@/components/ui/button"
 import { apiIssues } from "@/lib/api"
 import { prefix } from "@/lib/path"
+import { DEFAULT_REBALANCE_FREQUENCY } from "./constants"
 import { useCreateBacktest } from "./hook"
 import { backtestSchema, type BacktestValues } from "./schema"
 import { AllocationSection, GeneralSection } from "./sections"
@@ -17,7 +18,7 @@ export function NewBacktestForm() {
     const { mutateAsync, error } = useCreateBacktest()
     const form = useForm<BacktestValues>({
         resolver: zodResolver(backtestSchema),
-        defaultValues: { name: "", investmentMode: "LUMP_SUM", allocations: [], initialAmount: 10_000, fee: 0.1 },
+        defaultValues: { name: "", investmentMode: "LUMP_SUM", allocations: [], initialAmount: 10_000, rebalanceFrequency: DEFAULT_REBALANCE_FREQUENCY, fee: 0.1 },
     })
     const allocations = useWatch({ control: form.control, name: "allocations" })
 

@@ -1,4 +1,4 @@
-import type { DataSource, ExecutionRule, ExecutionStatus, InvestmentMode, TradeSide } from "./types"
+import type { DataSource, ExecutionRule, ExecutionStatus, InvestmentMode, RebalanceFrequency, TradeSide } from "./types"
 
 // Devise des montants saisis : les cours ne sont pas convertis
 export const BACKTEST_CURRENCY = "EUR"
@@ -10,6 +10,18 @@ export const investmentModeOptions: { value: InvestmentMode; label: string }[] =
     { value: "LUMP_SUM", label: "Investissement unique" },
     { value: "RECURRING", label: "Investissement unique + versements mensuels" },
 ]
+
+export const rebalanceFrequencyLabels: Record<RebalanceFrequency, string> = {
+    NONE: "Aucun",
+    MONTHLY: "Mensuel",
+    QUARTERLY: "Trimestriel",
+    YEARLY: "Annuel",
+}
+
+// Valeur par défaut du formulaire et du test rapide, comme le défaut de createBacktestSchema
+export const DEFAULT_REBALANCE_FREQUENCY = "NONE" satisfies RebalanceFrequency
+
+export const rebalanceFrequencyOptions = Object.entries(rebalanceFrequencyLabels).map(([value, label]) => ({ value, label }))
 
 export const strategyLabels: Record<InvestmentMode, string> = {
     RECURRING: "DCA mensuel",

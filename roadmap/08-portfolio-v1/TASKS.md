@@ -258,9 +258,9 @@ Critères d’acceptation :
 - **Fichiers** : `prisma/schema.prisma`, migration, `interfaces/`, `services/`, `API.md`
 
 Critères d’acceptation :
-- [ ] `enum RebalanceFrequency` et `Backtest.rebalanceFrequency @default(NONE)` (lignes existantes : `NONE`).
-- [ ] Champ `rebalanceFrequency` dans `createBacktestSchema`, publié dans `backtest.requested`.
-- [ ] Entrée `API.md` mise à jour.
+- [x] `enum RebalanceFrequency` et `Backtest.rebalanceFrequency @default(NONE)` (lignes existantes : `NONE`).
+- [x] Champ `rebalanceFrequency` dans `createBacktestSchema`, publié dans `backtest.requested`.
+- [x] Entrée `API.md` mise à jour.
 
 ### T-12 · Web : champ « Rebalancement » et hypothèse
 
@@ -268,8 +268,8 @@ Critères d’acceptation :
 - **Fichiers** : `features/backtest/sections.tsx`, `constants.ts`, `assumptions.tsx`
 
 Critères d’acceptation :
-- [ ] Select « Rebalancement » (Aucun / Mensuel / Trimestriel / Annuel), aide « Ramène les poids à la cible ».
-- [ ] Ligne « Rebalancement » dans les hypothèses du résultat ; libellés en constantes de `features/backtest/constants.ts`.
+- [x] Select « Rebalancement » (Aucun / Mensuel / Trimestriel / Annuel), aide « Ramène les poids à la cible ».
+- [x] Ligne « Rebalancement » dans les hypothèses du résultat ; libellés en constantes de `features/backtest/constants.ts`.
 
 ### T-13 · Web : colonne « Côté » des ordres
 

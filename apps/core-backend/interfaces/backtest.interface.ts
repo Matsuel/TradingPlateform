@@ -32,6 +32,7 @@ export const createBacktestSchema = z
         // Montants dans la devise de saisie : capital versé le premier jour, puis versement mensuel (RECURRING seulement)
         initialAmount: z.number().min(0),
         recurringAmount: z.number().positive().optional(),
+        rebalanceFrequency: backtestRequestedPayloadSchema.shape.rebalanceFrequency.default("NONE"),
         // Pourcentage par ordre (0.1 = 0,1 %), stocké en fraction
         fee: z.number().min(0).max(100),
     })

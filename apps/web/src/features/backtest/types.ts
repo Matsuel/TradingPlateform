@@ -20,6 +20,8 @@ export type ExecutionStatus = BacktestStatus
 
 export type InvestmentMode = BacktestRequestedPayload["investmentMode"]
 
+export type RebalanceFrequency = BacktestRequestedPayload["rebalanceFrequency"]
+
 export interface BacktestExecution {
     id: string
     status: ExecutionStatus
@@ -55,6 +57,7 @@ export interface Backtest {
     startDate: string
     endDate: string
     investmentMode: InvestmentMode
+    rebalanceFrequency: RebalanceFrequency // NONE pour les backtests antérieurs au rebalancement
     feeRate: string // Decimal sérialisé en string, fraction par achat ("0.001" = 0,1 %)
     createdAt: string
     executions: BacktestExecution[] // la plus récente en premier
