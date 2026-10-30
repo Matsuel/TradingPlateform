@@ -2,10 +2,18 @@ import { apiFetch } from "@/lib/api";
 import type { Paginated } from "@trading-plateform/contracts";
 import type { PaginationParams } from "@/lib/pagination";
 import type { BacktestValues } from "./schema";
-import type { Backtest, BacktestDetails, BacktestExecution, BacktestListStats, ExecutionStatus } from "./types";
+import type { Backtest, BacktestDetails, BacktestPreview, BacktestExecution, BacktestListStats, ExecutionStatus } from "./types";
 
 export async function createBacktest(values: BacktestValues): Promise<Backtest> {
     return apiFetch<Backtest>("/backtest", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(values),
+    });
+}
+
+export async function previewBacktest(values: BacktestValues): Promise<BacktestPreview> {
+    return apiFetch<BacktestPreview>("/backtest/preview", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(values),

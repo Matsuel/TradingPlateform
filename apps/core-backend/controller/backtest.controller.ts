@@ -14,6 +14,12 @@ class BacktestController {
         res.status(202).json(backtest)
     }
 
+    previewBacktest = async (req: Request, res: Response) => {
+        const parsed = createBacktestSchema.safeParse(req.body)
+        if (!parsed.success) throw new BadRequestError("Invalid backtest", { issues: parsed.error.issues })
+        res.json(this.backtestService.preview(req.userId!, parsed.data))
+    }
+
     getBacktest = async (req: Request, res: Response) => {
         const result = await this.backtestService.getById(req.params.id as string, req.userId!)
         res.json(result)

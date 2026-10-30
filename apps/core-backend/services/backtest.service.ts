@@ -2,8 +2,10 @@ import { Logger } from "@trading-plateform/utils";
 import { createKafkaEvent } from "@trading-plateform/kafka";
 import {
     BACKTEST_TOPICS,
+    PRICE_DATA_SOURCE,
     type BacktestCompletedPayload,
     type BacktestFailedPayload,
+    type BacktestPreview,
     type BacktestRequestedPayload,
     type BacktestStartedPayload,
     type BacktestStats,
@@ -20,6 +22,40 @@ import type { Backtest, BacktestStatus } from "../generated/prisma/client";
 import type { BacktestListQuery, BacktestWithExecutions, CreateBacktestInput } from "../interfaces/backtest.interface";
 
 const logger = Logger.here()
+
+const DAY_MS = 24 * 60 * 60 * 1000
+
+/**
+ * Jours ouvrés (lundi–vendredi, `YYYY-MM-DD`) de `start` inclus à `end` exclu, comme l'intervalle de cours demandé
+ * par l'engine. Les dates du formulaire sont un minuit local sérialisé en UTC : l'arrondi au minuit UTC le plus proche
+ * retrouve le jour saisi pour tout fuseau à ±12 h. Jours fériés inconnus avant le chargement des cours : estimation.
+ */
+const businessDays = (start: Date, end: Date) => {
+    const days: string[] = []
+    for (let day = Math.round(start.getTime() / DAY_MS); day < Math.round(end.getTime() / DAY_MS); day++) {
+        const date = new Date(day * DAY_MS)
+        const weekday = date.getUTCDay()
+        if (weekday !== 0 && weekday !== 6) days.push(date.toISOString().slice(0, 10))
+    }
+    return days
+}
+
+// Clé de période d'un jour `YYYY-MM-DD` : même règle que `periodKey` de backtest-engine/engine/backtest.utils.ts,
+// recopiée car une app n'importe pas une autre ; à garder alignée si l'engine change ses périodes
+const periodKey = (date: string, frequency: Exclude<CreateBacktestInput["rebalanceFrequency"], "NONE">) => {
+    switch (frequency) {
+        case "MONTHLY":
+            return date.slice(0, 7)
+        case "QUARTERLY":
+            return `${date.slice(0, 4)}-Q${Math.ceil(Number(date.slice(5, 7)) / 3)}`
+        case "YEARLY":
+            return date.slice(0, 4)
+    }
+}
+
+/** Nombre de périodes distinctes rencontrées dans `days` (triés) : chacune commence à son premier jour. */
+const countPeriods = (days: string[], frequency: Parameters<typeof periodKey>[1]) =>
+    new Set(days.map((day) => periodKey(day, frequency))).size
 
 class BacktestService {
     repo: IBacktestRepository = new BacktestRepository()
@@ -47,6 +83,20 @@ class BacktestService {
         logger.info("Backtest created", { id: backtest.id, userId })
         await this.requestExecution(backtest, backtest.executions[0]!.id)
         return backtest
+    }
+
+    /**
+     * Prévisualise un backtest sans l'écrire ni appeler l'engine : versements et rebalancements prévus sur les jours ouvrés
+     * de la période (règles de l'engine : versement le premier jour puis, en `RECURRING`, au premier jour de chaque mois ;
+     * rebalancement au premier jour de chaque période, hors premier jour) et source des cours. Estimations calendaires :
+     * jours fériés et premier cours commun des symboles inconnus avant l'exécution.
+     */
+    preview(userId: string, input: CreateBacktestInput): BacktestPreview {
+        logger.info("Previewing backtest", { userId })
+        const days = businessDays(input.start, input.end)
+        const contributionCount = input.investmentMode === "RECURRING" ? countPeriods(days, "MONTHLY") : Math.min(days.length, 1)
+        const rebalanceCount = input.rebalanceFrequency === "NONE" ? 0 : Math.max(countPeriods(days, input.rebalanceFrequency) - 1, 0)
+        return { contributionCount, rebalanceCount, dataSource: PRICE_DATA_SOURCE }
     }
 
     /**

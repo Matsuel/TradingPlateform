@@ -1,6 +1,7 @@
 import type {
     Allocation,
     BacktestCompletedPayload,
+    BacktestPreview,
     BacktestRequestedPayload,
     BacktestStats,
     BacktestStatus,
@@ -15,6 +16,9 @@ import type {
 
 // Formes et unités des données du moteur : définies une seule fois dans les contrats
 export type { DataSource, ExecutionRule, Holding, LumpSumComparison, TradeSide }
+
+// Réponse de POST /api/backtest/preview : nombres prévus estimés sur le calendrier par core-backend
+export type { BacktestPreview }
 
 export type ExecutionStatus = BacktestStatus
 

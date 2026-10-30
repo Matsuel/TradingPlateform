@@ -31,7 +31,7 @@ Catalogue des routes HTTP exposées par core-backend (port 8000) et appelées pa
 - [Auth](#auth) : `ALL /api/auth/{*path}`
 - [Market (proxy)](#market-proxy) : `ALL /api/market/{*path}`
 - [Portfolio](#portfolio) : `POST`, `GET`, `GET /:id`, `PATCH /:id`, `DELETE /:id`
-- [Backtest](#backtest) : `POST`, `POST /:id/executions`, `GET /stats`, `GET /:id`, `GET`
+- [Backtest](#backtest) : `POST`, `POST /preview`, `POST /:id/executions`, `GET /stats`, `GET /:id`, `GET`
 
 ## Conventions communes
 
@@ -180,6 +180,22 @@ Les montants sont dans la devise saisie, affichée `EUR` par le web (`BACKTEST_C
 - **Effets** : écrit `Backtest` (`investmentMode`, `initialAmount`, `recurringAmount` ou null, `investmentFrequency: MONTHLY` en `RECURRING` et null sinon, `rebalanceFrequency`), ses `BacktestAllocation` (une ligne par actif, `weight` en ratio, création imbriquée dans la même transaction) et une `BacktestExecution` `PENDING`. Publie `backtest.requested` (clé `executionId`, payload `BacktestRequestedPayload` de `@trading-plateform/contracts`). Les événements `backtest.started|completed|failed` font ensuite évoluer l'exécution.
 - **Appelant** : `createBacktest(values)` de `apps/web/src/features/backtest/api.ts`, hook `useCreateBacktest()` (invalide `["backtest", "list"]` et `["backtest", "stats"]`) ; utilisé par `NewBacktestForm` et `QuickBacktestForm`.
 - **Source** : `routes/backtest/backtest.routes.ts`, `controller/backtest.controller.ts`, `services/backtest.service.ts`, `interfaces/backtest.interface.ts`.
+
+### POST /api/backtest/preview
+
+- **Auth** : session requise.
+- **Entrée** : body `createBacktestSchema`, identique à `POST /api/backtest` (mêmes champs, mêmes règles). Seuls `investmentMode`, `start`, `end` et `rebalanceFrequency` influent sur la réponse.
+- **Réponse** : `200`, `BacktestPreview` (`@trading-plateform/contracts`, partagé avec le web). **Estimations calendaires**, calculées par le service sans appel à l'engine : jours ouvrés du lundi au vendredi de `start` (inclus) à `end` (exclu), chaque date ramenée au minuit UTC le plus proche (jour saisi en heure locale) ; jours fériés et premier cours commun des symboles inconnus avant le chargement des cours, donc l'exécution peut différer d'une unité.
+  - `contributionCount` (int) : jours de versement ; `1` en `LUMP_SUM`, un par mois civil contenant un jour ouvré en `RECURRING` (le capital initial s'ajoute au premier) ; `0` sans jour ouvré ;
+  - `rebalanceCount` (int) : premier jour ouvré de chaque période `MONTHLY` / `QUARTERLY` / `YEARLY`, hors premier jour (règle D7 de l'engine) ; `0` pour `NONE` ;
+  - `dataSource` : `PRICE_DATA_SOURCE`, fournisseur et type des cours que chargera l'engine.
+  ```json
+  { "contributionCount": 12, "rebalanceCount": 3, "dataSource": { "provider": "yahoo-finance2", "priceType": "CLOSE_SPLIT_ADJUSTED" } }
+  ```
+- **Erreurs** : `400 { "error": "Invalid backtest", "issues": [ZodIssue] }` → mêmes issues que `POST /api/backtest` ; `401`.
+- **Effets** : aucun (ni écriture, ni événement).
+- **Appelant** : `previewBacktest(values)` de `apps/web/src/features/backtest/api.ts`, hook `useBacktestPreview(values)` (clé `["backtest", "preview", values]`, désactivé si `values` est `null`) ; utilisé par `BacktestPreviewSummary` (formulaire « Nouveau backtest »), appel débouncé.
+- **Source** : `routes/backtest/backtest.routes.ts`, `controller/backtest.controller.ts`, `services/backtest.service.ts` (`preview`, `businessDays`, `periodKey` recopiée de l'engine), `packages/contracts/src/backtest.ts`.
 
 ### POST /api/backtest/:id/executions
 

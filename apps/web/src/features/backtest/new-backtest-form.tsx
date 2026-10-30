@@ -10,6 +10,7 @@ import { apiIssues } from "@/lib/api"
 import { prefix } from "@/lib/path"
 import { DEFAULT_REBALANCE_FREQUENCY } from "./constants"
 import { useCreateBacktest } from "./hook"
+import { BacktestPreviewSummary } from "./preview-summary"
 import { backtestSchema, type BacktestValues } from "./schema"
 import { AllocationSection, GeneralSection } from "./sections"
 
@@ -34,21 +35,26 @@ export function NewBacktestForm() {
 
     return (
         <FormProvider {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-6">
-                <GeneralSection />
-                <AllocationSection />
+            <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
+                <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-6">
+                    <GeneralSection />
+                    <AllocationSection />
 
-                {error && <p className="text-sm text-destructive">{error.message}</p>}
+                    {error && <p className="text-sm text-destructive">{error.message}</p>}
 
-                <div className="flex justify-end">
-                    <Button
-                        type="submit"
-                        disabled={form.formState.isSubmitting || allocationTotal(allocations) !== FULL_PERCENT}
-                    >
-                        Lancer le backtest
-                    </Button>
+                    <div className="flex justify-end">
+                        <Button
+                            type="submit"
+                            disabled={form.formState.isSubmitting || allocationTotal(allocations) !== FULL_PERCENT}
+                        >
+                            Lancer le backtest
+                        </Button>
+                    </div>
+                </form>
+                <div className="lg:sticky lg:top-6">
+                    <BacktestPreviewSummary />
                 </div>
-            </form>
+            </div>
         </FormProvider>
     )
 }

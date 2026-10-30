@@ -1,5 +1,5 @@
 import YahooFinance from "yahoo-finance2";
-import type { DataSource } from "@trading-plateform/contracts";
+import { PRICE_DATA_SOURCE, type DataSource } from "@trading-plateform/contracts";
 import type { PricePoint, PriceSeries } from "../interfaces/backtest.interface";
 
 export interface IMarketRepository {
@@ -12,7 +12,7 @@ class MarketRepository implements IMarketRepository {
 
     private static yahooFinance = new YahooFinance({ suppressNotices: ["yahooSurvey"] });
 
-    readonly source = { provider: "yahoo-finance2", priceType: "CLOSE_SPLIT_ADJUSTED" } as const;
+    readonly source = PRICE_DATA_SOURCE;
 
     /**
      * Cours de clôture journaliers de chaque symbole entre `start` et `end` (yahoo-finance2), triés par date.
