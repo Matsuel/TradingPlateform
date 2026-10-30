@@ -39,7 +39,7 @@ Chaque élément a un fichier attitré ; copie la forme de `features/backtest` e
 
 | Fichier | Contenu |
 | --- | --- |
-| `types.ts` | Types alignés sur les réponses de core-backend (`Decimal` → `string`, dates → `string` ISO), unité en commentaire. |
+| `types.ts` | Types alignés sur les réponses de core-backend (`Decimal` → `string`, dates → `string` ISO), unité en commentaire. Une donnée décrite par un contrat est **dérivée** de `@trading-plateform/contracts` par `import type` (`Pick`, `Omit`, réexport), jamais recopiée ; jamais d'import runtime du package (zod n'est pas embarqué dans le front). |
 | `api.ts` | Fonctions `apiFetch`, une par route. Aucun `fetch` ailleurs. |
 | `hook.ts` | TanStack Query : clés `[domaine, "list"]`, `[domaine, "detail", id]` ; mutations qui invalident les clés des vues impactées. |
 | `schema.ts` | Schémas zod des formulaires. |
@@ -53,6 +53,8 @@ Règles :
 
 - Un formatter utilisé par ≥ 2 fichiers vit dans `lib/format.ts` ; un formatter propre à un seul composant (ticks d'un graphique) est une constante en tête de ce fichier.
 - Une mutation est instanciée **une fois** par écran, dans le composant d'écran ; les sections reçoivent l'action ou le bouton par props (`actions`).
+- `DataTable` : `query` pour des lignes issues d'une requête (états chargement / erreur), `rows` pour des lignes déjà en mémoire (sous-liste d'un détail chargé). Ne pas fabriquer un faux `query`.
+- Conversion `Decimal` → `number` : `fromDecimal` (`features/<domaine>/utils.ts`), qui garde `null` pour un champ absent.
 - Composants partagés : consulte `COMPONENTS.md`, réutilise-les en priorité (`DataTable`, `StatCard`, `PriceAreaChart`, `SymbolCell`, `PageHeader`). Un besoin manquant s'ajoute par une prop optionnelle rétrocompatible (slot `ReactNode` nommé `actions`, `badge`, `leading`), jamais par une copie. Ne modifie un composant `ui/` shadcn qu'en cas de besoin réel.
 - Formulaires : react-hook-form + schéma de `schema.ts` + champs de `components/form/fields`. Après création, redirige vers la page de détail de la ressource.
 - Server Component par défaut ; `"use client"` seulement si le fichier utilise hooks, état ou événements.

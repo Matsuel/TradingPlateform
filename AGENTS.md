@@ -73,6 +73,8 @@ Chaque app qui expose quelque chose de réutilisable tient un **catalogue** : co
 - TypeScript `strict`, ESM. `import type` pour les types (`verbatimModuleSyntax`). Pas de `any` dans le nouveau code.
 - Indentation 4 espaces dans les apps backend et packages ; `web` suit le style de ses fichiers voisins.
 - Logs via `Logger.here()` de `@trading-plateform/utils`.
+- **Documentation des fonctions** : chaque fonction ou composant exporté dont le rôle ne se lit pas dans son nom porte un JSDoc `/** */` : ce qu'il fait, unités, cas limites (`null`, erreur levée). Pas de JSDoc qui paraphrase la signature.
+- **Résultats stockés qui évoluent** : un champ ajouté à un résultat déjà en base est nullable (ou `@default`) côté Prisma et optionnel côté web ; l'écran affiche `<Dash />` ou masque la légende pour un résultat antérieur, sans recalculer la valeur.
 - Validation des entrées, messages et env avec `zod`.
 - **Base de données : Prisma Client uniquement** (`findMany`, `count`, `groupBy`, `$transaction`…), jamais de SQL écrit à la main (`$queryRaw`, `$executeRaw`, `Prisma.sql` et leurs variantes `Unsafe`). Une requête que l'API Prisma ne sait pas exprimer se règle par le modèle (relation ou champ dénormalisé, maintenu dans le repository), pas par du SQL. Seule exception : le SQL des fichiers de migration (`prisma/migrations/`), y compris un backfill de données.
 - Ne commit jamais de `.env` ni de secret.

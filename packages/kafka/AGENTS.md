@@ -5,6 +5,7 @@ Wrappers `kafkajs` génériques : `KafkaClient` (dont `ensureTopics`), `KafkaPro
 - Un fichier par classe ou sujet : `src/kafka.<nom>.ts`, config dans `src/config/`, tout réexporté par `src/index.ts`.
 - `KafkaConsumer.consume` écarte (log `warn`) un message vide ou non-JSON ; le handler reçoit un objet à valider avec zod, typé `unknown` côté app.
 - `ensureTopics` ne crée que les topics manquants.
+- `KafkaProducer.publish` compresse en GZIP : la limite du broker (~1 Mo par message) porte sur le message compressé. Un payload qui approche cette limite se réduit dans son contrat (pas de série dupliquée), pas en relevant la limite.
 - Les apps utilisent ces classes telles quelles ; pas de wrapper Kafka par app.
 
 ## Publier / consommer un événement
