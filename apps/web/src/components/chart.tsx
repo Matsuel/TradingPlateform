@@ -8,7 +8,8 @@ import { formatPrice, LOCALE } from "@/lib/format"
 const formatAxisPrice = (v: number) =>
     v.toLocaleString(LOCALE, { maximumFractionDigits: v < 10 ? 2 : 0 })
 
-export type PricePoint = { date: string; price: number }
+// compare : série de référence optionnelle, tracée en pointillés quand compareLabel est fourni
+export type PricePoint = { date: string; price: number; compare?: number }
 
 interface PriceAreaChartProps {
     data: PricePoint[]
@@ -17,6 +18,7 @@ interface PriceAreaChartProps {
     label?: string
     currency: string
     positive?: boolean // vert/rouge ; par défaut : dernier point ≥ premier
+    compareLabel?: string // nom de la série compare ; absent = pas de seconde courbe
     className?: string
 }
 
@@ -27,11 +29,13 @@ export function PriceAreaChart({
     label = "Prix",
     currency,
     positive = data.length < 2 || data[data.length - 1].price >= data[0].price,
+    compareLabel,
     className,
 }: PriceAreaChartProps) {
     const color = positive ? "#16a34a" : "var(--destructive)"
     const config = {
         price: { label, color },
+        compare: { label: compareLabel, color: "var(--muted-foreground)" },
     } satisfies ChartConfig
 
     return (
@@ -63,8 +67,11 @@ export function PriceAreaChart({
                             labelFormatter={(_, payload) =>
                                 payload?.[0] ? formatTooltipDate(payload[0].payload.date) : ""
                             }
-                            formatter={(value) => (
-                                <span className="text-body-medium">{formatPrice(Number(value), currency)}</span>
+                            formatter={(value, name) => (
+                                <span className="text-body-medium">
+                                    {compareLabel && `${config[name as keyof typeof config].label} : `}
+                                    {formatPrice(Number(value), currency)}
+                                </span>
                             )}
                         />
                     }
@@ -79,6 +86,18 @@ export function PriceAreaChart({
                     dot={false}
                     isAnimationActive={false}
                 />
+                {compareLabel && (
+                    <Area
+                        dataKey="compare"
+                        type="monotone"
+                        stroke="var(--color-compare)"
+                        strokeWidth={1.5}
+                        strokeDasharray="4 4"
+                        fill="none"
+                        dot={false}
+                        isAnimationActive={false}
+                    />
+                )}
             </AreaChart>
         </ChartContainer>
     )

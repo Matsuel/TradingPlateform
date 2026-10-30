@@ -15,7 +15,7 @@ import { statusBadges, strategyLabels } from "./constants"
 import { EquityChart } from "./equity-chart"
 import { ExecutionHistory } from "./execution-history"
 import { useBacktest, useRerunBacktest } from "./hook"
-import { BacktestResultStats } from "./stats"
+import { BacktestResultStats, LumpSumComparisonStats } from "./stats"
 import type { BacktestDetails } from "./types"
 import { getExecution, getExecutionDuration, isActive } from "./utils"
 
@@ -78,7 +78,8 @@ export function BacktestDetail({ id }: { id: string }) {
             {result ? (
                 <>
                     <BacktestResultStats result={result} />
-                    <EquityChart data={result.equityCurve} positive={Number(result.totalReturn) >= 0} />
+                    {result.lumpSumComparison && <LumpSumComparisonStats comparison={result.lumpSumComparison} />}
+                    <EquityChart data={result.equityCurve} positive={Number(result.totalReturn) >= 0} comparison={result.lumpSumComparison} />
                     <DataTable
                         query={{ ...query, data: result.holdings }}
                         columns={holdingColumns}

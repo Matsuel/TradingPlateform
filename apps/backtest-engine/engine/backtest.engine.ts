@@ -28,7 +28,7 @@ const periodKey = (date: string, frequency: BacktestParams["investmentFrequency"
  * Simule un portefeuille équipondéré sur les symboles demandés.
  * Les frais sont prélevés sur chaque achat ; les cours manquants sont reportés du dernier jour connu.
  */
-export default function runBacktest(params: BacktestParams, prices: PriceSeries): BacktestOutcome {
+function simulate(params: BacktestParams, prices: PriceSeries): Omit<BacktestOutcome, "lumpSumComparison"> {
     const { symbols, investmentMode, initialAmount, recurringAmount, investmentFrequency, feeRate } = params;
 
     const closes = new Map<string, Map<string, number>>();
@@ -124,5 +124,36 @@ export default function runBacktest(params: BacktestParams, prices: PriceSeries)
             quantity: round(shares.get(symbol)!, 6),
             value: round(shares.get(symbol)! * lastClose.get(symbol)!, 2),
         })),
+    };
+}
+
+/**
+ * Backtest complet. En DCA, rejoue le même total versé en un seul achat au premier jour :
+ * même capital, même période, mêmes frais, seule la répartition dans le temps change.
+ */
+export default function runBacktest(params: BacktestParams, prices: PriceSeries): BacktestOutcome {
+    const outcome = simulate(params, prices);
+    if (params.investmentMode !== "RECURRING") return { ...outcome, lumpSumComparison: null };
+
+    const lumpSum = simulate(
+        {
+            ...params,
+            investmentMode: "LUMP_SUM",
+            initialAmount: outcome.totalInvested,
+            recurringAmount: null,
+            investmentFrequency: null,
+        },
+        prices,
+    );
+
+    return {
+        ...outcome,
+        lumpSumComparison: {
+            finalValue: lumpSum.finalValue,
+            totalReturn: lumpSum.totalReturn,
+            maxDrawdown: lumpSum.maxDrawdown,
+            dcaAdvantage: round(outcome.finalValue - lumpSum.finalValue, 2),
+            equityCurve: lumpSum.equityCurve.map(({ date, value }) => ({ date, value })),
+        },
     };
 }

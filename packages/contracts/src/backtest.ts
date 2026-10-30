@@ -56,6 +56,18 @@ export const holdingSchema = z.object({
     value: z.number().min(0),
 });
 
+// Même total versé investi en une fois au premier jour de la simulation, mêmes frais
+export const lumpSumComparisonSchema = z.object({
+    finalValue: z.number(),
+    // Ratio
+    totalReturn: z.number(),
+    // Ratio ≤ 0
+    maxDrawdown: z.number().max(0),
+    // Valeur finale DCA − valeur finale investissement unique, devise saisie : > 0 si le DCA fait mieux
+    dcaAdvantage: z.number(),
+    equityCurve: z.array(equityPointSchema.pick({ date: true, value: true })),
+});
+
 export const backtestCompletedPayloadSchema = z.object({
     executionId: z.string().min(1),
     finishedAt: z.iso.datetime(),
@@ -72,6 +84,8 @@ export const backtestCompletedPayloadSchema = z.object({
     equityCurve: z.array(equityPointSchema),
     trades: z.array(tradeSchema),
     holdings: z.array(holdingSchema),
+    // null hors DCA : comparer un investissement unique à lui-même n'apporte rien
+    lumpSumComparison: lumpSumComparisonSchema.nullable(),
 });
 
 export const backtestFailedPayloadSchema = z.object({
@@ -90,5 +104,6 @@ export type BacktestStartedPayload = z.infer<typeof backtestStartedPayloadSchema
 export type EquityPoint = z.infer<typeof equityPointSchema>;
 export type Trade = z.infer<typeof tradeSchema>;
 export type Holding = z.infer<typeof holdingSchema>;
+export type LumpSumComparison = z.infer<typeof lumpSumComparisonSchema>;
 export type BacktestCompletedPayload = z.infer<typeof backtestCompletedPayloadSchema>;
 export type BacktestFailedPayload = z.infer<typeof backtestFailedPayloadSchema>;

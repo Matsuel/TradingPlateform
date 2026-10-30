@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { paginationQuerySchema, type BacktestCompletedPayload } from "@trading-plateform/contracts";
+import { paginationQuerySchema, type BacktestCompletedPayload, type LumpSumComparison } from "@trading-plateform/contracts";
 import { BacktestStatus, type BacktestResult, type Prisma } from "../generated/prisma/client";
 
 export const createBacktestSchema = z
@@ -32,16 +32,18 @@ export type BacktestListQuery = z.infer<typeof backtestListQuerySchema>;
 
 export type CreateBacktestDTO = Prisma.BacktestUncheckedCreateInput;
 
-// Courbe, ordres et positions omis des exécutions : seul le dernier résultat terminé les porte
+// Courbe, ordres, positions et comparaison omis des exécutions : seul le dernier résultat terminé les porte
 export type BacktestWithExecutions = Prisma.BacktestGetPayload<{
-    include: { executions: { include: { result: { omit: { equityCurve: true; trades: true; holdings: true } } } } };
+    include: { executions: { include: { result: { omit: { equityCurve: true; trades: true; holdings: true; lumpSumComparison: true } } } } };
 }>;
 
 export type BacktestDetails = BacktestWithExecutions & { result: BacktestResult | null };
 
-export type CompleteExecutionDTO = Omit<BacktestCompletedPayload, "executionId" | "finishedAt" | "maxDrawdownDate"> & {
+// lumpSumComparison absent plutôt que null : Prisma n'accepte pas null sur une colonne Json, absent = NULL en base
+export type CompleteExecutionDTO = Omit<BacktestCompletedPayload, "executionId" | "finishedAt" | "maxDrawdownDate" | "lumpSumComparison"> & {
     finishedAt: Date;
     maxDrawdownDate: Date | null;
+    lumpSumComparison?: LumpSumComparison;
 };
 
 // Comptes sur le statut de la dernière exécution de chaque backtest ; taux en fraction

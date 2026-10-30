@@ -2,7 +2,7 @@ import Dash from "@/components/custom/Dash"
 import { StatCard } from "@/components/stat-card"
 import { formatDay, formatPrice, formatRate, formatRatio } from "@/lib/format"
 import { BACKTEST_CURRENCY } from "./constants"
-import type { BacktestListStats, BacktestResult } from "./types"
+import type { BacktestListStats, BacktestResult, LumpSumComparison } from "./types"
 
 // Compteurs et taux calculés par le backend ; undefined pendant le chargement
 export function BacktestStats({ stats }: { stats: BacktestListStats | undefined }) {
@@ -57,6 +57,28 @@ export function BacktestResultStats({ result }: { result: BacktestResult }) {
                 label="Frais payés"
                 value={result.totalFees == null ? <Dash /> : formatPrice(Number(result.totalFees), BACKTEST_CURRENCY)}
                 caption="Inclus dans le montant investi"
+            />
+        </div>
+    )
+}
+
+// DCA face au même total investi en une fois : écart calculé par le moteur
+export function LumpSumComparisonStats({ comparison }: { comparison: LumpSumComparison }) {
+    const { finalValue, totalReturn, maxDrawdown, dcaAdvantage } = comparison
+
+    return (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <StatCard
+                label="Investissement unique"
+                value={formatPrice(finalValue, BACKTEST_CURRENCY)}
+                delta={formatRatio(totalReturn)}
+                trend={totalReturn >= 0 ? "up" : "down"}
+                caption={`Même total investi au premier jour · drawdown max ${formatRatio(maxDrawdown)}`}
+            />
+            <StatCard
+                label="Écart du DCA"
+                value={formatPrice(dcaAdvantage, BACKTEST_CURRENCY)}
+                caption={dcaAdvantage >= 0 ? "Le DCA fait mieux que l’investissement unique" : "L’investissement unique fait mieux que le DCA"}
             />
         </div>
     )

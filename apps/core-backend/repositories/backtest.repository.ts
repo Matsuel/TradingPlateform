@@ -17,7 +17,7 @@ export interface IBacktestRepository {
 const executionSummary = {
     // Dernière exécution en premier ; attempt départage deux createdAt identiques
     orderBy: [{ createdAt: "desc" }, { attempt: "desc" }],
-    include: { result: { omit: { equityCurve: true, trades: true, holdings: true } } },
+    include: { result: { omit: { equityCurve: true, trades: true, holdings: true, lumpSumComparison: true } } },
 } satisfies Prisma.Backtest$executionsArgs
 
 const latestExecution = {

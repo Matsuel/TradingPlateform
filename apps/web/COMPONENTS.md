@@ -386,17 +386,18 @@ Primitives shadcn (base-ui), voir la doc shadcn. Ne les modifie qu'en cas de bes
 ### PriceAreaChart
 
 - **Import** : `import { PriceAreaChart, type PricePoint } from "@/components/chart"`.
-- **Rôle** : courbe d'aire d'une série `PricePoint`, verte ou rouge ; l'appelant fournit la devise et les formats de date.
+- **Rôle** : courbe d'aire d'une série `PricePoint`, verte ou rouge ; seconde série `compare` optionnelle en pointillés ; l'appelant fournit la devise et les formats de date.
 - **Props** :
 
   | Nom | Type | Requis | Défaut | Description |
   | --- | --- | --- | --- | --- |
-  | `data` | `PricePoint[]` = `{ date: string; price: number }[]` | oui | — | Points, `date` ISO ou `YYYY-MM-DD`. |
+  | `data` | `PricePoint[]` = `{ date: string; price: number; compare?: number }[]` | oui | — | Points, `date` ISO ou `YYYY-MM-DD` ; `compare` = valeur de la série de référence. |
   | `formatTick` | `(date: string) => string` | oui | — | Libellés de l'axe X. |
   | `formatTooltipDate` | `(date: string) => string` | oui | — | Date de l'infobulle. |
   | `currency` | `string` | oui | — | Code ISO passé à `formatPrice` dans l'infobulle (`BACKTEST_CURRENCY`, `MARKET_CURRENCY`). |
   | `label` | `string` | non | `"Prix"` | Nom de la série. |
   | `positive` | `boolean` | non | dernier point ≥ premier | Couleur verte si vrai. |
+  | `compareLabel` | `string` | non | — | Nom de la série `compare` ; absent = pas de seconde courbe. Préfixe chaque valeur de l'infobulle par son nom. |
   | `className` | `string` | non | — | Sur `ChartContainer` (hauteur par défaut `h-82.5`). |
 
 - **Exemple** (tiré de `src/features/backtest/equity-chart.tsx`) :
@@ -914,17 +915,18 @@ Source : `src/features/auth/schema.ts`.
 ### EquityChart
 
 - **Import** : `import { EquityChart } from "@/features/backtest/equity-chart"`.
-- **Rôle** : carte « Courbe d'equity » : valeur du portefeuille dans le temps, en `BACKTEST_CURRENCY`.
+- **Rôle** : carte « Courbe d'equity » : valeur du portefeuille dans le temps, en `BACKTEST_CURRENCY` ; avec `comparison`, ajoute la courbe « Investissement unique » en pointillés (jointe par date).
 - **Props** :
 
   | Nom | Type | Requis | Défaut | Description |
   | --- | --- | --- | --- | --- |
   | `data` | `EquityPoint[]` | oui | — | `result.equityCurve` ; `value` tracée. |
   | `positive` | `boolean` | oui | — | Vert si plus-value (`totalReturn >= 0`). |
+  | `comparison` | `LumpSumComparison \| null` | non | — | `result.lumpSumComparison` ; null ou absent = courbe seule. |
 
 - **Exemple** (tiré de `src/features/backtest/backtest-detail.tsx`) :
   ```tsx
-  <EquityChart data={result.equityCurve} positive={Number(result.totalReturn) >= 0} />
+  <EquityChart data={result.equityCurve} positive={Number(result.totalReturn) >= 0} comparison={result.lumpSumComparison} />
   ```
 - **Utilisé par** : `src/features/backtest/backtest-detail.tsx`.
 - **Source** : `src/features/backtest/equity-chart.tsx`.
@@ -984,6 +986,23 @@ Source : `src/features/auth/schema.ts`.
 - **Exemple** (tiré de `src/features/backtest/backtest-detail.tsx`) :
   ```tsx
   <BacktestResultStats result={result} />
+  ```
+- **Utilisé par** : `src/features/backtest/backtest-detail.tsx`.
+- **Source** : `src/features/backtest/stats.tsx`.
+
+### LumpSumComparisonStats
+
+- **Import** : `import { LumpSumComparisonStats } from "@/features/backtest/stats"`.
+- **Rôle** : 2 `StatCard` comparant le DCA au même total investi en une fois : valeur finale de l'investissement unique (rendement, drawdown max) et écart du DCA (`dcaAdvantage`, calculé par le moteur).
+- **Props** :
+
+  | Nom | Type | Requis | Défaut | Description |
+  | --- | --- | --- | --- | --- |
+  | `comparison` | `LumpSumComparison` | oui | — | `result.lumpSumComparison` non null (DCA uniquement). |
+
+- **Exemple** (tiré de `src/features/backtest/backtest-detail.tsx`) :
+  ```tsx
+  {result.lumpSumComparison && <LumpSumComparisonStats comparison={result.lumpSumComparison} />}
   ```
 - **Utilisé par** : `src/features/backtest/backtest-detail.tsx`.
 - **Source** : `src/features/backtest/stats.tsx`.

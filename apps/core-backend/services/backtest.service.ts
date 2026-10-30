@@ -97,10 +97,11 @@ class BacktestService {
         logger.info(updated ? "Backtest execution running" : "Backtest started event ignored", { executionId })
     }
 
-    async complete({ executionId, finishedAt, maxDrawdownDate, ...result }: BacktestCompletedPayload) {
+    async complete({ executionId, finishedAt, maxDrawdownDate, lumpSumComparison, ...result }: BacktestCompletedPayload) {
         const updated = await this.repo.completeExecution(executionId, ACTIVE_STATUSES, {
             finishedAt: new Date(finishedAt),
             maxDrawdownDate: maxDrawdownDate ? new Date(maxDrawdownDate) : null,
+            ...(lumpSumComparison && { lumpSumComparison }),
             ...result,
         })
         logger.info(updated ? "Backtest execution completed" : "Backtest completed event ignored", { executionId })

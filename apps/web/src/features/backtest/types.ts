@@ -36,6 +36,15 @@ export interface Holding {
     value: number
 }
 
+// Même total versé investi en une fois au premier jour ; ratios en fraction
+export interface LumpSumComparison {
+    finalValue: number
+    totalReturn: number
+    maxDrawdown: number // ≤ 0
+    dcaAdvantage: number // valeur finale DCA − investissement unique : > 0 si le DCA fait mieux
+    equityCurve: { date: string; value: number }[] // mêmes dates que la courbe du DCA
+}
+
 // Decimal sérialisés en string ; ratios en fraction
 export interface BacktestResult {
     finalValue: string | null
@@ -48,6 +57,7 @@ export interface BacktestResult {
     equityCurve: EquityPoint[]
     trades: Trade[]
     holdings: Holding[] // vide pour les résultats antérieurs
+    lumpSumComparison: LumpSumComparison | null // null hors DCA et pour les résultats antérieurs
 }
 
 export interface Backtest {

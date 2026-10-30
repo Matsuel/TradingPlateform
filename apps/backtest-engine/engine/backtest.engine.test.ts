@@ -140,4 +140,65 @@ describe("runBacktest", () => {
     test("échoue sans données de marché", () => {
         expect(() => runBacktest(lumpSum, { AAA: [] })).toThrow("No market data for AAA");
     });
+
+    describe("comparaison avec l'investissement unique", () => {
+        const dca: BacktestParams = {
+            ...lumpSum,
+            investmentMode: "RECURRING",
+            initialAmount: 0,
+            recurringAmount: 100,
+            investmentFrequency: "MONTHLY",
+        };
+
+        test("absente hors DCA", () => {
+            const result = runBacktest(lumpSum, { AAA: [{ date: "2024-01-02", close: 10 }] });
+
+            expect(result.lumpSumComparison).toBeNull();
+        });
+
+        test("marché haussier : l'investissement unique fait mieux", () => {
+            const result = runBacktest(dca, {
+                AAA: [
+                    { date: "2024-01-02", close: 10 },
+                    { date: "2024-02-01", close: 20 },
+                    { date: "2024-03-01", close: 40 },
+                ],
+            });
+
+            // DCA : 10 + 5 + 2,5 titres = 700 ; unique : 300 € à 10 = 30 titres = 1200
+            expect(result.finalValue).toBe(700);
+            expect(result.lumpSumComparison).toMatchObject({ finalValue: 1200, totalReturn: 3, dcaAdvantage: -500 });
+        });
+
+        test("baisse puis reprise : le DCA fait mieux", () => {
+            const result = runBacktest(dca, {
+                AAA: [
+                    { date: "2024-01-02", close: 10 },
+                    { date: "2024-02-01", close: 5 },
+                    { date: "2024-03-01", close: 10 },
+                ],
+            });
+
+            // DCA : 10 + 20 + 10 titres = 400 ; unique : 30 titres = 300
+            expect(result.finalValue).toBe(400);
+            expect(result.lumpSumComparison).toMatchObject({ finalValue: 300, totalReturn: 0, maxDrawdown: -0.5, dcaAdvantage: 100 });
+        });
+
+        test("même capital et mêmes frais, courbe sur les mêmes dates", () => {
+            const prices = {
+                AAA: [
+                    { date: "2024-01-02", close: 10 },
+                    { date: "2024-02-01", close: 10 },
+                ],
+            };
+            const result = runBacktest({ ...dca, feeRate: 0.01 }, prices);
+
+            // 200 € versés dans les deux cas, 1 % de frais : 198 € investis
+            expect(result.lumpSumComparison!.finalValue).toBe(result.finalValue);
+            expect(result.lumpSumComparison!.equityCurve).toEqual([
+                { date: "2024-01-02", value: 198 },
+                { date: "2024-02-01", value: 198 },
+            ]);
+        });
+    });
 });
