@@ -4,7 +4,7 @@ import { referencePrices } from "./backtest.fixture";
 import type { BacktestParams } from "../interfaces/backtest.interface";
 
 const lumpSum: BacktestParams = {
-    symbols: ["AAA"],
+    allocations: [{ symbol: "AAA", weight: 1 }],
     investmentMode: "LUMP_SUM",
     initialAmount: 1000,
     recurringAmount: null,
@@ -57,7 +57,7 @@ describe("runBacktest", () => {
 
     test("total des frais calculé sur les frais non arrondis de chaque achat", () => {
         // 3 achats de 33,33… € à 0,1 % : 0,0333… € chacun, affiché 0,03 €, total exact 0,10 €
-        const result = runBacktest({ ...lumpSum, symbols: ["AAA", "BBB", "CCC"], initialAmount: 100, feeRate: 0.001 }, {
+        const result = runBacktest({ ...lumpSum, allocations: [{ symbol: "AAA", weight: 0.34 }, { symbol: "BBB", weight: 0.33 }, { symbol: "CCC", weight: 0.33 }], initialAmount: 100, feeRate: 0.001 }, {
             AAA: [{ date: "2024-01-02", close: 10 }],
             BBB: [{ date: "2024-01-02", close: 10 }],
             CCC: [{ date: "2024-01-02", close: 10 }],
@@ -83,7 +83,7 @@ describe("runBacktest", () => {
     });
 
     test("multi-symboles : départ commun et report du dernier cours", () => {
-        const result = runBacktest({ ...lumpSum, symbols: ["AAA", "BBB"] }, {
+        const result = runBacktest({ ...lumpSum, allocations: [{ symbol: "AAA", weight: 0.5 }, { symbol: "BBB", weight: 0.5 }] }, {
             AAA: [
                 { date: "2024-01-01", close: 10 },
                 { date: "2024-01-02", close: 10 },
@@ -104,7 +104,7 @@ describe("runBacktest", () => {
     });
 
     test("enregistre chaque achat avec cours, quantité, montant et frais", () => {
-        const result = runBacktest({ ...lumpSum, symbols: ["AAA", "BBB"], feeRate: 0.01 }, {
+        const result = runBacktest({ ...lumpSum, allocations: [{ symbol: "AAA", weight: 0.5 }, { symbol: "BBB", weight: 0.5 }], feeRate: 0.01 }, {
             AAA: [{ date: "2024-01-02", close: 10 }],
             BBB: [{ date: "2024-01-02", close: 50 }],
         });
@@ -214,7 +214,7 @@ describe("runBacktest", () => {
     });
 
     describe("reproductibilité", () => {
-        const params: BacktestParams = { ...dca, symbols: ["AAA", "BBB"], feeRate: 0.001 };
+        const params: BacktestParams = { ...dca, allocations: [{ symbol: "AAA", weight: 0.5 }, { symbol: "BBB", weight: 0.5 }], feeRate: 0.001 };
 
         test("mêmes paramètres et mêmes cours : résultat strictement identique", () => {
             expect(runBacktest(params, referencePrices)).toEqual(runBacktest(params, referencePrices));

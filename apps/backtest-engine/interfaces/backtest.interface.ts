@@ -11,7 +11,7 @@ export type PriceSeries = Record<string, PricePoint[]>;
 
 export type BacktestParams = Pick<
     BacktestRequestedPayload,
-    "symbols" | "investmentMode" | "initialAmount" | "recurringAmount" | "investmentFrequency" | "feeRate"
+    "allocations" | "investmentMode" | "initialAmount" | "recurringAmount" | "investmentFrequency" | "feeRate"
 >;
 
 // Résultat calculé par l'engine : le payload complet, sans ce que le service ajoute (identifiant, horloge, provenance des cours)

@@ -20,12 +20,12 @@ class BacktestService {
     async run(request: BacktestRequestedPayload): Promise<void> {
         const { executionId } = request;
 
-        logger.info("Backtest started", { executionId, symbols: request.symbols });
+        logger.info("Backtest started", { executionId, allocations: request.allocations });
         await this.publisher.started({ executionId, startedAt: new Date().toISOString() });
 
         try {
             const prices = await this.repo.getDailyCloses(
-                request.symbols,
+                request.allocations.map((allocation) => allocation.symbol),
                 new Date(request.startDate),
                 new Date(request.endDate),
             );

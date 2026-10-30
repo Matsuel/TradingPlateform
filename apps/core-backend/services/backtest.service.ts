@@ -2,6 +2,7 @@ import { Logger } from "@trading-plateform/utils";
 import { createKafkaEvent } from "@trading-plateform/kafka";
 import {
     BACKTEST_TOPICS,
+    type Allocation,
     type BacktestCompletedPayload,
     type BacktestFailedPayload,
     type BacktestRequestedPayload,
@@ -20,6 +21,16 @@ import type { Backtest, BacktestStatus } from "../generated/prisma/client";
 import type { BacktestListQuery, BacktestWithExecutions, CreateBacktestInput } from "../interfaces/backtest.interface";
 
 const logger = Logger.here()
+
+/**
+ * Répartit les symboles à parts égales au pourcent entier (D2) : `floor(100 / n)` % chacun,
+ * le reste ajouté 1 % par 1 % aux premiers symboles, pour une somme exactement égale à 1.
+ */
+function equalWeightAllocations(symbols: string[]): Allocation[] {
+    const base = Math.floor(100 / symbols.length)
+    const remainder = 100 - base * symbols.length
+    return symbols.map((symbol, index) => ({ symbol, weight: (base + (index < remainder ? 1 : 0)) / 100 }))
+}
 
 class BacktestService {
     repo: IBacktestRepository = new BacktestRepository()
@@ -139,7 +150,7 @@ class BacktestService {
             executionId,
             backtestId: backtest.id,
             userId: backtest.userId,
-            symbols: backtest.symbols,
+            allocations: equalWeightAllocations(backtest.symbols),
             startDate: backtest.startDate.toISOString(),
             endDate: backtest.endDate.toISOString(),
             investmentMode: backtest.investmentMode,

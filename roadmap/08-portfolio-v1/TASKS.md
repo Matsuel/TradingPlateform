@@ -123,8 +123,8 @@ flowchart LR
 - **Objet** : relire la section « Décisions » de `US.md`, trancher chaque point et corriger `US.md` si une décision change.
 
 Critères d’acceptation :
-- [ ] D1 à D10 sont validées ou amendées par écrit dans `US.md`.
-- [ ] La maquette 12.1 est alignée sur D8 (« Frais par ordre » au lieu de « Frais par achat ») ou l’écart est noté.
+- [x] D1 à D10 sont validées ou amendées par écrit dans `US.md` (D2 amendée : poids au pourcent entier).
+- [x] La maquette 12.1 est alignée sur D8 (« Frais par ordre » au lieu de « Frais par achat ») ou l’écart est noté : écart noté, la maquette garde « Frais par achat », le libellé du web suit D8 (T-08).
 
 ---
 
@@ -136,10 +136,10 @@ Critères d’acceptation :
 - **Fichiers** : `packages/contracts/src/backtest.ts`
 
 Critères d’acceptation :
-- [ ] `symbols` est remplacé par `allocations: z.array(allocationSchema).min(1)`, avec `allocationSchema = { symbol, weight }` ; `weight` commenté « Ratio : 0.6 = 60 % du portefeuille ».
-- [ ] `refine` : symboles uniques, chaque poids dans `]0, 1]`, somme égale à 1 à `1e-6` près (tolérance en constante nommée du contrat).
-- [ ] Type `Allocation` exporté par `z.infer`.
-- [ ] Producteur (core-backend) et consommateur (engine) compilent : adaptés dans le même diff, au minimum en équipondéré si T-02/T-05 ne sont pas encore livrés.
+- [x] `symbols` est remplacé par `allocations: z.array(allocationSchema).min(1)`, avec `allocationSchema = { symbol, weight }` ; `weight` commenté « Ratio : 0.6 = 60 % du portefeuille ».
+- [x] `refine` : symboles uniques, chaque poids dans `]0, 1]` et au pourcent près (D2), somme égale à 1 à `1e-6` près (tolérance en constante nommée du contrat).
+- [x] Type `Allocation` exporté par `z.infer`.
+- [x] Producteur (core-backend) et consommateur (engine) compilent : adaptés dans le même diff, au minimum en équipondéré si T-02/T-05 ne sont pas encore livrés.
 
 ### T-02 · Engine : simulation avec poids cibles
 

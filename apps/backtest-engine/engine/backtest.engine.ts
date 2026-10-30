@@ -15,7 +15,8 @@ type Simulation = Omit<BacktestOutcome, "lumpSumComparison" | "executionRule">;
  * Lève `BacktestError` sans données de marché ou si rien n'a été investi.
  */
 function simulate(params: BacktestParams, prices: PriceSeries): Simulation {
-    const { symbols, investmentMode, initialAmount, recurringAmount, investmentFrequency, feeRate } = params;
+    const { allocations, investmentMode, initialAmount, recurringAmount, investmentFrequency, feeRate } = params;
+    const symbols = allocations.map((allocation) => allocation.symbol);
 
     const closes = new Map<string, Map<string, number>>();
     for (const symbol of symbols) {

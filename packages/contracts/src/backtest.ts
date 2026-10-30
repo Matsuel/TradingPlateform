@@ -22,11 +22,34 @@ export interface BacktestStats {
     failedRate: number;
 }
 
+// Écart toléré sur la somme des poids et sur leur précision au pourcent : absorbe les erreurs d'arrondi flottant
+export const ALLOCATION_WEIGHT_TOLERANCE = 1e-6;
+
+export const allocationSchema = z.object({
+    symbol: z.string().min(1),
+    // Ratio : 0.6 = 60 % du portefeuille, au pourcent près (multiple de 0.01)
+    weight: z.number().gt(0).max(1),
+});
+
+export const allocationsSchema = z
+    .array(allocationSchema)
+    .min(1)
+    .refine((allocations) => new Set(allocations.map((a) => a.symbol)).size === allocations.length, {
+        message: "Symbols must be unique",
+    })
+    .refine(
+        (allocations) => allocations.every((a) => Math.abs(a.weight * 100 - Math.round(a.weight * 100)) < ALLOCATION_WEIGHT_TOLERANCE),
+        { message: "Weights must be whole percents" },
+    )
+    .refine((allocations) => Math.abs(allocations.reduce((sum, a) => sum + a.weight, 0) - 1) < ALLOCATION_WEIGHT_TOLERANCE, {
+        message: "Weights must sum to 1",
+    });
+
 export const backtestRequestedPayloadSchema = z.object({
     executionId: z.string().min(1),
     backtestId: z.string().min(1),
     userId: z.string().min(1),
-    symbols: z.array(z.string().min(1)).min(1),
+    allocations: allocationsSchema,
     startDate: z.iso.datetime(),
     endDate: z.iso.datetime(),
     investmentMode: z.enum(["LUMP_SUM", "RECURRING"]),
@@ -137,6 +160,7 @@ export const backtestCompletedEventSchema = kafkaEventSchema(backtestCompletedPa
 export const backtestFailedEventSchema = kafkaEventSchema(backtestFailedPayloadSchema);
 
 export type BacktestStatus = (typeof BACKTEST_STATUSES)[number];
+export type Allocation = z.infer<typeof allocationSchema>;
 export type BacktestRequestedPayload = z.infer<typeof backtestRequestedPayloadSchema>;
 export type BacktestStartedPayload = z.infer<typeof backtestStartedPayloadSchema>;
 export type EquityPoint = z.infer<typeof equityPointSchema>;
