@@ -1,5 +1,5 @@
-import type { Producer } from "kafkajs";
-import { KafkaMessage } from "./kafka.types";
+import { CompressionTypes, type Producer } from "kafkajs";
+import type { KafkaMessage } from "./kafka.types";
 
 export class KafkaProducer {
     constructor(private readonly producer: Producer) { }
@@ -14,6 +14,8 @@ export class KafkaProducer {
     ): Promise<void> {
         await this.producer.send({
             topic,
+            // La limite du broker (~1 Mo par défaut) s'applique au message compressé : un long backtest (courbes journalières) la dépasse en JSON brut
+            compression: CompressionTypes.GZIP,
             messages: [
                 {
                     key: message.key,

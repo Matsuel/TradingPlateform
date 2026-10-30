@@ -17,7 +17,7 @@ import {
 import { GalleryVerticalEnd } from "lucide-react";
 import Link from "next/link";
 import tabs from "@/constants/sidebar";
-import { User } from "better-auth";
+import type { User } from "better-auth";
 
 
 interface SidebarProps extends React.ComponentProps<typeof Sidebar> {

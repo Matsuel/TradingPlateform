@@ -10,6 +10,24 @@ const createBacktestRoutes = (): RouteDescriptor[] => {
 
     return [
         {
+            method: "post",
+            path: `${prefix}`,
+            middlewares: [authMiddleware],
+            handler: asyncHandler(controller.createBacktest)
+        },
+        {
+            method: "post",
+            path: `${prefix}/:id/executions`,
+            middlewares: [authMiddleware],
+            handler: asyncHandler(controller.rerunBacktest)
+        },
+        {
+            method: "get",
+            path: `${prefix}/stats`,
+            middlewares: [authMiddleware],
+            handler: asyncHandler(controller.getBacktestStats)
+        },
+        {
             method: "get",
             path: `${prefix}/:id`,
             middlewares: [authMiddleware],
@@ -19,7 +37,7 @@ const createBacktestRoutes = (): RouteDescriptor[] => {
             method: "get",
             path: `${prefix}`,
             middlewares: [authMiddleware],
-            handler: asyncHandler(controller.getAllBacktest)
+            handler: asyncHandler(controller.getAllBacktests)
         }
     ]
 }

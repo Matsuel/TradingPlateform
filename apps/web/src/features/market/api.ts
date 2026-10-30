@@ -1,11 +1,10 @@
 import { apiFetch } from "@/lib/api";
-import { MarketAsset, MarketData } from "./types";
+import type { Paginated, PaginationParams } from "@/lib/pagination";
+import type { MarketAsset, MarketData, MarketDetails, Period } from "./types";
 
-export type Period = "1d" | "1w" | "1m" | "1y" | "max"
-export type MarketDetails = { date: string; price: number } // les dates arrivent en string via le JSON
-
-export async function getDefaultAssets(): Promise<MarketAsset[]> {
-    return apiFetch<MarketAsset[]>("/market/defaults");
+export async function getDefaultAssets({ page, pageSize }: PaginationParams): Promise<Paginated<MarketAsset>> {
+    const params = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
+    return apiFetch<Paginated<MarketAsset>>(`/market/defaults?${params.toString()}`);
 }
 
 export async function getAssetsDetails(symbol: string, period: Period): Promise<MarketDetails[]> {

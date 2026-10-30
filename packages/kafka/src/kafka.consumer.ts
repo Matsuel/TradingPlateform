@@ -1,4 +1,7 @@
 import type { Consumer, EachMessagePayload } from "kafkajs";
+import { Logger } from "@trading-plateform/utils";
+
+const logger = Logger.here();
 
 export type MessageHandler<T> = (
     message: T,
@@ -25,11 +28,14 @@ export class KafkaConsumer {
             eachMessage: async (context) => {
                 const raw = context.message.value?.toString();
 
-                if (!raw) {
-                    throw new Error("Kafka message is empty");
+                // Message illisible : rejouer ne le réparera pas, on l'écarte sans bloquer la partition
+                let message: T;
+                try {
+                    message = JSON.parse(raw ?? "") as T;
+                } catch {
+                    logger.warn("Unreadable Kafka message skipped", { topic: context.topic, offset: context.message.offset });
+                    return;
                 }
-
-                const message = JSON.parse(raw) as T;
 
                 await handler(message, context);
             },

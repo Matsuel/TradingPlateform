@@ -21,7 +21,8 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 import { signOut } from "@/lib/auth"
-import { User } from "better-auth"
+import { authPaths, prefix } from "@/lib/path"
+import type { User } from "better-auth"
 import { ChevronsUpDownIcon, BadgeCheckIcon, LogOutIcon } from "lucide-react"
 import { useRouter } from "next/navigation"
 
@@ -76,7 +77,7 @@ export function NavUser({
             <DropdownMenuSeparator />
             <DropdownMenuGroup
               onClick={()=>{
-                router.push('/app/settings')
+                router.push(`${prefix}/settings`)
               }}
             >
               <DropdownMenuItem>
@@ -89,7 +90,7 @@ export function NavUser({
             <DropdownMenuItem
               onClick={async () => {
                 await signOut();
-                router.push("/login");
+                router.push(authPaths.login);
               }}
             >
               <LogOutIcon

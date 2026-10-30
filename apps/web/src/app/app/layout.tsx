@@ -2,7 +2,7 @@ import { AppSidebar } from '@/components/app-sidebar';
 import Header from '@/components/Header';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { hasAdminRole, requireSession } from '@/lib/session';
-import { Metadata } from 'next';
+import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
     title: "Trading platform",

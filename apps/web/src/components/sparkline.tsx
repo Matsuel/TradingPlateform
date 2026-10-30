@@ -1,12 +1,12 @@
 "use client"
 import { Line, LineChart, YAxis } from "recharts"
 import { ChartContainer, type ChartConfig } from "@/components/ui/chart"
-import { MarketDetails } from "@/features/market/types"
+import type { PricePoint } from "@/components/chart"
 
 const config = { value: { label: "Prix" } } satisfies ChartConfig
 
 type SparklineProps = {
-    data: MarketDetails[]
+    data: PricePoint[]
     positive: boolean
     className?: string
 }

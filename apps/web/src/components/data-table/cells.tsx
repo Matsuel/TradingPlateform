@@ -30,7 +30,7 @@ const parts = {
 
 type SymbolCellProps = VariantProps<typeof symbolVariants> & {
     symbol: string
-    name: string
+    name?: string
     logoUrl?: string
     className?: string
 }
@@ -41,14 +41,14 @@ export function SymbolCell({ symbol, name, logoUrl, size = "md", className }: Sy
     return (
         <div className={cn(symbolVariants({ size }), className)}>
             <Avatar className={p.avatar}>
-                <AvatarImage src={logoUrl} alt={`${name} logo`} />
+                <AvatarImage src={logoUrl} alt={`${name ?? symbol} logo`} />
                 <AvatarFallback className={cn(p.fallback, "text-muted-foreground")}>
                     {symbol.slice(0, 1)}
                 </AvatarFallback>
             </Avatar>
             <div className="flex flex-col">
                 <span className={p.symbol}>{symbol}</span>
-                <span className={cn(p.name, "text-muted-foreground")}>{name}</span>
+                {name && <span className={cn(p.name, "text-muted-foreground")}>{name}</span>}
             </div>
         </div>
     )

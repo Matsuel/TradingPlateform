@@ -22,6 +22,11 @@ enum InvestmentMode {
   RECURRING
 }
 
+// Règle d'exécution des achats simulés (contrat : EXECUTION_RULES)
+enum ExecutionRule {
+  CLOSE_ON_SCHEDULED_DAY
+}
+
 enum InvestmentFrequency {
   DAILY
   WEEKLY
@@ -142,7 +147,7 @@ model Backtest {
   updatedAt DateTime @updatedAt
 
   // Paramètres conservés pour relancer le même backtest
-  symbol              String
+  symbols             String[]
   startDate           DateTime
   endDate             DateTime
   investmentMode      InvestmentMode
@@ -151,8 +156,12 @@ model Backtest {
   investmentFrequency InvestmentFrequency?
   feeRate             Decimal              @default(0) @db.Decimal(8, 6)
 
-  user       User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  executions BacktestExecution[]
+  // Dernière exécution créée : permet de filtrer/compter par statut courant avec Prisma (mise à jour à chaque création d'exécution)
+  latestExecutionId String? @unique
+
+  user            User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  executions      BacktestExecution[] @relation("BacktestExecutions")
+  latestExecution BacktestExecution?  @relation("LatestExecution", fields: [latestExecutionId], references: [id], onDelete: SetNull)
 
   @@index([userId, createdAt])
 }
@@ -167,20 +176,43 @@ model BacktestExecution {
   error      String?
   createdAt  DateTime       @default(now())
 
-  backtest Backtest        @relation(fields: [backtestId], references: [id], onDelete: Cascade)
+  backtest Backtest        @relation("BacktestExecutions", fields: [backtestId], references: [id], onDelete: Cascade)
+  latestOf Backtest?       @relation("LatestExecution")
   result   BacktestResult?
 
+  @@unique([backtestId, attempt])
   @@index([backtestId, createdAt])
   @@index([status])
 }
 
 model BacktestResult {
-  id          String   @id @default(cuid())
-  executionId String   @unique
-  finalValue  Decimal? @db.Decimal(18, 2)
-  totalReturn Decimal? @db.Decimal(12, 6)
-  totalTrades Int      @default(0)
-  createdAt   DateTime @default(now())
+  id                String         @id @default(cuid())
+  executionId       String         @unique
+  finalValue        Decimal?       @db.Decimal(18, 2)
+  // Total versé, frais compris
+  totalInvested     Decimal?       @db.Decimal(18, 2)
+  // Frais prélevés sur les achats, devise saisie ; null pour les résultats antérieurs
+  totalFees         Decimal?       @db.Decimal(18, 2)
+  // Valeur finale − total versé, devise saisie ; null pour les résultats antérieurs
+  profit            Decimal?       @db.Decimal(18, 2)
+  totalReturn       Decimal?       @db.Decimal(12, 6)
+  totalTrades       Int            @default(0)
+  // Ratio ≤ 0, hors versements
+  maxDrawdown       Decimal?       @db.Decimal(12, 6)
+  maxDrawdownDate   DateTime?
+  // [{ date: "YYYY-MM-DD", value, invested, lumpSumValue? }], écrite une seule fois à la complétion
+  equityCurve       Json           @default("[]")
+  // [{ date: "YYYY-MM-DD", symbol, price, quantity, amount, fee }] : achats exécutés
+  trades            Json           @default("[]")
+  // [{ symbol, quantity, value }] : positions en fin de simulation, valorisées au dernier cours
+  holdings          Json           @default("[]")
+  // { finalValue, totalReturn, maxDrawdown, dcaAdvantage } : même total investi en une fois ; null hors DCA et pour les résultats antérieurs
+  lumpSumComparison Json?
+  // null pour les résultats antérieurs
+  executionRule     ExecutionRule?
+  // { provider, priceType, fetchedAt, fingerprint } : provenance des cours ; null pour les résultats antérieurs
+  dataSource        Json?
+  createdAt         DateTime       @default(now())
 
   execution BacktestExecution @relation(fields: [executionId], references: [id], onDelete: Cascade)
 }
