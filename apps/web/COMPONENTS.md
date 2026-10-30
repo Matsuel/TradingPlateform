@@ -1097,6 +1097,7 @@ Source : `src/features/backtest/schema.ts`.
 | `priceTypeLabels` | `Record<DataSource["priceType"], string>` : `CLOSE_SPLIT_ADJUSTED` → « Clôture ajustée des splits, hors dividendes » | Libellé du type de cours. | `assumptions.tsx` |
 | `BACKTEST_DISCLAIMER` | « Les performances passées ne préjugent pas des performances futures. Simulation pédagogique, pas un conseil en investissement. » | Avertissement affiché avec tout résultat. | `assumptions.tsx` |
 | `statusBadges` | `Record<ExecutionStatus, { label; variant: "outline" \| "destructive" \| "secondary" \| "success" }>` | Badge de statut d'exécution. | `column.tsx`, `backtest-detail.tsx`, `execution-history.tsx` |
+| `tradeSideBadges` | `Record<TradeSide, { label; variant: "success" \| "destructive" }>` : `BUY` → « Achat » (`success`), `SELL` → « Vente » (`destructive`) | Badge du côté d'un ordre ; `side` absent (résultat antérieur) lu comme `BUY` (D10). | `column.tsx` |
 | `statusFilters` | `{ all, running, done, failed }` → `{ label, statuses: ExecutionStatus[] }` | Onglets de filtre de la liste ; `statuses` envoyés en `status` à `getBacktests` (`all` = vide, aucun filtre). | `backtest-list.tsx` |
 | `StatusFilter` | `keyof typeof statusFilters` | Type de l'onglet actif. | `backtest-list.tsx` |
 
@@ -1123,7 +1124,7 @@ Source : `src/features/backtest/utils.ts`.
 | Export | Type | Colonnes | Utilisé par |
 | --- | --- | --- | --- |
 | `backtestColumns` | `Column<Backtest>[]` | Nom, Stratégie, Symboles (nombre), Période, Rendement (`totalReturn` × 100 via `ChangeCell`), Statut (badge), Durée. | `backtest-list.tsx` |
-| `tradeColumns` | `Column<Trade>[]` | Date, Symbole (`SymbolCell`), Prix d'achat (2 décimales, sans devise), Quantité (jusqu'à 6 décimales), Montant et Frais (`formatPrice` en `BACKTEST_CURRENCY`) ; `Dash` si absents (résultats antérieurs). | `backtest-detail.tsx` |
+| `tradeColumns` | `Column<Trade>[]` | Date, Symbole (`SymbolCell`), Côté (badge `tradeSideBadges`, « Achat » si `side` absent), Prix d'achat (2 décimales, sans devise), Quantité (jusqu'à 6 décimales), Montant et Frais (`formatPrice` en `BACKTEST_CURRENCY`) ; `Dash` si absents (résultats antérieurs). | `backtest-detail.tsx` |
 | `holdingColumns` | `Column<Holding>[]` | Symbole (`SymbolCell`), Quantité (jusqu'à 6 décimales), Valeur au dernier cours (`formatPrice` en `BACKTEST_CURRENCY`). | `backtest-detail.tsx` |
 
 Source : `src/features/backtest/column.tsx`.

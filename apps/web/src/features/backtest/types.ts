@@ -10,10 +10,11 @@ import type {
     Holding,
     LumpSumComparison,
     Trade as CompletedTrade,
+    TradeSide,
 } from "@trading-plateform/contracts"
 
 // Formes et unités des données du moteur : définies une seule fois dans les contrats
-export type { DataSource, EquityPoint, ExecutionRule, Holding, LumpSumComparison }
+export type { DataSource, EquityPoint, ExecutionRule, Holding, LumpSumComparison, TradeSide }
 
 export type ExecutionStatus = BacktestStatus
 
@@ -30,8 +31,8 @@ export interface BacktestExecution {
     result?: { totalReturn: string | null; totalTrades: number } | null // Decimal sérialisé en string, fraction (0,342 = 34,2 %)
 }
 
-// quantity, amount et fee absents des résultats antérieurs à leur calcul
-export type Trade = Pick<CompletedTrade, "date" | "symbol" | "price"> & Partial<Pick<CompletedTrade, "quantity" | "amount" | "fee">>
+// quantity, amount, fee et side absents des résultats antérieurs à leur calcul ; side absent = achat (D10)
+export type Trade = Pick<CompletedTrade, "date" | "symbol" | "price"> & Partial<Pick<CompletedTrade, "quantity" | "amount" | "fee" | "side">>
 
 // Colonnes Decimal : sérialisées en string par l'API, null pour les résultats antérieurs au champ ; ratios en fraction
 type DecimalField = "finalValue" | "totalInvested" | "totalFees" | "profit" | "totalReturn" | "maxDrawdown"

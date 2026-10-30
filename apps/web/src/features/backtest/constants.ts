@@ -1,4 +1,4 @@
-import type { DataSource, ExecutionRule, ExecutionStatus, InvestmentMode } from "./types"
+import type { DataSource, ExecutionRule, ExecutionStatus, InvestmentMode, TradeSide } from "./types"
 
 // Devise des montants saisis : les cours ne sont pas convertis
 export const BACKTEST_CURRENCY = "EUR"
@@ -38,6 +38,11 @@ export const statusBadges: Record<ExecutionStatus, { label: string; variant: "ou
     COMPLETED: { label: "Terminé", variant: "success" },
     FAILED: { label: "Échoué", variant: "destructive" },
     CANCELLED: { label: "Annulé", variant: "secondary" },
+}
+
+export const tradeSideBadges: Record<TradeSide, { label: string; variant: "success" | "destructive" }> = {
+    BUY: { label: "Achat", variant: "success" },
+    SELL: { label: "Vente", variant: "destructive" },
 }
 
 export const statusFilters = {
