@@ -313,8 +313,8 @@ Critères d’acceptation :
 - **Fichiers** : `packages/contracts/src/backtest.ts`
 
 Critères d’acceptation :
-- [ ] `backtest.completed` : `cagr`, `volatility`, `sharpeRatio` (nullables), `maxDrawdownPeakDate`, `maxDrawdownRecoveryDate`, `recoveryDays` (nullables), chacun avec son unité commentée.
-- [ ] `equityPointSchema.drawdown: z.number().max(0)` (ratio, TWR).
+- [x] `backtest.completed` : `cagr`, `volatility`, `sharpeRatio` (nullables), `maxDrawdownPeakDate`, `maxDrawdownRecoveryDate`, `recoveryDays` (nullables), chacun avec son unité commentée.
+- [x] `equityPointSchema.drawdown: z.number().max(0)` (ratio, TWR).
 
 ### T-17 · Engine : publier les métriques
 
@@ -322,9 +322,9 @@ Critères d’acceptation :
 - **Fichiers** : `engine/backtest.engine.ts`, `interfaces/backtest.interface.ts`, `publishers/backtest.publisher.ts`
 
 Critères d’acceptation :
-- [ ] `runBacktest` renvoie les nouvelles métriques et `drawdown` sur chaque point.
-- [ ] Taille du message `backtest.completed` mesurée sur 20 ans à 3 actifs, compressé : sous la limite du broker (valeur notée dans la PR).
-- [ ] Test de bout en bout de l’engine sur la fixture : métriques présentes et cohérentes (`maxDrawdown` = minimum des `drawdown`).
+- [x] `runBacktest` renvoie les nouvelles métriques et `drawdown` sur chaque point.
+- [x] Taille du message `backtest.completed` mesurée sur 20 ans à 3 actifs, compressé : sous la limite du broker (valeur notée dans la PR). Mesure (5 220 points, enveloppe comprise) : DCA mensuel + rebalancement trimestriel, 963 ordres : 625 Ko bruts, **104 Ko gzip** ; pire cas DCA quotidien + rebalancement mensuel, 16 380 ordres : 2,24 Mo bruts, **277 Ko gzip**. Limite broker `message.max.bytes` par défaut (1 048 588 octets, non surchargée dans `docker-compose.yml`), producteur en `CompressionTypes.GZIP`.
+- [x] Test de bout en bout de l’engine sur la fixture : métriques présentes et cohérentes (`maxDrawdown` = minimum des `drawdown`).
 
 ### T-18 · core-backend : colonnes de métriques
 

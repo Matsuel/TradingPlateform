@@ -109,7 +109,19 @@ class BacktestService {
     }
 
     /** `backtest.completed` : exécution active → `COMPLETED` et enregistrement du résultat, dans une transaction. */
-    async complete({ executionId, finishedAt, maxDrawdownDate, ...result }: BacktestCompletedPayload) {
+    async complete({
+        executionId,
+        finishedAt,
+        maxDrawdownDate,
+        // Métriques pas encore stockées (colonnes ajoutées par T-18) : écartées pour que Prisma ne rejette pas l'écriture
+        cagr: _cagr,
+        volatility: _volatility,
+        sharpeRatio: _sharpeRatio,
+        maxDrawdownPeakDate: _maxDrawdownPeakDate,
+        maxDrawdownRecoveryDate: _maxDrawdownRecoveryDate,
+        recoveryDays: _recoveryDays,
+        ...result
+    }: BacktestCompletedPayload) {
         const updated = await this.repo.completeExecution(executionId, ACTIVE_STATUSES, {
             finishedAt: new Date(finishedAt),
             maxDrawdownDate: maxDrawdownDate ? new Date(maxDrawdownDate) : null,

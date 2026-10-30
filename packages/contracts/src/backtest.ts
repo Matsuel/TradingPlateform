@@ -94,6 +94,8 @@ export const equityPointSchema = z.object({
     invested: z.number(),
     // Valeur du même total investi en une fois au premier jour (DCA uniquement), devise saisie
     lumpSumValue: z.number().optional(),
+    // Ratio ≤ 0 : baisse depuis le plus haut de l'indice TWR (hors versements), 0 sur un plus haut
+    drawdown: z.number().max(0),
 });
 
 // Montants d'un ordre arrondis au centime ; les totaux du résultat sont calculés sur les valeurs non arrondies
@@ -148,6 +150,18 @@ export const backtestCompletedPayloadSchema = z.object({
     // Ratio ≤ 0, mesuré hors versements (performance pondérée dans le temps)
     maxDrawdown: z.number().max(0),
     maxDrawdownDate: z.iso.date().nullable(),
+    // Plus haut précédant le creux du maxDrawdown, YYYY-MM-DD ; null sans baisse
+    maxDrawdownPeakDate: z.iso.date().nullable(),
+    // Premier jour où l'indice TWR retrouve ce plus haut, YYYY-MM-DD ; null si non récupéré ou sans baisse
+    maxDrawdownRecoveryDate: z.iso.date().nullable(),
+    // Jours calendaires du plus haut à la récupération ; null si non récupéré ou sans baisse
+    recoveryDays: z.number().int().min(0).nullable(),
+    // Ratio annuel (0.07 = +7 %/an) : rendement annualisé de l'indice TWR sur la durée calendaire (D3) ; null sous deux points
+    cagr: z.number().nullable(),
+    // Ratio annuel (0.15 = 15 %/an) : écart-type des rendements journaliers TWR × √252 (D4) ; null sous deux points
+    volatility: z.number().min(0).nullable(),
+    // Sans unité : (cagr − taux sans risque 0) / volatility (D5) ; null si volatilité nulle ou sous deux points
+    sharpeRatio: z.number().nullable(),
     equityCurve: z.array(equityPointSchema),
     trades: z.array(tradeSchema),
     holdings: z.array(holdingSchema),
