@@ -1,4 +1,5 @@
 import type {
+    Allocation,
     BacktestCompletedPayload,
     BacktestRequestedPayload,
     BacktestStats,
@@ -49,7 +50,7 @@ export type BacktestResult = Record<DecimalField, string | null> &
 export interface Backtest {
     id: string
     name: string
-    symbols: string[]
+    allocations: (Pick<Allocation, "symbol"> & { weight: string })[] // weight : Decimal sérialisé en string, ratio ("0.34" = 34 %)
     startDate: string
     endDate: string
     investmentMode: InvestmentMode

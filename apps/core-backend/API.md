@@ -163,7 +163,7 @@ Les montants sont dans la devise saisie, affichée `EUR` par le web (`BACKTEST_C
 - **Entrée** : body `createBacktestSchema` (`interfaces/backtest.interface.ts`) :
   - `name` : string non vide ;
   - `strategy` : `"dca"` (versement mensuel de `amount`) | `"lump_sum"` (versement unique de `amount`) ;
-  - `symbols` : string[] non vide ;
+  - `symbols` : string[] non vide, sans doublon ;
   - `start`, `end` : dates (coercées depuis ISO), `start < end` ;
   - `amount` : number > 0, devise de saisie ;
   - `fee` : number de 0 à 100, **pourcentage** par ordre (`0.1` = 0,1 %), stocké en `feeRate = fee / 100`.
@@ -174,7 +174,7 @@ Les montants sont dans la devise saisie, affichée `EUR` par le web (`BACKTEST_C
   ```json
   { "id": "cm…", "name": "Test rapide AAPL", "investmentMode": "RECURRING", "initialAmount": "0", "recurringAmount": "10000", "investmentFrequency": "MONTHLY", "feeRate": "0.001", "...": "…", "executions": [{ "id": "cm…", "status": "PENDING", "attempt": 1, "result": null, "...": "…" }] }
   ```
-- **Erreurs** : `400 { "error": "Invalid backtest", "issues": [ZodIssue] }` → body invalide (`end` avant `start` : issue sur `path: ["end"]`, `"Must be after start"`) ; `401` ; `500 { "error": "Backtest could not be queued" }` → publication Kafka impossible (le backtest reste créé, son exécution passe `FAILED`).
+- **Erreurs** : `400 { "error": "Invalid backtest", "issues": [ZodIssue] }` → body invalide (`end` avant `start` : issue sur `path: ["end"]`, `"Must be after start"` ; symbole en double : issue sur `path: ["symbols"]`, `"Symbols must be unique"`) ; `401` ; `500 { "error": "Backtest could not be queued" }` → publication Kafka impossible (le backtest reste créé, son exécution passe `FAILED`).
 - **Effets** : écrit `Backtest`, ses `BacktestAllocation` (`symbols` répartis à poids égaux au pourcent entier : `floor(100 / n)` %, le reste +1 % sur les premiers symboles ; ex. 3 symboles → 34/33/33) (`dca` → `investmentMode: RECURRING`, `initialAmount: 0`, `recurringAmount: amount`, `investmentFrequency: MONTHLY` ; `lump_sum` → `LUMP_SUM`, `initialAmount: amount`) et une `BacktestExecution` `PENDING`. Publie `backtest.requested` (clé `executionId`, payload `BacktestRequestedPayload` de `@trading-plateform/contracts`). Les événements `backtest.started|completed|failed` font ensuite évoluer l'exécution.
 - **Appelant** : `createBacktest(values)` de `apps/web/src/features/backtest/api.ts`, hook `useCreateBacktest()` (invalide `["backtest", "list"]` et `["backtest", "stats"]`) ; utilisé par `NewBacktestForm` et `QuickBacktestForm`.
 - **Source** : `routes/backtest/backtest.routes.ts`, `controller/backtest.controller.ts`, `services/backtest.service.ts`, `interfaces/backtest.interface.ts`.

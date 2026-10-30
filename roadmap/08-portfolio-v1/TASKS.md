@@ -147,11 +147,11 @@ Critères d’acceptation :
 - **Fichiers** : `apps/backtest-engine/engine/backtest.engine.ts`, `interfaces/backtest.interface.ts`, `engine/backtest.engine.test.ts`, `engine/backtest.fixture.ts`
 
 Critères d’acceptation :
-- [ ] Chaque versement est réparti selon `weight` (au lieu de `1 / symbols.length`), frais déduits de chaque ordre.
-- [ ] JSDoc de `simulate` mis à jour (« portefeuille équipondéré » remplacé par la règle des poids).
-- [ ] Test : versement de 10 000 € en 60/40 ⇒ montants d’ordre 6 000 / 4 000, frais compris.
-- [ ] Test de non-régression : poids égaux ⇒ résultat identique à la fixture actuelle.
-- [ ] Test de reproductibilité : mêmes entrées ⇒ même résultat et même empreinte.
+- [x] Chaque versement est réparti selon `weight` (au lieu de `1 / symbols.length`), frais déduits de chaque ordre.
+- [x] JSDoc de `simulate` mis à jour (« portefeuille équipondéré » remplacé par la règle des poids).
+- [x] Test : versement de 10 000 € en 60/40 ⇒ montants d’ordre 6 000 / 4 000, frais compris.
+- [x] Test de non-régression : poids égaux ⇒ résultat identique à la fixture actuelle.
+- [x] Test de reproductibilité : mêmes entrées ⇒ même résultat et même empreinte (empreinte non testée : elle ne hache que les cours, les poids ne la changent pas).
 
 ### T-03 · Engine : service et cours lus depuis `allocations`
 
@@ -159,8 +159,8 @@ Critères d’acceptation :
 - **Fichiers** : `apps/backtest-engine/services/backtest.service.ts`, `consumers/backtest.consumer.ts`
 
 Critères d’acceptation :
-- [ ] Les cours sont récupérés pour les symboles de `allocations`.
-- [ ] Un message aux poids invalides est loggué (`logger.warn`) et ignoré par le consumer, sans exception.
+- [x] Les cours sont récupérés pour les symboles de `allocations`.
+- [x] Un message aux poids invalides est loggué (`logger.warn`) et ignoré par le consumer, sans exception.
 
 ### T-04 · Base : table `BacktestAllocation` et migration
 
@@ -168,11 +168,11 @@ Critères d’acceptation :
 - **Fichiers** : `apps/core-backend/prisma/schema.prisma`, `prisma/migrations/<timestamp>_backtest_allocation/migration.sql`
 
 Critères d’acceptation :
-- [ ] Modèle `BacktestAllocation` : `id`, `backtestId`, `symbol`, `weight Decimal @db.Decimal(3, 2)` (commentaire : ratio au pourcent près, D2), `@@unique([backtestId, symbol])`, `onDelete: Cascade`.
-- [ ] Migration en trois étapes dans un seul fichier : création de la table, backfill équipondéré au pourcent entier depuis `Backtest.symbols` (`floor(100 / n)`, le reste réparti +1 % sur les premiers symboles : somme exactement 1), suppression de `symbols`.
-- [ ] Testée sur une copie de la base locale contenant des backtests : nombre de lignes d’allocation = somme des longueurs de `symbols`, somme des poids = 1 par backtest.
-- [ ] `bunx prisma migrate diff --from-schema-datasource prisma/schema.prisma --to-schema-datamodel prisma/schema.prisma --script` renvoie une migration vide.
-- [ ] `bun run db:generate` exécuté.
+- [x] Modèle `BacktestAllocation` : `id`, `backtestId`, `symbol`, `weight Decimal @db.Decimal(3, 2)` (commentaire : ratio au pourcent près, D2), `@@unique([backtestId, symbol])`, `onDelete: Cascade`.
+- [x] Migration en trois étapes dans un seul fichier : création de la table, backfill équipondéré au pourcent entier depuis `Backtest.symbols` (`floor(100 / n)`, le reste réparti +1 % sur les premiers symboles : somme exactement 1), suppression de `symbols`.
+- [x] Testée sur une copie de la base locale contenant des backtests : nombre de lignes d’allocation = somme des longueurs de `symbols`, somme des poids = 1 par backtest.
+- [x] `bunx prisma migrate diff --from-schema-datasource prisma/schema.prisma --to-schema-datamodel prisma/schema.prisma --script` renvoie une migration vide.
+- [x] `bun run db:generate` exécuté.
 
 > Suppression de colonne irréversible : faire un `pg_dump` de la base locale avant d’appliquer.
 
@@ -205,11 +205,11 @@ Critères d’acceptation :
 - **Fichiers** : `apps/web/src/components/` (champ de formulaire, à côté des champs existants) ou `features/backtest/` selon `COMPONENTS.md`, `COMPONENTS.md`
 
 Critères d’acceptation :
-- [ ] Une ligne par actif : symbole, nom, barre proportionnelle au poids, champ `%` entier (pas de 1, D2), bouton de suppression (maquette 12.1).
-- [ ] « + Ajouter un actif » ouvre la recherche de symboles existante (`symbol-search.tsx`) ; un symbole déjà présent n’est pas ajouté deux fois.
-- [ ] Badge « Total » : vert à 100 %, rouge sinon (la somme affichée est un affichage de saisie, la validation fait foi côté schéma).
-- [ ] Accessible au clavier, labels associés aux champs.
-- [ ] Entrée `COMPONENTS.md` (props, usage).
+- [x] Une ligne par actif : symbole, nom, barre proportionnelle au poids, champ `%` entier (pas de 1, D2), bouton de suppression (maquette 12.1).
+- [x] « + Ajouter un actif » ouvre la recherche de symboles existante (`symbol-search.tsx`) ; un symbole déjà présent n’est pas ajouté deux fois.
+- [x] Badge « Total » : vert à 100 %, rouge sinon (la somme affichée est un affichage de saisie, la validation fait foi côté schéma).
+- [x] Accessible au clavier, labels associés aux champs.
+- [x] Entrée `COMPONENTS.md` (props, usage).
 
 ### T-08 · Web : formulaire « Nouveau backtest » (maquette 12.1)
 

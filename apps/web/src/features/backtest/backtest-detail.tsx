@@ -74,7 +74,7 @@ export function BacktestDetail({ id }: { id: string }) {
                     actions={<Button onClick={() => rerun.mutate()} disabled={!canRerun}>Relancer</Button>}
                 />
                 <div className="flex flex-wrap items-center gap-2">
-                    {backtest.symbols.map((symbol) => (
+                    {backtest.allocations.map(({ symbol }) => (
                         <Badge key={symbol} variant="outline" className="h-auto py-1 px-2 text-xs">{symbol}</Badge>
                     ))}
                 </div>

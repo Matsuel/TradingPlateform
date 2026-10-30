@@ -16,7 +16,7 @@ const formatQuantity = new Intl.NumberFormat(LOCALE, { maximumFractionDigits: 6 
 export const backtestColumns: Column<Backtest>[] = [
     { header: "Nom", cell: (b) => <span className="text-body-medium">{b.name}</span> },
     { header: "Stratégie", cell: (b) => strategyLabels[b.investmentMode] },
-    { header: "Symboles", cell: (b) => `${b.symbols.length} symbole${b.symbols.length > 1 ? "s" : ""}` },
+    { header: "Symboles", cell: (b) => `${b.allocations.length} symbole${b.allocations.length > 1 ? "s" : ""}` },
     { header: "Période", cell: (b) => formatDayRange(b.startDate, b.endDate) },
     {
         header: "Rendement",

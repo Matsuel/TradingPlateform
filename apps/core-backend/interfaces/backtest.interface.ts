@@ -6,7 +6,10 @@ export const createBacktestSchema = z
     .object({
         name: z.string().min(1),
         strategy: z.enum(["dca", "lump_sum"]),
-        symbols: z.array(z.string().min(1)).min(1),
+        symbols: z
+            .array(z.string().min(1))
+            .min(1)
+            .refine((symbols) => new Set(symbols).size === symbols.length, { message: "Symbols must be unique" }),
         start: z.coerce.date(),
         end: z.coerce.date(),
         amount: z.number().positive(),
