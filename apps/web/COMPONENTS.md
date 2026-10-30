@@ -714,7 +714,7 @@ Props communes `BaseProps<T>` (exportées par `field.tsx`), répétées dans cha
 | `formatPrice` | `(v: number, currency: string) => string` | Montant dans la devise ISO **obligatoire** : `formatPrice(1234.5, "EUR")` → « 1 234,50 € ». | `components/chart.tsx`, `features/market/column.tsx`, `features/backtest/stats.tsx`, `features/backtest/column.tsx` |
 | `formatChange` | `(v: number) => string` | Nombre signé, 2 décimales, sans « % » : `1.5` → « +1,50 ». Pour un pourcentage déjà en %. | `components/data-table/cells.tsx`, `formatRatio` |
 | `formatRatio` | `(ratio: number) => string` | Ratio en **fraction** → variation signée en % : `0.342` → « +34,20 % ». Rendement, drawdown. | `features/backtest/stats.tsx`, `features/backtest/execution-history.tsx` |
-| `formatRate` | `(ratio: number) => string` | Proportion en **fraction** → % non signé, arrondi à l'unité : `0.3846` → « 38 % ». Taux de réussite/échec, poids d'allocation, axe du drawdown. | `features/backtest/stats.tsx`, `features/backtest/backtest-detail.tsx`, `features/backtest/result-overview.tsx` |
+| `formatRate` | `(ratio: number) => string` | Proportion en **fraction** → % non signé, arrondi à l'unité : `0.3846` → « 38 % ». Taux de réussite/échec, poids d'allocation, axe du drawdown. | `features/backtest/stats.tsx`, `features/backtest/utils.ts`, `features/backtest/result-overview.tsx` |
 | `formatPercent` | `(ratio: number) => string` | Taux en **fraction** → % non signé, jusqu'à 2 décimales : `0.001` → « 0,1 % », `0.1532` → « 15,32 % ». Frais, volatilité, taux sans risque. | `features/backtest/assumptions.tsx`, `features/backtest/stats.tsx` |
 | `formatVolume` | `(v: number) => string` | Notation compacte : `41234567` → « 41,23 M ». | `features/market/column.tsx` |
 | `formatDate` | `(d: string \| Date) => string` | Date et heure courtes : « 28/10/2026 09:00 ». | `features/backtest/execution-history.tsx`, `features/backtest/assumptions.tsx` |
@@ -1188,7 +1188,8 @@ Source : `src/features/backtest/constants.ts`.
 | `hasStatus` | `(b: Backtest, statuses: readonly ExecutionStatus[]) => boolean` | Statut de la dernière exécution dans la liste. | `hook.ts` |
 | `isActive` | `(e: BacktestExecution) => boolean` | Exécution `PENDING` ou `RUNNING`. | `backtest-detail.tsx`, `execution-history.tsx` |
 | `getExecutionDuration` | `(e: BacktestExecution) => string \| null` | Durée `finishedAt − (startedAt ?? createdAt)`, « 2 min 5 s » ou « 12 s » (minimum 1 s) ; `null` si non terminée. | `column.tsx`, `backtest-detail.tsx`, `execution-history.tsx` |
-| `fromDecimal` | `(value: string \| null \| undefined) => number \| null` | `Decimal` sérialisé → `number`, `null` ou absent → `null`. | `stats.tsx` |
+| `fromDecimal` | `(value: string \| null \| undefined) => number \| null` | `Decimal` sérialisé → `number`, `null` ou absent → `null`. | `stats.tsx`, `result-overview.tsx` |
+| `formatAllocation` | `(allocations: Backtest["allocations"]) => string` | Allocation lisible : « AAPL 60 % · MSFT 40 % » (`formatRate` du poids). | `column.tsx`, `backtest-detail.tsx` |
 
 Source : `src/features/backtest/utils.ts`.
 
@@ -1198,7 +1199,7 @@ Source : `src/features/backtest/utils.ts`.
 
 | Export | Type | Colonnes | Utilisé par |
 | --- | --- | --- | --- |
-| `backtestColumns` | `Column<Backtest>[]` | Nom, Stratégie, Symboles (nombre), Période, Rendement (`totalReturn` × 100 via `ChangeCell`), Statut (badge), Durée. | `backtest-list.tsx` |
+| `backtestColumns` | `Column<Backtest>[]` | Nom, Stratégie, Allocation (`formatAllocation`, tronquée, texte complet en `title`), Période, Rendement (`totalReturn` × 100 via `ChangeCell`), CAGR (`cagr` du résumé × 100 via `ChangeCell`, `<Dash />` si non terminé ou résultat antérieur), Statut (badge), Durée. | `backtest-list.tsx` |
 | `tradeColumns` | `Column<Trade>[]` | Date, Symbole (`SymbolCell`), Côté (badge `tradeSideBadges`, « Achat » si `side` absent), Prix (2 décimales, sans devise), Quantité (jusqu'à 6 décimales), Montant et Frais (`formatPrice` en `BACKTEST_CURRENCY`) ; `Dash` si absents (résultats antérieurs). | `backtest-detail.tsx` |
 | `holdingColumns` | `Column<Holding>[]` | Symbole (`SymbolCell`), Quantité (jusqu'à 6 décimales), Valeur au dernier cours (`formatPrice` en `BACKTEST_CURRENCY`). | `result-details.tsx` |
 
@@ -1213,7 +1214,7 @@ Source : `src/features/backtest/column.tsx`.
 | `ExecutionStatus` | contrat `BacktestStatus` : `"DRAFT" \| "PENDING" \| "RUNNING" \| "COMPLETED" \| "FAILED" \| "CANCELLED"` (`BACKTEST_STATUSES`, égal à l'enum Prisma) | `utils.ts`, `constants.ts`, `api.ts` |
 | `InvestmentMode` | `BacktestRequestedPayload["investmentMode"]` = `"LUMP_SUM" \| "RECURRING"` | `constants.ts` |
 | `RebalanceFrequency` | `BacktestRequestedPayload["rebalanceFrequency"]` = `"NONE" \| "MONTHLY" \| "QUARTERLY" \| "YEARLY"` | `constants.ts`, `schema.ts` |
-| `BacktestExecution` | `{ id, status, attempt, createdAt, startedAt, finishedAt, error, result?: { totalReturn: string \| null (fraction); totalTrades: number } \| null }` | `api.ts`, `utils.ts`, `execution-history.tsx` |
+| `BacktestExecution` | `{ id, status, attempt, createdAt, startedAt, finishedAt, error, result?: { totalReturn: string \| null (fraction); totalTrades: number; cagr?: string \| null (fraction annuelle, absent ou null pour les résultats antérieurs) } \| null }` | `api.ts`, `utils.ts`, `execution-history.tsx` |
 | `EquityPoint` | contrat, `drawdown` rendu optionnel : `{ date: "YYYY-MM-DD"; value; invested; lumpSumValue?: number; drawdown?: number }` (devise, `invested` frais compris, `lumpSumValue` en DCA, `drawdown` ratio ≤ 0 absent des résultats antérieurs) | `result-overview.tsx` |
 | `Trade` | contrat, `quantity`, `amount`, `fee` optionnels (absents des résultats antérieurs) | `column.tsx` |
 | `Holding` | contrat : `{ symbol; quantity; value }` (position finale au dernier cours) | `column.tsx` |

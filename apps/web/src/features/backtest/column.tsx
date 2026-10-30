@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge"
 import { formatDay, formatDayRange, formatPrice, LOCALE } from "@/lib/format"
 import { BACKTEST_CURRENCY, statusBadges, strategyLabels, tradeSideBadges } from "./constants"
 import type { Backtest, Holding, Trade } from "./types"
-import { getExecution, getExecutionDuration } from "./utils"
+import { formatAllocation, getExecution, getExecutionDuration } from "./utils"
 import Dash from "@/components/custom/Dash"
 
 // Cours de l'ordre sans devise : « 268,50 »
@@ -16,13 +16,28 @@ const formatQuantity = new Intl.NumberFormat(LOCALE, { maximumFractionDigits: 6 
 export const backtestColumns: Column<Backtest>[] = [
     { header: "Nom", cell: (b) => <span className="text-body-medium">{b.name}</span> },
     { header: "Stratégie", cell: (b) => strategyLabels[b.investmentMode] },
-    { header: "Symboles", cell: (b) => `${b.allocations.length} symbole${b.allocations.length > 1 ? "s" : ""}` },
+    {
+        header: "Allocation",
+        cell: (b) => {
+            const allocation = formatAllocation(b.allocations)
+            return <span className="block max-w-56 truncate" title={allocation}>{allocation}</span>
+        },
+    },
     { header: "Période", cell: (b) => formatDayRange(b.startDate, b.endDate) },
     {
         header: "Rendement",
         className: "text-right",
         cell: (b) => {
             const value = getExecution(b)?.result?.totalReturn
+            return value == null ? <Dash /> : <ChangeCell value={Number(value) * 100} />
+        },
+    },
+    {
+        header: "CAGR",
+        className: "text-right",
+        cell: (b) => {
+            // Dernière exécution non terminée ou résultat antérieur aux métriques : pas de CAGR
+            const value = getExecution(b)?.result?.cagr
             return value == null ? <Dash /> : <ChangeCell value={Number(value) * 100} />
         },
     },

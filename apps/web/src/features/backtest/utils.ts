@@ -1,3 +1,4 @@
+import { formatRate } from "@/lib/format"
 import { activeStatuses } from "./constants"
 import type { Backtest, BacktestExecution, ExecutionStatus } from "./types"
 
@@ -22,4 +23,8 @@ export function getExecutionDuration(e: BacktestExecution) {
 }
 
 /** Decimal sérialisé en string par l'API → number ; null ou absent → null (champ absent des résultats antérieurs). */
+/** Allocation lisible : « AAPL 60 % · MSFT 40 % » (poids en ratio, au pourcent entier, D2). */
+export const formatAllocation = (allocations: Backtest["allocations"]) =>
+    allocations.map(({ symbol, weight }) => `${symbol} ${formatRate(Number(weight))}`).join(" · ")
+
 export const fromDecimal = (value: string | null | undefined) => (value == null ? null : Number(value))

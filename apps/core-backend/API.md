@@ -246,11 +246,11 @@ Les montants sont dans la devise saisie, affichée `EUR` par le web (`BACKTEST_C
   ```
   GET /api/backtest?page=1&pageSize=20&status=PENDING,RUNNING
   ```
-- **Réponse** : `200`, `Paginated<BacktestWithExecutions>` ([Pagination](#pagination)) : backtests de l'utilisateur, plus récents d'abord (`createdAt desc`) ; chacun porte `executions` limité à **la dernière** exécution (avec résumé de résultat ou `null`).
+- **Réponse** : `200`, `Paginated<BacktestWithExecutions>` ([Pagination](#pagination)) : backtests de l'utilisateur, plus récents d'abord (`createdAt desc`) ; chacun porte son `allocations` et `executions` limité à **la dernière** exécution (avec résumé de résultat, cf. `GET /api/backtest/:id`, ou `null` : métriques dont `cagr`, sans `equityCurve`, `trades`, `holdings`, `lumpSumComparison` ni `benchmark`).
   ```json
   { "data": [{ "id": "cm…", "name": "…", "executions": [{ "status": "RUNNING", "attempt": 1, "result": null, "...": "…" }], "...": "…" }], "count": 6, "page": 1, "pageSize": 20 }
   ```
 - **Erreurs** : `400 { "error": "Invalid query", "issues": [ZodIssue] }` → pagination invalide ou `status` inconnu (`status=FOO`, `status=PENDING,`) ; `401`.
 - **Effets** : aucun.
-- **Appelant** : `getBacktests(params)` de `apps/web/src/features/backtest/api.ts`, hook `useBacktests(params)` (clé `["backtest", "list", params]`, `keepPreviousData`) ; utilisé par `BacktestList`.
+- **Appelant** : `getBacktests(params)` de `apps/web/src/features/backtest/api.ts`, hook `useBacktests(params)` (clé `["backtest", "list", params]`, `keepPreviousData`) ; utilisé par `BacktestList` (colonnes Allocation et CAGR).
 - **Source** : `routes/backtest/backtest.routes.ts`, `controller/backtest.controller.ts`, `services/backtest.service.ts`, `repositories/backtest.repository.ts`.

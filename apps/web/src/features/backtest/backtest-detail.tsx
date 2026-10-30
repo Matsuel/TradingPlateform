@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { PAGE_SIZE } from "@/constants/pagination"
-import { formatDayRange, formatRate } from "@/lib/format"
+import { formatDayRange } from "@/lib/format"
 import { paginate } from "@/lib/pagination"
 import { tradeColumns } from "./column"
 import { rebalanceFrequencyLabels, statusBadges, strategyLabels } from "./constants"
@@ -17,7 +17,7 @@ import { ResultDetails } from "./result-details"
 import { ResultOverview } from "./result-overview"
 import { BacktestResultBlocks } from "./stats"
 import type { BacktestDetails } from "./types"
-import { getExecution, getExecutionDuration, isActive } from "./utils"
+import { formatAllocation, getExecution, getExecutionDuration, isActive } from "./utils"
 
 // Ordres affichés avant « Voir les N ordres » : les plus récents
 const RECENT_TRADES = 5
@@ -27,7 +27,7 @@ function describe(backtest: BacktestDetails) {
     const duration = e?.status === "COMPLETED" && getExecutionDuration(e)
     return [
         strategyLabels[backtest.investmentMode],
-        backtest.allocations.map(({ symbol, weight }) => `${formatRate(Number(weight))} ${symbol}`).join(" · "),
+        formatAllocation(backtest.allocations),
         backtest.rebalanceFrequency !== "NONE" && `rebalancement ${rebalanceFrequencyLabels[backtest.rebalanceFrequency].toLowerCase()}`,
         backtest.benchmarkSymbol && `benchmark ${backtest.benchmarkSymbol}`,
         formatDayRange(backtest.startDate, backtest.endDate),

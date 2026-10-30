@@ -412,11 +412,11 @@ Critères d’acceptation :
 - **Fichiers** : `features/backtest/stats.tsx`, `equity-chart.tsx`, nouveau tableau dans `features/backtest/`
 
 Critères d’acceptation :
-- [ ] Badges d’écart sur les cartes KPI (« +1,3 pt »), lus dans `benchmark.excess*`, et légende « B : 16,1 % ».
-- [ ] Série « Benchmark » superposée sur la courbe de valeur, avec légende.
-- [ ] Tableau « Métriques comparées » : Rendement annualisé, Volatilité, Max drawdown, Durée de récupération, Sharpe ; colonnes Portefeuille / Benchmark.
-- [ ] Sans benchmark : badges, série et colonne masqués.
-- [ ] Aucun écart calculé côté web.
+- [x] ~~Badges d’écart sur les cartes KPI~~ : amendé par la refonte de l’écran de détail (maquette « 13 v2 · A », Figma `350:7214`) : plus de cartes KPI, la valeur du benchmark est une seconde colonne des blocs Performance et Risque (`BacktestResultBlocks`) ; rendement du benchmark rappelé sous la valeur finale. `benchmark.excess*` sera affiché par la page Comparaison (T-27).
+- [x] Série « Benchmark » superposée sur la courbe de valeur (pointillés, nommée dans l’infobulle) : `ResultOverview`.
+- [x] « Métriques comparées » : CAGR, rendement total, valeur finale (bloc Performance), volatilité, Sharpe, max drawdown, récupération (bloc Risque) ; colonnes Portefeuille / symbole du benchmark.
+- [x] Sans benchmark : colonne masquée, la série en pointillés redevient l’investissement unique (DCA).
+- [x] Aucun écart calculé côté web.
 
 ---
 
@@ -451,9 +451,9 @@ Critères d’acceptation :
 - **Fichiers** : `repositories/backtest.repository.ts`, `features/backtest/column.tsx`, `API.md`
 
 Critères d’acceptation :
-- [ ] `GET /api/backtests` inclut l’allocation et le `cagr` du dernier résultat, sans `equityCurve`, `trades`, `holdings`, `benchmark`.
-- [ ] Colonne « Allocation » : `AAPL 30 % · MSFT 30 % · IEF 40 %`, tronquée avec infobulle.
-- [ ] Colonne « CAGR » : `<Dash />` si non terminé ou résultat antérieur.
+- [x] `GET /api/backtest` inclut l’allocation et le `cagr` du dernier résultat, sans `equityCurve`, `trades`, `holdings`, `benchmark` : déjà le cas (`latestExecution` + `executionSummary` du repository) ; seule l’entrée `API.md` est précisée.
+- [x] Colonne « Allocation » : `AAPL 30 % · MSFT 30 % · IEF 40 %` (`formatAllocation`), tronquée avec infobulle native (`title`).
+- [x] Colonne « CAGR » : `<Dash />` si non terminé ou résultat antérieur.
 
 ### T-29 · Récapitulatif prévisionnel du formulaire
 

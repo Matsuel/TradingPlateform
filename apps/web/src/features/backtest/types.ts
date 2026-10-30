@@ -34,7 +34,8 @@ export interface BacktestExecution {
     startedAt: string | null
     finishedAt: string | null
     error: string | null
-    result?: { totalReturn: string | null; totalTrades: number } | null // Decimal sérialisé en string, fraction (0,342 = 34,2 %)
+    // Decimal sérialisé en string, fraction (0,342 = 34,2 %) ; cagr absent ou null pour les résultats antérieurs
+    result?: { totalReturn: string | null; totalTrades: number; cagr?: string | null } | null
 }
 
 // drawdown absent des résultats antérieurs à son calcul : la courbe de drawdown est alors masquée
