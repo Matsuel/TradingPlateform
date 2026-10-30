@@ -43,6 +43,7 @@ class BacktestService {
             investmentFrequency: input.investmentMode === "RECURRING" ? "MONTHLY" : null,
             rebalanceFrequency: input.rebalanceFrequency,
             feeRate: input.fee / 100,
+            benchmarkSymbol: input.benchmarkSymbol ?? null,
         })
         logger.info("Backtest created", { id: backtest.id, userId })
         await this.requestExecution(backtest, backtest.executions[0]!.id)
@@ -116,8 +117,6 @@ class BacktestService {
         maxDrawdownDate,
         maxDrawdownPeakDate,
         maxDrawdownRecoveryDate,
-        // Benchmark pas encore stocké (colonne ajoutée par T-23) : écarté pour que Prisma ne rejette pas l'écriture
-        benchmark: _benchmark,
         ...result
     }: BacktestCompletedPayload) {
         const updated = await this.repo.completeExecution(executionId, ACTIVE_STATUSES, {
@@ -160,8 +159,7 @@ class BacktestService {
             investmentFrequency: backtest.investmentFrequency,
             rebalanceFrequency: backtest.rebalanceFrequency,
             feeRate: backtest.feeRate.toNumber(),
-            // Pas encore stocké : colonne Backtest.benchmarkSymbol ajoutée par T-23
-            benchmarkSymbol: null,
+            benchmarkSymbol: backtest.benchmarkSymbol,
         }
         try {
             await producer.publish(BACKTEST_TOPICS.requested, {

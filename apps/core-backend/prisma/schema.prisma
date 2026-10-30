@@ -163,6 +163,8 @@ model Backtest {
   investmentFrequency InvestmentFrequency?
   rebalanceFrequency  RebalanceFrequency   @default(NONE)
   feeRate             Decimal              @default(0) @db.Decimal(8, 6)
+  // Symbole rejoué 100 % avec les mêmes versements, dates et frais (D9) ; null sans benchmark
+  benchmarkSymbol     String?
 
   // Dernière exécution créée : permet de filtrer/compter par statut courant avec Prisma (mise à jour à chaque création d'exécution)
   latestExecutionId String? @unique
@@ -241,6 +243,8 @@ model BacktestResult {
   holdings                Json           @default("[]")
   // { finalValue, totalReturn, maxDrawdown, dcaAdvantage } : même total investi en une fois ; null hors DCA et pour les résultats antérieurs
   lumpSumComparison       Json?
+  // { symbol, finalValue, totalReturn, cagr, volatility, sharpeRatio, maxDrawdown, recoveryDays, excessCagr, excessVolatility, excessMaxDrawdown, excessSharpe } : benchmark rejoué (D9) ; null sans benchmark et pour les résultats antérieurs
+  benchmark               Json?
   // null pour les résultats antérieurs
   executionRule           ExecutionRule?
   // { provider, priceType, fetchedAt, fingerprint } : provenance des cours ; null pour les résultats antérieurs
