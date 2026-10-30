@@ -168,8 +168,8 @@ Critères d’acceptation :
 - **Fichiers** : `apps/core-backend/prisma/schema.prisma`, `prisma/migrations/<timestamp>_backtest_allocation/migration.sql`
 
 Critères d’acceptation :
-- [ ] Modèle `BacktestAllocation` : `id`, `backtestId`, `symbol`, `weight Decimal @db.Decimal(8, 6)` (commentaire : ratio), `@@unique([backtestId, symbol])`, `onDelete: Cascade`.
-- [ ] Migration en trois étapes dans un seul fichier : création de la table, backfill équipondéré depuis `Backtest.symbols` (dernier poids ajusté pour que la somme fasse exactement 1), suppression de `symbols`.
+- [ ] Modèle `BacktestAllocation` : `id`, `backtestId`, `symbol`, `weight Decimal @db.Decimal(3, 2)` (commentaire : ratio au pourcent près, D2), `@@unique([backtestId, symbol])`, `onDelete: Cascade`.
+- [ ] Migration en trois étapes dans un seul fichier : création de la table, backfill équipondéré au pourcent entier depuis `Backtest.symbols` (`floor(100 / n)`, le reste réparti +1 % sur les premiers symboles : somme exactement 1), suppression de `symbols`.
 - [ ] Testée sur une copie de la base locale contenant des backtests : nombre de lignes d’allocation = somme des longueurs de `symbols`, somme des poids = 1 par backtest.
 - [ ] `bunx prisma migrate diff --from-schema-datasource prisma/schema.prisma --to-schema-datamodel prisma/schema.prisma --script` renvoie une migration vide.
 - [ ] `bun run db:generate` exécuté.
@@ -194,7 +194,7 @@ Critères d’acceptation :
 - **Fichiers** : `interfaces/backtest.interface.ts`, `services/backtest.service.ts`, `API.md`
 
 Critères d’acceptation :
-- [ ] `createBacktestSchema` : `name`, `investmentMode` (`LUMP_SUM` / `RECURRING`), `allocations: [{ symbol, weight }]` avec `weight` en pourcentage (0–100, converti en ratio par le schéma), `start`, `end`, `initialAmount`, `recurringAmount` (requis si `RECURRING`, interdit sinon), `fee` (%).
+- [ ] `createBacktestSchema` : `name`, `investmentMode` (`LUMP_SUM` / `RECURRING`), `allocations: [{ symbol, weight }]` avec `weight` en pourcent entier (`z.number().int()`, 1 à 100, converti en ratio par le schéma), `start`, `end`, `initialAmount`, `recurringAmount` (requis si `RECURRING`, interdit sinon), `fee` (%).
 - [ ] Somme des poids ≠ 100 % ⇒ 400 avec `path: ["allocations"]`.
 - [ ] Les anciens champs `strategy` et `amount` disparaissent ; le web est adapté dans T-08 (signaler la rupture d’API si T-08 n’est pas dans le même diff).
 - [ ] Entrée `API.md` : body, réponses, erreurs.
@@ -205,7 +205,7 @@ Critères d’acceptation :
 - **Fichiers** : `apps/web/src/components/` (champ de formulaire, à côté des champs existants) ou `features/backtest/` selon `COMPONENTS.md`, `COMPONENTS.md`
 
 Critères d’acceptation :
-- [ ] Une ligne par actif : symbole, nom, barre proportionnelle au poids, champ `%`, bouton de suppression (maquette 12.1).
+- [ ] Une ligne par actif : symbole, nom, barre proportionnelle au poids, champ `%` entier (pas de 1, D2), bouton de suppression (maquette 12.1).
 - [ ] « + Ajouter un actif » ouvre la recherche de symboles existante (`symbol-search.tsx`) ; un symbole déjà présent n’est pas ajouté deux fois.
 - [ ] Badge « Total » : vert à 100 %, rouge sinon (la somme affichée est un affichage de saisie, la validation fait foi côté schéma).
 - [ ] Accessible au clavier, labels associés aux champs.

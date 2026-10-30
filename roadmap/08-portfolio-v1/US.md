@@ -32,8 +32,8 @@ Ces choix structurent le contrat et la base. Ils sont proposés par défaut ; à
 
 | # | Sujet | Proposition | Raison |
 | --- | --- | --- | --- |
-| D1 | Stockage de l’allocation | Table `BacktestAllocation` (`backtestId`, `symbol`, `weight Decimal(8,6)`), unique `(backtestId, symbol)`. Migration : backfill équipondéré depuis `symbols`, puis suppression de `Backtest.symbols`. | Une seule source pour les actifs (règle « une signification, un seul endroit ») ; Prisma sait filtrer et inclure une relation. |
-| D2 | Poids | Ratios en fraction (`0.6`), somme = 1 à `1e-6` près, chaque poids dans `]0, 1]`, symboles uniques. Validé par zod côté API **et** dans le contrat. | Convention des ratios du dépôt. |
+| D1 | Stockage de l’allocation | Table `BacktestAllocation` (`backtestId`, `symbol`, `weight Decimal(3,2)`, ratio au pourcent près), unique `(backtestId, symbol)`. Migration : backfill équipondéré au pourcent entier depuis `symbols` (le reste de 100 réparti sur les premiers symboles), puis suppression de `Backtest.symbols`. **Validée.** | Une seule source pour les actifs (règle « une signification, un seul endroit ») ; Prisma sait filtrer et inclure une relation. |
+| D2 | Poids | Saisie et API au **pourcent entier** (1 à 100, somme = 100 exactement). Contrat et base en ratio (`0.6`), multiple de `0.01` : somme = 1 à `1e-6` près (tolérance flottante), chaque poids dans `]0, 1]`, symboles uniques. Validé par zod côté API **et** dans le contrat. **Validée (amendée : précision au pourcent).** | Convention des ratios du dépôt ; une précision plus fine n’apporte rien à l’utilisateur et complique la saisie. |
 | D3 | Rendement annualisé | CAGR calculé sur la performance pondérée dans le temps (TWR, hors versements), comme le drawdown actuel. | Comparable entre DCA, investissement unique et benchmark ; le rendement total actuel (profit / versé) reste affiché. |
 | D4 | Volatilité | Écart-type des rendements journaliers TWR × √252, annualisé. | Standard ; 252 jours de cotation par an en constante nommée de l’engine. |
 | D5 | Sharpe | (rendement annualisé − taux sans risque) / volatilité, avec **taux sans risque fixé à 0** en constante de l’engine et affiché dans les hypothèses. `null` si volatilité nulle. | Pas de série de taux disponible ; une constante visible vaut mieux qu’un paramètre non justifié. |
@@ -58,7 +58,7 @@ Chaque US touche toutes les couches concernées dans le même diff et met à jou
 
 Critères d’acceptation :
 - [ ] Chaque versement est réparti entre les actifs selon leurs poids cibles, frais déduits de chaque ordre.
-- [ ] Un panier sans poids explicite (backtests existants) donne exactement le résultat actuel (poids égaux) : test de non-régression sur la fixture existante.
+- [ ] Un panier aux poids égaux exactement représentables au pourcent (ex. 50/50, 25×4) donne exactement le résultat actuel : test de non-régression sur la fixture existante. Un panier de 3 actifs passe de 1/3 à 34/33/33 (D2) : seul un « Relancer » diffère légèrement, les résultats stockés ne changent pas.
 - [ ] Les poids invalides (somme ≠ 1, poids ≤ 0, symbole dupliqué) sont rejetés par le contrat ; le consumer de l’engine loggue et ignore le message.
 - [ ] Même entrée + mêmes cours ⇒ même résultat (test de reproductibilité étendu aux poids).
 
@@ -76,7 +76,7 @@ Critères d’acceptation :
 - [ ] Section « Allocation et période » : liste « Actifs et poids » avec, par ligne, symbole + nom, barre proportionnelle et champ `%` ; bouton « + Ajouter un actif » qui ouvre la recherche de symboles existante ; suppression d’une ligne.
 - [ ] Badge « Total » vert à 100 %, rouge sinon ; le bouton « Lancer le backtest » est désactivé tant que le total ≠ 100 %.
 - [ ] Section « Général » : « Mode d’investissement » (`Investissement unique` / `Investissement unique + versements mensuels`), « Versement mensuel (€) » visible seulement en DCA ; « Capital initial (€) » dans « Allocation et période », avec Début, Fin et « Frais par ordre (%) ».
-- [ ] L’API `POST /api/backtests` accepte `allocations` (poids en pourcentage côté formulaire, convertis en ratio par le schéma d’entrée du backend), `initialAmount`, `recurringAmount` ; erreurs zod renvoyées en 400 et affichées sous le champ.
+- [ ] L’API `POST /api/backtests` accepte `allocations` (poids en pourcent entier côté formulaire, convertis en ratio par le schéma d’entrée du backend), `initialAmount`, `recurringAmount` ; erreurs zod renvoyées en 400 et affichées sous le champ.
 - [ ] « Relancer » réutilise l’allocation persistée.
 
 Tâches :
