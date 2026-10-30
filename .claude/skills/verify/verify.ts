@@ -8,6 +8,11 @@ process.chdir(root);
 
 const git = async (...args: string[]) => (await Bun.$`git ${args}`.quiet().nothrow().text()).trim();
 const base = Bun.argv[2] ?? ((await git("merge-base", "HEAD", "develop")) || "HEAD");
+// Une base inconnue ferait un diff vide, donc un faux « aucun changement »
+if ((await Bun.$`git rev-parse --verify --quiet ${base}^{tree}`.quiet().nothrow()).exitCode !== 0) {
+    console.error(`Base inconnue : ${base}`);
+    process.exit(2);
+}
 
 const changed = [
     ...new Set([
@@ -127,10 +132,12 @@ const declared = addedIn(/^\s*export\s+(default\s+)?(const|function|type|interfa
     const name = entry.match(/(?:const|function|type|interface|class|enum)\s+(\w+)/)![1]!;
     return { file: file!, name };
 });
-for (const { file, name } of declared) {
-    // git grep -E est en POSIX ERE : pas de \s ni de \b
-    const pattern = `(const|function|type|interface|class|enum)[[:space:]]+${name}([^[:alnum:]_]|$)`;
-    const others = (await git("grep", "-lE", "--untracked", pattern, "--", "apps", "packages"))
+// Exports imposés par Next.js : un par page ou layout, par convention du framework
+const FRAMEWORK_EXPORTS = new Set(["metadata", "config", "proxy", "generateMetadata", "dynamic", "revalidate"]);
+for (const { file, name } of declared.filter(({ name }) => !FRAMEWORK_EXPORTS.has(name))) {
+    // Déclarations exportées seulement (pas les imports ni les variables locales) ; git grep -E est en POSIX ERE : pas de \s ni de \b
+    const pattern = `^[[:space:]]*export[[:space:]]+(default[[:space:]]+)?(declare[[:space:]]+)?(const|function|type|interface|class|enum)[[:space:]]+${name}([^[:alnum:]_]|$)`;
+    const others = (await git("grep", "-lE", "--untracked", pattern, "--", "apps/*.ts", "apps/*.tsx", "packages/*.ts", "packages/*.tsx"))
         .split("\n")
         .filter((other) => other && other !== file && !other.includes("/generated/"));
     if (others.length > 0) warnings.push(`\`${name}\` (${file}) est aussi déclaré dans ${others.join(", ")} : réutilise ou dérive au lieu de dupliquer.`);
