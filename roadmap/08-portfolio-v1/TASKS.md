@@ -461,10 +461,10 @@ Critères d’acceptation :
 - **Fichiers** : core-backend (service + route de prévisualisation), `features/backtest/` (panneau), `API.md`
 
 Critères d’acceptation :
-- [ ] Route de prévisualisation (ex. `POST /api/backtests/preview`, sans écriture) : nombre de versements et de rebalancements prévus, calculés par le service à partir du calendrier, sans appel à l’engine.
-- [ ] Panneau « Récapitulatif » de la maquette 12.1 : étapes Données / Simulation / Métriques, « Rebalancements prévus », « Versements prévus », « Source des données ».
-- [ ] Appel débouncé, panneau en `<Dash />` tant que le formulaire est invalide.
-- [ ] Les nombres prévus sont des estimations calendaires (jours fériés non connus avant les cours) : libellé explicite.
+- [x] Route de prévisualisation (ex. `POST /api/backtests/preview`, sans écriture) : nombre de versements et de rebalancements prévus, calculés par le service à partir du calendrier, sans appel à l’engine. Livrée en `POST /api/backtest/preview` (préfixe existant au singulier) ; vérifiée par appel direct du service (12 versements / 3 rebalancements trimestriels sur 2024 saisi depuis Paris).
+- [x] Panneau « Récapitulatif » de la maquette 12.1 : étapes Données / Simulation / Métriques, « Rebalancements prévus », « Versements prévus », « Source des données ». Rendu non vérifié dans un navigateur (tsc et lint seulement).
+- [x] Appel débouncé, panneau en `<Dash />` tant que le formulaire est invalide. Comportement à confirmer dans un navigateur.
+- [x] Les nombres prévus sont des estimations calendaires (jours fériés non connus avant les cours) : libellé explicite.
 
 ### T-30 · Documentation, limites et démo
 

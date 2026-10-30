@@ -1,6 +1,7 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createBacktest, getBacktest, getBacktests, getBacktestStats, rerunBacktest } from "./api";
+import { createBacktest, getBacktest, getBacktests, getBacktestStats, previewBacktest, rerunBacktest } from "./api";
 import { activeStatuses } from "./constants";
+import type { BacktestValues } from "./schema";
 import { hasStatus } from "./utils";
 
 export function useCreateBacktest() {
@@ -11,6 +12,16 @@ export function useCreateBacktest() {
             queryClient.invalidateQueries({ queryKey: ["backtest", "list"] }),
             queryClient.invalidateQueries({ queryKey: ["backtest", "stats"] }),
         ]),
+    })
+}
+
+// values null (formulaire invalide) : aucune requête
+export function useBacktestPreview(values: BacktestValues | null) {
+    return useQuery({
+        queryKey: ["backtest", "preview", values],
+        queryFn: () => previewBacktest(values!),
+        enabled: values !== null,
+        placeholderData: keepPreviousData, // garde les nombres affichés pendant le recalcul
     })
 }
 

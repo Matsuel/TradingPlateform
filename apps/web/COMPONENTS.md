@@ -47,6 +47,7 @@ Module de fonctions, hooks, constantes ou types (`lib/*.ts`, `features/<domaine>
 - [Formulaires (`components/form`)](#formulaires-componentsform) : `AppField`, `TextField`, `NumberField`, `TextareaField`, `SelectField`, `DateField`, `CheckboxField`, `SwitchField`, `SymbolsField`, `AllocationField`, `FormSection`, `FieldRow`
 - [`lib`](#lib) : `format.ts`, `api.ts`, `pagination.ts`, `path.ts`, `utils.ts`, `auth.ts`, `session.ts`
 - [`constants`](#constants) : `pagination.ts`
+- [`hooks`](#hooks) : `use-debounced-value.ts`
 - [`features/auth`](#featuresauth)
 - [`features/backtest`](#featuresbacktest)
 - [`features/market`](#featuresmarket)
@@ -803,6 +804,18 @@ Source : `src/lib/session.ts`.
 
 Source : `src/constants/pagination.ts`.
 
+## `hooks`
+
+### `hooks/use-debounced-value.ts`
+
+- **Import** : `import { useDebouncedValue } from "@/hooks/use-debounced-value"`.
+
+| Export | Signature | Rôle | Utilisé par |
+| --- | --- | --- | --- |
+| `useDebouncedValue` | `<T>(value: T, delayMs: number) => T` | `value` recopiée après `delayMs` ms sans changement (debounce d'un appel API). Comparaison par référence : passer un objet de référence stable (`useWatch` + `compute`), sinon le délai repart à chaque rendu. | `features/backtest/preview-summary.tsx` |
+
+Source : `src/hooks/use-debounced-value.ts`.
+
 ## `features/auth`
 
 Écrans : `LoginForm`, `RegisterForm`. Données : `api.ts`, `hook.ts`, `schema.ts`. Même forme que `features/backtest` : react-hook-form + schéma zod + champs de `components/form`.
@@ -903,7 +916,7 @@ Source : `src/features/auth/schema.ts`.
 ### NewBacktestForm
 
 - **Import** : `import { NewBacktestForm } from "@/features/backtest/new-backtest-form"`.
-- **Rôle** : formulaire « Nouveau backtest » (maquette 12.1, `backtestSchema`, sections `GeneralSection` + `AllocationSection`, benchmark proposé `DEFAULT_BENCHMARK_SYMBOL`) ; « Lancer le backtest » désactivé tant que `allocationTotal` ≠ 100 ; un `400` du backend place chaque issue sous le champ de son chemin (`apiIssues` + `setError`) ; redirige vers le détail créé.
+- **Rôle** : formulaire « Nouveau backtest » (maquette 12.1, `backtestSchema`, sections `GeneralSection` + `AllocationSection`, benchmark proposé `DEFAULT_BENCHMARK_SYMBOL`, `BacktestPreviewSummary` à droite à partir de `lg`, empilé dessous sinon) ; « Lancer le backtest » désactivé tant que `allocationTotal` ≠ 100 ; un `400` du backend place chaque issue sous le champ de son chemin (`apiIssues` + `setError`) ; redirige vers le détail créé.
 - **Props** : aucune.
 - **Exemple** (tiré de `src/app/app/backtest/new/page.tsx`) :
   ```tsx
@@ -911,6 +924,18 @@ Source : `src/features/auth/schema.ts`.
   ```
 - **Utilisé par** : `src/app/app/backtest/new/page.tsx`.
 - **Source** : `src/features/backtest/new-backtest-form.tsx`.
+
+### BacktestPreviewSummary
+
+- **Import** : `import { BacktestPreviewSummary } from "@/features/backtest/preview-summary"`.
+- **Rôle** : carte « Récapitulatif » du formulaire « Nouveau backtest » (maquette 12.1), sous `FormProvider` d'un formulaire `BacktestValues` : étapes Données / Simulation / Métriques (`previewSteps`), puis « Rebalancements prévus », « Versements prévus » et « Source des données » (`dataProviderLabels` · `priceTypeLabels`) renvoyés par `useBacktestPreview` (estimations calendaires du backend, aucun calcul côté web) et mention « Estimation calendaire ». Valeurs validées par `backtestSchema.safeParse` dans `useWatch({ compute })`, appel débouncé de 500 ms (`useDebouncedValue`) ; `<Dash />` tant que le formulaire est invalide ou la réponse absente.
+- **Props** : aucune.
+- **Exemple** (tiré de `src/features/backtest/new-backtest-form.tsx`) :
+  ```tsx
+  <BacktestPreviewSummary />
+  ```
+- **Utilisé par** : `src/features/backtest/new-backtest-form.tsx`.
+- **Source** : `src/features/backtest/preview-summary.tsx`.
 
 ### QuickBacktestForm
 
@@ -1087,6 +1112,7 @@ Source : `src/features/auth/schema.ts`.
 | Export | Signature | Route (`apps/core-backend/API.md`) | Utilisé par |
 | --- | --- | --- | --- |
 | `createBacktest` | `(values: BacktestValues) => Promise<Backtest>` ; `benchmarkSymbols` envoyé en `benchmarkSymbol` (premier symbole, `null` si vide ou absent) | `POST /api/backtest` | `useCreateBacktest` |
+| `previewBacktest` | `(values: BacktestValues) => Promise<BacktestPreview>` | `POST /api/backtest/preview` | `useBacktestPreview` |
 | `getBacktests` | `(params: PaginationParams & { status: readonly ExecutionStatus[] }) => Promise<Paginated<Backtest>>` | `GET /api/backtest?page&pageSize&status` (`status` = statuts séparés par des virgules, omis si vide) | `useBacktests` |
 | `getBacktestStats` | `() => Promise<BacktestListStats>` | `GET /api/backtest/stats` | `useBacktestStats` |
 | `getBacktest` | `(id: string) => Promise<BacktestDetails>` | `GET /api/backtest/:id` | `useBacktest` |
@@ -1101,6 +1127,7 @@ Source : `src/features/backtest/api.ts`.
 | Export | Signature | Clé / comportement | Utilisé par |
 | --- | --- | --- | --- |
 | `useCreateBacktest` | `() => UseMutationResult<Backtest, Error, BacktestValues>` | Invalide `["backtest", "list"]` et `["backtest", "stats"]` au succès. | `new-backtest-form.tsx`, `quick-backtest-form.tsx` |
+| `useBacktestPreview` | `(values: BacktestValues \| null) => UseQueryResult<BacktestPreview>` | `["backtest", "preview", values]` ; désactivé si `values` est `null` (formulaire invalide) ; réponse précédente gardée pendant le recalcul (`keepPreviousData`). | `preview-summary.tsx` |
 | `useBacktests` | `(params: Parameters<typeof getBacktests>[0]) => UseQueryResult<Paginated<Backtest>>` | `["backtest", "list", params]` ; page précédente gardée pendant le chargement (`keepPreviousData`). | `backtest-list.tsx` |
 | `useBacktestStats` | `() => UseQueryResult<BacktestListStats>` | `["backtest", "stats"]`. | `backtest-list.tsx` |
 | `useBacktest` | `(id: string) => UseQueryResult<BacktestDetails>` | `["backtest", "detail", id]` ; rafraîchi toutes les 2 s tant que la dernière exécution est dans `activeStatuses`. | `backtest-detail.tsx` |
@@ -1137,8 +1164,9 @@ Source : `src/features/backtest/schema.ts`.
 | `NO_BENCHMARK_LABEL` | `"Aucun"` | Hypothèse « Benchmark » d'un backtest sans benchmark. | `assumptions.tsx` |
 | `strategyLabels` | `Record<InvestmentMode, string>` : `RECURRING` → « DCA mensuel », `LUMP_SUM` → « Lump sum » | Libellé de stratégie d'un backtest stocké. | `column.tsx`, `backtest-detail.tsx` |
 | `executionRuleLabels` | `Record<ExecutionRule, string>` : `CLOSE_ON_SCHEDULED_DAY` → « Achat à la clôture du premier jour de cotation de chaque échéance » | Libellé de la règle d'exécution d'un résultat. | `assumptions.tsx` |
-| `dataProviderLabels` | `Record<DataSource["provider"], string>` : `yahoo-finance2` → « Yahoo Finance » | Libellé du fournisseur de cours. | `assumptions.tsx` |
-| `priceTypeLabels` | `Record<DataSource["priceType"], string>` : `CLOSE_SPLIT_ADJUSTED` → « Clôture ajustée des splits, hors dividendes » | Libellé du type de cours. | `assumptions.tsx` |
+| `dataProviderLabels` | `Record<DataSource["provider"], string>` : `yahoo-finance2` → « Yahoo Finance » | Libellé du fournisseur de cours. | `assumptions.tsx`, `preview-summary.tsx` |
+| `priceTypeLabels` | `Record<DataSource["priceType"], string>` : `CLOSE_SPLIT_ADJUSTED` → « Clôture ajustée des splits, hors dividendes » | Libellé du type de cours. | `assumptions.tsx`, `preview-summary.tsx` |
+| `previewSteps` | `{ label; description }[]` : « Données », « Simulation », « Métriques » | Étapes d'une exécution affichées par le récapitulatif du formulaire. | `preview-summary.tsx` |
 | `RISK_FREE_RATE` | `0` | Taux sans risque du Sharpe en fraction, miroir d'affichage de la constante de l'engine (D5). | `stats.tsx`, `assumptions.tsx` |
 | `BACKTEST_DISCLAIMER` | « Les performances passées ne préjugent pas des performances futures. Simulation pédagogique, pas un conseil en investissement. » | Avertissement affiché avec tout résultat. | `assumptions.tsx` |
 | `statusBadges` | `Record<ExecutionStatus, { label; variant: "outline" \| "destructive" \| "secondary" \| "success" }>` | Badge de statut d'exécution. | `column.tsx`, `backtest-detail.tsx`, `execution-history.tsx` |
@@ -1192,6 +1220,7 @@ Source : `src/features/backtest/column.tsx`.
 | `DataSource` | contrat : `{ provider: "yahoo-finance2"; priceType: "CLOSE_SPLIT_ADJUSTED"; fetchedAt: string (ISO); fingerprint: string (SHA-256 hex) }` | `constants.ts` |
 | `BacktestResult` | `{ finalValue, totalInvested, totalFees, profit, totalReturn, maxDrawdown: string \| null; totalTrades; maxDrawdownDate: string \| null; equityCurve; trades; holdings; lumpSumComparison: LumpSumComparison \| null; benchmark?: Benchmark \| null (contrat, absent ou null pour les résultats antérieurs, null sans benchmark); executionRule: ExecutionRule \| null; dataSource: DataSource \| null }` (ratios en fraction ; hypothèses `null` pour les résultats antérieurs) | `stats.tsx`, `backtest-detail.tsx`, `assumptions.tsx` |
 | `Backtest` | `{ id, name, symbols, startDate, endDate, investmentMode, rebalanceFrequency: RebalanceFrequency ("NONE" pour les backtests antérieurs), feeRate: string (Decimal, fraction par achat), benchmarkSymbol: string \| null (null sans benchmark et pour les backtests antérieurs), createdAt, executions: BacktestExecution[] }` (plus récente d'abord) | `api.ts`, `utils.ts`, `column.tsx`, `assumptions.tsx` |
+| `BacktestPreview` | contrat : `{ contributionCount: number; rebalanceCount: number; dataSource: { provider; priceType } }` (estimations calendaires de `POST /api/backtest/preview`) | `api.ts`, `hook.ts` |
 | `BacktestListStats` | contrat `BacktestStats` : `{ total, active, completed, failed: number; completedRate, failedRate: number (fraction) }`, d'après le statut de la dernière exécution ; renommé pour ne pas masquer le composant `BacktestStats` | `api.ts`, `stats.tsx` |
 | `BacktestDetails` | `Backtest & { executions (toutes); result: BacktestResult \| null }` | `api.ts`, `backtest-detail.tsx` |
 

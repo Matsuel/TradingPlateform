@@ -83,6 +83,22 @@ export const dataSourceSchema = z.object({
     fingerprint: z.string().regex(/^[0-9a-f]{64}$/),
 });
 
+// Fournisseur et type des cours chargés par backtest-engine : déclarés par son repository, annoncés par la prévisualisation
+export const PRICE_DATA_SOURCE = {
+    provider: "yahoo-finance2",
+    priceType: "CLOSE_SPLIT_ADJUSTED",
+} as const satisfies Pick<z.infer<typeof dataSourceSchema>, "provider" | "priceType">;
+
+// Réponse de POST /api/backtest/preview : estimations calendaires (jours ouvrés lundi–vendredi, jours fériés
+// inconnus avant le chargement des cours), calculées par core-backend sans appel à l'engine
+export interface BacktestPreview {
+    // Nombre de jours de versement : 1 en LUMP_SUM ; en RECURRING, un par mois (le capital initial s'ajoute au premier)
+    contributionCount: number;
+    // Nombre de rebalancements : premier jour de chaque période de rebalanceFrequency, hors premier jour ; 0 pour NONE
+    rebalanceCount: number;
+    dataSource: typeof PRICE_DATA_SOURCE;
+}
+
 export const backtestStartedPayloadSchema = z.object({
     executionId: z.string().min(1),
     startedAt: z.iso.datetime(),

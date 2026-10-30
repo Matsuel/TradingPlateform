@@ -45,6 +45,13 @@ export const priceTypeLabels: Record<DataSource["priceType"], string> = {
     CLOSE_SPLIT_ADJUSTED: "Clôture ajustée des splits, hors dividendes",
 }
 
+// Étapes d'une exécution, dans l'ordre, affichées par le récapitulatif du formulaire (maquette 12.1)
+export const previewSteps = [
+    { label: "Données", description: "Cours de clôture journaliers des actifs" },
+    { label: "Simulation", description: "Versements, ordres et rebalancements" },
+    { label: "Métriques", description: "Rendement, risque et drawdown" },
+] as const
+
 // Taux sans risque du Sharpe, en fraction : miroir d'affichage de la constante de l'engine (D5)
 export const RISK_FREE_RATE = 0
 
