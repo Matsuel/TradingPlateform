@@ -9,6 +9,14 @@ export interface PricePoint {
 // Cours de clôture journaliers par symbole, triés par date
 export type PriceSeries = Record<string, PricePoint[]>;
 
+// Point de l'indice de performance pondérée dans le temps (TWR, hors versements), chaîné jour après jour
+export interface TwrPoint {
+    // YYYY-MM-DD
+    date: string;
+    // Base arbitraire (1 au premier jour) : seuls les rapports entre points comptent
+    index: number;
+}
+
 export type BacktestParams = Pick<
     BacktestRequestedPayload,
     "allocations" | "investmentMode" | "initialAmount" | "recurringAmount" | "investmentFrequency" | "rebalanceFrequency" | "feeRate"
