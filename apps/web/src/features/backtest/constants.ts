@@ -1,4 +1,4 @@
-import type { ExecutionStatus, InvestmentMode } from "./types"
+import type { DataSource, ExecutionRule, ExecutionStatus, InvestmentMode } from "./types"
 
 // Devise des montants saisis : les cours ne sont pas convertis
 export const BACKTEST_CURRENCY = "EUR"
@@ -15,6 +15,21 @@ export const strategyLabels: Record<InvestmentMode, string> = {
     RECURRING: "DCA mensuel",
     LUMP_SUM: "Lump sum",
 }
+
+export const executionRuleLabels: Record<ExecutionRule, string> = {
+    CLOSE_ON_SCHEDULED_DAY: "Achat à la clôture du premier jour de cotation de chaque échéance",
+}
+
+export const dataProviderLabels: Record<DataSource["provider"], string> = {
+    "yahoo-finance2": "Yahoo Finance",
+}
+
+export const priceTypeLabels: Record<DataSource["priceType"], string> = {
+    CLOSE_SPLIT_ADJUSTED: "Clôture ajustée des splits, hors dividendes",
+}
+
+export const BACKTEST_DISCLAIMER =
+    "Les performances passées ne préjugent pas des performances futures. Simulation pédagogique, pas un conseil en investissement."
 
 export const statusBadges: Record<ExecutionStatus, { label: string; variant: "outline" | "destructive" | "secondary" | "success" }> = {
     PENDING: { label: "En attente", variant: "outline" },

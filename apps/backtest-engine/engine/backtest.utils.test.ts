@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { createDrawdownTracker, periodKey, round } from "./backtest.utils";
+import { referencePrices } from "./backtest.fixture";
+import { createDrawdownTracker, fingerprintPrices, periodKey, round } from "./backtest.utils";
 
 describe("round", () => {
     test("arrondit au nombre de décimales demandé", () => {
@@ -42,5 +43,29 @@ describe("createDrawdownTracker", () => {
 
         expect(drawdown.maxDrawdown).toBe(0);
         expect(drawdown.maxDrawdownDate).toBeNull();
+    });
+});
+
+describe("fingerprintPrices", () => {
+    const prices = {
+        AAA: [{ date: "2024-01-02", close: 10 }],
+        BBB: [{ date: "2024-01-02", close: 50 }],
+    };
+
+    test("mêmes cours : même empreinte, quel que soit l'ordre des symboles", () => {
+        expect(fingerprintPrices(prices)).toBe(fingerprintPrices({ BBB: prices.BBB, AAA: prices.AAA }));
+        expect(fingerprintPrices(prices)).toMatch(/^[0-9a-f]{64}$/);
+    });
+
+    test("un cours, une date ou un symbole modifié change l'empreinte", () => {
+        const reference = fingerprintPrices(prices);
+
+        expect(fingerprintPrices({ ...prices, AAA: [{ date: "2024-01-02", close: 10.01 }] })).not.toBe(reference);
+        expect(fingerprintPrices({ ...prices, AAA: [{ date: "2024-01-03", close: 10 }] })).not.toBe(reference);
+        expect(fingerprintPrices({ AAA: prices.AAA, CCC: prices.BBB })).not.toBe(reference);
+    });
+
+    test("jeu de référence : empreinte figée", () => {
+        expect(fingerprintPrices(referencePrices)).toBe("7e2c42c9eda0d6ef5e7a5c69fce301c8c05395ce5e456b905485e310bdd96409");
     });
 });

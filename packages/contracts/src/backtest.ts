@@ -23,6 +23,21 @@ export const backtestRequestedPayloadSchema = z.object({
     feeRate: z.number().min(0).max(1),
 });
 
+// Règle d'exécution d'un achat simulé. MVP : décisions planifiées (versement DCA), connues à l'avance,
+// exécutées à la clôture du jour de cotation de l'échéance ; une décision fondée sur un cours s'exécutera en T+1
+export const EXECUTION_RULES = ["CLOSE_ON_SCHEDULED_DAY"] as const;
+
+// Provenance des cours utilisés par une exécution : rend le résultat explicable et comparable
+export const dataSourceSchema = z.object({
+    provider: z.enum(["yahoo-finance2"]),
+    // Clôture journalière ajustée des splits, pas des dividendes
+    priceType: z.enum(["CLOSE_SPLIT_ADJUSTED"]),
+    // Instant de récupération des cours
+    fetchedAt: z.iso.datetime(),
+    // SHA-256 hexadécimal des séries de cours : même empreinte = mêmes données d'entrée
+    fingerprint: z.string().regex(/^[0-9a-f]{64}$/),
+});
+
 export const backtestStartedPayloadSchema = z.object({
     executionId: z.string().min(1),
     startedAt: z.iso.datetime(),
@@ -92,6 +107,8 @@ export const backtestCompletedPayloadSchema = z.object({
     holdings: z.array(holdingSchema),
     // null hors DCA : comparer un investissement unique à lui-même n'apporte rien
     lumpSumComparison: lumpSumComparisonSchema.nullable(),
+    executionRule: z.enum(EXECUTION_RULES),
+    dataSource: dataSourceSchema,
 });
 
 export const backtestFailedPayloadSchema = z.object({
@@ -111,5 +128,7 @@ export type EquityPoint = z.infer<typeof equityPointSchema>;
 export type Trade = z.infer<typeof tradeSchema>;
 export type Holding = z.infer<typeof holdingSchema>;
 export type LumpSumComparison = z.infer<typeof lumpSumComparisonSchema>;
+export type ExecutionRule = (typeof EXECUTION_RULES)[number];
+export type DataSource = z.infer<typeof dataSourceSchema>;
 export type BacktestCompletedPayload = z.infer<typeof backtestCompletedPayloadSchema>;
 export type BacktestFailedPayload = z.infer<typeof backtestFailedPayloadSchema>;

@@ -14,5 +14,5 @@ export type BacktestParams = Pick<
     "symbols" | "investmentMode" | "initialAmount" | "recurringAmount" | "investmentFrequency" | "feeRate"
 >;
 
-// Résultat calculé par l'engine : le payload complet, sans ce que le service ajoute (identifiant, horloge)
-export type BacktestOutcome = Omit<BacktestCompletedPayload, "executionId" | "finishedAt">;
+// Résultat calculé par l'engine : le payload complet, sans ce que le service ajoute (identifiant, horloge, provenance des cours)
+export type BacktestOutcome = Omit<BacktestCompletedPayload, "executionId" | "finishedAt" | "dataSource">;

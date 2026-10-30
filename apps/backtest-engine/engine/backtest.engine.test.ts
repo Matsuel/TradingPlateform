@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import runBacktest from "./backtest.engine";
+import { referencePrices } from "./backtest.fixture";
 import type { BacktestParams } from "../interfaces/backtest.interface";
 
 const lumpSum: BacktestParams = {
@@ -204,6 +205,49 @@ describe("runBacktest", () => {
             expect(result.equityCurve).toEqual([
                 { date: "2024-01-02", value: 99, invested: 100, lumpSumValue: 198 },
                 { date: "2024-02-01", value: 198, invested: 200, lumpSumValue: 198 },
+            ]);
+        });
+    });
+
+    test("règle d'exécution publiée avec le résultat", () => {
+        expect(runBacktest(lumpSum, { AAA: [{ date: "2024-01-02", close: 10 }] }).executionRule).toBe("CLOSE_ON_SCHEDULED_DAY");
+    });
+
+    describe("reproductibilité", () => {
+        const params: BacktestParams = { ...dca, symbols: ["AAA", "BBB"], feeRate: 0.001 };
+
+        test("mêmes paramètres et mêmes cours : résultat strictement identique", () => {
+            expect(runBacktest(params, referencePrices)).toEqual(runBacktest(params, referencePrices));
+        });
+
+        test("n'altère pas les cours reçus", () => {
+            const before = structuredClone(referencePrices);
+            runBacktest(params, referencePrices);
+
+            expect(referencePrices).toEqual(before);
+        });
+
+        // Valeurs de référence figées : un écart signale un changement de calcul, à justifier puis à mettre à jour ici
+        test("jeu de référence : métriques figées", () => {
+            const { equityCurve, trades, holdings, ...metrics } = runBacktest(params, referencePrices);
+
+            expect(metrics).toEqual({
+                finalValue: 2449.7,
+                totalInvested: 2400,
+                totalFees: 2.4,
+                profit: 49.7,
+                totalReturn: 0.020708,
+                totalTrades: 48,
+                maxDrawdown: -0.295875,
+                maxDrawdownDate: "2023-07-07",
+                executionRule: "CLOSE_ON_SCHEDULED_DAY",
+                lumpSumComparison: { finalValue: 2363.86, totalReturn: -0.015058, maxDrawdown: -0.302102, dcaAdvantage: 85.84 },
+            });
+            expect(equityCurve).toHaveLength(520);
+            expect(trades).toHaveLength(48);
+            expect(holdings).toEqual([
+                { symbol: "AAA", quantity: 12.654115, value: 1079.4 },
+                { symbol: "BBB", quantity: 23.985752, value: 1370.31 },
             ]);
         });
     });

@@ -3,7 +3,7 @@ import BacktestError from "../errors/backtest.error";
 import type { BacktestOutcome, BacktestParams, PriceSeries } from "../interfaces/backtest.interface";
 import { createDrawdownTracker, periodKey, round } from "./backtest.utils";
 
-type Simulation = Omit<BacktestOutcome, "lumpSumComparison">;
+type Simulation = Omit<BacktestOutcome, "lumpSumComparison" | "executionRule">;
 
 /**
  * Simule un portefeuille équipondéré sur les symboles demandés, jour de cotation par jour de cotation.
@@ -115,7 +115,9 @@ function simulate(params: BacktestParams, prices: PriceSeries): Simulation {
  */
 export default function runBacktest(params: BacktestParams, prices: PriceSeries): BacktestOutcome {
     const outcome = simulate(params, prices);
-    if (params.investmentMode !== "RECURRING") return { ...outcome, lumpSumComparison: null };
+    // Seule règle du MVP : chaque versement est planifié, donc exécuté à la clôture du jour de l'échéance (README, look-ahead bias)
+    const executionRule = "CLOSE_ON_SCHEDULED_DAY";
+    if (params.investmentMode !== "RECURRING") return { ...outcome, executionRule, lumpSumComparison: null };
 
     const lumpSum = simulate(
         {
@@ -130,6 +132,7 @@ export default function runBacktest(params: BacktestParams, prices: PriceSeries)
 
     return {
         ...outcome,
+        executionRule,
         // Mêmes cours, même départ : les deux courbes ont exactement les mêmes dates, alignées par indice
         equityCurve: outcome.equityCurve.map((point, i) => ({ ...point, lumpSumValue: lumpSum.equityCurve[i]!.value })),
         lumpSumComparison: {

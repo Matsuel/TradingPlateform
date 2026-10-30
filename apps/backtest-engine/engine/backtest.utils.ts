@@ -1,4 +1,5 @@
-import type { BacktestParams } from "../interfaces/backtest.interface";
+import { createHash } from "node:crypto";
+import type { BacktestParams, PriceSeries } from "../interfaces/backtest.interface";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -60,4 +61,15 @@ export function createDrawdownTracker() {
             return maxDrawdownDate;
         },
     };
+}
+
+/**
+ * Empreinte SHA-256 (hexadécimal) des séries de cours : identifie exactement les données d'entrée d'une exécution.
+ * Canonique : indépendante de l'ordre des symboles ; change dès qu'un cours, une date ou un symbole change.
+ */
+export function fingerprintPrices(prices: PriceSeries): string {
+    const canonical = Object.keys(prices)
+        .sort()
+        .map((symbol) => [symbol, prices[symbol]!.map((point) => [point.date, point.close])]);
+    return createHash("sha256").update(JSON.stringify(canonical)).digest("hex");
 }

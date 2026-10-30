@@ -10,6 +10,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { PAGE_SIZE } from "@/constants/pagination"
 import { formatDayRange } from "@/lib/format"
 import { paginate } from "@/lib/pagination"
+import { BacktestAssumptions } from "./assumptions"
 import { holdingColumns, tradeColumns } from "./column"
 import { statusBadges, strategyLabels } from "./constants"
 import { EquityChart } from "./equity-chart"
@@ -46,7 +47,7 @@ function NoResult({ backtest }: { backtest: BacktestDetails }) {
 
 /**
  * Écran de détail d'un backtest : en-tête et relance, métriques, comparaison DCA / investissement unique,
- * courbe, positions finales, ordres paginés et historique des exécutions. Rafraîchi tant qu'une exécution est active.
+ * hypothèses, courbe, positions finales, ordres paginés et historique des exécutions. Rafraîchi tant qu'une exécution est active.
  */
 export function BacktestDetail({ id }: { id: string }) {
     const query = useBacktest(id)
@@ -83,6 +84,7 @@ export function BacktestDetail({ id }: { id: string }) {
                 <>
                     <BacktestResultStats result={result} />
                     {result.lumpSumComparison && <LumpSumComparisonStats comparison={result.lumpSumComparison} />}
+                    <BacktestAssumptions backtest={backtest} result={result} />
                     <EquityChart data={result.equityCurve} positive={Number(result.totalReturn) >= 0} />
                     <DataTable
                         rows={result.holdings}

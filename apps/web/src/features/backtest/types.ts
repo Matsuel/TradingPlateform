@@ -1,14 +1,16 @@
 import type {
     BacktestCompletedPayload,
     BacktestRequestedPayload,
+    DataSource,
     EquityPoint,
+    ExecutionRule,
     Holding,
     LumpSumComparison,
     Trade as CompletedTrade,
 } from "@trading-plateform/contracts"
 
 // Formes et unités des données du moteur : définies une seule fois dans les contrats
-export type { EquityPoint, Holding, LumpSumComparison }
+export type { DataSource, EquityPoint, ExecutionRule, Holding, LumpSumComparison }
 
 export type ExecutionStatus = "PENDING" | "RUNNING" | "COMPLETED" | "FAILED" | "CANCELLED"
 
@@ -31,9 +33,13 @@ export type Trade = Pick<CompletedTrade, "date" | "symbol" | "price"> & Partial<
 // Colonnes Decimal : sérialisées en string par l'API, null pour les résultats antérieurs au champ ; ratios en fraction
 type DecimalField = "finalValue" | "totalInvested" | "totalFees" | "profit" | "totalReturn" | "maxDrawdown"
 
+// Hypothèses de calcul enregistrées avec le résultat, null pour les résultats antérieurs à leur ajout
+type AssumptionField = "executionRule" | "dataSource"
+
 // holdings vide et lumpSumComparison null pour les résultats antérieurs ; lumpSumComparison null hors DCA
 export type BacktestResult = Record<DecimalField, string | null> &
-    Pick<BacktestCompletedPayload, "totalTrades" | "equityCurve" | "holdings" | "lumpSumComparison"> & {
+    Pick<BacktestCompletedPayload, "totalTrades" | "equityCurve" | "holdings" | "lumpSumComparison"> &
+    { [K in AssumptionField]: BacktestCompletedPayload[K] | null } & {
         maxDrawdownDate: string | null // ISO
         trades: Trade[]
     }
@@ -45,6 +51,7 @@ export interface Backtest {
     startDate: string
     endDate: string
     investmentMode: InvestmentMode
+    feeRate: string // Decimal sérialisé en string, fraction par achat ("0.001" = 0,1 %)
     createdAt: string
     executions: BacktestExecution[] // la plus récente en premier
 }
