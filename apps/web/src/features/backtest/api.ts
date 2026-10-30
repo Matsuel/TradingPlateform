@@ -4,11 +4,12 @@ import type { PaginationParams } from "@/lib/pagination";
 import type { BacktestValues } from "./schema";
 import type { Backtest, BacktestDetails, BacktestExecution, BacktestListStats, ExecutionStatus } from "./types";
 
-export async function createBacktest(values: BacktestValues): Promise<Backtest> {
+// benchmarkSymbols vide ou absent : envoyé null (sans benchmark)
+export async function createBacktest({ benchmarkSymbols, ...values }: BacktestValues): Promise<Backtest> {
     return apiFetch<Backtest>("/backtest", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
+        body: JSON.stringify({ ...values, benchmarkSymbol: benchmarkSymbols?.[0] ?? null }),
     });
 }
 

@@ -35,6 +35,8 @@ export const createBacktestSchema = z
         rebalanceFrequency: backtestRequestedPayloadSchema.shape.rebalanceFrequency.default("NONE"),
         // Pourcentage par ordre (0.1 = 0,1 %), stocké en fraction
         fee: z.number().min(0).max(100),
+        // Symbole rejoué avec les mêmes versements et frais (D9) ; absent ou null sans benchmark
+        benchmarkSymbol: backtestRequestedPayloadSchema.shape.benchmarkSymbol.optional(),
     })
     .refine((v) => v.start < v.end, {
         path: ["end"],
@@ -68,9 +70,9 @@ export type BacktestListQuery = z.infer<typeof backtestListQuerySchema>;
 
 export type CreateBacktestDTO = Prisma.BacktestUncheckedCreateInput;
 
-// Courbe, ordres, positions et comparaison omis des exécutions : seul le dernier résultat terminé les porte
+// Courbe, ordres, positions et comparaisons omis des exécutions : seul le dernier résultat terminé les porte
 export type BacktestWithExecutions = Prisma.BacktestGetPayload<{
-    include: { allocations: true; executions: { include: { result: { omit: { equityCurve: true; trades: true; holdings: true; lumpSumComparison: true } } } } };
+    include: { allocations: true; executions: { include: { result: { omit: { equityCurve: true; trades: true; holdings: true; lumpSumComparison: true; benchmark: true } } } } };
 }>;
 
 export type BacktestDetails = BacktestWithExecutions & { result: BacktestResult | null };
@@ -82,8 +84,6 @@ export type CompleteExecutionDTO = Omit<
     | "maxDrawdownDate"
     | "maxDrawdownPeakDate"
     | "maxDrawdownRecoveryDate"
-    // Pas encore stocké : colonne ajoutée par T-23
-    | "benchmark"
 > & {
     finishedAt: Date;
     maxDrawdownDate: Date | null;

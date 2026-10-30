@@ -2,7 +2,7 @@
 
 import { useWatch } from "react-hook-form"
 
-import { AllocationField, DateField, FieldRow, FormSection, NumberField, SelectField, TextField } from "@/components/form"
+import { AllocationField, DateField, FieldRow, FormSection, NumberField, SelectField, SymbolsField, TextField } from "@/components/form"
 import { investmentModeOptions, rebalanceFrequencyOptions } from "./constants"
 
 export function GeneralSection() {
@@ -34,6 +34,13 @@ export function AllocationSection() {
                 label="Rebalancement"
                 description="Ramène les poids à la cible"
                 options={rebalanceFrequencyOptions}
+            />
+            <SymbolsField
+                name="benchmarkSymbols"
+                label="Benchmark"
+                description="Rejoué avec les mêmes versements et frais ; retire-le pour simuler sans benchmark"
+                max={1}
+                addLabel="Choisir"
             />
         </FormSection>
     )

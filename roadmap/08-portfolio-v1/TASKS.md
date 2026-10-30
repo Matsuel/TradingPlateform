@@ -391,10 +391,10 @@ Critères d’acceptation :
 - **Fichiers** : `prisma/schema.prisma`, migration, `interfaces/`, `repositories/`, `services/`, `API.md`
 
 Critères d’acceptation :
-- [ ] `Backtest.benchmarkSymbol String?` et `BacktestResult.benchmark Json?` (commentaire de forme, null pour les résultats antérieurs).
-- [ ] `benchmark` ajouté aux colonnes omises des exécutions dans `BacktestWithExecutions` (comme `lumpSumComparison`).
-- [ ] `benchmarkSymbol` dans `createBacktestSchema` (optionnel), publié et relancé.
-- [ ] Entrée `API.md` mise à jour.
+- [x] `Backtest.benchmarkSymbol String?` et `BacktestResult.benchmark Json?` (commentaire de forme, null pour les résultats antérieurs).
+- [x] `benchmark` ajouté aux colonnes omises des exécutions dans `BacktestWithExecutions` (comme `lumpSumComparison`).
+- [x] `benchmarkSymbol` dans `createBacktestSchema` (optionnel), publié et relancé.
+- [x] Entrée `API.md` mise à jour.
 
 ### T-24 · Web : champ « Benchmark »
 
@@ -402,8 +402,9 @@ Critères d’acceptation :
 - **Fichiers** : `features/backtest/sections.tsx`, `constants.ts`
 
 Critères d’acceptation :
-- [ ] Champ « Benchmark » (recherche de symboles), valeur proposée `URTH` en constante, effaçable.
-- [ ] Hypothèse « Benchmark » affichée sur le résultat.
+- [x] Champ « Benchmark » (recherche de symboles), valeur proposée `URTH` en constante, effaçable.
+- [x] Hypothèse « Benchmark » affichée sur le résultat.
+- [ ] Vérifié dans un navigateur (sélection, retrait, envoi `null`, hypothèse « Aucun »).
 
 ### T-25 · Web : écarts, série et tableau « Métriques comparées »
 

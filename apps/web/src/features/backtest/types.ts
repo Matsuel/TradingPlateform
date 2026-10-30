@@ -49,11 +49,12 @@ type AssumptionField = "executionRule" | "dataSource"
 // null ou absentes pour les résultats antérieurs
 type MetricField = "cagr" | "volatility" | "sharpeRatio"
 
-// holdings vide et lumpSumComparison null pour les résultats antérieurs ; lumpSumComparison null hors DCA
+// holdings vide et lumpSumComparison null pour les résultats antérieurs ; lumpSumComparison null hors DCA ;
+// benchmark null sans benchmark, absent ou null pour les résultats antérieurs
 export type BacktestResult = Record<DecimalField, string | null> &
     Partial<Record<MetricField, string | null>> &
     Pick<BacktestCompletedPayload, "totalTrades" | "holdings" | "lumpSumComparison"> &
-    Partial<Pick<BacktestCompletedPayload, "recoveryDays">> &
+    Partial<Pick<BacktestCompletedPayload, "recoveryDays" | "benchmark">> &
     { [K in AssumptionField]: BacktestCompletedPayload[K] | null } & {
         maxDrawdownDate: string | null // ISO
         maxDrawdownPeakDate?: string | null // ISO ; null sans baisse
@@ -71,6 +72,7 @@ export interface Backtest {
     investmentMode: InvestmentMode
     rebalanceFrequency: RebalanceFrequency // NONE pour les backtests antérieurs au rebalancement
     feeRate: string // Decimal sérialisé en string, fraction par achat ("0.001" = 0,1 %)
+    benchmarkSymbol: BacktestRequestedPayload["benchmarkSymbol"] // null sans benchmark et pour les backtests antérieurs
     createdAt: string
     executions: BacktestExecution[] // la plus récente en premier
 }

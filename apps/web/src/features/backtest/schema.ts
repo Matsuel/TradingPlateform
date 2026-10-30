@@ -27,6 +27,8 @@ const market = {
     rebalanceFrequency: z.enum(["NONE", "MONTHLY", "QUARTERLY", "YEARLY"] satisfies RebalanceFrequency[], { error: "Requis" }),
     // Pourcentage par ordre
     fee: z.number({ error: "Requis" }).min(0).max(100),
+    // Au plus un symbole (SymbolsField) : vide = sans benchmark, envoyé en benchmarkSymbol par api.ts
+    benchmarkSymbols: z.array(z.string().min(1)).max(1).optional(),
 }
 
 type Amounts = { investmentMode: InvestmentMode; initialAmount: number; recurringAmount?: number }

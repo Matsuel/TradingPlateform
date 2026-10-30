@@ -17,7 +17,7 @@ export interface IBacktestRepository {
 const executionSummary = {
     // Dernière exécution en premier ; attempt départage deux createdAt identiques
     orderBy: [{ createdAt: "desc" }, { attempt: "desc" }],
-    include: { result: { omit: { equityCurve: true, trades: true, holdings: true, lumpSumComparison: true } } },
+    include: { result: { omit: { equityCurve: true, trades: true, holdings: true, lumpSumComparison: true, benchmark: true } } },
 } satisfies Prisma.Backtest$executionsArgs
 
 // Allocation persistée : relue pour republier `backtest.requested` et renvoyée au web
@@ -121,7 +121,12 @@ class BacktestRepository implements IBacktestRepository {
             if (count === 0) return false
             await tx.backtestResult.create({
                 // Une colonne Json n'accepte pas null : DbNull écrit NULL en base
-                data: { executionId: id, ...result, lumpSumComparison: result.lumpSumComparison ?? Prisma.DbNull },
+                data: {
+                    executionId: id,
+                    ...result,
+                    lumpSumComparison: result.lumpSumComparison ?? Prisma.DbNull,
+                    benchmark: result.benchmark ?? Prisma.DbNull,
+                },
             })
             return true
         })
