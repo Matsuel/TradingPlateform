@@ -31,7 +31,7 @@ Catalogue des routes HTTP exposées par core-backend (port 8000) et appelées pa
 - [Auth](#auth) : `ALL /api/auth/{*path}`
 - [Market (proxy)](#market-proxy) : `ALL /api/market/{*path}`
 - [Portfolio](#portfolio) : `POST`, `GET`, `GET /:id`, `PATCH /:id`, `DELETE /:id`
-- [Backtest](#backtest) : `POST`, `POST /preview`, `POST /:id/executions`, `GET /stats`, `GET /:id`, `GET`
+- [Backtest](#backtest) : `POST`, `POST /preview`, `POST /:id/executions`, `GET /stats`, `GET /compare`, `GET /:id`, `GET`
 
 ## Conventions communes
 
@@ -40,7 +40,7 @@ Catalogue des routes HTTP exposées par core-backend (port 8000) et appelées pa
 - **Auth** : `authMiddleware` lit la session better-auth depuis les en-têtes (cookie, ou `Authorization: Bearer` via le plugin `bearer`) et pose `req.userId`. Sans session : `401 { "error": "Unauthorized" }`.
 - **Erreurs** : toute `AppError` est rendue par `error.middleware` en `{ "error": "<message>", ...data }` avec son statut. Toute autre exception : `500 { "error": "Internal server error" }`. Côté web, `apiFetch` lève `ApiError` (`status`, `body` = ce corps d'erreur) ; `apiIssues(error)` extrait les `issues` d'un `400` pour les afficher sous les champs.
 - **Sérialisation** : `Decimal` Prisma → string (`"0.001"`), `DateTime` → ISO 8601 (`"2026-01-31T00:00:00.000Z"`). Ratios en fraction (`0.342` = 34,2 %).
-- **Propriété** : une ressource d'un autre utilisateur → `403 { "error": "Access denied" }` ; inexistante → `404`.
+- **Propriété** : une ressource d'un autre utilisateur → `403 { "error": "Access denied" }` ; inexistante → `404`. Exception : `GET /api/backtest/compare` répond `404` dans les deux cas.
 
 ### Pagination
 
@@ -223,6 +223,26 @@ Les montants sont dans la devise saisie, affichée `EUR` par le web (`BACKTEST_C
 - **Effets** : aucun.
 - **Appelant** : `getBacktestStats()` de `apps/web/src/features/backtest/api.ts`, hook `useBacktestStats()` (clé `["backtest", "stats"]`) ; utilisé par `BacktestList` → `BacktestStats`.
 - **Source** : `routes/backtest/backtest.routes.ts`, `controller/backtest.controller.ts`, `services/backtest.service.ts`, `repositories/backtest.repository.ts`, `constants/backtest.constants.ts`.
+
+### GET /api/backtest/compare
+
+- **Auth** : session requise.
+- **Entrée** : query `backtestCompareQuerySchema` (`interfaces/backtest.interface.ts`) : `ids` = exactement deux cuid de backtests **distincts**, séparés par une virgule, dans l'ordre A, B. Route enregistrée avant `/:id` (sinon `compare` serait lu comme un id).
+  ```
+  GET /api/backtest/compare?ids=cmA…,cmB…
+  ```
+- **Réponse** : `200`, `BacktestComparison` (`@trading-plateform/contracts`, partagé avec le web) :
+  - `a`, `b` (`ComparedBacktest`, dans l'ordre de `ids`) : paramètres `id`, `name`, `startDate`, `endDate` (ISO), `investmentMode`, `rebalanceFrequency`, `feeRate` (Decimal string, fraction par ordre), `benchmarkSymbol` (string | null) ; `allocations` (`[{ "symbol", "weight" }]`, `weight` Decimal string, ratio) ; `result` = dernier résultat de la dernière exécution `COMPLETED`, réduit à `finalValue`, `totalInvested`, `totalReturn`, `cagr`, `volatility`, `sharpeRatio`, `maxDrawdown` (Decimal string | null, mêmes unités que `BacktestResult`), `recoveryDays` (int | null), `benchmark` (objet | null, comme `BacktestResult.benchmark`) et `equityCurve` (comme `BacktestResult.equityCurve`, avec `benchmarkValue` si benchmark) ; ni `trades`, ni `holdings` ;
+  - `deltas` : `{ "cagr", "volatility", "sharpeRatio", "maxDrawdown", "totalReturn" }` (`COMPARED_METRICS`), écart **A − B** calculé par le service en points de ratio (`0.013` = +1,3 pt ; Sharpe sans unité), comme `benchmark.excess*` ; `null` si la métrique manque d'un côté (résultat antérieur, moins de deux points) ;
+  - `homogeneous` : `true` si même période (dates de début et de fin), mêmes frais et même benchmark ;
+  - `differences` : paramètres qui diffèrent parmi `"period"`, `"feeRate"`, `"benchmarkSymbol"` (`COMPARISON_PARAMETERS`, dans cet ordre) ; `[]` si homogène.
+  ```json
+  { "a": { "id": "cmA…", "name": "60/40", "startDate": "2020-01-01T00:00:00.000Z", "endDate": "2025-01-01T00:00:00.000Z", "investmentMode": "LUMP_SUM", "rebalanceFrequency": "YEARLY", "feeRate": "0.001", "benchmarkSymbol": "URTH", "allocations": [{ "symbol": "AAPL", "weight": "0.6" }, { "symbol": "IEF", "weight": "0.4" }], "result": { "finalValue": "14230.12", "totalInvested": "10000", "totalReturn": "0.423012", "cagr": "0.072", "volatility": "0.121", "sharpeRatio": "0.595041", "maxDrawdown": "-0.18", "recoveryDays": 210, "benchmark": { "symbol": "URTH", "...": "…" }, "equityCurve": [{ "date": "2020-01-02", "value": 10000, "invested": 10010, "benchmarkValue": 9990, "drawdown": 0 }] } }, "b": { "id": "cmB…", "...": "…" }, "deltas": { "cagr": 0.012, "volatility": -0.034, "sharpeRatio": 0.21, "maxDrawdown": 0.05, "totalReturn": 0.081 }, "homogeneous": false, "differences": ["feeRate"] }
+  ```
+- **Erreurs** : `400 { "error": "Invalid query", "issues": [ZodIssue] }` → `ids` absent, un seul id, plus de deux, id vide (`ids=a,`) ou deux fois le même (`"Ids must be distinct"`) ; `400 { "error": "Backtest has no completed result", "id": "…" }` → aucune exécution `COMPLETED` pour ce backtest ; `401` ; `404 { "error": "Backtest not found", "id": "…" }` → backtest inexistant **ou d'un autre utilisateur** (pas de `403` : l'existence n'est pas révélée).
+- **Effets** : aucun. Lecture légère (propriété + nombre d'exécutions `COMPLETED`, sans colonne lourde) puis lecture des paramètres, allocations et du dernier résultat terminé des deux backtests.
+- **Appelant** : aucun (page « Comparaison », T-27).
+- **Source** : `routes/backtest/backtest.routes.ts`, `controller/backtest.controller.ts`, `services/backtest.service.ts` (`compare`), `repositories/backtest.repository.ts` (`countExecutionsByIds`, `getComparedByIds`), `constants/backtest.constants.ts` (`COMPARABLE_STATUSES`), `packages/contracts/src/backtest.ts`.
 
 ### GET /api/backtest/:id
 

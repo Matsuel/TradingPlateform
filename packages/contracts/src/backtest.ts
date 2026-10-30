@@ -229,7 +229,49 @@ export const backtestFailedPayloadSchema = z.object({
     error: z.string(),
 });
 
-export const backtestRequestedEventSchema = kafkaEventSchema(backtestRequestedPayloadSchema);
+// Métriques comparées par GET /api/backtest/compare ; leur écart A − B est calculé par core-backend
+export const COMPARED_METRICS = ["cagr", "volatility", "sharpeRatio", "maxDrawdown", "totalReturn"] as const;
+
+// Paramètres qui doivent être égaux pour qu'une comparaison soit homogène (période = dates de début et de fin)
+export const COMPARISON_PARAMETERS = ["period", "feeRate", "benchmarkSymbol"] as const;
+
+export type ComparedMetric = (typeof COMPARED_METRICS)[number];
+export type ComparisonParameter = (typeof COMPARISON_PARAMETERS)[number];
+
+// Un backtest comparé, tel que sérialisé par l'API : Decimal → string (ratios en fraction), dates → ISO
+export interface ComparedBacktest {
+    id: string;
+    name: string;
+    startDate: string;
+    endDate: string;
+    investmentMode: BacktestRequestedPayload["investmentMode"];
+    rebalanceFrequency: RebalanceFrequency;
+    // Ratio par ordre ("0.001" = 0,1 %)
+    feeRate: string;
+    benchmarkSymbol: BacktestRequestedPayload["benchmarkSymbol"];
+    // weight : ratio au pourcent près ("0.34" = 34 %)
+    allocations: (Pick<Allocation, "symbol"> & { weight: string })[];
+    // Dernier résultat terminé. Montants en devise saisie ; ratios en fraction ; null pour les résultats antérieurs au champ
+    result: Record<"finalValue" | "totalInvested" | ComparedMetric, string | null> &
+        Pick<BacktestCompletedPayload, "recoveryDays" | "benchmark"> & {
+            // drawdown absent des résultats antérieurs à son calcul
+            equityCurve: (Omit<EquityPoint, "drawdown"> & Partial<Pick<EquityPoint, "drawdown">>)[];
+        };
+}
+
+// Réponse de GET /api/backtest/compare?ids=a,b : a et b dans l'ordre des ids demandés
+export interface BacktestComparison {
+    a: ComparedBacktest;
+    b: ComparedBacktest;
+    // A − B en points de ratio (0.013 = +1,3 pt ; Sharpe sans unité), comme benchmark.excess* ; null si l'une des deux valeurs est null
+    deltas: Record<ComparedMetric, number | null>;
+    // true si differences est vide : même période, mêmes frais, même benchmark
+    homogeneous: boolean;
+    // Paramètres qui diffèrent, dans l'ordre de COMPARISON_PARAMETERS
+    differences: ComparisonParameter[];
+}
+
+export const backtestRequestedEventSchema =kafkaEventSchema(backtestRequestedPayloadSchema);
 export const backtestStartedEventSchema = kafkaEventSchema(backtestStartedPayloadSchema);
 export const backtestCompletedEventSchema = kafkaEventSchema(backtestCompletedPayloadSchema);
 export const backtestFailedEventSchema = kafkaEventSchema(backtestFailedPayloadSchema);

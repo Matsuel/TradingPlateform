@@ -4,6 +4,7 @@ import {
     backtestRequestedPayloadSchema,
     paginationQuerySchema,
     type BacktestCompletedPayload,
+    type BacktestComparison,
     type BacktestStatus as ContractBacktestStatus,
 } from "@trading-plateform/contracts";
 import { BacktestStatus, type BacktestResult, type Prisma } from "../generated/prisma/client";
@@ -68,6 +69,55 @@ export const backtestListQuerySchema = paginationQuerySchema.extend({
 
 export type BacktestListQuery = z.infer<typeof backtestListQuerySchema>;
 
+// ?ids=a,b : exactement deux backtests distincts, comparés A − B dans cet ordre
+export const backtestCompareQuerySchema = z.object({
+    ids: z
+        .string()
+        .transform((v) => v.split(","))
+        .pipe(z.tuple([z.string().min(1), z.string().min(1)]))
+        .refine(([a, b]) => a !== b, { message: "Ids must be distinct" }),
+});
+
+export type BacktestCompareQuery = z.infer<typeof backtestCompareQuerySchema>;
+
+// Lecture légère avant comparaison : nombre d'exécutions aux statuts demandés, sans aucune colonne lourde
+export type BacktestExecutionCount = Prisma.BacktestGetPayload<{
+    select: { id: true; _count: { select: { executions: true } } };
+}>;
+
+// Backtest comparé : paramètres, allocation et dernière exécution COMPLETED avec ses métriques et sa courbe
+export type ComparedBacktestRecord = Prisma.BacktestGetPayload<{
+    select: {
+        id: true;
+        name: true;
+        startDate: true;
+        endDate: true;
+        investmentMode: true;
+        rebalanceFrequency: true;
+        feeRate: true;
+        benchmarkSymbol: true;
+        allocations: { select: { symbol: true; weight: true } };
+        executions: {
+            select: {
+                result: {
+                    select: {
+                        finalValue: true;
+                        totalInvested: true;
+                        totalReturn: true;
+                        cagr: true;
+                        volatility: true;
+                        sharpeRatio: true;
+                        maxDrawdown: true;
+                        recoveryDays: true;
+                        benchmark: true;
+                        equityCurve: true;
+                    };
+                };
+            };
+        };
+    };
+}>;
+
 export type CreateBacktestDTO = Prisma.BacktestUncheckedCreateInput;
 
 // Courbe, ordres, positions et comparaisons omis des exécutions : seul le dernier résultat terminé les porte
@@ -75,7 +125,15 @@ export type BacktestWithExecutions = Prisma.BacktestGetPayload<{
     include: { allocations: true; executions: { include: { result: { omit: { equityCurve: true; trades: true; holdings: true; lumpSumComparison: true; benchmark: true } } } } };
 }>;
 
-export type BacktestDetails = BacktestWithExecutions & { result: BacktestResult | null };
+// Résultat de la dernière exécution COMPLETED remonté au niveau du backtest
+export type ComparedBacktestDTO = Omit<ComparedBacktestRecord, "executions"> & {
+    result: NonNullable<ComparedBacktestRecord["executions"][number]["result"]>;
+};
+
+// Forme du contrat BacktestComparison avant sérialisation (Decimal, Date)
+export type BacktestComparisonDTO = Omit<BacktestComparison, "a" | "b"> & { a: ComparedBacktestDTO; b: ComparedBacktestDTO };
+
+export type BacktestDetails =BacktestWithExecutions & { result: BacktestResult | null };
 
 export type CompleteExecutionDTO = Omit<
     BacktestCompletedPayload,

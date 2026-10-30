@@ -2,6 +2,8 @@ import { Logger } from "@trading-plateform/utils";
 import { createKafkaEvent } from "@trading-plateform/kafka";
 import {
     BACKTEST_TOPICS,
+    COMPARED_METRICS,
+    COMPARISON_PARAMETERS,
     PRICE_DATA_SOURCE,
     type BacktestCompletedPayload,
     type BacktestFailedPayload,
@@ -9,17 +11,28 @@ import {
     type BacktestRequestedPayload,
     type BacktestStartedPayload,
     type BacktestStats,
+    type ComparedMetric,
+    type ComparisonParameter,
     type Paginated,
 } from "@trading-plateform/contracts";
-import { ACTIVE_STATUSES } from "../constants/backtest.constants";
+import { ACTIVE_STATUSES, COMPARABLE_STATUSES } from "../constants/backtest.constants";
+import BadRequestError from "../errors/badrequest.error";
 import ConflictError from "../errors/conflict.error";
 import ForbiddenError from "../errors/forbidden.error";
 import InternalError from "../errors/internal.error";
 import NotFoundError from "../errors/notfound.error";
 import { producer } from "../lib/kafka";
 import BacktestRepository, { type IBacktestRepository } from "../repositories/backtest.repository";
-import type { Backtest, BacktestStatus } from "../generated/prisma/client";
-import type { BacktestListQuery, BacktestWithExecutions, CreateBacktestInput } from "../interfaces/backtest.interface";
+import type { Backtest, BacktestStatus, Prisma } from "../generated/prisma/client";
+import type {
+    BacktestCompareQuery,
+    BacktestComparisonDTO,
+    BacktestListQuery,
+    BacktestWithExecutions,
+    ComparedBacktestDTO,
+    ComparedBacktestRecord,
+    CreateBacktestInput,
+} from "../interfaces/backtest.interface";
 
 const logger = Logger.here()
 
@@ -56,6 +69,17 @@ const periodKey = (date: string, frequency: Exclude<CreateBacktestInput["rebalan
 /** Nombre de périodes distinctes rencontrées dans `days` (triés) : chacune commence à son premier jour. */
 const countPeriods = (days: string[], frequency: Parameters<typeof periodKey>[1]) =>
     new Set(days.map((day) => periodKey(day, frequency))).size
+
+/** Remonte le résultat de la dernière exécution `COMPLETED` ; `NotFoundError` si le backtest ou son résultat a disparu entre les deux lectures. */
+const toCompared = (record: ComparedBacktestRecord | undefined): ComparedBacktestDTO => {
+    const result = record?.executions[0]?.result
+    if (!record || !result) throw new NotFoundError("Backtest not found")
+    const { executions, ...backtest } = record
+    return { ...backtest, result }
+}
+
+// Écart A − B en points de ratio (Sharpe sans unité), comme benchmark.excess* ; null si l'une des deux valeurs manque
+const delta = (a: Prisma.Decimal | null, b: Prisma.Decimal | null) => (a && b ? a.minus(b).toNumber() : null)
 
 class BacktestService {
     repo: IBacktestRepository = new BacktestRepository()
@@ -128,6 +152,33 @@ class BacktestService {
         const result = await this.repo.getAllByUserId(userId, pagination, status)
         logger.info("Backtests fetched", { userId, count: result.count })
         return { ...result, ...pagination }
+    }
+
+    /**
+     * Compare deux backtests de l'utilisateur sur le résultat de leur dernière exécution `COMPLETED` : écarts A − B des
+     * métriques et homogénéité (même période, mêmes frais, même benchmark). Lève `NotFoundError` si un backtest n'existe pas
+     * ou appartient à un autre utilisateur (son existence n'est pas révélée), `BadRequestError` s'il n'a aucun résultat terminé.
+     */
+    async compare(userId: string, { ids }: BacktestCompareQuery): Promise<BacktestComparisonDTO> {
+        logger.info("Comparing backtests", { userId, ids })
+        const counts = await this.repo.countExecutionsByIds(ids, userId, COMPARABLE_STATUSES)
+        for (const id of ids) {
+            const backtest = counts.find((count) => count.id === id)
+            if (!backtest) throw new NotFoundError("Backtest not found", { id })
+            if (backtest._count.executions === 0) throw new BadRequestError("Backtest has no completed result", { id })
+        }
+        const records = await this.repo.getComparedByIds(ids, COMPARABLE_STATUSES)
+        const [a, b] = ids.map((id) => toCompared(records.find((record) => record.id === id))) as [ComparedBacktestDTO, ComparedBacktestDTO]
+        const deltas = Object.fromEntries(
+            COMPARED_METRICS.map((metric) => [metric, delta(a.result[metric], b.result[metric])]),
+        ) as Record<ComparedMetric, number | null>
+        const differs: Record<ComparisonParameter, boolean> = {
+            period: a.startDate.getTime() !== b.startDate.getTime() || a.endDate.getTime() !== b.endDate.getTime(),
+            feeRate: !a.feeRate.equals(b.feeRate),
+            benchmarkSymbol: a.benchmarkSymbol !== b.benchmarkSymbol,
+        }
+        const differences = COMPARISON_PARAMETERS.filter((parameter) => differs[parameter])
+        return { a, b, deltas, homogeneous: differences.length === 0, differences }
     }
 
     /** Compteurs des backtests de l'utilisateur selon le statut de leur dernière exécution ; taux en fraction du total (0 sans backtest). */

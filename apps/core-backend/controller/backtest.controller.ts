@@ -1,6 +1,6 @@
 import type { Request, Response } from "express"
 import BadRequestError from "../errors/badrequest.error"
-import { backtestListQuerySchema, createBacktestSchema } from "../interfaces/backtest.interface"
+import { backtestCompareQuerySchema, backtestListQuerySchema, createBacktestSchema } from "../interfaces/backtest.interface"
 import BacktestService from "../services/backtest.service"
 
 class BacktestController {
@@ -37,7 +37,14 @@ class BacktestController {
         res.json(result)
     }
 
-    getBacktestStats = async (req: Request, res: Response) => {
+    compareBacktests = async (req: Request, res: Response) => {
+        const parsed = backtestCompareQuerySchema.safeParse(req.query)
+        if (!parsed.success) throw new BadRequestError("Invalid query", { issues: parsed.error.issues })
+        const comparison = await this.backtestService.compare(req.userId!, parsed.data)
+        res.json(comparison)
+    }
+
+    getBacktestStats =async (req: Request, res: Response) => {
         const stats = await this.backtestService.getStats(req.userId!)
         res.json(stats)
     }

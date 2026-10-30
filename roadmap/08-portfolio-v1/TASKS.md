@@ -428,11 +428,11 @@ Critères d’acceptation :
 - **Fichiers** : `interfaces/`, `repositories/`, `services/`, `controller/`, `routes/backtest/`, `API.md`
 
 Critères d’acceptation :
-- [ ] `?ids=a,b` validé par zod (exactement deux identifiants distincts).
-- [ ] Réponse : pour chaque backtest, paramètres, allocation, métriques et courbe du dernier résultat terminé ; écarts A − B calculés par le service ; drapeau `homogeneous` (même période, mêmes frais, même benchmark) et liste des différences.
-- [ ] Backtest d’un autre utilisateur ⇒ `NotFoundError` (helper `assertOwner`) ; sans résultat terminé ⇒ `BadRequestError`.
-- [ ] Lecture des colonnes lourdes uniquement pour la réponse, pas pour l’autorisation.
-- [ ] Entrée `API.md` (appelant web : page Comparaison).
+- [x] `?ids=a,b` validé par zod (exactement deux identifiants distincts).
+- [x] Réponse : pour chaque backtest, paramètres, allocation, métriques et courbe du dernier résultat terminé ; écarts A − B calculés par le service ; drapeau `homogeneous` (même période, mêmes frais, même benchmark) et liste des différences. Route servie sous le préfixe existant `/api/backtest/compare` ; type de réponse `BacktestComparison` exporté par le contrat pour le web.
+- [x] Backtest d’un autre utilisateur ⇒ `NotFoundError` ; sans résultat terminé ⇒ `BadRequestError`. Écart : pas d’`assertOwner` (il lève `ForbiddenError` pour un autre utilisateur), la lecture légère est filtrée sur `userId` et un backtest absent lève `NotFoundError`.
+- [x] Lecture des colonnes lourdes uniquement pour la réponse, pas pour l’autorisation.
+- [x] Entrée `API.md` (appelant web : page Comparaison, à brancher par T-27).
 
 ### T-27 · Web : page « Comparaison »
 
