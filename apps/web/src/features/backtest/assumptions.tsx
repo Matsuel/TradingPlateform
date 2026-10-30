@@ -5,6 +5,7 @@ import { formatDate, formatDayRange, formatPercent } from "@/lib/format"
 import {
     BACKTEST_CURRENCY,
     BACKTEST_DISCLAIMER,
+    NO_BENCHMARK_LABEL,
     RISK_FREE_RATE,
     dataProviderLabels,
     executionRuleLabels,
@@ -26,7 +27,7 @@ function Assumption({ label, children }: { label: string; children: ReactNode })
 }
 
 /**
- * Carte « Hypothèses » d'un résultat : période, devise, frais, rebalancement, taux sans risque du Sharpe, règle d'exécution et provenance des cours,
+ * Carte « Hypothèses » d'un résultat : période, devise, frais, rebalancement, benchmark (« Aucun » sans), taux sans risque du Sharpe, règle d'exécution et provenance des cours,
  * suivie de l'avertissement. Règle et source absentes des résultats antérieurs : `<Dash />`.
  */
 export function BacktestAssumptions({ backtest, result }: { backtest: Backtest; result: BacktestResult }) {
@@ -44,6 +45,7 @@ export function BacktestAssumptions({ backtest, result }: { backtest: Backtest; 
                     <Assumption label="Devise">{BACKTEST_CURRENCY}</Assumption>
                     <Assumption label="Frais">{formatPercent(Number(backtest.feeRate))} par achat</Assumption>
                     <Assumption label="Rebalancement">{rebalanceFrequencyLabels[backtest.rebalanceFrequency]}</Assumption>
+                    <Assumption label="Benchmark">{backtest.benchmarkSymbol ?? NO_BENCHMARK_LABEL}</Assumption>
                     <Assumption label="Taux sans risque">{formatPercent(RISK_FREE_RATE)}</Assumption>
                     <Assumption label="Règle d’exécution">
                         {executionRule ? executionRuleLabels[executionRule] : <Dash />}

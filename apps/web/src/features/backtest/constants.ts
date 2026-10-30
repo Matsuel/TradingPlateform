@@ -23,6 +23,11 @@ export const DEFAULT_REBALANCE_FREQUENCY = "NONE" satisfies RebalanceFrequency
 
 export const rebalanceFrequencyOptions = Object.entries(rebalanceFrequencyLabels).map(([value, label]) => ({ value, label }))
 
+// Benchmark proposé par le formulaire (D9) : ETF iShares MSCI World
+export const DEFAULT_BENCHMARK_SYMBOL = "URTH"
+
+export const NO_BENCHMARK_LABEL = "Aucun"
+
 export const strategyLabels: Record<InvestmentMode, string> = {
     RECURRING: "DCA mensuel",
     LUMP_SUM: "Lump sum",

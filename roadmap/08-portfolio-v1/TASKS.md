@@ -402,8 +402,9 @@ Critères d’acceptation :
 - **Fichiers** : `features/backtest/sections.tsx`, `constants.ts`
 
 Critères d’acceptation :
-- [ ] Champ « Benchmark » (recherche de symboles), valeur proposée `URTH` en constante, effaçable.
-- [ ] Hypothèse « Benchmark » affichée sur le résultat.
+- [x] Champ « Benchmark » (recherche de symboles), valeur proposée `URTH` en constante, effaçable.
+- [x] Hypothèse « Benchmark » affichée sur le résultat.
+- [ ] Vérifié dans un navigateur (sélection, retrait, envoi `null`, hypothèse « Aucun »).
 
 ### T-25 · Web : écarts, série et tableau « Métriques comparées »
 
