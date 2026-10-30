@@ -18,8 +18,10 @@ La vision et la roadmap annuelle restent dans le [`README.md`](../README.md) rac
 | 06 | [Extraction de market-service](06-market-service/) | 2 | 2026-10-28 | #3 | Livrée | 8 ᵃ |
 | 07 | [Clôture du Strategy Lab](07-strategy-lab-cloture/) | 3 | 2026-10-29 → 2026-10-30 | #3 | Livrée | 24 ᵃ |
 | 08 | [Portfolio Management V1](08-portfolio-v1/) | 4 | à partir du 2026-10-30 | — | Planifiée | 98 |
+| 09 | [Aide contextuelle sur les données](09-aide-contextuelle/) | 4–5 ᵇ | à planifier | — | Planifiée | 21 |
 
 ᵃ estimés a posteriori d’après les diffs.
+ᵇ hors « Roadmap annuelle » : demande du 2026-10-30, après le lot 3 de la feature 08.
 
 | Mois | Features | Points |
 | --- | --- | --- |
@@ -37,6 +39,7 @@ La vision et la roadmap annuelle restent dans le [`README.md`](../README.md) rac
 | 2026-10-28 | Les données de marché sortent dans `market-service`, appelé uniquement via le proxy de `core-backend`. | `5a3632d`, [06](06-market-service/) |
 | 2026-10-29 | Pivot : de la bourse simulée au laboratoire de portefeuille ; carnet d’ordres et matching engine deviennent un bonus. | `5f0890c`, [07](07-strategy-lab-cloture/) |
 | 2026-10-30 | Messages Kafka compressés en GZIP (limite de 1 Mo du broker). | `e87fdcc` |
+| 2026-10-30 | Aide contextuelle ajoutée hors roadmap annuelle : chaque donnée calculée affichée porte une explication (à quoi elle sert, comment elle est calculée). | [09](09-aide-contextuelle/) |
 
 ## Conventions communes
 
