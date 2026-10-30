@@ -56,13 +56,14 @@ describe("runBacktest", () => {
     });
 
     test("total des frais calculé sur les frais non arrondis de chaque achat", () => {
-        // 3 achats de 33,33… € à 0,1 % : 0,0333… € chacun, affiché 0,03 €, total exact 0,10 €
+        // 3 achats de 34, 33 et 33 € à 0,1 % : 0,034 + 0,033 + 0,033 €, affichés 0,03 € chacun, total exact 0,10 €
         const result = runBacktest({ ...lumpSum, allocations: [{ symbol: "AAA", weight: 0.34 }, { symbol: "BBB", weight: 0.33 }, { symbol: "CCC", weight: 0.33 }], initialAmount: 100, feeRate: 0.001 }, {
             AAA: [{ date: "2024-01-02", close: 10 }],
             BBB: [{ date: "2024-01-02", close: 10 }],
             CCC: [{ date: "2024-01-02", close: 10 }],
         });
 
+        expect(result.trades.map((trade) => trade.amount)).toEqual([34, 33, 33]);
         expect(result.trades.map((trade) => trade.fee)).toEqual([0.03, 0.03, 0.03]);
         expect(result.totalFees).toBe(0.1);
     });
@@ -113,6 +114,22 @@ describe("runBacktest", () => {
             { date: "2024-01-02", symbol: "AAA", price: 10, quantity: 49.5, amount: 500, fee: 5 },
             { date: "2024-01-02", symbol: "BBB", price: 50, quantity: 9.9, amount: 500, fee: 5 },
         ]);
+    });
+
+    test("versement réparti selon les poids cibles, frais déduits de chaque ordre", () => {
+        const result = runBacktest({ ...lumpSum, allocations: [{ symbol: "AAA", weight: 0.6 }, { symbol: "BBB", weight: 0.4 }], initialAmount: 10_000, feeRate: 0.01 }, {
+            AAA: [{ date: "2024-01-02", close: 10 }],
+            BBB: [{ date: "2024-01-02", close: 50 }],
+        });
+
+        // Montant d'ordre frais compris : 6 000 € dont 60 € de frais ⇒ 5 940 € investis
+        expect(result.trades).toEqual([
+            { date: "2024-01-02", symbol: "AAA", price: 10, quantity: 594, amount: 6000, fee: 60 },
+            { date: "2024-01-02", symbol: "BBB", price: 50, quantity: 79.2, amount: 4000, fee: 40 },
+        ]);
+        expect(result.totalInvested).toBe(10_000);
+        expect(result.totalFees).toBe(100);
+        expect(result.finalValue).toBe(9900);
     });
 
     test("positions finales : quantités accumulées valorisées au dernier cours", () => {
@@ -220,6 +237,13 @@ describe("runBacktest", () => {
             expect(runBacktest(params, referencePrices)).toEqual(runBacktest(params, referencePrices));
         });
 
+        test("mêmes poids et mêmes cours : résultat strictement identique, poids pris en compte", () => {
+            const weighted: BacktestParams = { ...params, allocations: [{ symbol: "AAA", weight: 0.6 }, { symbol: "BBB", weight: 0.4 }] };
+
+            expect(runBacktest(weighted, referencePrices)).toEqual(runBacktest(weighted, referencePrices));
+            expect(runBacktest(weighted, referencePrices).finalValue).not.toBe(runBacktest(params, referencePrices).finalValue);
+        });
+
         test("n'altère pas les cours reçus", () => {
             const before = structuredClone(referencePrices);
             runBacktest(params, referencePrices);
@@ -227,7 +251,8 @@ describe("runBacktest", () => {
             expect(referencePrices).toEqual(before);
         });
 
-        // Valeurs de référence figées : un écart signale un changement de calcul, à justifier puis à mettre à jour ici
+        // Valeurs de référence figées : un écart signale un changement de calcul, à justifier puis à mettre à jour ici.
+        // Poids 50/50 exactement représentables : identiques à l'ancienne répartition équipondérée (non-régression T-02)
         test("jeu de référence : métriques figées", () => {
             const { equityCurve, trades, holdings, ...metrics } = runBacktest(params, referencePrices);
 

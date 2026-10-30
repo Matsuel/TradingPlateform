@@ -6,11 +6,12 @@ import { createDrawdownTracker, periodKey, round } from "./backtest.utils";
 type Simulation = Omit<BacktestOutcome, "lumpSumComparison" | "executionRule">;
 
 /**
- * Simule un portefeuille équipondéré sur les symboles demandés, jour de cotation par jour de cotation.
+ * Simule un portefeuille aux poids cibles de `allocations`, jour de cotation par jour de cotation.
  *
  * - Départ : premier jour où tous les symboles ont un cours ; un cours manquant est reporté du dernier jour connu.
  * - Versements : `initialAmount` le premier jour, puis `recurringAmount` au premier jour de chaque période (DCA).
- * - Exécution : achat au cours de clôture du jour du versement, réparti à parts égales, frais prélevés sur chaque achat.
+ * - Exécution : achat au cours de clôture du jour du versement, réparti selon `weight` (ratio, somme = 1),
+ *   frais prélevés sur chaque ordre : 10 000 € en 60/40 ⇒ ordres de 6 000 € et 4 000 €, frais compris.
  *
  * Lève `BacktestError` sans données de marché ou si rien n'a été investi.
  */
@@ -60,9 +61,9 @@ function simulate(params: BacktestParams, prices: PriceSeries): Simulation {
         previousPeriod = period;
 
         if (contribution > 0) {
-            const amount = contribution / symbols.length;
-            const fee = amount * feeRate;
-            for (const symbol of symbols) {
+            for (const { symbol, weight } of allocations) {
+                const amount = contribution * weight;
+                const fee = amount * feeRate;
                 const price = lastClose.get(symbol)!;
                 const quantity = (amount - fee) / price;
                 shares.set(symbol, shares.get(symbol)! + quantity);
