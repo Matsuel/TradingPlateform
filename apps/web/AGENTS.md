@@ -23,6 +23,16 @@ Le web affiche les valeurs renvoyées par core-backend. Calculs autorisés, et s
 
 Un écran qui a besoin d'une valeur métier absente de l'API (total, métrique, règle d'éligibilité) déclenche un ajout côté backend : le web l'affiche une fois exposée. Une règle métier que le front reflète pour l'ergonomie (bouton désactivé pendant une exécution active) reste imposée par le backend ; le front n'en est qu'un miroir.
 
+## Maquette d'abord (règle stricte)
+
+Un écran, ou une section d'écran, se code uniquement depuis un cadre Figma **validé** :
+
+- le cadre existe dans le fichier `Trading` (clé dans `roadmap/README.md`) et figure dans la ligne « Maquettes » du `US.md` de la feature, avec son `node-id`, marqué `validée le JJ/MM/AAAA` ;
+- **validée** = l'utilisateur a approuvé ce cadre explicitement (« on part sur A ») ; un cadre dessiné par l'agent reste `proposée` jusque-là ;
+- sans cadre validé : dessine ou mets à jour la maquette dans Figma, présente-la, attends la validation, note-la dans `US.md`, puis code.
+
+Restent hors règle, sans nouveau cadre : composant non visuel, correctif de bug ou de responsive qui respecte la maquette, retouche demandée explicitement par l'utilisateur (libellé, champ retiré) ; l'écart à la maquette est alors noté dans le résumé.
+
 ## Structure `src/`
 
 | Dossier | Rôle |
@@ -66,5 +76,5 @@ Règles :
 1. Données ou métriques manquantes → backend d'abord (voir `../../AGENTS.md`).
 2. `types.ts`, `api.ts`, `hook.ts`, puis `constants.ts`/`utils.ts` si besoin.
 3. `schema.ts` si formulaire ; `column.tsx` si table ; `stats.tsx` si cartes.
-4. Composants `<sujet>.tsx` composés de `components/` (catalogue `COMPONENTS.md`) ; nouvelle entrée dans `COMPONENTS.md` pour chaque composant partagé ou export de feature créé.
+4. Composants `<sujet>.tsx` codés depuis le cadre validé (« Maquette d'abord »), composés de `components/` (catalogue `COMPONENTS.md`) ; nouvelle entrée dans `COMPONENTS.md` pour chaque composant partagé ou export de feature créé.
 5. Page `app/app/<domaine>/page.tsx` fine ; entrée sidebar dans `constants/sidebar.tsx`.
