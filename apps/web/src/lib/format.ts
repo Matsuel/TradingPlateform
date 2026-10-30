@@ -26,6 +26,10 @@ export const formatDay = (d: string | Date) =>
     new Intl.DateTimeFormat(LOCALE, { day: "2-digit", month: "2-digit", year: "numeric" }).format(new Date(d))
 export const formatDayRange = (start: string | Date, end: string | Date) =>
     `${formatDay(start)} – ${formatDay(end)}`
+export const formatMonthTick = (d: string | Date) =>
+    new Intl.DateTimeFormat(LOCALE, { month: "short", year: "2-digit" }).format(new Date(d))
+export const formatMediumDate = (d: string | Date) =>
+    new Intl.DateTimeFormat(LOCALE, { dateStyle: "medium" }).format(new Date(d))
 
 // Mois moyen du calendrier grégorien, pour convertir des jours calendaires en mois
 const DAYS_PER_MONTH = 365.25 / 12

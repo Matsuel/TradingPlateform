@@ -2,8 +2,7 @@
 
 import { PriceAreaChart } from "@/components/chart"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { formatRate, formatRatio } from "@/lib/format"
-import { formatTick, formatTooltipDate } from "./equity-chart"
+import { formatMediumDate, formatMonthTick, formatRate, formatRatio } from "@/lib/format"
 import type { EquityPoint } from "./types"
 
 /**
@@ -26,8 +25,8 @@ export function DrawdownChart({ data }: { data: EquityPoint[] }) {
             <CardContent>
                 <PriceAreaChart
                     data={points}
-                    formatTick={formatTick}
-                    formatTooltipDate={formatTooltipDate}
+                    formatTick={formatMonthTick}
+                    formatTooltipDate={formatMediumDate}
                     formatAxis={formatRate}
                     formatValue={formatRatio}
                     label="Drawdown"

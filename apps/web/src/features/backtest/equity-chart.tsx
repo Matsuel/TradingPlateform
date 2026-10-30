@@ -2,16 +2,9 @@
 
 import { PriceAreaChart } from "@/components/chart"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { LOCALE } from "@/lib/format"
+import { formatMediumDate, formatMonthTick } from "@/lib/format"
 import { BACKTEST_CURRENCY } from "./constants"
 import type { EquityPoint } from "./types"
-
-// Partagés avec DrawdownChart : les deux courbes gardent le même axe temporel
-export const formatTick = (date: string) =>
-    new Intl.DateTimeFormat(LOCALE, { month: "short", year: "2-digit" }).format(new Date(date))
-
-export const formatTooltipDate = (date: string) =>
-    new Intl.DateTimeFormat(LOCALE, { dateStyle: "medium" }).format(new Date(date))
 
 /**
  * Courbe de valeur du portefeuille. Si les points portent `lumpSumValue` (DCA), ajoute en pointillés
@@ -32,8 +25,8 @@ export function EquityChart({ data, positive }: { data: EquityPoint[]; positive:
             <CardContent>
                 <PriceAreaChart
                     data={data.map((p) => ({ date: p.date, price: p.value, compare: p.lumpSumValue }))}
-                    formatTick={formatTick}
-                    formatTooltipDate={formatTooltipDate}
+                    formatTick={formatMonthTick}
+                    formatTooltipDate={formatMediumDate}
                     label="Valeur"
                     currency={BACKTEST_CURRENCY}
                     positive={positive}

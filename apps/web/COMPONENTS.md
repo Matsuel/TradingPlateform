@@ -714,6 +714,8 @@ Props communes `BaseProps<T>` (exportées par `field.tsx`), répétées dans cha
 | `formatDate` | `(d: string \| Date) => string` | Date et heure courtes : « 28/10/2026 09:00 ». | `features/backtest/execution-history.tsx`, `features/backtest/assumptions.tsx` |
 | `formatDay` | `(d: string \| Date) => string` | Jour court : « 28/10/26 ». | `features/backtest/column.tsx`, `features/backtest/stats.tsx` |
 | `formatDayRange` | `(start: string \| Date, end: string \| Date) => string` | Période : « 28/10/25 – 28/10/26 ». | `features/backtest/column.tsx`, `features/backtest/backtest-detail.tsx`, `features/backtest/assumptions.tsx` |
+| `formatMonthTick` | `(d: string \| Date) => string` | Mois court et année pour un axe temporel : « janv. 24 ». | `features/backtest/equity-chart.tsx`, `features/backtest/drawdown-chart.tsx` |
+| `formatMediumDate` | `(d: string \| Date) => string` | Date moyenne : « 28 oct. 2026 » (infobulle de graphique). | `features/backtest/equity-chart.tsx`, `features/backtest/drawdown-chart.tsx` |
 | `formatDuration` | `(days: number) => string` | Durée en jours calendaires : en jours sous deux mois (`45` → « 45 jours », `1` → « 1 jour »), sinon en mois arrondis (`426` → « 14 mois »). | `features/backtest/stats.tsx` |
 
 Source : `src/lib/format.ts`.
@@ -952,7 +954,7 @@ Source : `src/features/auth/schema.ts`.
 ### EquityChart
 
 - **Import** : `import { EquityChart } from "@/features/backtest/equity-chart"`.
-- **Rôle** : carte « Courbe d'equity » : valeur du portefeuille dans le temps, en `BACKTEST_CURRENCY` ; si les points portent `lumpSumValue` (DCA), ajoute la courbe « Investissement unique » en pointillés. Exporte aussi `formatTick` et `formatTooltipDate` (dates des axes), réutilisés par `DrawdownChart` pour garder le même axe temporel.
+- **Rôle** : carte « Courbe d'equity » : valeur du portefeuille dans le temps, en `BACKTEST_CURRENCY` ; si les points portent `lumpSumValue` (DCA), ajoute la courbe « Investissement unique » en pointillés.
 - **Props** :
 
   | Nom | Type | Requis | Défaut | Description |
