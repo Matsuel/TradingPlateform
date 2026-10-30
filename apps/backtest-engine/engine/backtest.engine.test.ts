@@ -11,6 +11,7 @@ const lumpSum: BacktestParams = {
     investmentFrequency: null,
     rebalanceFrequency: "NONE",
     feeRate: 0,
+    benchmarkSymbol: null,
 };
 
 // 100 € le premier jour de cotation de chaque mois
@@ -355,6 +356,83 @@ describe("runBacktest", () => {
         });
     });
 
+    describe("benchmark", () => {
+        const withBenchmark: BacktestParams = { ...dca, feeRate: 0.001, benchmarkSymbol: "BBB" };
+
+        test("absent sans benchmarkSymbol : benchmark null, pas de benchmarkValue", () => {
+            const result = runBacktest(dca, referencePrices);
+
+            expect(result.benchmark).toBeNull();
+            expect(result.equityCurve.some((point) => "benchmarkValue" in point)).toBe(false);
+        });
+
+        test("identique à l'unique actif du portefeuille : mêmes métriques, écarts nuls", () => {
+            const result = runBacktest({ ...withBenchmark, benchmarkSymbol: "AAA" }, referencePrices);
+
+            expect(result.benchmark).toEqual({
+                symbol: "AAA",
+                finalValue: result.finalValue,
+                totalReturn: result.totalReturn,
+                cagr: result.cagr,
+                volatility: result.volatility,
+                sharpeRatio: result.sharpeRatio,
+                maxDrawdown: result.maxDrawdown,
+                recoveryDays: result.recoveryDays,
+                excessCagr: 0,
+                excessVolatility: 0,
+                excessMaxDrawdown: 0,
+                excessSharpe: 0,
+            });
+            expect(result.equityCurve.every((point) => point.benchmarkValue === point.value)).toBe(true);
+        });
+
+        // AAA et BBB cotent les mêmes jours : le calendrier commun ne change rien à BBB seul
+        test("mêmes versements, dates et frais, 100 % sur le benchmark sans rebalancement", () => {
+            const result = runBacktest({ ...withBenchmark, rebalanceFrequency: "MONTHLY" }, referencePrices);
+            const alone = runBacktest({ ...withBenchmark, allocations: [{ symbol: "BBB", weight: 1 }], rebalanceFrequency: "NONE", benchmarkSymbol: null }, referencePrices);
+
+            expect(result.benchmark!.finalValue).toBe(alone.finalValue);
+            expect(result.benchmark!.maxDrawdown).toBe(alone.maxDrawdown);
+            expect(result.equityCurve.map((point) => point.benchmarkValue)).toEqual(alone.equityCurve.map((point) => point.value));
+        });
+
+        test("écarts stratégie − benchmark calculés par l'engine", () => {
+            const result = runBacktest(withBenchmark, referencePrices);
+            const benchmark = result.benchmark!;
+
+            expect(benchmark.excessCagr).toBeCloseTo(result.cagr! - benchmark.cagr!, 6);
+            expect(benchmark.excessVolatility).toBeCloseTo(result.volatility! - benchmark.volatility!, 6);
+            expect(benchmark.excessMaxDrawdown).toBeCloseTo(result.maxDrawdown - benchmark.maxDrawdown, 6);
+            expect(benchmark.excessSharpe).toBeCloseTo(result.sharpeRatio! - benchmark.sharpeRatio!, 6);
+        });
+
+        test("départ commun : premier jour où stratégie et benchmark ont un cours", () => {
+            const result = runBacktest({ ...lumpSum, benchmarkSymbol: "BBB" }, {
+                AAA: [
+                    { date: "2024-01-02", close: 10 },
+                    { date: "2024-01-03", close: 11 },
+                    { date: "2024-01-05", close: 12 },
+                ],
+                BBB: [
+                    { date: "2024-01-03", close: 20 },
+                    { date: "2024-01-04", close: 22 },
+                ],
+            });
+
+            expect(result.equityCurve).toEqual([
+                { date: "2024-01-03", value: 1000, invested: 1000, drawdown: 0, benchmarkValue: 1000 },
+                { date: "2024-01-04", value: 1000, invested: 1000, drawdown: 0, benchmarkValue: 1100 },
+                { date: "2024-01-05", value: 1090.91, invested: 1000, drawdown: 0, benchmarkValue: 1100 },
+            ]);
+        });
+
+        test("échoue sans données pour le benchmark", () => {
+            expect(() => runBacktest({ ...lumpSum, benchmarkSymbol: "URTH" }, { AAA: [{ date: "2024-01-02", close: 10 }] })).toThrow(
+                "No market data for URTH",
+            );
+        });
+    });
+
     test("règle d'exécution publiée avec le résultat", () => {
         expect(runBacktest(lumpSum, { AAA: [{ date: "2024-01-02", close: 10 }] }).executionRule).toBe("CLOSE_ON_SCHEDULED_DAY");
     });
@@ -402,6 +480,7 @@ describe("runBacktest", () => {
                 sharpeRatio: -0.019632,
                 executionRule: "CLOSE_ON_SCHEDULED_DAY",
                 lumpSumComparison: { finalValue: 2363.86, totalReturn: -0.015058, maxDrawdown: -0.302102, dcaAdvantage: 85.84 },
+                benchmark: null,
             });
             expect(equityCurve).toHaveLength(520);
             expect(trades).toHaveLength(48);

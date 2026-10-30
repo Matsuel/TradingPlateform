@@ -369,9 +369,9 @@ Critères d’acceptation :
 - **Fichiers** : `packages/contracts/src/backtest.ts`
 
 Critères d’acceptation :
-- [ ] `backtest.requested.benchmarkSymbol: string | null`.
-- [ ] `benchmarkSchema` : `symbol`, `finalValue`, `totalReturn`, `cagr`, `volatility`, `sharpeRatio`, `maxDrawdown`, `recoveryDays`, et écarts stratégie − benchmark `excessCagr`, `excessVolatility`, `excessMaxDrawdown`, `excessSharpe` (unités commentées : points de ratio).
-- [ ] `backtest.completed.benchmark: benchmarkSchema.nullable()` ; `equityPointSchema.benchmarkValue` optionnel.
+- [x] `backtest.requested.benchmarkSymbol: string | null`.
+- [x] `benchmarkSchema` : `symbol`, `finalValue`, `totalReturn`, `cagr`, `volatility`, `sharpeRatio`, `maxDrawdown`, `recoveryDays`, et écarts stratégie − benchmark `excessCagr`, `excessVolatility`, `excessMaxDrawdown`, `excessSharpe` (unités commentées : points de ratio).
+- [x] `backtest.completed.benchmark: benchmarkSchema.nullable()` ; `equityPointSchema.benchmarkValue` optionnel.
 
 ### T-22 · Engine : rejeu du benchmark et écarts
 
@@ -379,11 +379,11 @@ Critères d’acceptation :
 - **Fichiers** : `engine/backtest.engine.ts`, `services/backtest.service.ts`, tests
 
 Critères d’acceptation :
-- [ ] Benchmark simulé par `simulate` avec une allocation 100 % `benchmarkSymbol`, mêmes versements, dates et frais (D9), sans rebalancement.
-- [ ] Courbe alignée par date avec la stratégie (même règle de départ : premier jour où tous les symboles, benchmark compris, ont un cours).
-- [ ] Cours du benchmark inclus dans `dataSource.fingerprint`.
-- [ ] Benchmark sans données ⇒ `BacktestError` « No market data for <symbol> », exécution `FAILED`.
-- [ ] Tests : benchmark identique à l’unique actif du portefeuille ⇒ écarts nuls ; `benchmarkSymbol: null` ⇒ `benchmark: null` et pas de `benchmarkValue`.
+- [x] Benchmark simulé par `simulate` avec une allocation 100 % `benchmarkSymbol`, mêmes versements, dates et frais (D9), sans rebalancement.
+- [x] Courbe alignée par date avec la stratégie (même règle de départ : premier jour où tous les symboles, benchmark compris, ont un cours).
+- [x] Cours du benchmark inclus dans `dataSource.fingerprint`.
+- [x] Benchmark sans données ⇒ `BacktestError` « No market data for <symbol> », exécution `FAILED`.
+- [x] Tests : benchmark identique à l’unique actif du portefeuille ⇒ écarts nuls ; `benchmarkSymbol: null` ⇒ `benchmark: null` et pas de `benchmarkValue`.
 
 ### T-23 · core-backend : benchmark persisté
 

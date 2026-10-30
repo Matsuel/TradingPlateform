@@ -87,6 +87,8 @@ export type CompleteExecutionDTO = Omit<
     | "maxDrawdownPeakDate"
     | "maxDrawdownRecoveryDate"
     | "recoveryDays"
+    // Pas encore stocké : colonne ajoutée par T-23
+    | "benchmark"
 > & {
     finishedAt: Date;
     maxDrawdownDate: Date | null;
