@@ -58,7 +58,7 @@ type MetricField = "cagr" | "volatility" | "sharpeRatio"
 export type BacktestResult = Record<DecimalField, string | null> &
     Partial<Record<MetricField, string | null>> &
     Pick<BacktestCompletedPayload, "totalTrades" | "holdings" | "lumpSumComparison"> &
-    Partial<Pick<BacktestCompletedPayload, "recoveryDays" | "benchmark">> &
+    Partial<Pick<BacktestCompletedPayload, "recoveryDays" | "rebalanceCount" | "benchmark">> &
     { [K in AssumptionField]: BacktestCompletedPayload[K] | null } & {
         maxDrawdownDate: string | null // ISO
         maxDrawdownPeakDate?: string | null // ISO ; null sans baisse

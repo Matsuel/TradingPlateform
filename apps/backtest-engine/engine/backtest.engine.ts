@@ -62,6 +62,7 @@ function simulate(params: BacktestParams, prices: PriceSeries, calendarSymbols: 
     // Cumuls non arrondis : seules les valeurs publiées le sont
     let invested = 0;
     let fees = 0;
+    let rebalances = 0;
     let previousPeriod: string | null = null;
     let previousRebalancePeriod: string | null = null;
     let previousValue = 0;
@@ -129,6 +130,7 @@ function simulate(params: BacktestParams, prices: PriceSeries, calendarSymbols: 
                 for (const { symbol, gap } of overweight) proceeds += placeOrder(date, symbol, "SELL", gap);
                 const shortfall = underweight.reduce((sum, { gap }) => sum - gap, 0);
                 for (const { symbol, gap } of underweight) placeOrder(date, symbol, "BUY", (proceeds * -gap) / shortfall);
+                rebalances++;
             }
         }
 
@@ -147,6 +149,7 @@ function simulate(params: BacktestParams, prices: PriceSeries, calendarSymbols: 
         profit: round(finalValue - invested, 2),
         totalReturn: round((finalValue - invested) / invested, 6),
         totalTrades: trades.length,
+        rebalanceCount: rebalances,
         maxDrawdown: round(drawdown.maxDrawdown, 6),
         maxDrawdownDate: drawdown.maxDrawdownDate,
         maxDrawdownPeakDate: drawdown.maxDrawdownPeakDate,

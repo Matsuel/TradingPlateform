@@ -294,6 +294,7 @@ describe("runBacktest", () => {
             expect(result.totalInvested).toBe(1000);
             expect(result.totalFees).toBe(29.7);
             expect(result.totalTrades).toBe(4);
+            expect(result.rebalanceCount).toBe(1);
             expect(result.finalValue).toBe(1460.3);
         });
 
@@ -323,6 +324,7 @@ describe("runBacktest", () => {
 
             expect(result.trades.every((trade) => trade.side === "BUY")).toBe(true);
             expect(result.totalTrades).toBe(2);
+            expect(result.rebalanceCount).toBe(0);
         });
 
         test("une date par période : premier jour de cotation de chaque mois, trimestre ou année", () => {
@@ -470,6 +472,7 @@ describe("runBacktest", () => {
                 profit: 49.7,
                 totalReturn: 0.020708,
                 totalTrades: 48,
+                rebalanceCount: 0,
                 maxDrawdown: -0.295875,
                 maxDrawdownDate: "2023-07-07",
                 maxDrawdownPeakDate: "2022-05-06",

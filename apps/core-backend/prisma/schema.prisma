@@ -220,6 +220,8 @@ model BacktestResult {
   profit                  Decimal?       @db.Decimal(18, 2)
   totalReturn             Decimal?       @db.Decimal(12, 6)
   totalTrades             Int            @default(0)
+  // Rebalancements qui ont passé au moins un ordre ; null pour les résultats antérieurs
+  rebalanceCount          Int?
   // Ratio ≤ 0, hors versements
   maxDrawdown             Decimal?       @db.Decimal(12, 6)
   maxDrawdownDate         DateTime?

@@ -195,6 +195,8 @@ export const backtestCompletedPayloadSchema = z.object({
     // Ratio : profit / totalInvested
     totalReturn: z.number(),
     totalTrades: z.number().int().min(0),
+    // Rebalancements qui ont passé au moins un ordre (D7) ; 0 avec rebalanceFrequency NONE
+    rebalanceCount: z.number().int().min(0),
     // Ratio ≤ 0, mesuré hors versements (performance pondérée dans le temps)
     maxDrawdown: z.number().max(0),
     maxDrawdownDate: z.iso.date().nullable(),

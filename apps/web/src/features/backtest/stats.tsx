@@ -1,8 +1,8 @@
 import Dash from "@/components/custom/Dash"
 import { StatCard } from "@/components/stat-card"
 import { LOCALE, formatDay, formatDuration, formatPercent, formatPrice, formatRate, formatRatio } from "@/lib/format"
-import { BACKTEST_CURRENCY, RISK_FREE_RATE } from "./constants"
-import type { BacktestListStats, BacktestResult, LumpSumComparison } from "./types"
+import { BACKTEST_CURRENCY, RISK_FREE_RATE, rebalanceFrequencyLabels } from "./constants"
+import type { BacktestListStats, BacktestResult, LumpSumComparison, RebalanceFrequency } from "./types"
 import { fromDecimal } from "./utils"
 
 // Sharpe sans unité, 2 décimales
@@ -50,7 +50,13 @@ function drawdownCaption(result: BacktestResult, maxDrawdown: number | null) {
  * Métriques d'un résultat, toutes calculées par le moteur : le front ne fait que les formater.
  * Un champ absent d'un résultat antérieur (`cagr` null, D10) s'affiche `<Dash />` ou masque sa légende.
  */
-export function BacktestResultStats({ result }: { result: BacktestResult }) {
+export function BacktestResultStats({
+    result,
+    rebalanceFrequency,
+}: {
+    result: BacktestResult
+    rebalanceFrequency: RebalanceFrequency
+}) {
     const totalReturn = fromDecimal(result.totalReturn)
     const cagr = fromDecimal(result.cagr)
     const volatility = fromDecimal(result.volatility)
@@ -98,6 +104,11 @@ export function BacktestResultStats({ result }: { result: BacktestResult }) {
                 label="Frais payés"
                 value={fees == null ? <Dash /> : formatPrice(fees, BACKTEST_CURRENCY)}
                 caption="Inclus dans le montant investi"
+            />
+            <StatCard
+                label="Rebalancements"
+                value={result.rebalanceCount ?? <Dash />}
+                caption={`Fréquence : ${rebalanceFrequencyLabels[rebalanceFrequency]}`}
             />
         </div>
     )

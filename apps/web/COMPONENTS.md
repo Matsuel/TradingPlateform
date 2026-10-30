@@ -1074,16 +1074,17 @@ Source : `src/features/auth/schema.ts`.
 ### BacktestResultStats
 
 - **Import** : `import { BacktestResultStats } from "@/features/backtest/stats"`.
-- **Rôle** : 7 `StatCard` d’un résultat : rendement total (plus-value `profit`), CAGR, volatilité, Sharpe (légende : taux sans risque `RISK_FREE_RATE`), max drawdown (légende : date du plus haut et durée de récupération `formatDuration`, « Non récupéré » si `recoveryDays` est `null` avec un plus haut ; date du creux seule pour un résultat antérieur), valeur finale (ordres, montant investi), frais payés ; `<Dash />` ou légende masquée si un champ manque (résultat antérieur, `cagr` null ou absent : rien n'est recalculé).
+- **Rôle** : 8 `StatCard` d’un résultat : rendement total (plus-value `profit`), CAGR, volatilité, Sharpe (légende : taux sans risque `RISK_FREE_RATE`), max drawdown (légende : date du plus haut et durée de récupération `formatDuration`, « Non récupéré » si `recoveryDays` est `null` avec un plus haut ; date du creux seule pour un résultat antérieur), valeur finale (ordres, montant investi), frais payés, rebalancements (`rebalanceCount`, légende : fréquence `rebalanceFrequencyLabels`) ; `<Dash />` ou légende masquée si un champ manque (résultat antérieur, `cagr` null ou absent : rien n'est recalculé).
 - **Props** :
 
   | Nom | Type | Requis | Défaut | Description |
   | --- | --- | --- | --- | --- |
   | `result` | `BacktestResult` | oui | — | Résultat complet (ratios en fraction, montants en string). |
+  | `rebalanceFrequency` | `RebalanceFrequency` | oui | — | Fréquence du backtest, légende de la carte « Rebalancements ». |
 
 - **Exemple** (tiré de `src/features/backtest/backtest-detail.tsx`) :
   ```tsx
-  <BacktestResultStats result={result} />
+  <BacktestResultStats result={result} rebalanceFrequency={backtest.rebalanceFrequency} />
   ```
 - **Utilisé par** : `src/features/backtest/backtest-detail.tsx`.
 - **Source** : `src/features/backtest/stats.tsx`.

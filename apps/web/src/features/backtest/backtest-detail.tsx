@@ -83,7 +83,7 @@ export function BacktestDetail({ id }: { id: string }) {
 
             {result ? (
                 <>
-                    <BacktestResultStats result={result} />
+                    <BacktestResultStats result={result} rebalanceFrequency={backtest.rebalanceFrequency} />
                     {result.lumpSumComparison && <LumpSumComparisonStats comparison={result.lumpSumComparison} />}
                     <BacktestAssumptions backtest={backtest} result={result} />
                     <EquityChart data={result.equityCurve} positive={Number(result.totalReturn) >= 0} />
