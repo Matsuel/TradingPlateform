@@ -1,7 +1,7 @@
 import type { PaginationQuery } from "@trading-plateform/contracts"
 import { prisma } from "../prisma"
 import { Prisma, type BacktestExecution, type BacktestStatus } from "../generated/prisma/client"
-import type { BacktestDetails, BacktestStatusCounts, BacktestWithExecutions, CompleteExecutionDTO, CreateBacktestDTO } from "../interfaces/backtest.interface"
+import type { BacktestDetails, BacktestExecutionCount, BacktestStatusCounts, BacktestWithExecutions, ComparedBacktestRecord, CompleteExecutionDTO, CreateBacktestDTO } from "../interfaces/backtest.interface"
 
 export interface IBacktestRepository {
     create(data: CreateBacktestDTO): Promise<BacktestWithExecutions>
@@ -9,6 +9,8 @@ export interface IBacktestRepository {
     getDetailsById(id: string): Promise<BacktestDetails | null>
     getAllByUserId(userId: string, pagination: PaginationQuery, statuses?: BacktestStatus[]): Promise<{ data: BacktestWithExecutions[], count: number }>
     countByLatestStatus(userId: string): Promise<BacktestStatusCounts>
+    countExecutionsByIds(ids: string[], userId: string, statuses: BacktestStatus[]): Promise<BacktestExecutionCount[]>
+    getComparedByIds(ids: string[], statuses: BacktestStatus[]): Promise<ComparedBacktestRecord[]>
     createExecution(backtestId: string, attempt: number): Promise<BacktestExecution>
     updateExecution(id: string, from: BacktestStatus[], data: Prisma.BacktestExecutionUpdateManyMutationInput): Promise<boolean>
     completeExecution(id: string, from: BacktestStatus[], data: CompleteExecutionDTO): Promise<boolean>
@@ -29,6 +31,32 @@ const latestExecution = {
     ...allocations,
     executions: { ...executionSummary, take: 1 },
 } satisfies Prisma.BacktestInclude
+
+// Paramètres, allocation, métriques et courbe d'un backtest comparé ; ni ordres, ni positions
+const comparedBacktest = {
+    id: true,
+    name: true,
+    startDate: true,
+    endDate: true,
+    investmentMode: true,
+    rebalanceFrequency: true,
+    feeRate: true,
+    benchmarkSymbol: true,
+    allocations: { select: { symbol: true, weight: true } },
+} satisfies Prisma.BacktestSelect
+
+const comparedResult = {
+    finalValue: true,
+    totalInvested: true,
+    totalReturn: true,
+    cagr: true,
+    volatility: true,
+    sharpeRatio: true,
+    maxDrawdown: true,
+    recoveryDays: true,
+    benchmark: true,
+    equityCurve: true,
+} satisfies Prisma.BacktestResultSelect
 
 class BacktestRepository implements IBacktestRepository {
     async create(data: CreateBacktestDTO): Promise<BacktestWithExecutions> {
@@ -94,6 +122,28 @@ class BacktestRepository implements IBacktestRepository {
             }),
         ])
         return { total, byStatus: groups.map(({ status, _count }) => ({ status, count: _count._all })) }
+    }
+
+    async countExecutionsByIds(ids: string[], userId: string, statuses: BacktestStatus[]): Promise<BacktestExecutionCount[]> {
+        return prisma.backtest.findMany({
+            where: { id: { in: ids }, userId },
+            select: { id: true, _count: { select: { executions: { where: { status: { in: statuses } } } } } },
+        })
+    }
+
+    async getComparedByIds(ids: string[], statuses: BacktestStatus[]): Promise<ComparedBacktestRecord[]> {
+        return prisma.backtest.findMany({
+            where: { id: { in: ids } },
+            select: {
+                ...comparedBacktest,
+                executions: {
+                    where: { status: { in: statuses } },
+                    orderBy: executionSummary.orderBy,
+                    take: 1,
+                    select: { result: { select: comparedResult } },
+                },
+            },
+        })
     }
 
     async createExecution(backtestId: string, attempt: number): Promise<BacktestExecution> {
