@@ -75,7 +75,19 @@ export type BacktestWithExecutions = Prisma.BacktestGetPayload<{
 
 export type BacktestDetails = BacktestWithExecutions & { result: BacktestResult | null };
 
-export type CompleteExecutionDTO = Omit<BacktestCompletedPayload, "executionId" | "finishedAt" | "maxDrawdownDate"> & {
+export type CompleteExecutionDTO = Omit<
+    BacktestCompletedPayload,
+    | "executionId"
+    | "finishedAt"
+    | "maxDrawdownDate"
+    // Pas encore stockées : colonnes ajoutées par T-18
+    | "cagr"
+    | "volatility"
+    | "sharpeRatio"
+    | "maxDrawdownPeakDate"
+    | "maxDrawdownRecoveryDate"
+    | "recoveryDays"
+> & {
     finishedAt: Date;
     maxDrawdownDate: Date | null;
 };

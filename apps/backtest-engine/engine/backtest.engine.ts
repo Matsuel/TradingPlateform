@@ -1,9 +1,11 @@
 import type { EquityPoint, Trade, TradeSide } from "@trading-plateform/contracts";
 import BacktestError from "../errors/backtest.error";
-import type { BacktestOutcome, BacktestParams, PriceSeries } from "../interfaces/backtest.interface";
-import { createDrawdownTracker, periodKey, round } from "./backtest.utils";
+import type { BacktestOutcome, BacktestParams, PriceSeries, TwrPoint } from "../interfaces/backtest.interface";
+import { annualizedReturn, annualizedVolatility, createDrawdownTracker, periodKey, round, sharpeRatio } from "./backtest.utils";
 
 type Simulation = Omit<BacktestOutcome, "lumpSumComparison" | "executionRule">;
+
+const roundOrNull = (ratio: number | null) => (ratio === null ? null : round(ratio, 6));
 
 // Écart minimal à la cible, devise saisie, pour passer un ordre de rebalancement : un ordre arrondi à 0 € serait invalide (amount > 0)
 const MIN_REBALANCE_ORDER = 0.01;
@@ -23,6 +25,8 @@ const MIN_REBALANCE_ORDER = 0.01;
  *   `NONE` : aucune vente.
  * - Frais (D8) : `amount × feeRate` sur chaque ordre. Achat : `amount` payé frais compris, titres = (amount − fee) / cours.
  *   Vente : `amount` = produit brut (titres × cours), encaissé net de `fee`.
+ * - Métriques de risque (D3 à D6) et `drawdown` de chaque point : sur l'indice TWR chaîné jour après jour,
+ *   rendement du jour mesuré avant le versement, donc hors apports.
  *
  * Lève `BacktestError` sans données de marché ou si rien n'a été investi.
  */
@@ -47,7 +51,8 @@ function simulate(params: BacktestParams, prices: PriceSeries): Simulation {
     const trades: Trade[] = [];
     const recurring = investmentMode === "RECURRING" ? recurringAmount ?? 0 : 0;
     const portfolioValue = () => symbols.reduce((sum, symbol) => sum + shares.get(symbol)! * lastClose.get(symbol)!, 0);
-    const drawdown = createDrawdownTracker();
+    const drawdown = createDrawdownTracker(start);
+    const twr: TwrPoint[] = [];
     // Cumuls non arrondis : seules les valeurs publiées le sont
     let invested = 0;
     let fees = 0;
@@ -82,7 +87,9 @@ function simulate(params: BacktestParams, prices: PriceSeries): Simulation {
         if (date < start) continue;
 
         // Rendement du jour mesuré avant le versement : un apport n'est pas une performance
-        if (previousValue > 0) drawdown.record(portfolioValue() / previousValue, date);
+        const dailyReturn = previousValue > 0 ? portfolioValue() / previousValue : 1;
+        const currentDrawdown = previousValue > 0 ? drawdown.record(dailyReturn, date) : 0;
+        twr.push({ date, index: (twr.at(-1)?.index ?? 1) * dailyReturn });
 
         const period = periodKey(date, investmentFrequency);
         const isFirstDay = previousPeriod === null;
@@ -120,7 +127,7 @@ function simulate(params: BacktestParams, prices: PriceSeries): Simulation {
         }
 
         previousValue = portfolioValue();
-        equityCurve.push({ date, value: round(previousValue, 2), invested: round(invested, 2) });
+        equityCurve.push({ date, value: round(previousValue, 2), invested: round(invested, 2), drawdown: round(currentDrawdown, 6) });
     }
 
     if (invested === 0) throw new BacktestError("Nothing was invested");
@@ -136,6 +143,12 @@ function simulate(params: BacktestParams, prices: PriceSeries): Simulation {
         totalTrades: trades.length,
         maxDrawdown: round(drawdown.maxDrawdown, 6),
         maxDrawdownDate: drawdown.maxDrawdownDate,
+        maxDrawdownPeakDate: drawdown.maxDrawdownPeakDate,
+        maxDrawdownRecoveryDate: drawdown.maxDrawdownRecoveryDate,
+        recoveryDays: drawdown.recoveryDays,
+        cagr: roundOrNull(annualizedReturn(twr)),
+        volatility: roundOrNull(annualizedVolatility(twr)),
+        sharpeRatio: roundOrNull(sharpeRatio(twr)),
         equityCurve,
         trades,
         holdings: symbols.map((symbol) => ({

@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import runBacktest from "./backtest.engine";
-import { referencePrices } from "./backtest.fixture";
+import { referencePrices, syntheticSeries } from "./backtest.fixture";
 import type { BacktestParams } from "../interfaces/backtest.interface";
 
 const lumpSum: BacktestParams = {
@@ -33,9 +33,9 @@ describe("runBacktest", () => {
         });
 
         expect(result.equityCurve).toEqual([
-            { date: "2024-01-02", value: 1000, invested: 1000 },
-            { date: "2024-01-03", value: 1200, invested: 1000 },
-            { date: "2024-01-04", value: 1500, invested: 1000 },
+            { date: "2024-01-02", value: 1000, invested: 1000, drawdown: 0 },
+            { date: "2024-01-03", value: 1200, invested: 1000, drawdown: 0 },
+            { date: "2024-01-04", value: 1500, invested: 1000, drawdown: 0 },
         ]);
         expect(result.finalValue).toBe(1500);
         expect(result.totalInvested).toBe(1000);
@@ -98,9 +98,9 @@ describe("runBacktest", () => {
         });
 
         expect(result.equityCurve).toEqual([
-            { date: "2024-01-02", value: 1000, invested: 1000 },
-            { date: "2024-01-03", value: 1500, invested: 1000 },
-            { date: "2024-01-04", value: 2000, invested: 1000 },
+            { date: "2024-01-02", value: 1000, invested: 1000, drawdown: 0 },
+            { date: "2024-01-03", value: 1500, invested: 1000, drawdown: 0 },
+            { date: "2024-01-04", value: 2000, invested: 1000, drawdown: 0 },
         ]);
         expect(result.totalTrades).toBe(2);
     });
@@ -156,6 +156,10 @@ describe("runBacktest", () => {
 
         expect(result.maxDrawdown).toBe(-0.5);
         expect(result.maxDrawdownDate).toBe("2024-02-01");
+        expect(result.equityCurve.map((point) => point.drawdown)).toEqual([0, -0.5, 0]);
+        expect(result.maxDrawdownPeakDate).toBe("2024-01-02");
+        expect(result.maxDrawdownRecoveryDate).toBe("2024-03-01");
+        expect(result.recoveryDays).toBe(59);
     });
 
     test("sans baisse, pas de drawdown", () => {
@@ -221,8 +225,8 @@ describe("runBacktest", () => {
             // 200 € versés dans les deux cas, 1 % de frais : 198 € investis
             expect(result.lumpSumComparison!.finalValue).toBe(result.finalValue);
             expect(result.equityCurve).toEqual([
-                { date: "2024-01-02", value: 99, invested: 100, lumpSumValue: 198 },
-                { date: "2024-02-01", value: 198, invested: 200, lumpSumValue: 198 },
+                { date: "2024-01-02", value: 99, invested: 100, lumpSumValue: 198, drawdown: 0 },
+                { date: "2024-02-01", value: 198, invested: 200, lumpSumValue: 198, drawdown: 0 },
             ]);
         });
     });
@@ -390,6 +394,12 @@ describe("runBacktest", () => {
                 totalTrades: 48,
                 maxDrawdown: -0.295875,
                 maxDrawdownDate: "2023-07-07",
+                maxDrawdownPeakDate: "2022-05-06",
+                maxDrawdownRecoveryDate: "2023-10-26",
+                recoveryDays: 538,
+                cagr: -0.00426,
+                volatility: 0.21697,
+                sharpeRatio: -0.019632,
                 executionRule: "CLOSE_ON_SCHEDULED_DAY",
                 lumpSumComparison: { finalValue: 2363.86, totalReturn: -0.015058, maxDrawdown: -0.302102, dcaAdvantage: 85.84 },
             });
@@ -400,5 +410,35 @@ describe("runBacktest", () => {
                 { symbol: "BBB", quantity: 23.985752, value: 1370.31 },
             ]);
         });
+    });
+
+    // Ordre de grandeur réel d'un long backtest : sert aussi à mesurer la taille du message backtest.completed (T-17)
+    test("bout en bout sur 20 ans à 3 actifs : métriques présentes et cohérentes", () => {
+        const days = 20 * 261;
+        const prices = {
+            AAA: syntheticSeries(42, "2004-01-05", days, 10_000),
+            BBB: syntheticSeries(7, "2004-01-05", days, 5_000),
+            CCC: syntheticSeries(1234, "2004-01-05", days, 20_000),
+        };
+        const result = runBacktest(
+            {
+                ...dca,
+                allocations: [{ symbol: "AAA", weight: 0.5 }, { symbol: "BBB", weight: 0.3 }, { symbol: "CCC", weight: 0.2 }],
+                rebalanceFrequency: "QUARTERLY",
+                feeRate: 0.001,
+            },
+            prices,
+        );
+        const drawdowns = result.equityCurve.map((point) => point.drawdown);
+
+        expect(result.equityCurve).toHaveLength(days);
+        expect(result.maxDrawdown).toBe(Math.min(...drawdowns));
+        expect(result.equityCurve.find((point) => point.drawdown === result.maxDrawdown)!.date).toBe(result.maxDrawdownDate!);
+        expect(result.maxDrawdownPeakDate! < result.maxDrawdownDate!).toBe(true);
+        expect(result.cagr).not.toBeNull();
+        expect(result.volatility!).toBeGreaterThan(0);
+        expect(result.sharpeRatio).toBeCloseTo(result.cagr! / result.volatility!, 4);
+        if (result.maxDrawdownRecoveryDate === null) expect(result.recoveryDays).toBeNull();
+        else expect(result.recoveryDays!).toBeGreaterThan(0);
     });
 });
