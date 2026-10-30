@@ -2,7 +2,7 @@ import type { Column } from "@/components/data-table/data-table"
 import { ChangeCell, SymbolCell } from "@/components/data-table/cells"
 import { Badge } from "@/components/ui/badge"
 import { formatDay, formatDayRange, formatPrice, LOCALE } from "@/lib/format"
-import { BACKTEST_CURRENCY, statusBadges, strategyLabels } from "./constants"
+import { BACKTEST_CURRENCY, statusBadges, strategyLabels, tradeSideBadges } from "./constants"
 import type { Backtest, Holding, Trade } from "./types"
 import { getExecution, getExecutionDuration } from "./utils"
 import Dash from "@/components/custom/Dash"
@@ -45,6 +45,14 @@ export const backtestColumns: Column<Backtest>[] = [
 export const tradeColumns: Column<Trade>[] = [
     { header: "Date", cell: (t) => formatDay(t.date) },
     { header: "Symbole", cell: (t) => <SymbolCell symbol={t.symbol} /> },
+    {
+        header: "Côté",
+        cell: (t) => {
+            // Résultats antérieurs au rebalancement : uniquement des achats, sans side (D10)
+            const { label, variant } = tradeSideBadges[t.side ?? "BUY"]
+            return <Badge variant={variant}>{label}</Badge>
+        },
+    },
     {
         header: "Prix d'achat",
         className: "text-right",
