@@ -1,8 +1,10 @@
+import type { ReactNode } from "react"
 import Dash from "@/components/custom/Dash"
 import { StatCard } from "@/components/stat-card"
 import { LOCALE, formatDay, formatDuration, formatPercent, formatPrice, formatRate, formatRatio } from "@/lib/format"
 import { BACKTEST_CURRENCY, RISK_FREE_RATE, rebalanceFrequencyLabels } from "./constants"
-import type { BacktestListStats, BacktestResult, LumpSumComparison, RebalanceFrequency } from "./types"
+import { MetricBlock } from "./metric-block"
+import type { BacktestListStats, BacktestResult, RebalanceFrequency } from "./types"
 import { fromDecimal } from "./utils"
 
 // Sharpe sans unité, 2 décimales
@@ -32,108 +34,72 @@ export function BacktestStats({ stats }: { stats: BacktestListStats | undefined 
     )
 }
 
-/**
- * Légende du max drawdown : date du plus haut et durée de récupération (« Non récupéré » si le plus haut n'est pas retrouvé).
- * Résultat antérieur sans date de plus haut : date du creux seule.
- */
-function drawdownCaption(result: BacktestResult, maxDrawdown: number | null) {
-    const { maxDrawdownPeakDate, recoveryDays, maxDrawdownDate } = result
-    if (maxDrawdownPeakDate) {
-        const recovery = recoveryDays == null ? "Non récupéré" : `récupéré en ${formatDuration(recoveryDays)}`
-        return `Plus haut le ${formatDay(maxDrawdownPeakDate)} · ${recovery}`
-    }
-    if (maxDrawdownDate) return `Le ${formatDay(maxDrawdownDate)}`
-    return maxDrawdown != null && "Aucune baisse"
+// Résultat antérieur (champ absent) : <Dash /> ; null calculé par le moteur : non récupéré, ou aucune baisse
+function formatRecovery(recoveryDays: number | null | undefined, maxDrawdown: number | null) {
+    if (recoveryDays != null) return formatDuration(recoveryDays)
+    if (recoveryDays === undefined || maxDrawdown == null) return <Dash />
+    return maxDrawdown < 0 ? "Non récupéré" : "Aucune baisse"
 }
 
+const show = (value: number | null, format: (v: number) => string) => (value == null ? <Dash /> : format(value))
+const formatAmount = (v: number) => formatPrice(v, BACKTEST_CURRENCY)
+
 /**
- * Métriques d'un résultat, toutes calculées par le moteur : le front ne fait que les formater.
- * Un champ absent d'un résultat antérieur (`cagr` null, D10) s'affiche `<Dash />` ou masque sa légende.
+ * Indicateurs d'un résultat en trois blocs (performance, risque, coûts et activité), tous calculés par le moteur :
+ * le front ne fait que les formater. Avec un benchmark, une seconde colonne affiche ses métriques.
+ * Un champ absent d'un résultat antérieur (`cagr` null, D10) s'affiche `<Dash />`.
  */
-export function BacktestResultStats({
+export function BacktestResultBlocks({
     result,
     rebalanceFrequency,
 }: {
     result: BacktestResult
     rebalanceFrequency: RebalanceFrequency
 }) {
-    const totalReturn = fromDecimal(result.totalReturn)
-    const cagr = fromDecimal(result.cagr)
-    const volatility = fromDecimal(result.volatility)
-    const sharpe = fromDecimal(result.sharpeRatio)
-    const finalValue = fromDecimal(result.finalValue)
-    const invested = fromDecimal(result.totalInvested)
-    const profit = fromDecimal(result.profit)
+    const { benchmark, lumpSumComparison: lumpSum, maxDrawdownPeakDate } = result
     const maxDrawdown = fromDecimal(result.maxDrawdown)
-    const fees = fromDecimal(result.totalFees)
+    const columns = benchmark ? ["Portefeuille", benchmark.symbol] : ["Portefeuille"]
+    // Valeur du portefeuille puis, avec un benchmark, la sienne
+    const row = (label: string, value: ReactNode, benchmarkValue?: ReactNode) => ({
+        label,
+        values: benchmark ? [value, benchmarkValue] : [value],
+    })
+    const rebalancing = rebalanceFrequency === "NONE" ? "Sans rebalancement" : `Rebalancement ${rebalanceFrequencyLabels[rebalanceFrequency].toLowerCase()}`
 
     return (
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-            <StatCard
-                label="Rendement total"
-                value={totalReturn == null ? <Dash /> : formatRatio(totalReturn)}
-                caption={profit != null && `Plus-value : ${formatPrice(profit, BACKTEST_CURRENCY)}`}
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            <MetricBlock
+                title="Performance"
+                description="Rendement, hors versements"
+                columns={columns}
+                rows={[
+                    row("CAGR", show(fromDecimal(result.cagr), formatRatio), benchmark && show(benchmark.cagr, formatRatio)),
+                    row("Rendement total", show(fromDecimal(result.totalReturn), formatRatio), benchmark && formatRatio(benchmark.totalReturn)),
+                    row("Valeur finale", show(fromDecimal(result.finalValue), formatAmount), benchmark && formatAmount(benchmark.finalValue)),
+                ]}
+                note={lumpSum && `Investi en une fois au 1er jour : ${formatAmount(lumpSum.finalValue)}, soit ${formatAmount(Math.abs(lumpSum.dcaAdvantage))} de ${lumpSum.dcaAdvantage >= 0 ? "moins" : "mieux"} que le DCA`}
             />
-            <StatCard
-                label="CAGR"
-                value={cagr == null ? <Dash /> : formatRatio(cagr)}
-                caption="Rendement annualisé, hors versements"
+            <MetricBlock
+                title="Risque"
+                description={`Annualisé, taux sans risque ${formatPercent(RISK_FREE_RATE)}`}
+                columns={columns}
+                rows={[
+                    row("Volatilité", show(fromDecimal(result.volatility), formatPercent), benchmark && show(benchmark.volatility, formatPercent)),
+                    row("Sharpe", show(fromDecimal(result.sharpeRatio), formatSharpe), benchmark && show(benchmark.sharpeRatio, formatSharpe)),
+                    row("Max drawdown", show(maxDrawdown, formatRatio), benchmark && formatRatio(benchmark.maxDrawdown)),
+                    row("Récupération", formatRecovery(result.recoveryDays, maxDrawdown), benchmark && formatRecovery(benchmark.recoveryDays, benchmark.maxDrawdown)),
+                ]}
+                note={maxDrawdownPeakDate && `Baisse maximale depuis le plus haut du ${formatDay(maxDrawdownPeakDate)}`}
             />
-            <StatCard
-                label="Volatilité"
-                value={volatility == null ? <Dash /> : formatPercent(volatility)}
-                caption="Annualisée, rendements journaliers"
-            />
-            <StatCard
-                label="Sharpe"
-                value={sharpe == null ? <Dash /> : formatSharpe(sharpe)}
-                caption={`Taux sans risque : ${formatPercent(RISK_FREE_RATE)}`}
-            />
-            <StatCard
-                label="Max drawdown"
-                value={maxDrawdown == null ? <Dash /> : formatRatio(maxDrawdown)}
-                caption={drawdownCaption(result, maxDrawdown)}
-            />
-            <StatCard
-                label="Valeur finale"
-                value={finalValue == null ? <Dash /> : formatPrice(finalValue, BACKTEST_CURRENCY)}
-                delta={`${result.totalTrades} ordres`}
-                caption={invested != null && `${formatPrice(invested, BACKTEST_CURRENCY)} investis`}
-            />
-            <StatCard
-                label="Frais payés"
-                value={fees == null ? <Dash /> : formatPrice(fees, BACKTEST_CURRENCY)}
-                caption="Inclus dans le montant investi"
-            />
-            <StatCard
-                label="Rebalancements"
-                value={result.rebalanceCount ?? <Dash />}
-                caption={`Fréquence : ${rebalanceFrequencyLabels[rebalanceFrequency]}`}
-            />
-        </div>
-    )
-}
-
-/**
- * DCA face au même total investi en une fois au premier jour (backtests DCA uniquement).
- * L'écart `dcaAdvantage` est calculé par le moteur : > 0 si le DCA fait mieux.
- */
-export function LumpSumComparisonStats({ comparison }: { comparison: LumpSumComparison }) {
-    const { finalValue, totalReturn, maxDrawdown, dcaAdvantage } = comparison
-
-    return (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <StatCard
-                label="Investissement unique"
-                value={formatPrice(finalValue, BACKTEST_CURRENCY)}
-                delta={formatRatio(totalReturn)}
-                trend={totalReturn >= 0 ? "up" : "down"}
-                caption={`Même total investi au premier jour · drawdown max ${formatRatio(maxDrawdown)}`}
-            />
-            <StatCard
-                label="Écart du DCA"
-                value={formatPrice(dcaAdvantage, BACKTEST_CURRENCY)}
-                caption={dcaAdvantage >= 0 ? "Le DCA fait mieux que l’investissement unique" : "L’investissement unique fait mieux que le DCA"}
+            <MetricBlock
+                title="Coûts et activité"
+                description={`${rebalancing} · frais inclus dans le montant investi`}
+                columns={["Total"]}
+                rows={[
+                    { label: "Frais payés", values: [show(fromDecimal(result.totalFees), formatAmount)] },
+                    { label: "Ordres", values: [result.totalTrades] },
+                    { label: "Rebalancements", values: [result.rebalanceCount ?? <Dash />] },
+                ]}
             />
         </div>
     )

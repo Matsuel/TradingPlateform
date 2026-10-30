@@ -234,6 +234,7 @@ Primitives shadcn (base-ui), voir la doc shadcn. Ne les modifie qu'en cas de bes
   | `description` | `ReactNode` | non | — | Sous le titre. |
   | `actions` | `ReactNode` | non | — | À droite du titre (ex. `FilterTabs`). |
   | `className` | `string` | non | — | Sur l'élément `Table` (pas le cadre). |
+  | `frameless` | `boolean` | non | `false` | Sans cadre ni marge intérieure, pour un tableau dans un conteneur qui en a déjà un (ex. section repliable). |
   | `pagination` | `{ page: number; pageSize: number; count: number; onPageChange: (page: number) => void }` | non | — | Pied de tableau `ui/pagination` : libellé « 21–40 sur 57 », précédent / numéros (ellipses au-delà de 7 pages, `getPageItems`) / suivant, désactivés aux bornes. Masqué s'il n'y a qu'une page. `page` commence à 1 ; `count` = total toutes pages confondues. `data` ne contient que la page affichée : page serveur (`Paginated<T>.data`) ou découpage client (`paginate`). |
 
   `Column<T>` : `{ header: ReactNode; cell: (row: T) => ReactNode; className?: string }` (`className` appliquée à l'en-tête et aux cellules).
@@ -414,20 +415,24 @@ Primitives shadcn (base-ui), voir la doc shadcn. Ne les modifie qu'en cas de bes
   | `label` | `string` | non | `"Prix"` | Nom de la série. |
   | `positive` | `boolean` | non | dernier point ≥ premier | Couleur verte si vrai. |
   | `compareLabel` | `string` | non | — | Nom de la série `compare` ; absent = pas de seconde courbe. Préfixe chaque valeur de l'infobulle par son nom. |
+  | `hideXAxis` | `boolean` | non | `false` | Masque l'axe des dates, pour un graphique empilé au-dessus d'un autre qui le porte (valeur au-dessus du drawdown). |
   | `className` | `string` | non | — | Sur `ChartContainer` (hauteur par défaut `h-82.5`). |
 
-- **Exemple** (tiré de `src/features/backtest/equity-chart.tsx`) :
+- **Exemple** (tiré de `src/features/backtest/result-overview.tsx`) :
   ```tsx
   <PriceAreaChart
-      data={data.map((p) => ({ date: p.date, price: p.value }))}
-      formatTick={formatTick}
-      formatTooltipDate={formatTooltipDate}
-      label="Valeur"
+      data={equityCurve.map((p) => ({ date: p.date, price: p.value, compare: benchmark ? p.benchmarkValue : p.lumpSumValue }))}
+      formatTick={formatMonthTick}
+      formatTooltipDate={formatMediumDate}
+      label="Portefeuille"
       currency={BACKTEST_CURRENCY}
       positive={positive}
+      compareLabel={compareLabel}
+      hideXAxis={drawdown.length > 0}
+      className="h-56"
   />
   ```
-- **Utilisé par** : `src/features/backtest/equity-chart.tsx`, `src/features/backtest/drawdown-chart.tsx`, `src/features/market/price-chart.tsx` ; `PricePoint` par `src/components/sparkline.tsx`.
+- **Utilisé par** : `src/features/backtest/result-overview.tsx`, `src/features/market/price-chart.tsx` ; `PricePoint` par `src/components/sparkline.tsx`.
 - **Source** : `src/components/chart.tsx`.
 
 ### Sparkline
@@ -705,18 +710,18 @@ Props communes `BaseProps<T>` (exportées par `field.tsx`), répétées dans cha
 
 | Export | Signature / valeur | Rôle (et unité) | Utilisé par |
 | --- | --- | --- | --- |
-| `LOCALE` | `"fr-FR"` | Locale des formats `Intl` locaux à un composant (ticks de graphique, colonnes). | `components/chart.tsx`, `features/backtest/equity-chart.tsx`, `features/backtest/column.tsx`, `features/backtest/stats.tsx`, `features/market/price-chart.tsx` |
+| `LOCALE` | `"fr-FR"` | Locale des formats `Intl` locaux à un composant (ticks de graphique, colonnes). | `components/chart.tsx`, `features/backtest/column.tsx`, `features/backtest/stats.tsx`, `features/market/price-chart.tsx` |
 | `formatPrice` | `(v: number, currency: string) => string` | Montant dans la devise ISO **obligatoire** : `formatPrice(1234.5, "EUR")` → « 1 234,50 € ». | `components/chart.tsx`, `features/market/column.tsx`, `features/backtest/stats.tsx`, `features/backtest/column.tsx` |
 | `formatChange` | `(v: number) => string` | Nombre signé, 2 décimales, sans « % » : `1.5` → « +1,50 ». Pour un pourcentage déjà en %. | `components/data-table/cells.tsx`, `formatRatio` |
 | `formatRatio` | `(ratio: number) => string` | Ratio en **fraction** → variation signée en % : `0.342` → « +34,20 % ». Rendement, drawdown. | `features/backtest/stats.tsx`, `features/backtest/execution-history.tsx` |
-| `formatRate` | `(ratio: number) => string` | Proportion en **fraction** → % non signé, arrondi à l'unité : `0.3846` → « 38 % ». Taux de réussite/échec. | `features/backtest/stats.tsx` |
+| `formatRate` | `(ratio: number) => string` | Proportion en **fraction** → % non signé, arrondi à l'unité : `0.3846` → « 38 % ». Taux de réussite/échec, poids d'allocation, axe du drawdown. | `features/backtest/stats.tsx`, `features/backtest/backtest-detail.tsx`, `features/backtest/result-overview.tsx` |
 | `formatPercent` | `(ratio: number) => string` | Taux en **fraction** → % non signé, jusqu'à 2 décimales : `0.001` → « 0,1 % », `0.1532` → « 15,32 % ». Frais, volatilité, taux sans risque. | `features/backtest/assumptions.tsx`, `features/backtest/stats.tsx` |
 | `formatVolume` | `(v: number) => string` | Notation compacte : `41234567` → « 41,23 M ». | `features/market/column.tsx` |
 | `formatDate` | `(d: string \| Date) => string` | Date et heure courtes : « 28/10/2026 09:00 ». | `features/backtest/execution-history.tsx`, `features/backtest/assumptions.tsx` |
 | `formatDay` | `(d: string \| Date) => string` | Jour court : « 28/10/26 ». | `features/backtest/column.tsx`, `features/backtest/stats.tsx` |
 | `formatDayRange` | `(start: string \| Date, end: string \| Date) => string` | Période : « 28/10/25 – 28/10/26 ». | `features/backtest/column.tsx`, `features/backtest/backtest-detail.tsx`, `features/backtest/assumptions.tsx` |
-| `formatMonthTick` | `(d: string \| Date) => string` | Mois court et année pour un axe temporel : « janv. 24 ». | `features/backtest/equity-chart.tsx`, `features/backtest/drawdown-chart.tsx` |
-| `formatMediumDate` | `(d: string \| Date) => string` | Date moyenne : « 28 oct. 2026 » (infobulle de graphique). | `features/backtest/equity-chart.tsx`, `features/backtest/drawdown-chart.tsx` |
+| `formatMonthTick` | `(d: string \| Date) => string` | Mois court et année pour un axe temporel : « janv. 24 ». | `features/backtest/result-overview.tsx` |
+| `formatMediumDate` | `(d: string \| Date) => string` | Date moyenne : « 28 oct. 2026 » (infobulle de graphique). | `features/backtest/result-overview.tsx` |
 | `formatDuration` | `(days: number) => string` | Durée en jours calendaires : en jours sous deux mois (`45` → « 45 jours », `1` → « 1 jour »), sinon en mois arrondis (`426` → « 14 mois »). | `features/backtest/stats.tsx` |
 
 Source : `src/lib/format.ts`.
@@ -899,7 +904,7 @@ Source : `src/features/auth/schema.ts`.
 ### BacktestDetail
 
 - **Import** : `import { BacktestDetail } from "@/features/backtest/backtest-detail"`.
-- **Rôle** : écran détail : en-tête avec statut et relance, métriques, comparaison DCA / investissement unique, hypothèses (`BacktestAssumptions`), courbe d'equity, courbe de drawdown (masquée pour un résultat antérieur), positions finales, ordres (paginés côté client avec `paginate`, `PAGE_SIZE` par page), historique d'exécution. Instancie `useBacktest` et `useRerunBacktest`.
+- **Rôle** : écran détail (maquette 13 v2 · A) : en-tête avec statut, allocation, rebalancement, benchmark et relance ; `ResultOverview` (valeur finale, courbes de valeur et de drawdown) ; `BacktestResultBlocks` (indicateurs groupés) ; ordres : les `RECENT_TRADES` (5) plus récents, puis tous, paginés côté client (`paginate`, `PAGE_SIZE`) sur « Voir les N ordres » ; `ResultDetails` (positions, hypothèses, historique repliés). Instancie `useBacktest` et `useRerunBacktest`.
 - **Props** :
 
   | Nom | Type | Requis | Défaut | Description |
@@ -976,82 +981,95 @@ Source : `src/features/auth/schema.ts`.
 - **Utilisé par** : `src/features/backtest/new-backtest-form.tsx`.
 - **Source** : `src/features/backtest/sections.tsx`.
 
-### EquityChart
+### ResultOverview
 
-- **Import** : `import { EquityChart } from "@/features/backtest/equity-chart"`.
-- **Rôle** : carte « Courbe d'equity » : valeur du portefeuille dans le temps, en `BACKTEST_CURRENCY` ; si les points portent `lumpSumValue` (DCA), ajoute la courbe « Investissement unique » en pointillés.
+- **Import** : `import { ResultOverview } from "@/features/backtest/result-overview"`.
+- **Rôle** : carte principale d'un résultat : « Valeur finale » (`text-h1`), badge du rendement total, plus-value sur le montant investi (et rendement du benchmark s'il existe), puis courbe de valeur (`PriceAreaChart`, axe des dates masqué) et, dessous sur le même axe, courbe de drawdown. Série en pointillés : benchmark (`benchmarkValue`) s'il existe, sinon investissement unique (`lumpSumValue`, DCA). Drawdown masqué si aucun point ne porte `drawdown` (résultat antérieur).
 - **Props** :
 
   | Nom | Type | Requis | Défaut | Description |
   | --- | --- | --- | --- | --- |
-  | `data` | `EquityPoint[]` | oui | — | `result.equityCurve` ; `value` tracée. |
-  | `positive` | `boolean` | oui | — | Vert si plus-value (`totalReturn >= 0`). |
+  | `result` | `BacktestResult` | oui | — | Résultat complet. |
 
 - **Exemple** (tiré de `src/features/backtest/backtest-detail.tsx`) :
   ```tsx
-  <EquityChart data={result.equityCurve} positive={Number(result.totalReturn) >= 0} />
+  <ResultOverview result={result} />
   ```
 - **Utilisé par** : `src/features/backtest/backtest-detail.tsx`.
-- **Source** : `src/features/backtest/equity-chart.tsx`.
+- **Source** : `src/features/backtest/result-overview.tsx`.
 
-### DrawdownChart
+### MetricBlock
 
-- **Import** : `import { DrawdownChart } from "@/features/backtest/drawdown-chart"`.
-- **Rôle** : carte « Drawdown » : aire rouge (`--destructive`) sous zéro du `drawdown` de chaque point (ratio ≤ 0, TWR calculé par le moteur), axe Y en pourcentage (`formatRate`, infobulle `formatRatio`), même axe temporel que `EquityChart`. Ne rend rien si aucun point ne porte `drawdown` (résultat antérieur).
+- **Import** : `import { MetricBlock, type MetricRow } from "@/features/backtest/metric-block"`.
+- **Rôle** : carte d'indicateurs en liste : titre, description, une ligne par métrique, une colonne de valeurs par série (ex. portefeuille puis benchmark) ; première colonne en gras, suivantes en retrait ; note optionnelle sous la liste. Valeurs déjà formatées.
 - **Props** :
 
   | Nom | Type | Requis | Défaut | Description |
   | --- | --- | --- | --- | --- |
-  | `data` | `EquityPoint[]` | oui | — | `result.equityCurve` ; `drawdown` tracé. |
+  | `title` | `string` | oui | — | Titre de la carte. |
+  | `description` | `string` | non | — | Sous le titre. |
+  | `columns` | `string[]` | oui | — | En-tête de chaque colonne de valeurs. |
+  | `rows` | `MetricRow[]` = `{ label: string; values: ReactNode[] }[]` | oui | — | `values` dans l'ordre de `columns`. |
+  | `note` | `ReactNode` | non | — | Texte sous la liste. |
+  | `className` | `string` | non | — | Sur la carte. |
+
+- **Exemple** (tiré de `src/features/backtest/stats.tsx`) :
+  ```tsx
+  <MetricBlock title="Coûts et activité" columns={["Total"]} rows={[{ label: "Ordres", values: [result.totalTrades] }]} />
+  ```
+- **Utilisé par** : `src/features/backtest/stats.tsx`.
+- **Source** : `src/features/backtest/metric-block.tsx`.
+
+### ResultDetails
+
+- **Import** : `import { ResultDetails } from "@/features/backtest/result-details"`.
+- **Rôle** : carte de sections repliables (`ui/collapsible`) en bas du détail : « Positions finales » (`DataTable` `frameless`, `holdingColumns`) et « Hypothèses » (`BacktestAssumptions`) avec un résultat, puis « Historique d'exécution » (`ExecutionList`), déplié quand il n'y a pas de résultat. Chaque en-tête montre un résumé et « Afficher » / « Masquer ».
+- **Props** :
+
+  | Nom | Type | Requis | Défaut | Description |
+  | --- | --- | --- | --- | --- |
+  | `backtest` | `BacktestDetails` | oui | — | `result` (peut être null) et `executions`. |
 
 - **Exemple** (tiré de `src/features/backtest/backtest-detail.tsx`) :
   ```tsx
-  <DrawdownChart data={result.equityCurve} />
+  <ResultDetails backtest={backtest} />
   ```
 - **Utilisé par** : `src/features/backtest/backtest-detail.tsx`.
-- **Source** : `src/features/backtest/drawdown-chart.tsx`.
+- **Source** : `src/features/backtest/result-details.tsx`.
 
 ### BacktestAssumptions
 
 - **Import** : `import { BacktestAssumptions } from "@/features/backtest/assumptions"`.
-- **Rôle** : carte « Hypothèses » d'un résultat : période, devise (`BACKTEST_CURRENCY`), frais par achat, rebalancement (`rebalanceFrequencyLabels`), benchmark (`backtest.benchmarkSymbol`, `NO_BENCHMARK_LABEL` si null), taux sans risque du Sharpe (`RISK_FREE_RATE`), règle d'exécution, source et type de cours, date de récupération et empreinte des données (12 premiers caractères, valeur complète en `title`), puis `BACKTEST_DISCLAIMER`. `<Dash />` si `executionRule` ou `dataSource` est `null` (résultat antérieur).
+- **Rôle** : liste « Hypothèses » d'un résultat, sans carte, en deux colonnes à partir de `sm` : période, devise (`BACKTEST_CURRENCY`), frais par ordre (achat et vente, D8), rebalancement (`rebalanceFrequencyLabels`), benchmark (`backtest.benchmarkSymbol`, `NO_BENCHMARK_LABEL` si null), taux sans risque du Sharpe (`RISK_FREE_RATE`), règle d'exécution, source et type de cours, date de récupération et empreinte des données (12 premiers caractères, valeur complète en `title`), puis `BACKTEST_DISCLAIMER`. `<Dash />` si `executionRule` ou `dataSource` est `null` (résultat antérieur).
 - **Props** :
 
   | Nom | Type | Requis | Défaut | Description |
   | --- | --- | --- | --- | --- |
-  | `backtest` | `Backtest` | oui | — | `startDate`, `endDate`, `feeRate` (fraction par achat), `rebalanceFrequency` affichés. |
+  | `backtest` | `Backtest` | oui | — | `startDate`, `endDate`, `feeRate` (fraction par ordre), `rebalanceFrequency` affichés. |
   | `result` | `BacktestResult` | oui | — | `executionRule` et `dataSource` affichés. |
 
-- **Exemple** (tiré de `src/features/backtest/backtest-detail.tsx`) :
+- **Exemple** (tiré de `src/features/backtest/result-details.tsx`) :
   ```tsx
   <BacktestAssumptions backtest={backtest} result={result} />
   ```
-- **Utilisé par** : `src/features/backtest/backtest-detail.tsx`.
+- **Utilisé par** : `src/features/backtest/result-details.tsx`.
 - **Source** : `src/features/backtest/assumptions.tsx`.
 
-### ExecutionHistory
+### ExecutionList
 
-- **Import** : `import { ExecutionHistory } from "@/features/backtest/execution-history"`.
-- **Rôle** : carte « Historique d'exécution » : une ligne par exécution (tentative, statut, date, résumé, durée).
+- **Import** : `import { ExecutionList } from "@/features/backtest/execution-history"`.
+- **Rôle** : lignes d'exécution, sans carte : tentative, statut, date, résumé ou cause d'échec, durée ; barre de progression pour une exécution active.
 - **Props** :
 
   | Nom | Type | Requis | Défaut | Description |
   | --- | --- | --- | --- | --- |
   | `executions` | `BacktestExecution[]` | oui | — | Plus récente d'abord. |
-  | `actions` | `ReactNode` | non | — | En-tête de carte (ex. bouton de relance). |
 
-- **Exemple** (tiré de `src/features/backtest/backtest-detail.tsx`) :
+- **Exemple** (tiré de `src/features/backtest/result-details.tsx`) :
   ```tsx
-  <ExecutionHistory
-      executions={backtest.executions}
-      actions={
-          <Button variant="outline" onClick={() => rerun.mutate()} disabled={!canRerun}>
-              Relancer ce backtest
-          </Button>
-      }
-  />
+  <ExecutionList executions={executions} />
   ```
-- **Utilisé par** : `src/features/backtest/backtest-detail.tsx`.
+- **Utilisé par** : `src/features/backtest/result-details.tsx`.
 - **Source** : `src/features/backtest/execution-history.tsx`.
 
 ### BacktestStats
@@ -1071,37 +1089,20 @@ Source : `src/features/auth/schema.ts`.
 - **Utilisé par** : `src/features/backtest/backtest-list.tsx`.
 - **Source** : `src/features/backtest/stats.tsx`.
 
-### BacktestResultStats
+### BacktestResultBlocks
 
-- **Import** : `import { BacktestResultStats } from "@/features/backtest/stats"`.
-- **Rôle** : 8 `StatCard` d’un résultat : rendement total (plus-value `profit`), CAGR, volatilité, Sharpe (légende : taux sans risque `RISK_FREE_RATE`), max drawdown (légende : date du plus haut et durée de récupération `formatDuration`, « Non récupéré » si `recoveryDays` est `null` avec un plus haut ; date du creux seule pour un résultat antérieur), valeur finale (ordres, montant investi), frais payés, rebalancements (`rebalanceCount`, légende : fréquence `rebalanceFrequencyLabels`) ; `<Dash />` ou légende masquée si un champ manque (résultat antérieur, `cagr` null ou absent : rien n'est recalculé).
+- **Import** : `import { BacktestResultBlocks } from "@/features/backtest/stats"`.
+- **Rôle** : 3 `MetricBlock` d'un résultat, sur 2 colonnes à partir de `md` et 3 à partir de `xl` : « Performance » (CAGR, rendement total, valeur finale ; note : investissement unique et écart `dcaAdvantage` en DCA), « Risque » (volatilité, Sharpe avec `RISK_FREE_RATE`, max drawdown, récupération `formatDuration`, « Non récupéré » ou « Aucune baisse » si `recoveryDays` est null ; note : date du plus haut), « Coûts et activité » (frais payés, ordres, rebalancements `rebalanceCount`). Avec `result.benchmark`, une colonne au symbole du benchmark affiche ses métriques. Tout est calculé par le moteur ; `<Dash />` si un champ manque (résultat antérieur).
 - **Props** :
 
   | Nom | Type | Requis | Défaut | Description |
   | --- | --- | --- | --- | --- |
   | `result` | `BacktestResult` | oui | — | Résultat complet (ratios en fraction, montants en string). |
-  | `rebalanceFrequency` | `RebalanceFrequency` | oui | — | Fréquence du backtest, légende de la carte « Rebalancements ». |
+  | `rebalanceFrequency` | `RebalanceFrequency` | oui | — | Description du bloc « Coûts et activité ». |
 
 - **Exemple** (tiré de `src/features/backtest/backtest-detail.tsx`) :
   ```tsx
-  <BacktestResultStats result={result} rebalanceFrequency={backtest.rebalanceFrequency} />
-  ```
-- **Utilisé par** : `src/features/backtest/backtest-detail.tsx`.
-- **Source** : `src/features/backtest/stats.tsx`.
-
-### LumpSumComparisonStats
-
-- **Import** : `import { LumpSumComparisonStats } from "@/features/backtest/stats"`.
-- **Rôle** : 2 `StatCard` comparant le DCA au même total investi en une fois : valeur finale de l'investissement unique (rendement, drawdown max) et écart du DCA (`dcaAdvantage`, calculé par le moteur).
-- **Props** :
-
-  | Nom | Type | Requis | Défaut | Description |
-  | --- | --- | --- | --- | --- |
-  | `comparison` | `LumpSumComparison` | oui | — | `result.lumpSumComparison` non null (DCA uniquement). |
-
-- **Exemple** (tiré de `src/features/backtest/backtest-detail.tsx`) :
-  ```tsx
-  {result.lumpSumComparison && <LumpSumComparisonStats comparison={result.lumpSumComparison} />}
+  <BacktestResultBlocks result={result} rebalanceFrequency={backtest.rebalanceFrequency} />
   ```
 - **Utilisé par** : `src/features/backtest/backtest-detail.tsx`.
 - **Source** : `src/features/backtest/stats.tsx`.
@@ -1155,7 +1156,7 @@ Source : `src/features/backtest/schema.ts`.
 
 | Export | Valeur | Rôle | Utilisé par |
 | --- | --- | --- | --- |
-| `BACKTEST_CURRENCY` | `"EUR"` | Devise d'affichage des montants (cours non convertis). | `equity-chart.tsx`, `stats.tsx`, `assumptions.tsx` |
+| `BACKTEST_CURRENCY` | `"EUR"` | Devise d'affichage des montants (cours non convertis). | `result-overview.tsx`, `result-details.tsx`, `stats.tsx`, `assumptions.tsx` |
 | `activeStatuses` | `["PENDING", "RUNNING"]` | Statuts d'une exécution qui peut encore évoluer (miroir de `ACTIVE_STATUSES` backend). | `hook.ts`, `utils.ts`, `statusFilters` |
 | `investmentModeOptions` | `{ value: InvestmentMode; label: string }[]` : `LUMP_SUM` → « Investissement unique », `RECURRING` → « Investissement unique + versements mensuels » | Options du `SelectField` `investmentMode`. | `sections.tsx`, `quick-backtest-form.tsx` |
 | `rebalanceFrequencyLabels` | `Record<RebalanceFrequency, string>` : `NONE` → « Aucun », `MONTHLY` → « Mensuel », `QUARTERLY` → « Trimestriel », `YEARLY` → « Annuel » | Libellé de la fréquence de rebalancement d'un backtest stocké. | `assumptions.tsx` |
@@ -1199,7 +1200,7 @@ Source : `src/features/backtest/utils.ts`.
 | --- | --- | --- | --- |
 | `backtestColumns` | `Column<Backtest>[]` | Nom, Stratégie, Symboles (nombre), Période, Rendement (`totalReturn` × 100 via `ChangeCell`), Statut (badge), Durée. | `backtest-list.tsx` |
 | `tradeColumns` | `Column<Trade>[]` | Date, Symbole (`SymbolCell`), Côté (badge `tradeSideBadges`, « Achat » si `side` absent), Prix (2 décimales, sans devise), Quantité (jusqu'à 6 décimales), Montant et Frais (`formatPrice` en `BACKTEST_CURRENCY`) ; `Dash` si absents (résultats antérieurs). | `backtest-detail.tsx` |
-| `holdingColumns` | `Column<Holding>[]` | Symbole (`SymbolCell`), Quantité (jusqu'à 6 décimales), Valeur au dernier cours (`formatPrice` en `BACKTEST_CURRENCY`). | `backtest-detail.tsx` |
+| `holdingColumns` | `Column<Holding>[]` | Symbole (`SymbolCell`), Quantité (jusqu'à 6 décimales), Valeur au dernier cours (`formatPrice` en `BACKTEST_CURRENCY`). | `result-details.tsx` |
 
 Source : `src/features/backtest/column.tsx`.
 
@@ -1213,7 +1214,7 @@ Source : `src/features/backtest/column.tsx`.
 | `InvestmentMode` | `BacktestRequestedPayload["investmentMode"]` = `"LUMP_SUM" \| "RECURRING"` | `constants.ts` |
 | `RebalanceFrequency` | `BacktestRequestedPayload["rebalanceFrequency"]` = `"NONE" \| "MONTHLY" \| "QUARTERLY" \| "YEARLY"` | `constants.ts`, `schema.ts` |
 | `BacktestExecution` | `{ id, status, attempt, createdAt, startedAt, finishedAt, error, result?: { totalReturn: string \| null (fraction); totalTrades: number } \| null }` | `api.ts`, `utils.ts`, `execution-history.tsx` |
-| `EquityPoint` | contrat, `drawdown` rendu optionnel : `{ date: "YYYY-MM-DD"; value; invested; lumpSumValue?: number; drawdown?: number }` (devise, `invested` frais compris, `lumpSumValue` en DCA, `drawdown` ratio ≤ 0 absent des résultats antérieurs) | `equity-chart.tsx`, `drawdown-chart.tsx` |
+| `EquityPoint` | contrat, `drawdown` rendu optionnel : `{ date: "YYYY-MM-DD"; value; invested; lumpSumValue?: number; drawdown?: number }` (devise, `invested` frais compris, `lumpSumValue` en DCA, `drawdown` ratio ≤ 0 absent des résultats antérieurs) | `result-overview.tsx` |
 | `Trade` | contrat, `quantity`, `amount`, `fee` optionnels (absents des résultats antérieurs) | `column.tsx` |
 | `Holding` | contrat : `{ symbol; quantity; value }` (position finale au dernier cours) | `column.tsx` |
 | `LumpSumComparison` | contrat : `{ finalValue; totalReturn; maxDrawdown; dcaAdvantage }` (ratios en fraction) | `stats.tsx` |

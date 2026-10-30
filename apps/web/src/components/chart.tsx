@@ -24,6 +24,7 @@ type PriceAreaChartProps = ValueFormat & {
     label?: string
     positive?: boolean // vert/rouge ; par défaut : dernier point ≥ premier
     compareLabel?: string // nom de la série compare ; absent = pas de seconde courbe
+    hideXAxis?: boolean // graphique empilé au-dessus d'un autre qui porte l'axe des dates
     className?: string
 }
 
@@ -42,6 +43,7 @@ export function PriceAreaChart({
     formatValue,
     positive = data.length < 2 || data[data.length - 1].price >= data[0].price,
     compareLabel,
+    hideXAxis = false,
     className,
 }: PriceAreaChartProps) {
     const format = formatValue ?? ((v: number) => formatPrice(v, currency))
@@ -57,6 +59,7 @@ export function PriceAreaChart({
                 <CartesianGrid vertical={false} />
                 <XAxis
                     dataKey="date"
+                    hide={hideXAxis}
                     tickLine={false}
                     axisLine={false}
                     tickMargin={8}
