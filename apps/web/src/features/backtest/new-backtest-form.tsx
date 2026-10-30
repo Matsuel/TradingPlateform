@@ -1,38 +1,49 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { FormProvider, useForm } from "react-hook-form"
+import { FormProvider, useForm, useWatch, type FieldPath } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 
+import { allocationTotal, FULL_PERCENT } from "@/components/form"
 import { Button } from "@/components/ui/button"
+import { apiIssues } from "@/lib/api"
 import { prefix } from "@/lib/path"
 import { useCreateBacktest } from "./hook"
 import { backtestSchema, type BacktestValues } from "./schema"
-import { GeneralSection, MarketSection } from "./sections"
+import { AllocationSection, GeneralSection } from "./sections"
 
 export function NewBacktestForm() {
     const router = useRouter()
     const { mutateAsync, error } = useCreateBacktest()
     const form = useForm<BacktestValues>({
         resolver: zodResolver(backtestSchema),
-        defaultValues: { name: "", strategy: "dca", symbols: [], amount: 1_000, fee: 0.1 },
+        defaultValues: { name: "", investmentMode: "LUMP_SUM", allocations: [], initialAmount: 10_000, fee: 0.1 },
     })
+    const allocations = useWatch({ control: form.control, name: "allocations" })
 
     const onSubmit = async (values: BacktestValues) => {
-        const backtest = await mutateAsync(values)
-        router.push(`${prefix}/backtest/${backtest.id}`)
+        try {
+            const backtest = await mutateAsync(values)
+            router.push(`${prefix}/backtest/${backtest.id}`)
+        } catch (e) {
+            // 400 : chaque issue zod du backend s'affiche sous le champ de son chemin
+            for (const { path, message } of apiIssues(e)) form.setError(path as FieldPath<BacktestValues>, { message })
+        }
     }
 
     return (
         <FormProvider {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-6">
                 <GeneralSection />
-                <MarketSection />
+                <AllocationSection />
 
                 {error && <p className="text-sm text-destructive">{error.message}</p>}
 
                 <div className="flex justify-end">
-                    <Button type="submit" disabled={form.formState.isSubmitting}>
+                    <Button
+                        type="submit"
+                        disabled={form.formState.isSubmitting || allocationTotal(allocations) !== FULL_PERCENT}
+                    >
                         Lancer le backtest
                     </Button>
                 </div>

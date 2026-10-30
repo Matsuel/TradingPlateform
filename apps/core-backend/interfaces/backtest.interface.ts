@@ -1,23 +1,55 @@
 import { z } from "zod";
-import { paginationQuerySchema, type BacktestCompletedPayload, type BacktestStatus as ContractBacktestStatus } from "@trading-plateform/contracts";
+import {
+    allocationSchema,
+    backtestRequestedPayloadSchema,
+    paginationQuerySchema,
+    type BacktestCompletedPayload,
+    type BacktestStatus as ContractBacktestStatus,
+} from "@trading-plateform/contracts";
 import { BacktestStatus, type BacktestResult, type Prisma } from "../generated/prisma/client";
+
+const FULL_PERCENT = 100;
+
+// Poids saisi en pourcent entier (60 = 60 %, D2), contrôlé en pourcent puis converti en ratio pour le contrat et la base
+const allocationInputsSchema = z
+    .array(z.object({ symbol: allocationSchema.shape.symbol, weight: z.number().int().min(1).max(FULL_PERCENT) }))
+    .min(1)
+    .refine((allocations) => new Set(allocations.map((a) => a.symbol)).size === allocations.length, {
+        message: "Symbols must be unique",
+    })
+    .refine((allocations) => allocations.reduce((sum, a) => sum + a.weight, 0) === FULL_PERCENT, {
+        message: "Weights must sum to 100",
+    })
+    .transform((allocations) => allocations.map(({ symbol, weight }) => ({ symbol, weight: weight / FULL_PERCENT })));
 
 export const createBacktestSchema = z
     .object({
         name: z.string().min(1),
-        strategy: z.enum(["dca", "lump_sum"]),
-        symbols: z
-            .array(z.string().min(1))
-            .min(1)
-            .refine((symbols) => new Set(symbols).size === symbols.length, { message: "Symbols must be unique" }),
+        investmentMode: backtestRequestedPayloadSchema.shape.investmentMode,
+        allocations: allocationInputsSchema,
         start: z.coerce.date(),
         end: z.coerce.date(),
-        amount: z.number().positive(),
+        // Montants dans la devise de saisie : capital versé le premier jour, puis versement mensuel (RECURRING seulement)
+        initialAmount: z.number().min(0),
+        recurringAmount: z.number().positive().optional(),
+        // Pourcentage par ordre (0.1 = 0,1 %), stocké en fraction
         fee: z.number().min(0).max(100),
     })
     .refine((v) => v.start < v.end, {
         path: ["end"],
         message: "Must be after start",
+    })
+    .refine((v) => v.investmentMode !== "RECURRING" || v.recurringAmount !== undefined, {
+        path: ["recurringAmount"],
+        message: "Required for RECURRING",
+    })
+    .refine((v) => v.investmentMode !== "LUMP_SUM" || v.recurringAmount === undefined, {
+        path: ["recurringAmount"],
+        message: "Only allowed for RECURRING",
+    })
+    .refine((v) => v.investmentMode !== "LUMP_SUM" || v.initialAmount > 0, {
+        path: ["initialAmount"],
+        message: "Must be positive for LUMP_SUM",
     });
 
 export type CreateBacktestInput = z.infer<typeof createBacktestSchema>;
