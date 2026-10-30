@@ -233,9 +233,9 @@ Critères d’acceptation :
 - **Fichiers** : `packages/contracts/src/backtest.ts`
 
 Critères d’acceptation :
-- [ ] `REBALANCE_FREQUENCIES = ["NONE", "MONTHLY", "QUARTERLY", "YEARLY"] as const` et `rebalanceFrequency` dans `backtest.requested`.
-- [ ] `tradeSchema.side: z.enum(["BUY", "SELL"])` ; commentaire : quantité et montant toujours positifs, le sens porte le signe.
-- [ ] Commentaire de `feeRate` : « par ordre, achat ou vente » (D8).
+- [x] `REBALANCE_FREQUENCIES = ["NONE", "MONTHLY", "QUARTERLY", "YEARLY"] as const` et `rebalanceFrequency` dans `backtest.requested`.
+- [x] `tradeSchema.side: z.enum(["BUY", "SELL"])` ; commentaire : quantité et montant toujours positifs, le sens porte le signe.
+- [x] Commentaire de `feeRate` : « par ordre, achat ou vente » (D8).
 
 ### T-10 · Engine : ventes, frais sur ventes et rebalancement
 

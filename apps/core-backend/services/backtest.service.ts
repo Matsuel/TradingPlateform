@@ -157,6 +157,8 @@ class BacktestService {
             initialAmount: backtest.initialAmount.toNumber(),
             recurringAmount: backtest.recurringAmount?.toNumber() ?? null,
             investmentFrequency: backtest.investmentFrequency,
+            // Fréquence pas encore persistée : achats seuls, comme avant le rebalancement
+            rebalanceFrequency: "NONE",
             feeRate: backtest.feeRate.toNumber(),
         }
         try {

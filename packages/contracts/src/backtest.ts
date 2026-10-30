@@ -45,6 +45,11 @@ export const allocationsSchema = z
         message: "Weights must sum to 1",
     });
 
+// Rebalancement vers les poids cibles au premier jour de cotation de chaque période, à la clôture (D7)
+export const REBALANCE_FREQUENCIES = ["NONE", "MONTHLY", "QUARTERLY", "YEARLY"] as const;
+
+export const TRADE_SIDES = ["BUY", "SELL"] as const;
+
 export const backtestRequestedPayloadSchema = z.object({
     executionId: z.string().min(1),
     backtestId: z.string().min(1),
@@ -56,7 +61,8 @@ export const backtestRequestedPayloadSchema = z.object({
     initialAmount: z.number().min(0),
     recurringAmount: z.number().positive().nullable(),
     investmentFrequency: z.enum(["DAILY", "WEEKLY", "MONTHLY", "YEARLY"]).nullable(),
-    // Ratio : 0.001 = 0,1 % par achat
+    rebalanceFrequency: z.enum(REBALANCE_FREQUENCIES),
+    // Ratio : 0.001 = 0,1 % par ordre, achat ou vente (D8)
     feeRate: z.number().min(0).max(1),
 });
 
@@ -94,6 +100,8 @@ export const equityPointSchema = z.object({
 export const tradeSchema = z.object({
     date: z.iso.date(),
     symbol: z.string().min(1),
+    // Sens de l'ordre : quantité et montant restent positifs, le sens porte le signe
+    side: z.enum(TRADE_SIDES),
     // Cours d'achat
     price: z.number().positive(),
     // Nombre de titres achetés (fractionnaire)
@@ -164,6 +172,8 @@ export type Allocation = z.infer<typeof allocationSchema>;
 export type BacktestRequestedPayload = z.infer<typeof backtestRequestedPayloadSchema>;
 export type BacktestStartedPayload = z.infer<typeof backtestStartedPayloadSchema>;
 export type EquityPoint = z.infer<typeof equityPointSchema>;
+export type RebalanceFrequency = (typeof REBALANCE_FREQUENCIES)[number];
+export type TradeSide = (typeof TRADE_SIDES)[number];
 export type Trade = z.infer<typeof tradeSchema>;
 export type Holding = z.infer<typeof holdingSchema>;
 export type LumpSumComparison = z.infer<typeof lumpSumComparisonSchema>;

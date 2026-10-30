@@ -71,6 +71,7 @@ function simulate(params: BacktestParams, prices: PriceSeries): Simulation {
                 trades.push({
                     date,
                     symbol,
+                    side: "BUY",
                     price: round(price, 4),
                     quantity: round(quantity, 6),
                     amount: round(amount, 2),

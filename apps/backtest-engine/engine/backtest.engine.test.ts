@@ -111,8 +111,8 @@ describe("runBacktest", () => {
         });
 
         expect(result.trades).toEqual([
-            { date: "2024-01-02", symbol: "AAA", price: 10, quantity: 49.5, amount: 500, fee: 5 },
-            { date: "2024-01-02", symbol: "BBB", price: 50, quantity: 9.9, amount: 500, fee: 5 },
+            { date: "2024-01-02", symbol: "AAA", side: "BUY", price: 10, quantity: 49.5, amount: 500, fee: 5 },
+            { date: "2024-01-02", symbol: "BBB", side: "BUY", price: 50, quantity: 9.9, amount: 500, fee: 5 },
         ]);
     });
 
@@ -124,8 +124,8 @@ describe("runBacktest", () => {
 
         // Montant d'ordre frais compris : 6 000 € dont 60 € de frais ⇒ 5 940 € investis
         expect(result.trades).toEqual([
-            { date: "2024-01-02", symbol: "AAA", price: 10, quantity: 594, amount: 6000, fee: 60 },
-            { date: "2024-01-02", symbol: "BBB", price: 50, quantity: 79.2, amount: 4000, fee: 40 },
+            { date: "2024-01-02", symbol: "AAA", side: "BUY", price: 10, quantity: 594, amount: 6000, fee: 60 },
+            { date: "2024-01-02", symbol: "BBB", side: "BUY", price: 50, quantity: 79.2, amount: 4000, fee: 40 },
         ]);
         expect(result.totalInvested).toBe(10_000);
         expect(result.totalFees).toBe(100);
