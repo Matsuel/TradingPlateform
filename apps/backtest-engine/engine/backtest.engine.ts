@@ -3,9 +3,13 @@ import BacktestError from "../errors/backtest.error";
 import type { BacktestOutcome, BacktestParams, PriceSeries, TwrPoint } from "../interfaces/backtest.interface";
 import { annualizedReturn, annualizedVolatility, createDrawdownTracker, periodKey, round, sharpeRatio } from "./backtest.utils";
 
-type Simulation = Omit<BacktestOutcome, "lumpSumComparison" | "executionRule">;
+type Simulation = Omit<BacktestOutcome, "lumpSumComparison" | "benchmark" | "executionRule">;
 
 const roundOrNull = (ratio: number | null) => (ratio === null ? null : round(ratio, 6));
+
+/** Écart stratégie − benchmark arrondi comme un ratio ; null si l'une des deux métriques est null. */
+const excess = (strategy: number | null, benchmark: number | null) =>
+    strategy === null || benchmark === null ? null : round(strategy - benchmark, 6);
 
 // Écart minimal à la cible, devise saisie, pour passer un ordre de rebalancement : un ordre arrondi à 0 € serait invalide (amount > 0)
 const MIN_REBALANCE_ORDER = 0.01;
@@ -13,7 +17,9 @@ const MIN_REBALANCE_ORDER = 0.01;
 /**
  * Simule un portefeuille aux poids cibles de `allocations`, jour de cotation par jour de cotation.
  *
- * - Départ : premier jour où tous les symboles ont un cours ; un cours manquant est reporté du dernier jour connu.
+ * - Calendrier : jours de cotation de `calendarSymbols` (les symboles de l'allocation et ceux des simulations à aligner
+ *   sur elle, comme le benchmark) ; deux simulations au même calendrier ont exactement les mêmes dates.
+ * - Départ : premier jour où tous les symboles du calendrier ont un cours ; un cours manquant est reporté du dernier jour connu.
  * - Versements : `initialAmount` le premier jour, puis `recurringAmount` au premier jour de chaque période (DCA).
  * - Exécution : achat au cours de clôture du jour du versement, réparti selon `weight` (ratio, somme = 1),
  *   frais prélevés sur chaque ordre : 10 000 € en 60/40 ⇒ ordres de 6 000 € et 4 000 €, frais compris.
@@ -28,22 +34,22 @@ const MIN_REBALANCE_ORDER = 0.01;
  * - Métriques de risque (D3 à D6) et `drawdown` de chaque point : sur l'indice TWR chaîné jour après jour,
  *   rendement du jour mesuré avant le versement, donc hors apports.
  *
- * Lève `BacktestError` sans données de marché ou si rien n'a été investi.
+ * Lève `BacktestError` si un symbole du calendrier n'a pas de données de marché ou si rien n'a été investi.
  */
-function simulate(params: BacktestParams, prices: PriceSeries): Simulation {
+function simulate(params: BacktestParams, prices: PriceSeries, calendarSymbols: string[]): Simulation {
     const { allocations, investmentMode, initialAmount, recurringAmount, investmentFrequency, rebalanceFrequency, feeRate } = params;
     const symbols = allocations.map((allocation) => allocation.symbol);
 
     const closes = new Map<string, Map<string, number>>();
-    for (const symbol of symbols) {
+    for (const symbol of calendarSymbols) {
         const series = prices[symbol] ?? [];
         if (series.length === 0) throw new BacktestError(`No market data for ${symbol}`);
         closes.set(symbol, new Map(series.map((point) => [point.date, point.close])));
     }
 
-    // Début de la simulation : premier jour où tous les symboles ont un cours
-    const start = symbols.map((symbol) => prices[symbol]![0]!.date).sort().at(-1)!;
-    const dates = [...new Set(symbols.flatMap((symbol) => prices[symbol]!.map((point) => point.date)))].sort();
+    // Début de la simulation : premier jour où tous les symboles du calendrier ont un cours
+    const start = calendarSymbols.map((symbol) => prices[symbol]![0]!.date).sort().at(-1)!;
+    const dates = [...new Set(calendarSymbols.flatMap((symbol) => prices[symbol]!.map((point) => point.date)))].sort();
 
     const lastClose = new Map<string, number>();
     const shares = new Map<string, number>(symbols.map((symbol) => [symbol, 0]));
@@ -80,7 +86,7 @@ function simulate(params: BacktestParams, prices: PriceSeries): Simulation {
     };
 
     for (const date of dates) {
-        for (const symbol of symbols) {
+        for (const symbol of calendarSymbols) {
             const close = closes.get(symbol)!.get(date);
             if (close !== undefined) lastClose.set(symbol, close);
         }
@@ -160,40 +166,74 @@ function simulate(params: BacktestParams, prices: PriceSeries): Simulation {
 }
 
 /**
- * Point d'entrée de l'engine : simule le backtest demandé et, en DCA, le compare à un investissement unique.
+ * Point d'entrée de l'engine : simule le backtest demandé, le compare en DCA à un investissement unique
+ * et, si `benchmarkSymbol` est renseigné, au benchmark.
  *
  * La comparaison rejoue le même total versé en un seul achat au premier jour : même capital, même période,
  * mêmes frais, seule la répartition dans le temps change. Sa valeur quotidienne est ajoutée à chaque point
  * de la courbe (`lumpSumValue`) ; ses métriques finales vont dans `lumpSumComparison`.
  * Hors DCA, `lumpSumComparison` vaut null et la courbe n'a pas de `lumpSumValue`.
+ *
+ * Le benchmark (D9) rejoue les mêmes versements, dates et frais à 100 % sur `benchmarkSymbol`, sans rebalancement.
+ * Toutes les simulations partagent le calendrier stratégie + benchmark : même départ, mêmes dates, courbes alignées
+ * par indice. Sa valeur quotidienne va dans `benchmarkValue`, ses métriques et les écarts stratégie − benchmark
+ * dans `benchmark`. Sans benchmark, `benchmark` vaut null et la courbe n'a pas de `benchmarkValue`.
+ * Lève `BacktestError` « No market data for <symbol> » si le benchmark n'a aucun cours.
  */
 export default function runBacktest(params: BacktestParams, prices: PriceSeries): BacktestOutcome {
-    const outcome = simulate(params, prices);
+    const { benchmarkSymbol } = params;
+    const calendarSymbols = [...new Set([...params.allocations.map((allocation) => allocation.symbol), ...(benchmarkSymbol ? [benchmarkSymbol] : [])])];
+    const outcome = simulate(params, prices, calendarSymbols);
     // Seule règle du MVP : chaque versement est planifié, donc exécuté à la clôture du jour de l'échéance (README, look-ahead bias)
     const executionRule = "CLOSE_ON_SCHEDULED_DAY";
-    if (params.investmentMode !== "RECURRING") return { ...outcome, executionRule, lumpSumComparison: null };
 
-    const lumpSum = simulate(
-        {
-            ...params,
-            investmentMode: "LUMP_SUM",
-            initialAmount: outcome.totalInvested,
-            recurringAmount: null,
-            investmentFrequency: null,
-        },
-        prices,
-    );
+    const lumpSum =
+        params.investmentMode === "RECURRING"
+            ? simulate(
+                  {
+                      ...params,
+                      investmentMode: "LUMP_SUM",
+                      initialAmount: outcome.totalInvested,
+                      recurringAmount: null,
+                      investmentFrequency: null,
+                  },
+                  prices,
+                  calendarSymbols,
+              )
+            : null;
+
+    const benchmark = benchmarkSymbol
+        ? simulate({ ...params, allocations: [{ symbol: benchmarkSymbol, weight: 1 }], rebalanceFrequency: "NONE" }, prices, calendarSymbols)
+        : null;
 
     return {
         ...outcome,
         executionRule,
-        // Mêmes cours, même départ : les deux courbes ont exactement les mêmes dates, alignées par indice
-        equityCurve: outcome.equityCurve.map((point, i) => ({ ...point, lumpSumValue: lumpSum.equityCurve[i]!.value })),
-        lumpSumComparison: {
+        // Même calendrier, même départ : les courbes ont exactement les mêmes dates, alignées par indice
+        equityCurve: outcome.equityCurve.map((point, i) => ({
+            ...point,
+            ...(lumpSum && { lumpSumValue: lumpSum.equityCurve[i]!.value }),
+            ...(benchmark && { benchmarkValue: benchmark.equityCurve[i]!.value }),
+        })),
+        lumpSumComparison: lumpSum && {
             finalValue: lumpSum.finalValue,
             totalReturn: lumpSum.totalReturn,
             maxDrawdown: lumpSum.maxDrawdown,
             dcaAdvantage: round(outcome.finalValue - lumpSum.finalValue, 2),
+        },
+        benchmark: benchmark && {
+            symbol: benchmarkSymbol!,
+            finalValue: benchmark.finalValue,
+            totalReturn: benchmark.totalReturn,
+            cagr: benchmark.cagr,
+            volatility: benchmark.volatility,
+            sharpeRatio: benchmark.sharpeRatio,
+            maxDrawdown: benchmark.maxDrawdown,
+            recoveryDays: benchmark.recoveryDays,
+            excessCagr: excess(outcome.cagr, benchmark.cagr),
+            excessVolatility: excess(outcome.volatility, benchmark.volatility),
+            excessMaxDrawdown: round(outcome.maxDrawdown - benchmark.maxDrawdown, 6),
+            excessSharpe: excess(outcome.sharpeRatio, benchmark.sharpeRatio),
         },
     };
 }

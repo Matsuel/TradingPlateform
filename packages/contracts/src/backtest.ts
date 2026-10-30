@@ -64,6 +64,8 @@ export const backtestRequestedPayloadSchema = z.object({
     rebalanceFrequency: z.enum(REBALANCE_FREQUENCIES),
     // Ratio : 0.001 = 0,1 % par ordre, achat ou vente (D8)
     feeRate: z.number().min(0).max(1),
+    // Symbole rejoué 100 % avec les mêmes versements, dates et frais (D9) ; null sans benchmark
+    benchmarkSymbol: z.string().min(1).nullable(),
 });
 
 // Règle d'exécution d'un achat simulé. MVP : décisions planifiées (versement DCA), connues à l'avance,
@@ -94,6 +96,8 @@ export const equityPointSchema = z.object({
     invested: z.number(),
     // Valeur du même total investi en une fois au premier jour (DCA uniquement), devise saisie
     lumpSumValue: z.number().optional(),
+    // Valeur du benchmark à la même date, mêmes versements et frais (D9), devise saisie ; absent sans benchmark
+    benchmarkValue: z.number().optional(),
     // Ratio ≤ 0 : baisse depuis le plus haut de l'indice TWR (hors versements), 0 sur un plus haut
     drawdown: z.number().max(0),
 });
@@ -133,6 +137,34 @@ export const lumpSumComparisonSchema = z.object({
     dcaAdvantage: z.number(),
 });
 
+// Métriques du benchmark rejoué selon D9, même définition que celles de la stratégie (courbe : benchmarkValue).
+// Écarts = stratégie − benchmark ; null si l'une des deux métriques sources est null
+export const benchmarkSchema = z.object({
+    symbol: z.string().min(1),
+    // Devise saisie
+    finalValue: z.number(),
+    // Ratio : (finalValue − total versé) / total versé
+    totalReturn: z.number(),
+    // Ratio annuel ; null sous deux points
+    cagr: z.number().nullable(),
+    // Ratio annuel ; null sous deux points
+    volatility: z.number().min(0).nullable(),
+    // Sans unité ; null si volatilité nulle ou sous deux points
+    sharpeRatio: z.number().nullable(),
+    // Ratio ≤ 0, hors versements (TWR)
+    maxDrawdown: z.number().max(0),
+    // Jours calendaires ; null si non récupéré ou sans baisse
+    recoveryDays: z.number().int().min(0).nullable(),
+    // Points de ratio annuel (0.013 = +1,3 pt/an) : > 0 si la stratégie rapporte plus
+    excessCagr: z.number().nullable(),
+    // Points de ratio annuel : > 0 si la stratégie est plus volatile
+    excessVolatility: z.number().nullable(),
+    // Points de ratio : > 0 si la baisse maximale de la stratégie est moins profonde
+    excessMaxDrawdown: z.number(),
+    // Sans unité : > 0 si la stratégie a un meilleur Sharpe
+    excessSharpe: z.number().nullable(),
+});
+
 export const backtestCompletedPayloadSchema = z.object({
     executionId: z.string().min(1),
     finishedAt: z.iso.datetime(),
@@ -167,6 +199,8 @@ export const backtestCompletedPayloadSchema = z.object({
     holdings: z.array(holdingSchema),
     // null hors DCA : comparer un investissement unique à lui-même n'apporte rien
     lumpSumComparison: lumpSumComparisonSchema.nullable(),
+    // null si backtest.requested.benchmarkSymbol est null
+    benchmark: benchmarkSchema.nullable(),
     executionRule: z.enum(EXECUTION_RULES),
     dataSource: dataSourceSchema,
 });
@@ -192,6 +226,7 @@ export type TradeSide = (typeof TRADE_SIDES)[number];
 export type Trade = z.infer<typeof tradeSchema>;
 export type Holding = z.infer<typeof holdingSchema>;
 export type LumpSumComparison = z.infer<typeof lumpSumComparisonSchema>;
+export type Benchmark = z.infer<typeof benchmarkSchema>;
 export type ExecutionRule = (typeof EXECUTION_RULES)[number];
 export type DataSource = z.infer<typeof dataSourceSchema>;
 export type BacktestCompletedPayload = z.infer<typeof backtestCompletedPayloadSchema>;

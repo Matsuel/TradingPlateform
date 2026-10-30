@@ -121,6 +121,8 @@ class BacktestService {
         maxDrawdownPeakDate: _maxDrawdownPeakDate,
         maxDrawdownRecoveryDate: _maxDrawdownRecoveryDate,
         recoveryDays: _recoveryDays,
+        // Benchmark pas encore stocké (colonne ajoutée par T-23) : écarté pour que Prisma ne rejette pas l'écriture
+        benchmark: _benchmark,
         ...result
     }: BacktestCompletedPayload) {
         const updated = await this.repo.completeExecution(executionId, ACTIVE_STATUSES, {
@@ -161,6 +163,8 @@ class BacktestService {
             investmentFrequency: backtest.investmentFrequency,
             rebalanceFrequency: backtest.rebalanceFrequency,
             feeRate: backtest.feeRate.toNumber(),
+            // Pas encore stocké : colonne Backtest.benchmarkSymbol ajoutée par T-23
+            benchmarkSymbol: null,
         }
         try {
             await producer.publish(BACKTEST_TOPICS.requested, {
