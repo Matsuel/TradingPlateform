@@ -243,14 +243,14 @@ Critères d’acceptation :
 - **Fichiers** : `engine/backtest.engine.ts`, `engine/backtest.utils.ts`, tests
 
 Critères d’acceptation :
-- [ ] Au premier jour de cotation de chaque période de rebalancement (hors premier jour de simulation), après le versement du jour : vente des actifs surpondérés, puis achat des sous-pondérés avec le produit net des ventes.
-- [ ] Après rebalancement, chaque poids est égal à sa cible, à la perte de frais près (test avec tolérance explicite).
-- [ ] Frais prélevés sur chaque vente et chaque achat, inclus dans `totalFees` ; `totalInvested` inchangé par un rebalancement.
-- [ ] Ordres de rebalancement inclus dans `trades` avec `side` ; `totalTrades` les compte.
-- [ ] `QUARTERLY` ajouté à `periodKey` (ou helper équivalent dans `backtest.utils.ts`), testé.
-- [ ] `NONE` ⇒ aucune vente, résultat identique à T-02 (non-régression).
-- [ ] Test sur fixture à deux actifs aux trajectoires opposées : poids dérivés avant la date, ramenés à la cible après.
-- [ ] Drawdown toujours mesuré hors versements : un rebalancement ne crée pas de rendement artificiel (test).
+- [x] Au premier jour de cotation de chaque période de rebalancement (hors premier jour de simulation), après le versement du jour : vente des actifs surpondérés, puis achat des sous-pondérés avec le produit net des ventes.
+- [x] Après rebalancement, chaque poids est égal à sa cible, à la perte de frais près (test avec tolérance explicite).
+- [x] Frais prélevés sur chaque vente et chaque achat, inclus dans `totalFees` ; `totalInvested` inchangé par un rebalancement.
+- [x] Ordres de rebalancement inclus dans `trades` avec `side` ; `totalTrades` les compte.
+- [x] `QUARTERLY` ajouté à `periodKey` (ou helper équivalent dans `backtest.utils.ts`), testé.
+- [x] `NONE` ⇒ aucune vente, résultat identique à T-02 (non-régression).
+- [x] Test sur fixture à deux actifs aux trajectoires opposées : poids dérivés avant la date, ramenés à la cible après.
+- [x] Drawdown toujours mesuré hors versements : un rebalancement ne crée pas de rendement artificiel (test).
 
 ### T-11 · core-backend : fréquence de rebalancement
 
@@ -277,8 +277,8 @@ Critères d’acceptation :
 - **Fichiers** : `features/backtest/column.tsx`, `types.ts`
 
 Critères d’acceptation :
-- [ ] Colonne « Côté » : badge « Achat » (contour vert) / « Vente » (plein rouge), comme la maquette 13.
-- [ ] Type web dérivé du contrat avec `side` optionnel ; absence de `side` ⇒ « Achat » (D10).
+- [x] Colonne « Côté » : badge « Achat » (contour vert) / « Vente » (plein rouge), comme la maquette 13.
+- [x] Type web dérivé du contrat avec `side` optionnel ; absence de `side` ⇒ « Achat » (D10).
 
 ---
 
@@ -290,12 +290,12 @@ Critères d’acceptation :
 - **Fichiers** : `engine/backtest.utils.ts`, `engine/backtest.utils.test.ts`
 
 Critères d’acceptation :
-- [ ] Fonctions pures sur la série des rendements journaliers TWR (hors versements) : `annualizedReturn` (D3), `annualizedVolatility` (D4), `sharpeRatio` (D5).
-- [ ] Constantes nommées : `TRADING_DAYS_PER_YEAR = 252`, `RISK_FREE_RATE = 0` (commentaire : ratio annuel, hypothèse affichée).
-- [ ] CAGR annualisé sur la durée calendaire réelle (jours / 365,25).
-- [ ] Sharpe `null` si volatilité nulle ; métriques `null` si moins de deux points.
-- [ ] Tests contre des valeurs calculées à la main : série constante, rendement journalier fixe, période inférieure à un an, série d’un seul point.
-- [ ] JSDoc : formule, unité, cas `null`.
+- [x] Fonctions pures sur la série des rendements journaliers TWR (hors versements) : `annualizedReturn` (D3), `annualizedVolatility` (D4), `sharpeRatio` (D5).
+- [x] Constantes nommées : `TRADING_DAYS_PER_YEAR = 252`, `RISK_FREE_RATE = 0` (commentaire : ratio annuel, hypothèse affichée).
+- [x] CAGR annualisé sur la durée calendaire réelle (jours / 365,25).
+- [x] Sharpe `null` si volatilité nulle ; métriques `null` si moins de deux points.
+- [x] Tests contre des valeurs calculées à la main : série constante, rendement journalier fixe, période inférieure à un an, série d’un seul point.
+- [x] JSDoc : formule, unité, cas `null`.
 
 ### T-15 · Engine : durée de récupération et drawdown par point
 
@@ -303,9 +303,9 @@ Critères d’acceptation :
 - **Fichiers** : `engine/backtest.utils.ts` (`createDrawdownTracker`), tests
 
 Critères d’acceptation :
-- [ ] Le tracker expose `maxDrawdownPeakDate`, `maxDrawdownRecoveryDate` (`null` si non récupéré) et `recoveryDays` (jours calendaires, `null` si non récupéré), selon D6.
-- [ ] Le tracker renvoie le drawdown courant (ratio ≤ 0) à chaque `record`, pour alimenter la courbe.
-- [ ] Tests : baisse récupérée, baisse jamais récupérée, aucune baisse, deux baisses dont la seconde est la plus profonde.
+- [x] Le tracker expose `maxDrawdownPeakDate`, `maxDrawdownRecoveryDate` (`null` si non récupéré) et `recoveryDays` (jours calendaires, `null` si non récupéré), selon D6.
+- [x] Le tracker renvoie le drawdown courant (ratio ≤ 0) à chaque `record`, pour alimenter la courbe.
+- [x] Tests : baisse récupérée, baisse jamais récupérée, aucune baisse, deux baisses dont la seconde est la plus profonde.
 
 ### T-16 · Contrat : métriques et `equityPoint.drawdown`
 

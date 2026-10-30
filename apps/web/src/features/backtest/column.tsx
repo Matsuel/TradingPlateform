@@ -7,7 +7,7 @@ import type { Backtest, Holding, Trade } from "./types"
 import { getExecution, getExecutionDuration } from "./utils"
 import Dash from "@/components/custom/Dash"
 
-// Cours d'achat sans devise : « 268,50 »
+// Cours de l'ordre sans devise : « 268,50 »
 const formatTradePrice = new Intl.NumberFormat(LOCALE, { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format
 
 // Titres fractionnaires (DCA) : jusqu'à 6 décimales
@@ -54,7 +54,7 @@ export const tradeColumns: Column<Trade>[] = [
         },
     },
     {
-        header: "Prix d'achat",
+        header: "Prix",
         className: "text-right",
         cell: (t) => formatTradePrice(t.price),
     },
