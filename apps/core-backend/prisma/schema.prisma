@@ -147,7 +147,6 @@ model Backtest {
   updatedAt DateTime @updatedAt
 
   // Paramètres conservés pour relancer le même backtest
-  symbols             String[]
   startDate           DateTime
   endDate             DateTime
   investmentMode      InvestmentMode
@@ -159,11 +158,24 @@ model Backtest {
   // Dernière exécution créée : permet de filtrer/compter par statut courant avec Prisma (mise à jour à chaque création d'exécution)
   latestExecutionId String? @unique
 
-  user            User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  executions      BacktestExecution[] @relation("BacktestExecutions")
-  latestExecution BacktestExecution?  @relation("LatestExecution", fields: [latestExecutionId], references: [id], onDelete: SetNull)
+  user            User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  allocations     BacktestAllocation[]
+  executions      BacktestExecution[]  @relation("BacktestExecutions")
+  latestExecution BacktestExecution?   @relation("LatestExecution", fields: [latestExecutionId], references: [id], onDelete: SetNull)
 
   @@index([userId, createdAt])
+}
+
+model BacktestAllocation {
+  id         String  @id @default(cuid())
+  backtestId String
+  symbol     String
+  // Ratio au pourcent près (D2) : 0.34 = 34 % ; somme = 1 par backtest
+  weight     Decimal @db.Decimal(3, 2)
+
+  backtest Backtest @relation(fields: [backtestId], references: [id], onDelete: Cascade)
+
+  @@unique([backtestId, symbol])
 }
 
 model BacktestExecution {

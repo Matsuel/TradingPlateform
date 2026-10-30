@@ -34,7 +34,7 @@ export type CreateBacktestDTO = Prisma.BacktestUncheckedCreateInput;
 
 // Courbe, ordres, positions et comparaison omis des exécutions : seul le dernier résultat terminé les porte
 export type BacktestWithExecutions = Prisma.BacktestGetPayload<{
-    include: { executions: { include: { result: { omit: { equityCurve: true; trades: true; holdings: true; lumpSumComparison: true } } } } };
+    include: { allocations: true; executions: { include: { result: { omit: { equityCurve: true; trades: true; holdings: true; lumpSumComparison: true } } } } };
 }>;
 
 export type BacktestDetails = BacktestWithExecutions & { result: BacktestResult | null };

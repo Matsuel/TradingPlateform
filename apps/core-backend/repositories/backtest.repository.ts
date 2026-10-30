@@ -20,7 +20,13 @@ const executionSummary = {
     include: { result: { omit: { equityCurve: true, trades: true, holdings: true, lumpSumComparison: true } } },
 } satisfies Prisma.Backtest$executionsArgs
 
+// Allocation persistée : relue pour republier `backtest.requested` et renvoyée au web
+const allocations = {
+    allocations: true,
+} satisfies Prisma.BacktestInclude
+
 const latestExecution = {
+    ...allocations,
     executions: { ...executionSummary, take: 1 },
 } satisfies Prisma.BacktestInclude
 
@@ -50,7 +56,7 @@ class BacktestRepository implements IBacktestRepository {
         const [backtest, result] = await prisma.$transaction([
             prisma.backtest.findUnique({
                 where: { id },
-                include: { executions: executionSummary },
+                include: { ...allocations, executions: executionSummary },
             }),
             prisma.backtestResult.findFirst({
                 where: { execution: { backtestId: id, status: "COMPLETED" } },
