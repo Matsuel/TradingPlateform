@@ -114,18 +114,15 @@ class BacktestService {
         executionId,
         finishedAt,
         maxDrawdownDate,
-        // Métriques pas encore stockées (colonnes ajoutées par T-18) : écartées pour que Prisma ne rejette pas l'écriture
-        cagr: _cagr,
-        volatility: _volatility,
-        sharpeRatio: _sharpeRatio,
-        maxDrawdownPeakDate: _maxDrawdownPeakDate,
-        maxDrawdownRecoveryDate: _maxDrawdownRecoveryDate,
-        recoveryDays: _recoveryDays,
+        maxDrawdownPeakDate,
+        maxDrawdownRecoveryDate,
         ...result
     }: BacktestCompletedPayload) {
         const updated = await this.repo.completeExecution(executionId, ACTIVE_STATUSES, {
             finishedAt: new Date(finishedAt),
             maxDrawdownDate: maxDrawdownDate ? new Date(maxDrawdownDate) : null,
+            maxDrawdownPeakDate: maxDrawdownPeakDate ? new Date(maxDrawdownPeakDate) : null,
+            maxDrawdownRecoveryDate: maxDrawdownRecoveryDate ? new Date(maxDrawdownRecoveryDate) : null,
             ...result,
         })
         logger.info(updated ? "Backtest execution completed" : "Backtest completed event ignored", { executionId })

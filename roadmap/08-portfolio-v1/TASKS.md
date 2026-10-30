@@ -332,10 +332,10 @@ Critères d’acceptation :
 - **Fichiers** : `prisma/schema.prisma`, migration, `interfaces/backtest.interface.ts`, `repositories/`, `consumers/`
 
 Critères d’acceptation :
-- [ ] `BacktestResult` : `cagr`, `volatility`, `sharpeRatio` (`Decimal(12, 6)?`), `maxDrawdownPeakDate`, `maxDrawdownRecoveryDate` (`DateTime?`), `recoveryDays` (`Int?`), commentaires « null pour les résultats antérieurs » (D10).
-- [ ] `CompleteExecutionDTO` dérivé du payload, dates converties ; écriture dans la transaction de complétion existante.
-- [ ] Un événement `backtest.completed` rejoué ne modifie rien (transition gardée inchangée).
-- [ ] `GET /api/backtests/:id` renvoie les champs ; entrée `API.md` mise à jour.
+- [x] `BacktestResult` : `cagr`, `volatility`, `sharpeRatio` (`Decimal(12, 6)?`), `maxDrawdownPeakDate`, `maxDrawdownRecoveryDate` (`DateTime?`), `recoveryDays` (`Int?`), commentaires « null pour les résultats antérieurs » (D10).
+- [x] `CompleteExecutionDTO` dérivé du payload, dates converties ; écriture dans la transaction de complétion existante.
+- [x] Un événement `backtest.completed` rejoué ne modifie rien (transition gardée inchangée).
+- [x] `GET /api/backtests/:id` renvoie les champs ; entrée `API.md` mise à jour.
 
 ### T-19 · Web : cartes KPI et hypothèses
 

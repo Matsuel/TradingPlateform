@@ -77,19 +77,12 @@ export type BacktestDetails = BacktestWithExecutions & { result: BacktestResult 
 
 export type CompleteExecutionDTO = Omit<
     BacktestCompletedPayload,
-    | "executionId"
-    | "finishedAt"
-    | "maxDrawdownDate"
-    // Pas encore stockées : colonnes ajoutées par T-18
-    | "cagr"
-    | "volatility"
-    | "sharpeRatio"
-    | "maxDrawdownPeakDate"
-    | "maxDrawdownRecoveryDate"
-    | "recoveryDays"
+    "executionId" | "finishedAt" | "maxDrawdownDate" | "maxDrawdownPeakDate" | "maxDrawdownRecoveryDate"
 > & {
     finishedAt: Date;
     maxDrawdownDate: Date | null;
+    maxDrawdownPeakDate: Date | null;
+    maxDrawdownRecoveryDate: Date | null;
 };
 
 // Le contrat recopie l'enum Prisma pour le web : ce type ne compile plus si les deux listes divergent
