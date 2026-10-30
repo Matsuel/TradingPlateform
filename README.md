@@ -748,12 +748,18 @@ Ne jamais utiliser une information qui n'était pas disponible au moment de la d
 
 Exemple : si la décision est prise avant l'ouverture, ne pas exécuter artificiellement au cours de clôture connu plus tard.
 
-Le MVP doit utiliser une règle explicite d'exécution, par exemple :
+Le MVP utilise une règle explicite d'exécution, qui dépend de la nature de la décision :
 
 ```text
-Décision à la date T
-→ exécution au prochain prix d'ouverture disponible
+Décision planifiée (versement DCA, rebalancement à date fixe)
+→ connue à l'avance, indépendante des cours
+→ exécution à la clôture du jour de bourse de l'échéance
+
+Décision qui dépend d'un cours (signal, seuil, indicateur calculé sur la clôture T)
+→ exécution au plus tôt au jour de bourse suivant (T+1)
 ```
+
+Le MVP ne contient que des décisions planifiées : l'exécution à la clôture du jour de l'échéance n'utilise aucune information future. La règle T+1 s'appliquera dès qu'une stratégie décidera à partir des prix.
 
 #### Survivorship bias
 
@@ -843,16 +849,16 @@ Le **Strategy Lab** est la fonctionnalité qui différencie MarketFlow d’un si
 
 L’utilisateur choisit un instrument, une date de début et de fin, un apport initial éventuel, un montant périodique, une fréquence mensuelle et des frais. Exemple : « investir 100 € le premier jour de bourse de chaque mois sur `AAPL` entre janvier 2018 et janvier 2025 ».
 
-Le module `strategy-lab` vit dans le `core-backend`; ce n’est pas un microservice supplémentaire. Il :
+Le `core-backend` valide les paramètres, crée l’exécution et publie `backtest.requested` ; le `backtest-engine` calcule ; le `core-backend` enregistre le résultat. Le calcul :
 
-1. valide les paramètres et fige la version des données de marché utilisées ;
-2. aligne chaque échéance sur le prochain jour de bourse disponible ;
-3. exécute l’achat simulé au **prochain prix d’ouverture disponible** et applique les frais ;
-4. enregistre chaque mouvement dans `simulation_transactions` ;
+1. fige la version des données de marché utilisées ;
+2. aligne chaque échéance sur le premier jour de bourse de la période ;
+3. exécute l’achat simulé au **cours de clôture de ce jour de bourse** et applique les frais ;
+4. conserve chaque achat simulé avec le résultat ;
 5. calcule la valeur du portefeuille et les métriques ;
 6. retourne une série exploitable par le graphique et un rapport lisible.
 
-La règle « prochain prix d’ouverture » évite d’utiliser un prix de clôture qui n’était pas encore connu au moment de la décision : c’est une protection simple contre le biais de regard vers le futur (*look-ahead bias*).
+L’exécution à la clôture du jour de l’échéance n’introduit pas de biais de regard vers le futur (*look-ahead bias*) : la date d’un versement DCA est fixée à l’avance et ne dépend d’aucun cours (voir [Principes de validité des backtests](#principes-de-validité-des-backtests)).
 
 ### Résultats affichés dans l’UI
 
