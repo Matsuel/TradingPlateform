@@ -42,11 +42,19 @@ type DecimalField = "finalValue" | "totalInvested" | "totalFees" | "profit" | "t
 // Hypothèses de calcul enregistrées avec le résultat, null pour les résultats antérieurs à leur ajout
 type AssumptionField = "executionRule" | "dataSource"
 
+// Métriques de risque (D10) : Decimal sérialisé en string, cagr et volatility en fraction annuelle, sharpeRatio sans unité ;
+// null ou absentes pour les résultats antérieurs
+type MetricField = "cagr" | "volatility" | "sharpeRatio"
+
 // holdings vide et lumpSumComparison null pour les résultats antérieurs ; lumpSumComparison null hors DCA
 export type BacktestResult = Record<DecimalField, string | null> &
+    Partial<Record<MetricField, string | null>> &
     Pick<BacktestCompletedPayload, "totalTrades" | "equityCurve" | "holdings" | "lumpSumComparison"> &
+    Partial<Pick<BacktestCompletedPayload, "recoveryDays">> &
     { [K in AssumptionField]: BacktestCompletedPayload[K] | null } & {
         maxDrawdownDate: string | null // ISO
+        maxDrawdownPeakDate?: string | null // ISO ; null sans baisse
+        maxDrawdownRecoveryDate?: string | null // ISO ; null si non récupéré ou sans baisse
         trades: Trade[]
     }
 

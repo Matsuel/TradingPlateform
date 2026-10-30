@@ -1,19 +1,17 @@
 import type { ReactNode } from "react"
 import Dash from "@/components/custom/Dash"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { LOCALE, formatDate, formatDayRange } from "@/lib/format"
+import { formatDate, formatDayRange, formatPercent } from "@/lib/format"
 import {
     BACKTEST_CURRENCY,
     BACKTEST_DISCLAIMER,
+    RISK_FREE_RATE,
     dataProviderLabels,
     executionRuleLabels,
     priceTypeLabels,
     rebalanceFrequencyLabels,
 } from "./constants"
 import type { Backtest, BacktestResult } from "./types"
-
-// Taux en fraction affiché sans signe, jusqu'à 2 décimales (0,001 → 0,1 %) : formatRate arrondit à l'unité
-const formatFeeRate = new Intl.NumberFormat(LOCALE, { style: "percent", maximumFractionDigits: 2 }).format
 
 // Préfixe de l'empreinte SHA-256, assez long pour distinguer deux jeux de données à l'œil
 const FINGERPRINT_PREVIEW_LENGTH = 12
@@ -28,7 +26,7 @@ function Assumption({ label, children }: { label: string; children: ReactNode })
 }
 
 /**
- * Carte « Hypothèses » d'un résultat : période, devise, frais, rebalancement, règle d'exécution et provenance des cours,
+ * Carte « Hypothèses » d'un résultat : période, devise, frais, rebalancement, taux sans risque du Sharpe, règle d'exécution et provenance des cours,
  * suivie de l'avertissement. Règle et source absentes des résultats antérieurs : `<Dash />`.
  */
 export function BacktestAssumptions({ backtest, result }: { backtest: Backtest; result: BacktestResult }) {
@@ -44,8 +42,9 @@ export function BacktestAssumptions({ backtest, result }: { backtest: Backtest; 
                 <dl className="grid gap-2 text-sm">
                     <Assumption label="Période">{formatDayRange(backtest.startDate, backtest.endDate)}</Assumption>
                     <Assumption label="Devise">{BACKTEST_CURRENCY}</Assumption>
-                    <Assumption label="Frais">{formatFeeRate(Number(backtest.feeRate))} par achat</Assumption>
+                    <Assumption label="Frais">{formatPercent(Number(backtest.feeRate))} par achat</Assumption>
                     <Assumption label="Rebalancement">{rebalanceFrequencyLabels[backtest.rebalanceFrequency]}</Assumption>
+                    <Assumption label="Taux sans risque">{formatPercent(RISK_FREE_RATE)}</Assumption>
                     <Assumption label="Règle d’exécution">
                         {executionRule ? executionRuleLabels[executionRule] : <Dash />}
                     </Assumption>

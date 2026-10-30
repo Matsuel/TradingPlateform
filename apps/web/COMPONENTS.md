@@ -702,15 +702,17 @@ Props communes `BaseProps<T>` (exportées par `field.tsx`), répétées dans cha
 
 | Export | Signature / valeur | Rôle (et unité) | Utilisé par |
 | --- | --- | --- | --- |
-| `LOCALE` | `"fr-FR"` | Locale des formats `Intl` locaux à un composant (ticks de graphique, colonnes). | `components/chart.tsx`, `features/backtest/equity-chart.tsx`, `features/backtest/column.tsx`, `features/backtest/assumptions.tsx`, `features/market/price-chart.tsx` |
+| `LOCALE` | `"fr-FR"` | Locale des formats `Intl` locaux à un composant (ticks de graphique, colonnes). | `components/chart.tsx`, `features/backtest/equity-chart.tsx`, `features/backtest/column.tsx`, `features/backtest/stats.tsx`, `features/market/price-chart.tsx` |
 | `formatPrice` | `(v: number, currency: string) => string` | Montant dans la devise ISO **obligatoire** : `formatPrice(1234.5, "EUR")` → « 1 234,50 € ». | `components/chart.tsx`, `features/market/column.tsx`, `features/backtest/stats.tsx`, `features/backtest/column.tsx` |
 | `formatChange` | `(v: number) => string` | Nombre signé, 2 décimales, sans « % » : `1.5` → « +1,50 ». Pour un pourcentage déjà en %. | `components/data-table/cells.tsx`, `formatRatio` |
 | `formatRatio` | `(ratio: number) => string` | Ratio en **fraction** → variation signée en % : `0.342` → « +34,20 % ». Rendement, drawdown. | `features/backtest/stats.tsx`, `features/backtest/execution-history.tsx` |
 | `formatRate` | `(ratio: number) => string` | Proportion en **fraction** → % non signé, arrondi à l'unité : `0.3846` → « 38 % ». Taux de réussite/échec. | `features/backtest/stats.tsx` |
+| `formatPercent` | `(ratio: number) => string` | Taux en **fraction** → % non signé, jusqu'à 2 décimales : `0.001` → « 0,1 % », `0.1532` → « 15,32 % ». Frais, volatilité, taux sans risque. | `features/backtest/assumptions.tsx`, `features/backtest/stats.tsx` |
 | `formatVolume` | `(v: number) => string` | Notation compacte : `41234567` → « 41,23 M ». | `features/market/column.tsx` |
 | `formatDate` | `(d: string \| Date) => string` | Date et heure courtes : « 28/10/2026 09:00 ». | `features/backtest/execution-history.tsx`, `features/backtest/assumptions.tsx` |
 | `formatDay` | `(d: string \| Date) => string` | Jour court : « 28/10/26 ». | `features/backtest/column.tsx`, `features/backtest/stats.tsx` |
 | `formatDayRange` | `(start: string \| Date, end: string \| Date) => string` | Période : « 28/10/25 – 28/10/26 ». | `features/backtest/column.tsx`, `features/backtest/backtest-detail.tsx`, `features/backtest/assumptions.tsx` |
+| `formatDuration` | `(days: number) => string` | Durée en jours calendaires : en jours sous deux mois (`45` → « 45 jours », `1` → « 1 jour »), sinon en mois arrondis (`426` → « 14 mois »). | `features/backtest/stats.tsx` |
 
 Source : `src/lib/format.ts`.
 
@@ -966,7 +968,7 @@ Source : `src/features/auth/schema.ts`.
 ### BacktestAssumptions
 
 - **Import** : `import { BacktestAssumptions } from "@/features/backtest/assumptions"`.
-- **Rôle** : carte « Hypothèses » d'un résultat : période, devise (`BACKTEST_CURRENCY`), frais par achat, rebalancement (`rebalanceFrequencyLabels`), règle d'exécution, source et type de cours, date de récupération et empreinte des données (12 premiers caractères, valeur complète en `title`), puis `BACKTEST_DISCLAIMER`. `<Dash />` si `executionRule` ou `dataSource` est `null` (résultat antérieur).
+- **Rôle** : carte « Hypothèses » d'un résultat : période, devise (`BACKTEST_CURRENCY`), frais par achat, rebalancement (`rebalanceFrequencyLabels`), taux sans risque du Sharpe (`RISK_FREE_RATE`), règle d'exécution, source et type de cours, date de récupération et empreinte des données (12 premiers caractères, valeur complète en `title`), puis `BACKTEST_DISCLAIMER`. `<Dash />` si `executionRule` ou `dataSource` est `null` (résultat antérieur).
 - **Props** :
 
   | Nom | Type | Requis | Défaut | Description |
@@ -1026,7 +1028,7 @@ Source : `src/features/auth/schema.ts`.
 ### BacktestResultStats
 
 - **Import** : `import { BacktestResultStats } from "@/features/backtest/stats"`.
-- **Rôle** : 4 `StatCard` d’un résultat : rendement total (plus-value `profit`), drawdown max (avec date), valeur finale (ordres, montant investi), frais payés ; `<Dash />` ou légende masquée si un champ manque (résultat antérieur).
+- **Rôle** : 7 `StatCard` d’un résultat : rendement total (plus-value `profit`), CAGR, volatilité, Sharpe (légende : taux sans risque `RISK_FREE_RATE`), max drawdown (légende : date du plus haut et durée de récupération `formatDuration`, « Non récupéré » si `recoveryDays` est `null` avec un plus haut ; date du creux seule pour un résultat antérieur), valeur finale (ordres, montant investi), frais payés ; `<Dash />` ou légende masquée si un champ manque (résultat antérieur, `cagr` null ou absent : rien n'est recalculé).
 - **Props** :
 
   | Nom | Type | Requis | Défaut | Description |
@@ -1114,6 +1116,7 @@ Source : `src/features/backtest/schema.ts`.
 | `executionRuleLabels` | `Record<ExecutionRule, string>` : `CLOSE_ON_SCHEDULED_DAY` → « Achat à la clôture du premier jour de cotation de chaque échéance » | Libellé de la règle d'exécution d'un résultat. | `assumptions.tsx` |
 | `dataProviderLabels` | `Record<DataSource["provider"], string>` : `yahoo-finance2` → « Yahoo Finance » | Libellé du fournisseur de cours. | `assumptions.tsx` |
 | `priceTypeLabels` | `Record<DataSource["priceType"], string>` : `CLOSE_SPLIT_ADJUSTED` → « Clôture ajustée des splits, hors dividendes » | Libellé du type de cours. | `assumptions.tsx` |
+| `RISK_FREE_RATE` | `0` | Taux sans risque du Sharpe en fraction, miroir d'affichage de la constante de l'engine (D5). | `stats.tsx`, `assumptions.tsx` |
 | `BACKTEST_DISCLAIMER` | « Les performances passées ne préjugent pas des performances futures. Simulation pédagogique, pas un conseil en investissement. » | Avertissement affiché avec tout résultat. | `assumptions.tsx` |
 | `statusBadges` | `Record<ExecutionStatus, { label; variant: "outline" \| "destructive" \| "secondary" \| "success" }>` | Badge de statut d'exécution. | `column.tsx`, `backtest-detail.tsx`, `execution-history.tsx` |
 | `tradeSideBadges` | `Record<TradeSide, { label; variant: "success" \| "destructive" }>` : `BUY` → « Achat » (`success`), `SELL` → « Vente » (`destructive`) | Badge du côté d'un ordre ; `side` absent (résultat antérieur) lu comme `BUY` (D10). | `column.tsx` |
@@ -1132,7 +1135,7 @@ Source : `src/features/backtest/constants.ts`.
 | `hasStatus` | `(b: Backtest, statuses: readonly ExecutionStatus[]) => boolean` | Statut de la dernière exécution dans la liste. | `hook.ts` |
 | `isActive` | `(e: BacktestExecution) => boolean` | Exécution `PENDING` ou `RUNNING`. | `backtest-detail.tsx`, `execution-history.tsx` |
 | `getExecutionDuration` | `(e: BacktestExecution) => string \| null` | Durée `finishedAt − (startedAt ?? createdAt)`, « 2 min 5 s » ou « 12 s » (minimum 1 s) ; `null` si non terminée. | `column.tsx`, `backtest-detail.tsx`, `execution-history.tsx` |
-| `fromDecimal` | `(value: string \| null) => number \| null` | `Decimal` sérialisé → `number`, `null` conservé. | `stats.tsx` |
+| `fromDecimal` | `(value: string \| null \| undefined) => number \| null` | `Decimal` sérialisé → `number`, `null` ou absent → `null`. | `stats.tsx` |
 
 Source : `src/features/backtest/utils.ts`.
 
