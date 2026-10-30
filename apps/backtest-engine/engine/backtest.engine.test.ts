@@ -30,6 +30,7 @@ describe("runBacktest", () => {
         expect(result.totalInvested).toBe(1000);
         expect(result.totalReturn).toBe(0.5);
         expect(result.totalTrades).toBe(1);
+        expect(result.totalFees).toBe(0);
     });
 
     test("les frais sont prélevés sur l'achat", () => {
@@ -39,6 +40,7 @@ describe("runBacktest", () => {
 
         expect(result.finalValue).toBe(990);
         expect(result.totalReturn).toBe(-0.01);
+        expect(result.totalFees).toBe(10);
     });
 
     test("DCA mensuel verse au premier jour de chaque mois", () => {

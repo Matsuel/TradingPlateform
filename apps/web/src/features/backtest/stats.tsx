@@ -35,7 +35,7 @@ export function BacktestResultStats({ result }: { result: BacktestResult }) {
     const invested = result.totalInvested == null ? null : Number(result.totalInvested)
 
     return (
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
             <StatCard
                 label="Rendement total"
                 value={formatRatio(totalReturn)}
@@ -52,6 +52,11 @@ export function BacktestResultStats({ result }: { result: BacktestResult }) {
                 value={formatPrice(finalValue, BACKTEST_CURRENCY)}
                 delta={`${result.totalTrades} ordres`}
                 caption={invested != null && `${formatPrice(invested, BACKTEST_CURRENCY)} investis`}
+            />
+            <StatCard
+                label="Frais payés"
+                value={result.totalFees == null ? <Dash /> : formatPrice(Number(result.totalFees), BACKTEST_CURRENCY)}
+                caption="Inclus dans le montant investi"
             />
         </div>
     )

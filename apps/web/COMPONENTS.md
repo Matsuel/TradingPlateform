@@ -973,7 +973,7 @@ Source : `src/features/auth/schema.ts`.
 ### BacktestResultStats
 
 - **Import** : `import { BacktestResultStats } from "@/features/backtest/stats"`.
-- **Rôle** : 3 `StatCard` d'un résultat : rendement total, drawdown max (avec date), valeur finale (ordres, montant investi).
+- **Rôle** : 4 `StatCard` d’un résultat : rendement total, drawdown max (avec date), valeur finale (ordres, montant investi), frais payés (`<Dash />` si absents).
 - **Props** :
 
   | Nom | Type | Requis | Défaut | Description |

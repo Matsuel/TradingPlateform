@@ -48,6 +48,8 @@ export const backtestCompletedPayloadSchema = z.object({
     finalValue: z.number(),
     // Total versé, frais compris
     totalInvested: z.number().positive(),
+    // Somme des frais prélevés sur les achats, dans la devise saisie (inclus dans totalInvested)
+    totalFees: z.number().min(0),
     totalReturn: z.number(),
     totalTrades: z.number().int().min(0),
     // Ratio ≤ 0, mesuré hors versements (performance pondérée dans le temps)

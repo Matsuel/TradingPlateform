@@ -29,6 +29,7 @@ export interface Trade {
 export interface BacktestResult {
     finalValue: string | null
     totalInvested: string | null
+    totalFees: string | null // null pour les résultats antérieurs au calcul des frais
     totalReturn: string | null
     totalTrades: number
     maxDrawdown: string | null

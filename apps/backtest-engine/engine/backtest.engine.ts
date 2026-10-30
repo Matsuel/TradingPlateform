@@ -49,6 +49,7 @@ export default function runBacktest(params: BacktestParams, prices: PriceSeries)
     const recurring = investmentMode === "RECURRING" ? recurringAmount ?? 0 : 0;
     const portfolioValue = () => symbols.reduce((sum, symbol) => sum + shares.get(symbol)! * lastClose.get(symbol)!, 0);
     let invested = 0;
+    let fees = 0;
     let previousPeriod: string | null = null;
     // Indice de performance hors versements : le drawdown ne doit pas être masqué par les apports du DCA
     let previousValue = 0;
@@ -88,6 +89,7 @@ export default function runBacktest(params: BacktestParams, prices: PriceSeries)
                 trades.push({ date, symbol, price: round(price, 4) });
             }
             invested += contribution;
+            fees += contribution * feeRate;
         }
 
         previousValue = portfolioValue();
@@ -101,6 +103,7 @@ export default function runBacktest(params: BacktestParams, prices: PriceSeries)
     return {
         finalValue,
         totalInvested: round(invested, 2),
+        totalFees: round(fees, 2),
         totalReturn: round((finalValue - invested) / invested, 6),
         totalTrades: trades.length,
         maxDrawdown: round(maxDrawdown, 6),
