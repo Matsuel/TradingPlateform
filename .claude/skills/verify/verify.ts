@@ -119,6 +119,10 @@ for (const { code, catalog } of catalogs) {
     }
 }
 
+// Écran rendu modifié : la conformité à la maquette se juge en regardant, pas en lisant le diff
+const screens = changed.filter((file) => /^apps\/web\/src\/(app|features|components\/(?!ui\/))[^]*\.tsx$/.test(file));
+if (screens.length > 0) warnings.push(`UI web modifiée (${screens.join(", ")}) : compare chaque écran touché à sa maquette Figma (étape 5 du skill).`);
+
 if (touched(/^packages\/contracts\//)) {
     const sides = ["apps/backtest-engine/", "apps/core-backend/"].filter((dir) => !changed.some((file) => file.startsWith(dir)));
     warnings.push(
