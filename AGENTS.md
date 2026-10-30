@@ -24,6 +24,7 @@ Ces règles sont **strictes** : un écart doit être justifié dans le résumé 
 | `packages/contracts` | Schémas zod et topics partagés entre services. |
 | `packages/kafka` | `KafkaClient`, `KafkaProducer`, `KafkaConsumer`, `createKafkaEvent`. |
 | `packages/utils` | `Logger` partagé. |
+| `roadmap/` | Suivi des features : un dossier par feature (`README.md`, `US.md`, `TASKS.md`), maintenu avec le skill `feature-roadmap`. |
 
 ## Responsabilités : qui calcule quoi
 
