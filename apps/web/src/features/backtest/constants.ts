@@ -6,9 +6,9 @@ export const BACKTEST_CURRENCY = "EUR"
 // Une exécution dans ces statuts peut encore évoluer
 export const activeStatuses = ["PENDING", "RUNNING"] as const satisfies readonly ExecutionStatus[]
 
-export const strategyOptions = [
-    { value: "dca", label: "DCA — investir un montant chaque mois" },
-    { value: "lump_sum", label: "Lump sum — investir en une seule fois" },
+export const investmentModeOptions: { value: InvestmentMode; label: string }[] = [
+    { value: "LUMP_SUM", label: "Investissement unique" },
+    { value: "RECURRING", label: "Investissement unique + versements mensuels" },
 ]
 
 export const strategyLabels: Record<InvestmentMode, string> = {

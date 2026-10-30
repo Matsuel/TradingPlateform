@@ -38,7 +38,7 @@ Catalogue des routes HTTP exposées par core-backend (port 8000) et appelées pa
 - **Base** : `http://localhost:8000`. Le web appelle via `apiFetch(path)` (`apps/web/src/lib/api.ts`) avec `NEXT_PUBLIC_API_URL=http://localhost:8000/api` : `apiFetch("/backtest")` → `GET /api/backtest`. Cookies envoyés (`credentials: "include"`), CORS limité à `env.WEB_URL` (défaut `http://localhost:3000`, `env.ts`).
 - **Ordre d'enregistrement** (`index.ts`) : `authRouter`, `marketRouter` (avant `express.json()` pour garder le body brut), puis `express.json()`, `portfolioRouter`, `backtestRouter`, `errorMiddleware`.
 - **Auth** : `authMiddleware` lit la session better-auth depuis les en-têtes (cookie, ou `Authorization: Bearer` via le plugin `bearer`) et pose `req.userId`. Sans session : `401 { "error": "Unauthorized" }`.
-- **Erreurs** : toute `AppError` est rendue par `error.middleware` en `{ "error": "<message>", ...data }` avec son statut. Toute autre exception : `500 { "error": "Internal server error" }`. Côté web, `apiFetch` lève `Error("Erreur API : <status> <statusText>")` et ignore le corps d'erreur.
+- **Erreurs** : toute `AppError` est rendue par `error.middleware` en `{ "error": "<message>", ...data }` avec son statut. Toute autre exception : `500 { "error": "Internal server error" }`. Côté web, `apiFetch` lève `ApiError` (`status`, `body` = ce corps d'erreur) ; `apiIssues(error)` extrait les `issues` d'un `400` pour les afficher sous les champs.
 - **Sérialisation** : `Decimal` Prisma → string (`"0.001"`), `DateTime` → ISO 8601 (`"2026-01-31T00:00:00.000Z"`). Ratios en fraction (`0.342` = 34,2 %).
 - **Propriété** : une ressource d'un autre utilisateur → `403 { "error": "Access denied" }` ; inexistante → `404`.
 
@@ -162,20 +162,21 @@ Les montants sont dans la devise saisie, affichée `EUR` par le web (`BACKTEST_C
 - **Auth** : session requise.
 - **Entrée** : body `createBacktestSchema` (`interfaces/backtest.interface.ts`) :
   - `name` : string non vide ;
-  - `strategy` : `"dca"` (versement mensuel de `amount`) | `"lump_sum"` (versement unique de `amount`) ;
-  - `symbols` : string[] non vide, sans doublon ;
+  - `investmentMode` : `"LUMP_SUM"` (versement unique de `initialAmount`) | `"RECURRING"` (`initialAmount` le premier jour, puis `recurringAmount` chaque mois) ; enum du contrat `backtest.requested` ;
+  - `allocations` : `[{ "symbol": string, "weight": int }]` non vide, `weight` en **pourcent entier** de 1 à 100 (D2), symboles uniques, somme des poids = 100 exactement ; converti en ratio par le schéma (`60` → `0.6`) ;
   - `start`, `end` : dates (coercées depuis ISO), `start < end` ;
-  - `amount` : number > 0, devise de saisie ;
-  - `fee` : number de 0 à 100, **pourcentage** par ordre (`0.1` = 0,1 %), stocké en `feeRate = fee / 100`.
+  - `initialAmount` : number ≥ 0, devise de saisie ; > 0 en `LUMP_SUM` ;
+  - `recurringAmount` : number > 0, devise de saisie, montant de chaque versement mensuel ; **requis** en `RECURRING`, **interdit** en `LUMP_SUM` ;
+  - `fee` : number de 0 à 100, **pourcentage** par ordre, achat ou vente (`0.1` = 0,1 %, D8), stocké en `feeRate = fee / 100`.
   ```json
-  { "name": "Test rapide AAPL", "strategy": "dca", "symbols": ["AAPL"], "start": "2025-10-28T00:00:00.000Z", "end": "2026-10-28T00:00:00.000Z", "amount": 10000, "fee": 0.1 }
+  { "name": "60/40", "investmentMode": "RECURRING", "allocations": [{ "symbol": "AAPL", "weight": 60 }, { "symbol": "IEF", "weight": 40 }], "start": "2025-10-28T00:00:00.000Z", "end": "2026-10-28T00:00:00.000Z", "initialAmount": 10000, "recurringAmount": 500, "fee": 0.1 }
   ```
 - **Réponse** : `202`, `Backtest` créé avec `executions: [execution PENDING, attempt 1, result null]`. Le calcul est asynchrone : suivre via `GET /api/backtest/:id`.
   ```json
-  { "id": "cm…", "name": "Test rapide AAPL", "investmentMode": "RECURRING", "initialAmount": "0", "recurringAmount": "10000", "investmentFrequency": "MONTHLY", "feeRate": "0.001", "...": "…", "executions": [{ "id": "cm…", "status": "PENDING", "attempt": 1, "result": null, "...": "…" }] }
+  { "id": "cm…", "name": "60/40", "allocations": [{ "symbol": "AAPL", "weight": "0.6", "...": "…" }, { "symbol": "IEF", "weight": "0.4", "...": "…" }], "investmentMode": "RECURRING", "initialAmount": "10000", "recurringAmount": "500", "investmentFrequency": "MONTHLY", "feeRate": "0.001", "...": "…", "executions": [{ "id": "cm…", "status": "PENDING", "attempt": 1, "result": null, "...": "…" }] }
   ```
-- **Erreurs** : `400 { "error": "Invalid backtest", "issues": [ZodIssue] }` → body invalide (`end` avant `start` : issue sur `path: ["end"]`, `"Must be after start"` ; symbole en double : issue sur `path: ["symbols"]`, `"Symbols must be unique"`) ; `401` ; `500 { "error": "Backtest could not be queued" }` → publication Kafka impossible (le backtest reste créé, son exécution passe `FAILED`).
-- **Effets** : écrit `Backtest`, ses `BacktestAllocation` (`symbols` répartis à poids égaux au pourcent entier : `floor(100 / n)` %, le reste +1 % sur les premiers symboles ; ex. 3 symboles → 34/33/33) (`dca` → `investmentMode: RECURRING`, `initialAmount: 0`, `recurringAmount: amount`, `investmentFrequency: MONTHLY` ; `lump_sum` → `LUMP_SUM`, `initialAmount: amount`) et une `BacktestExecution` `PENDING`. Publie `backtest.requested` (clé `executionId`, payload `BacktestRequestedPayload` de `@trading-plateform/contracts`). Les événements `backtest.started|completed|failed` font ensuite évoluer l'exécution.
+- **Erreurs** : `400 { "error": "Invalid backtest", "issues": [ZodIssue] }` → body invalide, une issue par erreur avec son chemin : `["end"]` `"Must be after start"` ; `["allocations"]` `"Weights must sum to 100"` (somme ≠ 100), `"Symbols must be unique"` (symbole en double) ou tableau vide ; `["allocations", i, "weight"]` → poids non entier, < 1 ou > 100 ; `["recurringAmount"]` `"Required for RECURRING"` / `"Only allowed for RECURRING"` ; `["initialAmount"]` `"Must be positive for LUMP_SUM"`. Les anciens champs `strategy`, `symbols`, `amount` ne sont plus acceptés ; `401` ; `500 { "error": "Backtest could not be queued" }` → publication Kafka impossible (le backtest reste créé, son exécution passe `FAILED`).
+- **Effets** : écrit `Backtest` (`investmentMode`, `initialAmount`, `recurringAmount` ou null, `investmentFrequency: MONTHLY` en `RECURRING` et null sinon), ses `BacktestAllocation` (une ligne par actif, `weight` en ratio, création imbriquée dans la même transaction) et une `BacktestExecution` `PENDING`. Publie `backtest.requested` (clé `executionId`, payload `BacktestRequestedPayload` de `@trading-plateform/contracts`). Les événements `backtest.started|completed|failed` font ensuite évoluer l'exécution.
 - **Appelant** : `createBacktest(values)` de `apps/web/src/features/backtest/api.ts`, hook `useCreateBacktest()` (invalide `["backtest", "list"]` et `["backtest", "stats"]`) ; utilisé par `NewBacktestForm` et `QuickBacktestForm`.
 - **Source** : `routes/backtest/backtest.routes.ts`, `controller/backtest.controller.ts`, `services/backtest.service.ts`, `interfaces/backtest.interface.ts`.
 

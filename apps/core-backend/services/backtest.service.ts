@@ -2,7 +2,6 @@ import { Logger } from "@trading-plateform/utils";
 import { createKafkaEvent } from "@trading-plateform/kafka";
 import {
     BACKTEST_TOPICS,
-    type Allocation,
     type BacktestCompletedPayload,
     type BacktestFailedPayload,
     type BacktestRequestedPayload,
@@ -22,36 +21,26 @@ import type { BacktestListQuery, BacktestWithExecutions, CreateBacktestInput } f
 
 const logger = Logger.here()
 
-/**
- * Répartit les symboles à parts égales au pourcent entier (D2) : `floor(100 / n)` % chacun,
- * le reste ajouté 1 % par 1 % aux premiers symboles, pour une somme exactement égale à 1.
- */
-function equalWeightAllocations(symbols: string[]): Allocation[] {
-    const base = Math.floor(100 / symbols.length)
-    const remainder = 100 - base * symbols.length
-    return symbols.map((symbol, index) => ({ symbol, weight: (base + (index < remainder ? 1 : 0)) / 100 }))
-}
-
 class BacktestService {
     repo: IBacktestRepository = new BacktestRepository()
 
     /**
-     * Crée un backtest à partir du formulaire (stratégie `dca` = versement mensuel de `amount`, `lump_sum` = versement unique ;
-     * `fee` en pourcentage stocké en fraction), avec sa première exécution `PENDING`, puis publie `backtest.requested`.
+     * Crée un backtest à partir du formulaire (allocation déjà convertie en ratios par le schéma ; `RECURRING` = versement
+     * mensuel de `recurringAmount` après `initialAmount` ; `fee` en pourcentage stocké en fraction), avec sa première
+     * exécution `PENDING`, puis publie `backtest.requested`.
      */
     async create(userId: string, input: CreateBacktestInput) {
         logger.info("Creating backtest", { userId, name: input.name })
-        const isDca = input.strategy === "dca"
         const backtest = await this.repo.create({
             userId,
             name: input.name,
-            allocations: { create: equalWeightAllocations(input.symbols) },
+            allocations: { create: input.allocations },
             startDate: input.start,
             endDate: input.end,
-            investmentMode: isDca ? "RECURRING" : "LUMP_SUM",
-            initialAmount: isDca ? 0 : input.amount,
-            recurringAmount: isDca ? input.amount : null,
-            investmentFrequency: isDca ? "MONTHLY" : null,
+            investmentMode: input.investmentMode,
+            initialAmount: input.initialAmount,
+            recurringAmount: input.recurringAmount ?? null,
+            investmentFrequency: input.investmentMode === "RECURRING" ? "MONTHLY" : null,
             feeRate: input.fee / 100,
         })
         logger.info("Backtest created", { id: backtest.id, userId })

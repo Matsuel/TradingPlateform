@@ -543,12 +543,12 @@ Props communes `BaseProps<T>` (exportées par `field.tsx`), répétées dans cha
 
   | Nom | Type | Requis | Défaut | Description |
   | --- | --- | --- | --- | --- |
-  | `options` | `{ value: string; label: string }[]` | oui | — | Options (ex. `strategyOptions`). |
+  | `options` | `{ value: string; label: string }[]` | oui | — | Options (ex. `investmentModeOptions`). |
   | `placeholder` | `string` | non | `"Sélectionner…"` | Sans valeur. |
 
 - **Exemple** (tiré de `src/features/backtest/sections.tsx`) :
   ```tsx
-  <SelectField name="strategy" label="Stratégie" options={strategyOptions} />
+  <SelectField name="investmentMode" label="Mode d’investissement" options={investmentModeOptions} />
   ```
 - **Utilisé par** : `src/features/backtest/sections.tsx`, `src/features/backtest/quick-backtest-form.tsx`.
 - **Source** : `src/components/form/fields/select-field.tsx`.
@@ -609,16 +609,16 @@ Props communes `BaseProps<T>` (exportées par `field.tsx`), répétées dans cha
   | `max` | `number` | non | — | Nombre maximal ; bouton d'ajout désactivé une fois atteint. |
   | `addLabel` | `string` | non | `"Ajouter"` | Libellé du bouton d'ajout. |
 
-- **Exemple** (tiré de `src/features/backtest/sections.tsx`) :
+- **Exemple** :
   ```tsx
   <SymbolsField name="symbols" label="Symboles" />
   ```
-- **Utilisé par** : `src/features/backtest/sections.tsx`.
+- **Utilisé par** : aucun.
 - **Source** : `src/components/form/fields/symbols-field.tsx`.
 
 ### AllocationField
 
-- **Import** : `import { AllocationField, type AllocationInput } from "@/components/form"`.
+- **Import** : `import { AllocationField, allocationTotal, FULL_PERCENT, type AllocationInput } from "@/components/form"`.
 - **Rôle** : allocation d'un portefeuille (`AllocationInput[]`) : une ligne par actif (symbole, nom, barre proportionnelle au poids, champ `%` entier de 1 à 100 au pas de 1, bouton de retrait), ajout via `SymbolPicker` (symbole déjà présent masqué et ignoré ; le nouvel actif reçoit le reste jusqu'à 100 %, vide s'il n'en reste pas), badge « Total » vert à 100 %, rouge sinon. Le total n'est qu'un affichage de la saisie : la somme = 100 se valide dans le schéma zod du formulaire.
 - **Valeur** : `AllocationInput = Pick<Allocation, "symbol"> & { name?: string; weight: number }` ; `weight` en **pourcent entier** (60 = 60 %, D2), `NaN` quand le champ est vidé (rejeté par `z.number()`) ; `name` sert à l'affichage seulement. Le backend convertit le pourcent en ratio.
 - **Props** : `BaseProps<T>` +
@@ -627,12 +627,14 @@ Props communes `BaseProps<T>` (exportées par `field.tsx`), répétées dans cha
   | --- | --- | --- | --- | --- |
   | `addLabel` | `string` | non | `"Ajouter un actif"` | Libellé du bouton d'ajout. |
 
+- **Erreurs** : une erreur sur toute l'allocation (`path: [<name>]` : vide, total ≠ 100, symbole en double) s'affiche sous le champ ; une erreur sur un poids (`<name>.<index>.weight` : vide, non entier, hors bornes) s'affiche sous sa ligne.
+- **Helpers** : `FULL_PERCENT` (`100`) ; `allocationTotal(rows: AllocationInput[]) => number`, somme des poids saisis en pourcent (`NaN` compte 0), utilisée par le badge, par le schéma du formulaire et pour désactiver l'envoi.
 - **Accessibilité** : le symbole et le nom de chaque ligne sont le `label` de son champ `%` (`id` = `<name>.<index>.weight`, qui reçoit `aria-invalid` si l'erreur zod porte sur ce poids) ; bouton de retrait `aria-label="Retirer <symbole>"` ; badge « Total » en `aria-live="polite"`.
-- **Exemple** :
+- **Exemple** (tiré de `src/features/backtest/sections.tsx`) :
   ```tsx
   <AllocationField name="allocations" label="Actifs et poids" />
   ```
-- **Utilisé par** : aucun (branché dans « Nouveau backtest » par T-08).
+- **Utilisé par** : `src/features/backtest/sections.tsx` ; `allocationTotal` et `FULL_PERCENT` par `src/features/backtest/schema.ts`, `new-backtest-form.tsx` (`FULL_PERCENT` aussi par `quick-backtest-form.tsx`).
 - **Source** : `src/components/form/fields/allocation-field.tsx`.
 
 ### FormSection
@@ -650,9 +652,9 @@ Props communes `BaseProps<T>` (exportées par `field.tsx`), répétées dans cha
 
 - **Exemple** (tiré de `src/features/backtest/sections.tsx`) :
   ```tsx
-  <FormSection title="Général" description="Nom et stratégie à tester">
+  <FormSection title="Général" description="Nom et mode d’investissement">
       <TextField name="name" label="Nom du backtest" />
-      <SelectField name="strategy" label="Stratégie" options={strategyOptions} />
+      <SelectField name="investmentMode" label="Mode d’investissement" options={investmentModeOptions} />
   </FormSection>
   ```
 - **Utilisé par** : `src/features/backtest/sections.tsx`, `src/features/auth/login-form.tsx`, `src/features/auth/register-form.tsx`.
@@ -672,7 +674,7 @@ Props communes `BaseProps<T>` (exportées par `field.tsx`), répétées dans cha
 - **Exemple** (tiré de `src/features/backtest/quick-backtest-form.tsx`) :
   ```tsx
   <FieldRow>
-      <NumberField name="amount" label={strategy === "lump_sum" ? "Capital initial (€)" : "Montant mensuel (€)"} />
+      <NumberField name="initialAmount" label="Capital initial (€)" />
       <NumberField name="fee" label="Frais par ordre (%)" />
   </FieldRow>
   ```
@@ -702,11 +704,13 @@ Source : `src/lib/format.ts`.
 
 ### `lib/api.ts`
 
-- **Import** : `import { apiFetch } from "@/lib/api"`.
+- **Import** : `import { apiFetch, apiIssues } from "@/lib/api"`.
 
 | Export | Signature | Rôle | Utilisé par |
 | --- | --- | --- | --- |
-| `apiFetch` | `<T>(path: string, init?: RequestInit) => Promise<T>` | Seul point d'appel HTTP : préfixe `path` par `NEXT_PUBLIC_API_URL` (`http://localhost:8000/api`), envoie les cookies, ajoute `Accept: application/json`. Statut non 2xx → `Error("Erreur API : <status> <statusText>")` (corps ignoré). Routes : `apps/core-backend/API.md`. | `features/backtest/api.ts`, `features/market/api.ts` |
+| `apiFetch` | `<T>(path: string, init?: RequestInit) => Promise<T>` | Seul point d'appel HTTP : préfixe `path` par `NEXT_PUBLIC_API_URL` (`http://localhost:8000/api`), envoie les cookies, ajoute `Accept: application/json`. Statut non 2xx → `ApiError` (message `"Erreur API : <status> <statusText>"`). Routes : `apps/core-backend/API.md`. | `features/backtest/api.ts`, `features/market/api.ts` |
+| `ApiError` | `class extends Error { status: number; body: unknown }` | Erreur levée par `apiFetch` : `body` = corps JSON d'erreur (`{ error, ...data }`), `null` s'il n'est pas du JSON. | `apiIssues` |
+| `apiIssues` | `(error: unknown) => { path: string; message: string }[]` | Issues zod d'un `400` (`{ error, issues }`), chemin joint par des points (`"allocations.0.weight"`) pour `form.setError` ; `[]` pour toute autre erreur, issues sans chemin ignorées. | `features/backtest/new-backtest-form.tsx` |
 
 Source : `src/lib/api.ts`.
 
@@ -881,7 +885,7 @@ Source : `src/features/auth/schema.ts`.
 ### NewBacktestForm
 
 - **Import** : `import { NewBacktestForm } from "@/features/backtest/new-backtest-form"`.
-- **Rôle** : formulaire complet de création (`backtestSchema`, sections `GeneralSection` + `MarketSection`) ; redirige vers le détail créé.
+- **Rôle** : formulaire « Nouveau backtest » (maquette 12.1, `backtestSchema`, sections `GeneralSection` + `AllocationSection`) ; « Lancer le backtest » désactivé tant que `allocationTotal` ≠ 100 ; un `400` du backend place chaque issue sous le champ de son chemin (`apiIssues` + `setError`) ; redirige vers le détail créé.
 - **Props** : aucune.
 - **Exemple** (tiré de `src/app/app/backtest/new/page.tsx`) :
   ```tsx
@@ -893,7 +897,7 @@ Source : `src/features/auth/schema.ts`.
 ### QuickBacktestForm
 
 - **Import** : `import { QuickBacktestForm } from "@/features/backtest/quick-backtest-form"`.
-- **Rôle** : test rapide sur un seul symbole (`quickBacktestSchema`, nom `Test rapide <symbol>`, période par défaut : 1 an jusqu'à aujourd'hui, `amount` 10 000, `fee` 0,1 %) ; redirige vers le détail créé.
+- **Rôle** : test rapide sur un seul symbole (`quickBacktestSchema`, nom `Test rapide <symbol>`, allocation `[{ symbol, weight: 100 }]`, par défaut `LUMP_SUM`, 1 an jusqu'à aujourd'hui, `initialAmount` 10 000, `fee` 0,1 % ; « Versement mensuel (€) » affiché en `RECURRING`) ; redirige vers le détail créé.
 - **Props** :
 
   | Nom | Type | Requis | Défaut | Description |
@@ -910,20 +914,20 @@ Source : `src/features/auth/schema.ts`.
 ### GeneralSection
 
 - **Import** : `import { GeneralSection } from "@/features/backtest/sections"`.
-- **Rôle** : section « Général » (`name`, `strategy`) d'un formulaire `BacktestValues`, sous `FormProvider`.
+- **Rôle** : section « Général » (`name`, `investmentMode`, `recurringAmount` affiché seulement en `RECURRING`) d'un formulaire `BacktestValues`, sous `FormProvider`.
 - **Props** : aucune.
 - **Exemple** (tiré de `src/features/backtest/new-backtest-form.tsx`) :
   ```tsx
   <GeneralSection />
-  <MarketSection />
+  <AllocationSection />
   ```
 - **Utilisé par** : `src/features/backtest/new-backtest-form.tsx`.
 - **Source** : `src/features/backtest/sections.tsx`.
 
-### MarketSection
+### AllocationSection
 
-- **Import** : `import { MarketSection } from "@/features/backtest/sections"`.
-- **Rôle** : section « Marché et période » (`symbols`, `start`, `end`, `amount`, `fee`) d'un formulaire `BacktestValues` ; libellé du montant selon `strategy`.
+- **Import** : `import { AllocationSection } from "@/features/backtest/sections"`.
+- **Rôle** : section « Allocation et période » (`allocations` via `AllocationField`, `start`, `end`, `initialAmount`, `fee`) d'un formulaire `BacktestValues`.
 - **Props** : aucune.
 - **Exemple** : voir `GeneralSection`.
 - **Utilisé par** : `src/features/backtest/new-backtest-form.tsx`.
@@ -1075,9 +1079,9 @@ Source : `src/features/backtest/hook.ts`.
 
 | Export | Valeur | Rôle (et unité) | Utilisé par |
 | --- | --- | --- | --- |
-| `backtestSchema` | zod `{ name, strategy: "dca" \| "lump_sum", symbols: string[] (≥ 1), start: Date, end: Date, amount: number > 0, fee: number 0–100 }`, `end > start` | Formulaire complet. `amount` en devise de saisie ; `fee` en **pourcentage** par ordre. Body de `POST /api/backtest`. | `new-backtest-form.tsx` |
+| `backtestSchema` | zod `{ name, investmentMode: "LUMP_SUM" \| "RECURRING", recurringAmount?: number > 0, allocations: { symbol, name?, weight: int 1–100 }[] (≥ 1, total = 100), start: Date, end: Date, initialAmount: number ≥ 0, fee: number 0–100 }`, `end > start`, `recurringAmount` requis en `RECURRING` (retiré des valeurs sinon), `initialAmount > 0` en `LUMP_SUM` | Formulaire complet, miroir de `createBacktestSchema`. `weight` en **pourcent entier** (`NaN` rejeté) ; montants en devise de saisie ; `fee` en **pourcentage** par ordre. Body de `POST /api/backtest`. | `new-backtest-form.tsx` |
 | `BacktestValues` | `z.infer<typeof backtestSchema>` | Type des valeurs. | `new-backtest-form.tsx`, `api.ts` |
-| `quickBacktestSchema` | zod `{ strategy, start, end, amount, fee }`, `end > start` | Test rapide : `name` et `symbols` ajoutés par `QuickBacktestForm`. | `quick-backtest-form.tsx` |
+| `quickBacktestSchema` | zod `{ investmentMode, recurringAmount?, start, end, initialAmount, fee }`, mêmes règles croisées | Test rapide : `name` et `allocations` (100 % sur le symbole) ajoutés par `QuickBacktestForm`. | `quick-backtest-form.tsx` |
 | `QuickBacktestValues` | `z.infer<typeof quickBacktestSchema>` | Type des valeurs. | `quick-backtest-form.tsx` |
 
 Source : `src/features/backtest/schema.ts`.
@@ -1090,7 +1094,7 @@ Source : `src/features/backtest/schema.ts`.
 | --- | --- | --- | --- |
 | `BACKTEST_CURRENCY` | `"EUR"` | Devise d'affichage des montants (cours non convertis). | `equity-chart.tsx`, `stats.tsx`, `assumptions.tsx` |
 | `activeStatuses` | `["PENDING", "RUNNING"]` | Statuts d'une exécution qui peut encore évoluer (miroir de `ACTIVE_STATUSES` backend). | `hook.ts`, `utils.ts`, `statusFilters` |
-| `strategyOptions` | `{ value: "dca" \| "lump_sum"; label: string }[]` | Options du `SelectField` `strategy`. | `sections.tsx`, `quick-backtest-form.tsx` |
+| `investmentModeOptions` | `{ value: InvestmentMode; label: string }[]` : `LUMP_SUM` → « Investissement unique », `RECURRING` → « Investissement unique + versements mensuels » | Options du `SelectField` `investmentMode`. | `sections.tsx`, `quick-backtest-form.tsx` |
 | `strategyLabels` | `Record<InvestmentMode, string>` : `RECURRING` → « DCA mensuel », `LUMP_SUM` → « Lump sum » | Libellé de stratégie d'un backtest stocké. | `column.tsx`, `backtest-detail.tsx` |
 | `executionRuleLabels` | `Record<ExecutionRule, string>` : `CLOSE_ON_SCHEDULED_DAY` → « Achat à la clôture du premier jour de cotation de chaque échéance » | Libellé de la règle d'exécution d'un résultat. | `assumptions.tsx` |
 | `dataProviderLabels` | `Record<DataSource["provider"], string>` : `yahoo-finance2` → « Yahoo Finance » | Libellé du fournisseur de cours. | `assumptions.tsx` |

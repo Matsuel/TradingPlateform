@@ -6,10 +6,10 @@ import { FormProvider, useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { differenceInCalendarDays, subYears } from "date-fns"
 
-import { DateField, FieldRow, NumberField, SelectField } from "@/components/form"
+import { DateField, FieldRow, FULL_PERCENT, NumberField, SelectField } from "@/components/form"
 import { Button } from "@/components/ui/button"
 import { prefix } from "@/lib/path"
-import { strategyOptions } from "./constants"
+import { investmentModeOptions } from "./constants"
 import { useCreateBacktest } from "./hook"
 import { quickBacktestSchema, type QuickBacktestValues } from "./schema"
 
@@ -18,31 +18,29 @@ export function QuickBacktestForm({ symbol }: { symbol: string }) {
     const { mutateAsync, error } = useCreateBacktest()
     const form = useForm<QuickBacktestValues>({
         resolver: zodResolver(quickBacktestSchema),
-        defaultValues: { strategy: "dca", start: subYears(new Date(), 1), end: new Date(), amount: 10_000, fee: 0.1 },
+        defaultValues: { investmentMode: "LUMP_SUM", start: subYears(new Date(), 1), end: new Date(), initialAmount: 10_000, fee: 0.1 },
     })
-    const [strategy, start, end] = useWatch({ control: form.control, name: ["strategy", "start", "end"] })
+    const [investmentMode, start, end] = useWatch({ control: form.control, name: ["investmentMode", "start", "end"] })
     const days = start && end ? differenceInCalendarDays(end, start) : null
 
     const onSubmit = async (values: QuickBacktestValues) => {
-        const backtest = await mutateAsync({ ...values, name: `Test rapide ${symbol}`, symbols: [symbol] })
+        const backtest = await mutateAsync({ ...values, name: `Test rapide ${symbol}`, allocations: [{ symbol, weight: FULL_PERCENT }] })
         router.push(`${prefix}/backtest/${backtest.id}`)
     }
 
     return (
         <FormProvider {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-1 flex-col gap-5">
-                <SelectField name="strategy" label="Stratégie" options={strategyOptions} />
+                <SelectField name="investmentMode" label="Mode d’investissement" options={investmentModeOptions} />
                 <FieldRow>
                     <DateField name="start" label="Début" />
                     <DateField name="end" label="Fin" />
                 </FieldRow>
                 <FieldRow>
-                    <NumberField
-                        name="amount"
-                        label={strategy === "lump_sum" ? "Capital initial (€)" : "Montant mensuel (€)"}
-                    />
+                    <NumberField name="initialAmount" label="Capital initial (€)" />
                     <NumberField name="fee" label="Frais par ordre (%)" />
                 </FieldRow>
+                {investmentMode === "RECURRING" && <NumberField name="recurringAmount" label="Versement mensuel (€)" />}
 
                 <dl className="grid gap-2 rounded-md bg-muted p-4">
                     <div className="flex items-center gap-2">

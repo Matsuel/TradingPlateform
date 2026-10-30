@@ -182,11 +182,11 @@ Critères d’acceptation :
 - **Fichiers** : `repositories/backtest.repository.ts`, `services/backtest.service.ts`, `interfaces/backtest.interface.ts`
 
 Critères d’acceptation :
-- [ ] `create` écrit le backtest et ses allocations dans la même transaction (création imbriquée Prisma), avec `latestExecution` comme aujourd’hui.
-- [ ] `include` de l’allocation en constante `satisfies Prisma.BacktestInclude` en tête du repository.
-- [ ] Le service construit `allocations` du payload Kafka (`Decimal` → `number` uniquement à ce moment).
-- [ ] « Relancer » republie l’allocation persistée.
-- [ ] `GET /api/backtests/:id` renvoie `allocations` ; entrée `API.md` mise à jour.
+- [x] `create` écrit le backtest et ses allocations dans la même transaction (création imbriquée Prisma), avec `latestExecution` comme aujourd’hui.
+- [x] `include` de l’allocation en constante `satisfies Prisma.BacktestInclude` en tête du repository.
+- [x] Le service construit `allocations` du payload Kafka (`Decimal` → `number` uniquement à ce moment).
+- [x] « Relancer » republie l’allocation persistée.
+- [x] `GET /api/backtests/:id` renvoie `allocations` ; entrée `API.md` mise à jour.
 
 ### T-06 · core-backend : nouveau schéma d’entrée `POST /api/backtests`
 
@@ -194,10 +194,10 @@ Critères d’acceptation :
 - **Fichiers** : `interfaces/backtest.interface.ts`, `services/backtest.service.ts`, `API.md`
 
 Critères d’acceptation :
-- [ ] `createBacktestSchema` : `name`, `investmentMode` (`LUMP_SUM` / `RECURRING`), `allocations: [{ symbol, weight }]` avec `weight` en pourcent entier (`z.number().int()`, 1 à 100, converti en ratio par le schéma), `start`, `end`, `initialAmount`, `recurringAmount` (requis si `RECURRING`, interdit sinon), `fee` (%).
-- [ ] Somme des poids ≠ 100 % ⇒ 400 avec `path: ["allocations"]`.
-- [ ] Les anciens champs `strategy` et `amount` disparaissent ; le web est adapté dans T-08 (signaler la rupture d’API si T-08 n’est pas dans le même diff).
-- [ ] Entrée `API.md` : body, réponses, erreurs.
+- [x] `createBacktestSchema` : `name`, `investmentMode` (`LUMP_SUM` / `RECURRING`), `allocations: [{ symbol, weight }]` avec `weight` en pourcent entier (`z.number().int()`, 1 à 100, converti en ratio par le schéma), `start`, `end`, `initialAmount`, `recurringAmount` (requis si `RECURRING`, interdit sinon), `fee` (%).
+- [x] Somme des poids ≠ 100 % ⇒ 400 avec `path: ["allocations"]`.
+- [x] Les anciens champs `strategy` et `amount` disparaissent ; le web est adapté dans T-08 (signaler la rupture d’API si T-08 n’est pas dans le même diff).
+- [x] Entrée `API.md` : body, réponses, erreurs.
 
 ### T-07 · Web : composant `AllocationField`
 
@@ -217,10 +217,10 @@ Critères d’acceptation :
 - **Fichiers** : `features/backtest/new-backtest-form.tsx`, `sections.tsx`, `schema.ts`, `api.ts`, `constants.ts`
 
 Critères d’acceptation :
-- [ ] Section « Général » : nom, « Mode d’investissement », « Versement mensuel (€) » visible seulement en `RECURRING`.
-- [ ] Section « Allocation et période » : `AllocationField`, Début, Fin, « Capital initial (€) », « Frais par ordre (%) ».
-- [ ] « Lancer le backtest » désactivé tant que le total ≠ 100 % ; erreurs 400 affichées sous le champ concerné.
-- [ ] Le formulaire de test rapide (`quick-backtest-form.tsx`) envoie une allocation à 100 % sur son symbole.
+- [x] Section « Général » : nom, « Mode d’investissement », « Versement mensuel (€) » visible seulement en `RECURRING`.
+- [x] Section « Allocation et période » : `AllocationField`, Début, Fin, « Capital initial (€) », « Frais par ordre (%) ».
+- [x] « Lancer le backtest » désactivé tant que le total ≠ 100 % ; erreurs 400 affichées sous le champ concerné.
+- [x] Le formulaire de test rapide (`quick-backtest-form.tsx`) envoie une allocation à 100 % sur son symbole.
 - [ ] Parcours vérifié dans le navigateur : création d’un 60/40, redirection vers le résultat.
 
 ---
