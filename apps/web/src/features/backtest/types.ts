@@ -5,7 +5,7 @@ import type {
     BacktestStats,
     BacktestStatus,
     DataSource,
-    EquityPoint,
+    EquityPoint as CompletedEquityPoint,
     ExecutionRule,
     Holding,
     LumpSumComparison,
@@ -14,7 +14,7 @@ import type {
 } from "@trading-plateform/contracts"
 
 // Formes et unités des données du moteur : définies une seule fois dans les contrats
-export type { DataSource, EquityPoint, ExecutionRule, Holding, LumpSumComparison, TradeSide }
+export type { DataSource, ExecutionRule, Holding, LumpSumComparison, TradeSide }
 
 export type ExecutionStatus = BacktestStatus
 
@@ -33,6 +33,9 @@ export interface BacktestExecution {
     result?: { totalReturn: string | null; totalTrades: number } | null // Decimal sérialisé en string, fraction (0,342 = 34,2 %)
 }
 
+// drawdown absent des résultats antérieurs à son calcul : la courbe de drawdown est alors masquée
+export type EquityPoint = Omit<CompletedEquityPoint, "drawdown"> & Partial<Pick<CompletedEquityPoint, "drawdown">>
+
 // quantity, amount, fee et side absents des résultats antérieurs à leur calcul ; side absent = achat (D10)
 export type Trade = Pick<CompletedTrade, "date" | "symbol" | "price"> & Partial<Pick<CompletedTrade, "quantity" | "amount" | "fee" | "side">>
 
@@ -44,9 +47,10 @@ type AssumptionField = "executionRule" | "dataSource"
 
 // holdings vide et lumpSumComparison null pour les résultats antérieurs ; lumpSumComparison null hors DCA
 export type BacktestResult = Record<DecimalField, string | null> &
-    Pick<BacktestCompletedPayload, "totalTrades" | "equityCurve" | "holdings" | "lumpSumComparison"> &
+    Pick<BacktestCompletedPayload, "totalTrades" | "holdings" | "lumpSumComparison"> &
     { [K in AssumptionField]: BacktestCompletedPayload[K] | null } & {
         maxDrawdownDate: string | null // ISO
+        equityCurve: EquityPoint[]
         trades: Trade[]
     }
 

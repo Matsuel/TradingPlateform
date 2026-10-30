@@ -355,9 +355,9 @@ Critères d’acceptation :
 - **Fichiers** : `features/backtest/` (nouveau graphique à côté de `equity-chart.tsx`), `backtest-detail.tsx`
 
 Critères d’acceptation :
-- [ ] Aire sous zéro du `drawdown` par date, axe en pourcentage, même axe temporel que la courbe de valeur.
-- [ ] Graphique masqué si les points n’ont pas de `drawdown` (résultat antérieur).
-- [ ] Lisible en mode clair et sombre.
+- [x] Aire sous zéro du `drawdown` par date, axe en pourcentage, même axe temporel que la courbe de valeur.
+- [x] Graphique masqué si les points n’ont pas de `drawdown` (résultat antérieur).
+- [ ] Lisible en mode clair et sombre. *(couleur `--destructive` et tokens du thème ; vérification navigateur clair/sombre non faite)*
 
 ---
 

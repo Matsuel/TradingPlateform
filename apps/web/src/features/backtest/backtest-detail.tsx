@@ -13,6 +13,7 @@ import { paginate } from "@/lib/pagination"
 import { BacktestAssumptions } from "./assumptions"
 import { holdingColumns, tradeColumns } from "./column"
 import { statusBadges, strategyLabels } from "./constants"
+import { DrawdownChart } from "./drawdown-chart"
 import { EquityChart } from "./equity-chart"
 import { ExecutionHistory } from "./execution-history"
 import { useBacktest, useRerunBacktest } from "./hook"
@@ -47,7 +48,7 @@ function NoResult({ backtest }: { backtest: BacktestDetails }) {
 
 /**
  * Écran de détail d'un backtest : en-tête et relance, métriques, comparaison DCA / investissement unique,
- * hypothèses, courbe, positions finales, ordres paginés et historique des exécutions. Rafraîchi tant qu'une exécution est active.
+ * hypothèses, courbes de valeur et de drawdown, positions finales, ordres paginés et historique des exécutions. Rafraîchi tant qu'une exécution est active.
  */
 export function BacktestDetail({ id }: { id: string }) {
     const query = useBacktest(id)
@@ -86,6 +87,7 @@ export function BacktestDetail({ id }: { id: string }) {
                     {result.lumpSumComparison && <LumpSumComparisonStats comparison={result.lumpSumComparison} />}
                     <BacktestAssumptions backtest={backtest} result={result} />
                     <EquityChart data={result.equityCurve} positive={Number(result.totalReturn) >= 0} />
+                    <DrawdownChart data={result.equityCurve} />
                     <DataTable
                         rows={result.holdings}
                         columns={holdingColumns}

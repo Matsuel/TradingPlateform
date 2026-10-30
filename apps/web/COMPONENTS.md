@@ -399,7 +399,7 @@ Primitives shadcn (base-ui), voir la doc shadcn. Ne les modifie qu'en cas de bes
 ### PriceAreaChart
 
 - **Import** : `import { PriceAreaChart, type PricePoint } from "@/components/chart"`.
-- **Rôle** : courbe d'aire d'une série `PricePoint`, verte ou rouge ; seconde série `compare` optionnelle en pointillés ; l'appelant fournit la devise et les formats de date.
+- **Rôle** : courbe d'aire d'une série `PricePoint`, verte ou rouge, remplie jusqu'à zéro (une série négative donne une aire sous zéro) ; seconde série `compare` optionnelle en pointillés ; l'appelant fournit la devise (ou `formatValue`) et les formats de date.
 - **Props** :
 
   | Nom | Type | Requis | Défaut | Description |
@@ -407,7 +407,9 @@ Primitives shadcn (base-ui), voir la doc shadcn. Ne les modifie qu'en cas de bes
   | `data` | `PricePoint[]` = `{ date: string; price: number; compare?: number }[]` | oui | — | Points, `date` ISO ou `YYYY-MM-DD` ; `compare` = valeur de la série de référence. |
   | `formatTick` | `(date: string) => string` | oui | — | Libellés de l'axe X. |
   | `formatTooltipDate` | `(date: string) => string` | oui | — | Date de l'infobulle. |
-  | `currency` | `string` | oui | — | Code ISO passé à `formatPrice` dans l'infobulle (`BACKTEST_CURRENCY`, `MARKET_CURRENCY`). |
+  | `currency` | `string` | oui, sauf avec `formatValue` | — | Code ISO passé à `formatPrice` dans l'infobulle (`BACKTEST_CURRENCY`, `MARKET_CURRENCY`). Exclusif avec `formatValue`. |
+  | `formatValue` | `(value: number) => string` | non | `formatPrice` en `currency` | Valeurs de l'infobulle hors devise (ex. `formatRatio` pour un ratio). Exclusif avec `currency`. |
+  | `formatAxis` | `(value: number) => string` | non | nombre sans devise | Libellés de l'axe Y (ex. `formatRate`). |
   | `label` | `string` | non | `"Prix"` | Nom de la série. |
   | `positive` | `boolean` | non | dernier point ≥ premier | Couleur verte si vrai. |
   | `compareLabel` | `string` | non | — | Nom de la série `compare` ; absent = pas de seconde courbe. Préfixe chaque valeur de l'infobulle par son nom. |
@@ -424,7 +426,7 @@ Primitives shadcn (base-ui), voir la doc shadcn. Ne les modifie qu'en cas de bes
       positive={positive}
   />
   ```
-- **Utilisé par** : `src/features/backtest/equity-chart.tsx`, `src/features/market/price-chart.tsx` ; `PricePoint` par `src/components/sparkline.tsx`.
+- **Utilisé par** : `src/features/backtest/equity-chart.tsx`, `src/features/backtest/drawdown-chart.tsx`, `src/features/market/price-chart.tsx` ; `PricePoint` par `src/components/sparkline.tsx`.
 - **Source** : `src/components/chart.tsx`.
 
 ### Sparkline
@@ -880,7 +882,7 @@ Source : `src/features/auth/schema.ts`.
 ### BacktestDetail
 
 - **Import** : `import { BacktestDetail } from "@/features/backtest/backtest-detail"`.
-- **Rôle** : écran détail : en-tête avec statut et relance, métriques, comparaison DCA / investissement unique, hypothèses (`BacktestAssumptions`), courbe d'equity, positions finales, ordres (paginés côté client avec `paginate`, `PAGE_SIZE` par page), historique d'exécution. Instancie `useBacktest` et `useRerunBacktest`.
+- **Rôle** : écran détail : en-tête avec statut et relance, métriques, comparaison DCA / investissement unique, hypothèses (`BacktestAssumptions`), courbe d'equity, courbe de drawdown (masquée pour un résultat antérieur), positions finales, ordres (paginés côté client avec `paginate`, `PAGE_SIZE` par page), historique d'exécution. Instancie `useBacktest` et `useRerunBacktest`.
 - **Props** :
 
   | Nom | Type | Requis | Défaut | Description |
@@ -948,7 +950,7 @@ Source : `src/features/auth/schema.ts`.
 ### EquityChart
 
 - **Import** : `import { EquityChart } from "@/features/backtest/equity-chart"`.
-- **Rôle** : carte « Courbe d'equity » : valeur du portefeuille dans le temps, en `BACKTEST_CURRENCY` ; si les points portent `lumpSumValue` (DCA), ajoute la courbe « Investissement unique » en pointillés.
+- **Rôle** : carte « Courbe d'equity » : valeur du portefeuille dans le temps, en `BACKTEST_CURRENCY` ; si les points portent `lumpSumValue` (DCA), ajoute la courbe « Investissement unique » en pointillés. Exporte aussi `formatTick` et `formatTooltipDate` (dates des axes), réutilisés par `DrawdownChart` pour garder le même axe temporel.
 - **Props** :
 
   | Nom | Type | Requis | Défaut | Description |
@@ -962,6 +964,23 @@ Source : `src/features/auth/schema.ts`.
   ```
 - **Utilisé par** : `src/features/backtest/backtest-detail.tsx`.
 - **Source** : `src/features/backtest/equity-chart.tsx`.
+
+### DrawdownChart
+
+- **Import** : `import { DrawdownChart } from "@/features/backtest/drawdown-chart"`.
+- **Rôle** : carte « Drawdown » : aire rouge (`--destructive`) sous zéro du `drawdown` de chaque point (ratio ≤ 0, TWR calculé par le moteur), axe Y en pourcentage (`formatRate`, infobulle `formatRatio`), même axe temporel que `EquityChart`. Ne rend rien si aucun point ne porte `drawdown` (résultat antérieur).
+- **Props** :
+
+  | Nom | Type | Requis | Défaut | Description |
+  | --- | --- | --- | --- | --- |
+  | `data` | `EquityPoint[]` | oui | — | `result.equityCurve` ; `drawdown` tracé. |
+
+- **Exemple** (tiré de `src/features/backtest/backtest-detail.tsx`) :
+  ```tsx
+  <DrawdownChart data={result.equityCurve} />
+  ```
+- **Utilisé par** : `src/features/backtest/backtest-detail.tsx`.
+- **Source** : `src/features/backtest/drawdown-chart.tsx`.
 
 ### BacktestAssumptions
 
@@ -1158,7 +1177,7 @@ Source : `src/features/backtest/column.tsx`.
 | `InvestmentMode` | `BacktestRequestedPayload["investmentMode"]` = `"LUMP_SUM" \| "RECURRING"` | `constants.ts` |
 | `RebalanceFrequency` | `BacktestRequestedPayload["rebalanceFrequency"]` = `"NONE" \| "MONTHLY" \| "QUARTERLY" \| "YEARLY"` | `constants.ts`, `schema.ts` |
 | `BacktestExecution` | `{ id, status, attempt, createdAt, startedAt, finishedAt, error, result?: { totalReturn: string \| null (fraction); totalTrades: number } \| null }` | `api.ts`, `utils.ts`, `execution-history.tsx` |
-| `EquityPoint` | contrat : `{ date: "YYYY-MM-DD"; value; invested; lumpSumValue?: number }` (devise, `invested` frais compris, `lumpSumValue` en DCA) | `equity-chart.tsx` |
+| `EquityPoint` | contrat, `drawdown` rendu optionnel : `{ date: "YYYY-MM-DD"; value; invested; lumpSumValue?: number; drawdown?: number }` (devise, `invested` frais compris, `lumpSumValue` en DCA, `drawdown` ratio ≤ 0 absent des résultats antérieurs) | `equity-chart.tsx`, `drawdown-chart.tsx` |
 | `Trade` | contrat, `quantity`, `amount`, `fee` optionnels (absents des résultats antérieurs) | `column.tsx` |
 | `Holding` | contrat : `{ symbol; quantity; value }` (position finale au dernier cours) | `column.tsx` |
 | `LumpSumComparison` | contrat : `{ finalValue; totalReturn; maxDrawdown; dcaAdvantage }` (ratios en fraction) | `stats.tsx` |

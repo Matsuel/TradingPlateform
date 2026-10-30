@@ -11,31 +11,40 @@ const formatAxisPrice = (v: number) =>
 // compare : série de référence optionnelle, tracée en pointillés quand compareLabel est fourni
 export type PricePoint = { date: string; price: number; compare?: number }
 
-interface PriceAreaChartProps {
+// Valeurs de l'infobulle : montant dans la devise, ou formatter libre (ex. ratio en pourcentage)
+type ValueFormat =
+    | { currency: string; formatValue?: undefined }
+    | { formatValue: (value: number) => string; currency?: undefined }
+
+type PriceAreaChartProps = ValueFormat & {
     data: PricePoint[]
     formatTick: (date: string) => string
     formatTooltipDate: (date: string) => string
+    formatAxis?: (value: number) => string // axe Y ; par défaut nombre sans devise
     label?: string
-    currency: string
     positive?: boolean // vert/rouge ; par défaut : dernier point ≥ premier
     compareLabel?: string // nom de la série compare ; absent = pas de seconde courbe
     className?: string
 }
 
 /**
- * Courbe d'aire d'une série de prix ou de valeurs, verte ou rouge selon `positive`.
- * Avec `compareLabel`, trace aussi la série `compare` des points en pointillés gris (ex. investissement unique).
+ * Courbe d'aire d'une série de prix ou de valeurs, verte ou rouge selon `positive`, remplie jusqu'à zéro
+ * pour une série négative (ex. drawdown). Avec `compareLabel`, trace aussi la série `compare` des points
+ * en pointillés gris (ex. investissement unique). `formatValue` remplace le format monétaire de l'infobulle.
  */
 export function PriceAreaChart({
     data,
     formatTick,
     formatTooltipDate,
+    formatAxis = formatAxisPrice,
     label = "Prix",
     currency,
+    formatValue,
     positive = data.length < 2 || data[data.length - 1].price >= data[0].price,
     compareLabel,
     className,
 }: PriceAreaChartProps) {
+    const format = formatValue ?? ((v: number) => formatPrice(v, currency))
     const color = positive ? "#16a34a" : "var(--destructive)"
     const config = {
         price: { label, color },
@@ -61,7 +70,7 @@ export function PriceAreaChart({
                     axisLine={false}
                     tickCount={5}
                     domain={["auto", "auto"]}
-                    tickFormatter={formatAxisPrice}
+                    tickFormatter={formatAxis}
                 />
                 <ChartTooltip
                     cursor={false}
@@ -74,7 +83,7 @@ export function PriceAreaChart({
                             formatter={(value, name) => (
                                 <span className="text-body-medium">
                                     {compareLabel && `${name === "compare" ? compareLabel : label} : `}
-                                    {formatPrice(Number(value), currency)}
+                                    {format(Number(value))}
                                 </span>
                             )}
                         />

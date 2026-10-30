@@ -6,10 +6,11 @@ import { LOCALE } from "@/lib/format"
 import { BACKTEST_CURRENCY } from "./constants"
 import type { EquityPoint } from "./types"
 
-const formatTick = (date: string) =>
+// Partagés avec DrawdownChart : les deux courbes gardent le même axe temporel
+export const formatTick = (date: string) =>
     new Intl.DateTimeFormat(LOCALE, { month: "short", year: "2-digit" }).format(new Date(date))
 
-const formatTooltipDate = (date: string) =>
+export const formatTooltipDate = (date: string) =>
     new Intl.DateTimeFormat(LOCALE, { dateStyle: "medium" }).format(new Date(date))
 
 /**
