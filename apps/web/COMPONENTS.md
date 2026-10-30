@@ -939,7 +939,7 @@ Source : `src/features/auth/schema.ts`.
 ### AllocationSection
 
 - **Import** : `import { AllocationSection } from "@/features/backtest/sections"`.
-- **Rôle** : section « Allocation et période » (`allocations` via `AllocationField`, `start`, `end`, `initialAmount`, `fee`) d'un formulaire `BacktestValues`.
+- **Rôle** : section « Allocation et période » (`allocations` via `AllocationField`, `start`, `end`, `initialAmount`, `fee`, `rebalanceFrequency` via `SelectField` « Rebalancement », aide « Ramène les poids à la cible ») d'un formulaire `BacktestValues`.
 - **Props** : aucune.
 - **Exemple** : voir `GeneralSection`.
 - **Utilisé par** : `src/features/backtest/new-backtest-form.tsx`.
@@ -966,12 +966,12 @@ Source : `src/features/auth/schema.ts`.
 ### BacktestAssumptions
 
 - **Import** : `import { BacktestAssumptions } from "@/features/backtest/assumptions"`.
-- **Rôle** : carte « Hypothèses » d'un résultat : période, devise (`BACKTEST_CURRENCY`), frais par achat, règle d'exécution, source et type de cours, date de récupération et empreinte des données (12 premiers caractères, valeur complète en `title`), puis `BACKTEST_DISCLAIMER`. `<Dash />` si `executionRule` ou `dataSource` est `null` (résultat antérieur).
+- **Rôle** : carte « Hypothèses » d'un résultat : période, devise (`BACKTEST_CURRENCY`), frais par achat, rebalancement (`rebalanceFrequencyLabels`), règle d'exécution, source et type de cours, date de récupération et empreinte des données (12 premiers caractères, valeur complète en `title`), puis `BACKTEST_DISCLAIMER`. `<Dash />` si `executionRule` ou `dataSource` est `null` (résultat antérieur).
 - **Props** :
 
   | Nom | Type | Requis | Défaut | Description |
   | --- | --- | --- | --- | --- |
-  | `backtest` | `Backtest` | oui | — | `startDate`, `endDate`, `feeRate` (fraction par achat) affichés. |
+  | `backtest` | `Backtest` | oui | — | `startDate`, `endDate`, `feeRate` (fraction par achat), `rebalanceFrequency` affichés. |
   | `result` | `BacktestResult` | oui | — | `executionRule` et `dataSource` affichés. |
 
 - **Exemple** (tiré de `src/features/backtest/backtest-detail.tsx`) :
@@ -1091,7 +1091,7 @@ Source : `src/features/backtest/hook.ts`.
 
 | Export | Valeur | Rôle (et unité) | Utilisé par |
 | --- | --- | --- | --- |
-| `backtestSchema` | zod `{ name, investmentMode: "LUMP_SUM" \| "RECURRING", recurringAmount?: number > 0, allocations: { symbol, name?, weight: int 1–100 }[] (≥ 1, total = 100), start: Date, end: Date, initialAmount: number ≥ 0, fee: number 0–100 }`, `end > start`, `recurringAmount` requis en `RECURRING` (retiré des valeurs sinon), `initialAmount > 0` en `LUMP_SUM` | Formulaire complet, miroir de `createBacktestSchema`. `weight` en **pourcent entier** (`NaN` rejeté) ; montants en devise de saisie ; `fee` en **pourcentage** par ordre. Body de `POST /api/backtest`. | `new-backtest-form.tsx` |
+| `backtestSchema` | zod `{ name, investmentMode: "LUMP_SUM" \| "RECURRING", recurringAmount?: number > 0, allocations: { symbol, name?, weight: int 1–100 }[] (≥ 1, total = 100), start: Date, end: Date, initialAmount: number ≥ 0, rebalanceFrequency: "NONE" \| "MONTHLY" \| "QUARTERLY" \| "YEARLY", fee: number 0–100 }`, `end > start`, `recurringAmount` requis en `RECURRING` (retiré des valeurs sinon), `initialAmount > 0` en `LUMP_SUM` | Formulaire complet, miroir de `createBacktestSchema`. `weight` en **pourcent entier** (`NaN` rejeté) ; montants en devise de saisie ; `fee` en **pourcentage** par ordre. Body de `POST /api/backtest`. | `new-backtest-form.tsx` |
 | `BacktestValues` | `z.infer<typeof backtestSchema>` | Type des valeurs. | `new-backtest-form.tsx`, `api.ts` |
 | `quickBacktestSchema` | zod `{ investmentMode, recurringAmount?, start, end, initialAmount, fee }`, mêmes règles croisées | Test rapide : `name` et `allocations` (100 % sur le symbole) ajoutés par `QuickBacktestForm`. | `quick-backtest-form.tsx` |
 | `QuickBacktestValues` | `z.infer<typeof quickBacktestSchema>` | Type des valeurs. | `quick-backtest-form.tsx` |
@@ -1107,6 +1107,9 @@ Source : `src/features/backtest/schema.ts`.
 | `BACKTEST_CURRENCY` | `"EUR"` | Devise d'affichage des montants (cours non convertis). | `equity-chart.tsx`, `stats.tsx`, `assumptions.tsx` |
 | `activeStatuses` | `["PENDING", "RUNNING"]` | Statuts d'une exécution qui peut encore évoluer (miroir de `ACTIVE_STATUSES` backend). | `hook.ts`, `utils.ts`, `statusFilters` |
 | `investmentModeOptions` | `{ value: InvestmentMode; label: string }[]` : `LUMP_SUM` → « Investissement unique », `RECURRING` → « Investissement unique + versements mensuels » | Options du `SelectField` `investmentMode`. | `sections.tsx`, `quick-backtest-form.tsx` |
+| `rebalanceFrequencyLabels` | `Record<RebalanceFrequency, string>` : `NONE` → « Aucun », `MONTHLY` → « Mensuel », `QUARTERLY` → « Trimestriel », `YEARLY` → « Annuel » | Libellé de la fréquence de rebalancement d'un backtest stocké. | `assumptions.tsx` |
+| `DEFAULT_REBALANCE_FREQUENCY` | `"NONE"` | Fréquence par défaut du formulaire complet et du test rapide (même défaut que `createBacktestSchema`). | `new-backtest-form.tsx`, `quick-backtest-form.tsx` |
+| `rebalanceFrequencyOptions` | `{ value: string; label: string }[]` dérivé de `rebalanceFrequencyLabels` | Options du `SelectField` `rebalanceFrequency`. | `sections.tsx` |
 | `strategyLabels` | `Record<InvestmentMode, string>` : `RECURRING` → « DCA mensuel », `LUMP_SUM` → « Lump sum » | Libellé de stratégie d'un backtest stocké. | `column.tsx`, `backtest-detail.tsx` |
 | `executionRuleLabels` | `Record<ExecutionRule, string>` : `CLOSE_ON_SCHEDULED_DAY` → « Achat à la clôture du premier jour de cotation de chaque échéance » | Libellé de la règle d'exécution d'un résultat. | `assumptions.tsx` |
 | `dataProviderLabels` | `Record<DataSource["provider"], string>` : `yahoo-finance2` → « Yahoo Finance » | Libellé du fournisseur de cours. | `assumptions.tsx` |
@@ -1153,6 +1156,7 @@ Source : `src/features/backtest/column.tsx`.
 | --- | --- | --- |
 | `ExecutionStatus` | contrat `BacktestStatus` : `"DRAFT" \| "PENDING" \| "RUNNING" \| "COMPLETED" \| "FAILED" \| "CANCELLED"` (`BACKTEST_STATUSES`, égal à l'enum Prisma) | `utils.ts`, `constants.ts`, `api.ts` |
 | `InvestmentMode` | `BacktestRequestedPayload["investmentMode"]` = `"LUMP_SUM" \| "RECURRING"` | `constants.ts` |
+| `RebalanceFrequency` | `BacktestRequestedPayload["rebalanceFrequency"]` = `"NONE" \| "MONTHLY" \| "QUARTERLY" \| "YEARLY"` | `constants.ts`, `schema.ts` |
 | `BacktestExecution` | `{ id, status, attempt, createdAt, startedAt, finishedAt, error, result?: { totalReturn: string \| null (fraction); totalTrades: number } \| null }` | `api.ts`, `utils.ts`, `execution-history.tsx` |
 | `EquityPoint` | contrat : `{ date: "YYYY-MM-DD"; value; invested; lumpSumValue?: number }` (devise, `invested` frais compris, `lumpSumValue` en DCA) | `equity-chart.tsx` |
 | `Trade` | contrat, `quantity`, `amount`, `fee` optionnels (absents des résultats antérieurs) | `column.tsx` |
@@ -1161,7 +1165,7 @@ Source : `src/features/backtest/column.tsx`.
 | `ExecutionRule` | contrat : `"CLOSE_ON_SCHEDULED_DAY"` (achat planifié exécuté à la clôture du jour de cotation de l'échéance) | `constants.ts` |
 | `DataSource` | contrat : `{ provider: "yahoo-finance2"; priceType: "CLOSE_SPLIT_ADJUSTED"; fetchedAt: string (ISO); fingerprint: string (SHA-256 hex) }` | `constants.ts` |
 | `BacktestResult` | `{ finalValue, totalInvested, totalFees, profit, totalReturn, maxDrawdown: string \| null; totalTrades; maxDrawdownDate: string \| null; equityCurve; trades; holdings; lumpSumComparison: LumpSumComparison \| null; executionRule: ExecutionRule \| null; dataSource: DataSource \| null }` (ratios en fraction ; hypothèses `null` pour les résultats antérieurs) | `stats.tsx`, `backtest-detail.tsx`, `assumptions.tsx` |
-| `Backtest` | `{ id, name, symbols, startDate, endDate, investmentMode, feeRate: string (Decimal, fraction par achat), createdAt, executions: BacktestExecution[] }` (plus récente d'abord) | `api.ts`, `utils.ts`, `column.tsx`, `assumptions.tsx` |
+| `Backtest` | `{ id, name, symbols, startDate, endDate, investmentMode, rebalanceFrequency: RebalanceFrequency ("NONE" pour les backtests antérieurs), feeRate: string (Decimal, fraction par achat), createdAt, executions: BacktestExecution[] }` (plus récente d'abord) | `api.ts`, `utils.ts`, `column.tsx`, `assumptions.tsx` |
 | `BacktestListStats` | contrat `BacktestStats` : `{ total, active, completed, failed: number; completedRate, failedRate: number (fraction) }`, d'après le statut de la dernière exécution ; renommé pour ne pas masquer le composant `BacktestStats` | `api.ts`, `stats.tsx` |
 | `BacktestDetails` | `Backtest & { executions (toutes); result: BacktestResult \| null }` | `api.ts`, `backtest-detail.tsx` |
 

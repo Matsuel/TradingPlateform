@@ -41,6 +41,7 @@ class BacktestService {
             initialAmount: input.initialAmount,
             recurringAmount: input.recurringAmount ?? null,
             investmentFrequency: input.investmentMode === "RECURRING" ? "MONTHLY" : null,
+            rebalanceFrequency: input.rebalanceFrequency,
             feeRate: input.fee / 100,
         })
         logger.info("Backtest created", { id: backtest.id, userId })
@@ -146,8 +147,7 @@ class BacktestService {
             initialAmount: backtest.initialAmount.toNumber(),
             recurringAmount: backtest.recurringAmount?.toNumber() ?? null,
             investmentFrequency: backtest.investmentFrequency,
-            // Fréquence pas encore persistée : achats seuls, comme avant le rebalancement
-            rebalanceFrequency: "NONE",
+            rebalanceFrequency: backtest.rebalanceFrequency,
             feeRate: backtest.feeRate.toNumber(),
         }
         try {

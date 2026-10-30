@@ -9,7 +9,7 @@ import { differenceInCalendarDays, subYears } from "date-fns"
 import { DateField, FieldRow, FULL_PERCENT, NumberField, SelectField } from "@/components/form"
 import { Button } from "@/components/ui/button"
 import { prefix } from "@/lib/path"
-import { investmentModeOptions } from "./constants"
+import { DEFAULT_REBALANCE_FREQUENCY, investmentModeOptions } from "./constants"
 import { useCreateBacktest } from "./hook"
 import { quickBacktestSchema, type QuickBacktestValues } from "./schema"
 
@@ -24,7 +24,7 @@ export function QuickBacktestForm({ symbol }: { symbol: string }) {
     const days = start && end ? differenceInCalendarDays(end, start) : null
 
     const onSubmit = async (values: QuickBacktestValues) => {
-        const backtest = await mutateAsync({ ...values, name: `Test rapide ${symbol}`, allocations: [{ symbol, weight: FULL_PERCENT }] })
+        const backtest = await mutateAsync({ ...values, name: `Test rapide ${symbol}`, allocations: [{ symbol, weight: FULL_PERCENT }], rebalanceFrequency: DEFAULT_REBALANCE_FREQUENCY })
         router.push(`${prefix}/backtest/${backtest.id}`)
     }
 

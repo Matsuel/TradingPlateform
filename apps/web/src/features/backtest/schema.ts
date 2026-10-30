@@ -1,7 +1,7 @@
 import { z } from "zod"
 
 import { allocationTotal, FULL_PERCENT } from "@/components/form"
-import type { InvestmentMode } from "./types"
+import type { InvestmentMode, RebalanceFrequency } from "./types"
 
 const general = {
     name: z.string().min(1, "Requis"),
@@ -24,6 +24,7 @@ const market = {
     end: z.date({ error: "Requis" }),
     // Devise de saisie, versé le premier jour
     initialAmount: z.number({ error: "Requis" }).min(0),
+    rebalanceFrequency: z.enum(["NONE", "MONTHLY", "QUARTERLY", "YEARLY"] satisfies RebalanceFrequency[], { error: "Requis" }),
     // Pourcentage par ordre
     fee: z.number({ error: "Requis" }).min(0).max(100),
 }
