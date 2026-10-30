@@ -45,7 +45,7 @@ class BacktestService {
         const backtest = await this.repo.create({
             userId,
             name: input.name,
-            symbols: input.symbols,
+            allocations: { create: equalWeightAllocations(input.symbols) },
             startDate: input.start,
             endDate: input.end,
             investmentMode: isDca ? "RECURRING" : "LUMP_SUM",
@@ -145,12 +145,12 @@ class BacktestService {
         return backtest
     }
 
-    private async requestExecution(backtest: Backtest, executionId: string) {
+    private async requestExecution(backtest: BacktestWithExecutions, executionId: string) {
         const payload: BacktestRequestedPayload = {
             executionId,
             backtestId: backtest.id,
             userId: backtest.userId,
-            allocations: equalWeightAllocations(backtest.symbols),
+            allocations: backtest.allocations.map(({ symbol, weight }) => ({ symbol, weight: weight.toNumber() })),
             startDate: backtest.startDate.toISOString(),
             endDate: backtest.endDate.toISOString(),
             investmentMode: backtest.investmentMode,
