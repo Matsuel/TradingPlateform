@@ -13,17 +13,22 @@ export const round = (value: number, decimals: number) => {
 };
 
 /**
- * Clé de la période d'une date de cotation (`YYYY-MM-DD`) selon la fréquence de versement.
- * Un versement récurrent a lieu au premier jour de cotation dont la clé diffère de la veille.
+ * Clé de la période d'une date de cotation (`YYYY-MM-DD`) selon la fréquence de versement ou de rebalancement.
+ * Un versement récurrent (ou un rebalancement) a lieu au premier jour de cotation dont la clé diffère de la veille.
  * Sans fréquence (investissement unique), chaque jour est sa propre période.
  */
-export const periodKey = (date: string, frequency: BacktestParams["investmentFrequency"]) => {
+export const periodKey = (
+    date: string,
+    frequency: BacktestParams["investmentFrequency"] | Exclude<BacktestParams["rebalanceFrequency"], "NONE">,
+) => {
     switch (frequency) {
         case "WEEKLY":
             // 1970-01-01 est un jeudi : +3 jours fait commencer les semaines le lundi
             return String(Math.floor((Date.parse(date) / DAY_MS + 3) / 7));
         case "MONTHLY":
             return date.slice(0, 7);
+        case "QUARTERLY":
+            return `${date.slice(0, 4)}-Q${Math.ceil(Number(date.slice(5, 7)) / 3)}`;
         case "YEARLY":
             return date.slice(0, 4);
         default:

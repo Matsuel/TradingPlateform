@@ -21,6 +21,13 @@ describe("periodKey", () => {
         expect(periodKey("2024-12-31", "YEARLY")).toBe("2024");
     });
 
+    test("trimestre : janvier-mars, avril-juin…", () => {
+        expect(periodKey("2024-01-02", "QUARTERLY")).toBe("2024-Q1");
+        expect(periodKey("2024-03-29", "QUARTERLY")).toBe("2024-Q1");
+        expect(periodKey("2024-04-01", "QUARTERLY")).toBe("2024-Q2");
+        expect(periodKey("2024-12-31", "QUARTERLY")).toBe("2024-Q4");
+    });
+
     test("sans fréquence : chaque jour est une période", () => {
         expect(periodKey("2024-01-02", null)).toBe("2024-01-02");
     });

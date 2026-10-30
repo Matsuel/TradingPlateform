@@ -96,19 +96,19 @@ export const equityPointSchema = z.object({
     lumpSumValue: z.number().optional(),
 });
 
-// Montants d'un achat arrondis au centime ; les totaux du résultat sont calculés sur les valeurs non arrondies
+// Montants d'un ordre arrondis au centime ; les totaux du résultat sont calculés sur les valeurs non arrondies
 export const tradeSchema = z.object({
     date: z.iso.date(),
     symbol: z.string().min(1),
     // Sens de l'ordre : quantité et montant restent positifs, le sens porte le signe
     side: z.enum(TRADE_SIDES),
-    // Cours d'achat
+    // Cours d'exécution (clôture du jour), devise saisie
     price: z.number().positive(),
-    // Nombre de titres achetés (fractionnaire)
+    // Nombre de titres achetés ou vendus (fractionnaire) : BUY = (amount − fee) / price, SELL = amount / price
     quantity: z.number().positive(),
-    // Montant versé pour cet achat, frais compris, devise saisie
+    // Devise saisie. BUY : montant payé, frais compris. SELL : produit brut (quantity × price), encaissé net de fee
     amount: z.number().positive(),
-    // Frais prélevés sur cet achat, devise saisie
+    // Frais de l'ordre, amount × feeRate (D8), devise saisie
     fee: z.number().min(0),
 });
 
@@ -137,7 +137,8 @@ export const backtestCompletedPayloadSchema = z.object({
     finalValue: z.number(),
     // Total versé, frais compris
     totalInvested: z.number().positive(),
-    // Somme des frais prélevés sur les achats, dans la devise saisie (inclus dans totalInvested)
+    // Somme des frais prélevés sur les achats et les ventes (D8), devise saisie : déduits de la valeur du portefeuille,
+    // totalInvested reste la somme des versements
     totalFees: z.number().min(0),
     // Plus-value : valeur finale − total versé, devise saisie
     profit: z.number(),

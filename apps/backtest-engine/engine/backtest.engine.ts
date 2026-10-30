@@ -1,9 +1,12 @@
-import type { EquityPoint, Trade } from "@trading-plateform/contracts";
+import type { EquityPoint, Trade, TradeSide } from "@trading-plateform/contracts";
 import BacktestError from "../errors/backtest.error";
 import type { BacktestOutcome, BacktestParams, PriceSeries } from "../interfaces/backtest.interface";
 import { createDrawdownTracker, periodKey, round } from "./backtest.utils";
 
 type Simulation = Omit<BacktestOutcome, "lumpSumComparison" | "executionRule">;
+
+// Écart minimal à la cible, devise saisie, pour passer un ordre de rebalancement : un ordre arrondi à 0 € serait invalide (amount > 0)
+const MIN_REBALANCE_ORDER = 0.01;
 
 /**
  * Simule un portefeuille aux poids cibles de `allocations`, jour de cotation par jour de cotation.
@@ -12,11 +15,19 @@ type Simulation = Omit<BacktestOutcome, "lumpSumComparison" | "executionRule">;
  * - Versements : `initialAmount` le premier jour, puis `recurringAmount` au premier jour de chaque période (DCA).
  * - Exécution : achat au cours de clôture du jour du versement, réparti selon `weight` (ratio, somme = 1),
  *   frais prélevés sur chaque ordre : 10 000 € en 60/40 ⇒ ordres de 6 000 € et 4 000 €, frais compris.
+ * - Rebalancement (D7) : au premier jour de cotation de chaque période de `rebalanceFrequency`, hors premier jour,
+ *   après le versement du jour. Écarts mesurés au cours du jour sur la valeur V : chaque ligne au-dessus de
+ *   `weight × V` est vendue jusqu'à sa cible ; le produit net des ventes est réparti entre les lignes sous leur cible,
+ *   au prorata de leur écart. Autofinancé : aucun apport, `totalInvested` inchangé ; les frais de vente et d'achat
+ *   réduisent la valeur, donc les lignes achetées finissent sous leur cible d'environ 2 × `feeRate` de leur écart.
+ *   `NONE` : aucune vente.
+ * - Frais (D8) : `amount × feeRate` sur chaque ordre. Achat : `amount` payé frais compris, titres = (amount − fee) / cours.
+ *   Vente : `amount` = produit brut (titres × cours), encaissé net de `fee`.
  *
  * Lève `BacktestError` sans données de marché ou si rien n'a été investi.
  */
 function simulate(params: BacktestParams, prices: PriceSeries): Simulation {
-    const { allocations, investmentMode, initialAmount, recurringAmount, investmentFrequency, feeRate } = params;
+    const { allocations, investmentMode, initialAmount, recurringAmount, investmentFrequency, rebalanceFrequency, feeRate } = params;
     const symbols = allocations.map((allocation) => allocation.symbol);
 
     const closes = new Map<string, Map<string, number>>();
@@ -41,7 +52,27 @@ function simulate(params: BacktestParams, prices: PriceSeries): Simulation {
     let invested = 0;
     let fees = 0;
     let previousPeriod: string | null = null;
+    let previousRebalancePeriod: string | null = null;
     let previousValue = 0;
+
+    /** Exécute un ordre au dernier cours connu et renvoie le montant net de frais (investi pour un achat, encaissé pour une vente). */
+    const placeOrder = (date: string, symbol: string, side: TradeSide, amount: number) => {
+        const fee = amount * feeRate;
+        const price = lastClose.get(symbol)!;
+        const quantity = side === "BUY" ? (amount - fee) / price : amount / price;
+        shares.set(symbol, shares.get(symbol)! + (side === "BUY" ? quantity : -quantity));
+        fees += fee;
+        trades.push({
+            date,
+            symbol,
+            side,
+            price: round(price, 4),
+            quantity: round(quantity, 6),
+            amount: round(amount, 2),
+            fee: round(fee, 2),
+        });
+        return amount - fee;
+    };
 
     for (const date of dates) {
         for (const symbol of symbols) {
@@ -61,24 +92,31 @@ function simulate(params: BacktestParams, prices: PriceSeries): Simulation {
         previousPeriod = period;
 
         if (contribution > 0) {
-            for (const { symbol, weight } of allocations) {
-                const amount = contribution * weight;
-                const fee = amount * feeRate;
-                const price = lastClose.get(symbol)!;
-                const quantity = (amount - fee) / price;
-                shares.set(symbol, shares.get(symbol)! + quantity);
-                fees += fee;
-                trades.push({
-                    date,
-                    symbol,
-                    side: "BUY",
-                    price: round(price, 4),
-                    quantity: round(quantity, 6),
-                    amount: round(amount, 2),
-                    fee: round(fee, 2),
-                });
-            }
+            for (const { symbol, weight } of allocations) placeOrder(date, symbol, "BUY", contribution * weight);
             invested += contribution;
+        }
+
+        // Date connue à l'avance (premier jour de la période) : décision planifiée, sans look-ahead
+        const rebalancePeriod = rebalanceFrequency === "NONE" ? null : periodKey(date, rebalanceFrequency);
+        const isRebalanceDay = !isFirstDay && rebalancePeriod !== previousRebalancePeriod;
+        previousRebalancePeriod = rebalancePeriod;
+
+        if (isRebalanceDay) {
+            const value = portfolioValue();
+            // Écart à la cible, devise saisie : > 0 ligne surpondérée, < 0 sous-pondérée
+            const gaps = allocations.map(({ symbol, weight }) => ({
+                symbol,
+                gap: shares.get(symbol)! * lastClose.get(symbol)! - weight * value,
+            }));
+            const overweight = gaps.filter(({ gap }) => gap >= MIN_REBALANCE_ORDER);
+            const underweight = gaps.filter(({ gap }) => -gap >= MIN_REBALANCE_ORDER);
+
+            if (overweight.length > 0 && underweight.length > 0) {
+                let proceeds = 0;
+                for (const { symbol, gap } of overweight) proceeds += placeOrder(date, symbol, "SELL", gap);
+                const shortfall = underweight.reduce((sum, { gap }) => sum - gap, 0);
+                for (const { symbol, gap } of underweight) placeOrder(date, symbol, "BUY", (proceeds * -gap) / shortfall);
+            }
         }
 
         previousValue = portfolioValue();

@@ -9,6 +9,7 @@ const lumpSum: BacktestParams = {
     initialAmount: 1000,
     recurringAmount: null,
     investmentFrequency: null,
+    rebalanceFrequency: "NONE",
     feeRate: 0,
 };
 
@@ -223,6 +224,130 @@ describe("runBacktest", () => {
                 { date: "2024-01-02", value: 99, invested: 100, lumpSumValue: 198 },
                 { date: "2024-02-01", value: 198, invested: 200, lumpSumValue: 198 },
             ]);
+        });
+    });
+
+    describe("rebalancement", () => {
+        const balanced: BacktestParams = { ...lumpSum, allocations: [{ symbol: "AAA", weight: 0.5 }, { symbol: "BBB", weight: 0.5 }], rebalanceFrequency: "MONTHLY" };
+        // Trajectoires opposées : AAA double, BBB est divisé par deux, puis nouvelle période au 1er février
+        const diverging = {
+            AAA: [
+                { date: "2024-01-02", close: 10 },
+                { date: "2024-01-31", close: 20 },
+                { date: "2024-02-01", close: 20 },
+            ],
+            BBB: [
+                { date: "2024-01-02", close: 10 },
+                { date: "2024-01-31", close: 5 },
+                { date: "2024-02-01", close: 5 },
+            ],
+        };
+        const weights = (holdings: { value: number }[]) => {
+            const total = holdings.reduce((sum, holding) => sum + holding.value, 0);
+            return holdings.map((holding) => holding.value / total);
+        };
+        const rebalanceDates = (params: BacktestParams) =>
+            [...new Set(runBacktest(params, referencePrices).trades.filter((trade) => trade.side === "SELL").map((trade) => trade.date))];
+
+        test("poids dérivés sans rebalancement, ramenés à la cible après", () => {
+            expect(weights(runBacktest({ ...balanced, rebalanceFrequency: "NONE" }, diverging).holdings)).toEqual([0.8, 0.2]);
+
+            const [aaa, bbb] = weights(runBacktest(balanced, diverging).holdings);
+            expect(aaa).toBeCloseTo(0.5, 10);
+            expect(bbb).toBeCloseTo(0.5, 10);
+        });
+
+        test("avec frais : poids à la cible à feeRate près", () => {
+            const feeRate = 0.01;
+            for (const weight of weights(runBacktest({ ...balanced, feeRate }, diverging).holdings)) {
+                expect(Math.abs(weight - 0.5)).toBeLessThan(feeRate);
+            }
+        });
+
+        test("vente puis achat autofinancé, frais sur chaque ordre", () => {
+            const result = runBacktest({ ...balanced, feeRate: 0.02 }, {
+                AAA: [
+                    { date: "2024-01-02", close: 10 },
+                    { date: "2024-02-01", close: 20 },
+                ],
+                BBB: [
+                    { date: "2024-01-02", close: 10 },
+                    { date: "2024-02-01", close: 10 },
+                ],
+            });
+
+            // 49 titres de chaque ; au 1er février 980 € + 490 € = 1 470 €, cible 735 € : vente de 245 € d'AAA (4,90 € de frais),
+            // les 240,10 € nets rachètent du BBB (4,80 € de frais)
+            expect(result.trades.slice(2)).toEqual([
+                { date: "2024-02-01", symbol: "AAA", side: "SELL", price: 20, quantity: 12.25, amount: 245, fee: 4.9 },
+                { date: "2024-02-01", symbol: "BBB", side: "BUY", price: 10, quantity: 23.5298, amount: 240.1, fee: 4.8 },
+            ]);
+            expect(result.holdings).toEqual([
+                { symbol: "AAA", quantity: 36.75, value: 735 },
+                { symbol: "BBB", quantity: 72.5298, value: 725.3 },
+            ]);
+            expect(result.totalInvested).toBe(1000);
+            expect(result.totalFees).toBe(29.7);
+            expect(result.totalTrades).toBe(4);
+            expect(result.finalValue).toBe(1460.3);
+        });
+
+        test("versement d'abord, puis rebalancement le même jour", () => {
+            const result = runBacktest({ ...balanced, investmentMode: "RECURRING", initialAmount: 0, recurringAmount: 100, investmentFrequency: "MONTHLY" }, {
+                AAA: [
+                    { date: "2024-01-02", close: 10 },
+                    { date: "2024-02-01", close: 20 },
+                ],
+                BBB: [
+                    { date: "2024-01-02", close: 10 },
+                    { date: "2024-02-01", close: 10 },
+                ],
+            });
+
+            // Après le versement : AAA 7,5 × 20 = 150 €, BBB 10 × 10 = 100 €, cible 125 € chacun
+            expect(result.trades.filter((trade) => trade.date === "2024-02-01")).toEqual([
+                { date: "2024-02-01", symbol: "AAA", side: "BUY", price: 20, quantity: 2.5, amount: 50, fee: 0 },
+                { date: "2024-02-01", symbol: "BBB", side: "BUY", price: 10, quantity: 5, amount: 50, fee: 0 },
+                { date: "2024-02-01", symbol: "AAA", side: "SELL", price: 20, quantity: 1.25, amount: 25, fee: 0 },
+                { date: "2024-02-01", symbol: "BBB", side: "BUY", price: 10, quantity: 2.5, amount: 25, fee: 0 },
+            ]);
+        });
+
+        test("jamais le premier jour de la simulation", () => {
+            const result = runBacktest(balanced, { AAA: [{ date: "2024-01-02", close: 10 }], BBB: [{ date: "2024-01-02", close: 20 }] });
+
+            expect(result.trades.every((trade) => trade.side === "BUY")).toBe(true);
+            expect(result.totalTrades).toBe(2);
+        });
+
+        test("une date par période : premier jour de cotation de chaque mois, trimestre ou année", () => {
+            const params: BacktestParams = { ...balanced, initialAmount: 10_000 };
+            const monthly = rebalanceDates(params);
+
+            expect(monthly).toHaveLength(23);
+            expect(monthly[0]).toBe("2022-02-01");
+            expect(rebalanceDates({ ...params, rebalanceFrequency: "QUARTERLY" })).toEqual([
+                "2022-04-01", "2022-07-01", "2022-10-03", "2023-01-02", "2023-04-03", "2023-07-03", "2023-10-02",
+            ]);
+            expect(rebalanceDates({ ...params, rebalanceFrequency: "YEARLY" })).toEqual(["2023-01-02"]);
+        });
+
+        test("NONE : aucune vente", () => {
+            expect(rebalanceDates({ ...balanced, rebalanceFrequency: "NONE" })).toEqual([]);
+        });
+
+        test("sans frais, la valeur du jour est inchangée : pas de rendement artificiel", () => {
+            const none = runBacktest({ ...balanced, rebalanceFrequency: "NONE" }, diverging);
+            const monthly = runBacktest(balanced, diverging);
+
+            expect(monthly.equityCurve).toEqual(none.equityCurve);
+            expect(monthly.maxDrawdown).toBe(none.maxDrawdown);
+        });
+
+        test("reproductible sur le jeu de référence", () => {
+            const params: BacktestParams = { ...balanced, investmentMode: "RECURRING", initialAmount: 0, recurringAmount: 100, investmentFrequency: "MONTHLY", feeRate: 0.001 };
+
+            expect(runBacktest(params, referencePrices)).toEqual(runBacktest(params, referencePrices));
         });
     });
 
