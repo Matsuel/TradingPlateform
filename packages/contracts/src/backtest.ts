@@ -40,6 +40,20 @@ export const tradeSchema = z.object({
     symbol: z.string().min(1),
     // Cours d'achat
     price: z.number().positive(),
+    // Nombre de titres achetés (fractionnaire)
+    quantity: z.number().positive(),
+    // Montant versé pour cet achat, frais compris, devise saisie
+    amount: z.number().positive(),
+    // Frais prélevés sur cet achat, devise saisie
+    fee: z.number().min(0),
+});
+
+export const holdingSchema = z.object({
+    symbol: z.string().min(1),
+    // Titres détenus en fin de simulation (fractionnaire)
+    quantity: z.number().min(0),
+    // Valeur au dernier cours connu, devise saisie
+    value: z.number().min(0),
 });
 
 export const backtestCompletedPayloadSchema = z.object({
@@ -57,6 +71,7 @@ export const backtestCompletedPayloadSchema = z.object({
     maxDrawdownDate: z.iso.date().nullable(),
     equityCurve: z.array(equityPointSchema),
     trades: z.array(tradeSchema),
+    holdings: z.array(holdingSchema),
 });
 
 export const backtestFailedPayloadSchema = z.object({
@@ -74,5 +89,6 @@ export type BacktestRequestedPayload = z.infer<typeof backtestRequestedPayloadSc
 export type BacktestStartedPayload = z.infer<typeof backtestStartedPayloadSchema>;
 export type EquityPoint = z.infer<typeof equityPointSchema>;
 export type Trade = z.infer<typeof tradeSchema>;
+export type Holding = z.infer<typeof holdingSchema>;
 export type BacktestCompletedPayload = z.infer<typeof backtestCompletedPayloadSchema>;
 export type BacktestFailedPayload = z.infer<typeof backtestFailedPayloadSchema>;

@@ -32,9 +32,9 @@ export type BacktestListQuery = z.infer<typeof backtestListQuerySchema>;
 
 export type CreateBacktestDTO = Prisma.BacktestUncheckedCreateInput;
 
-// Courbe et ordres omis des exécutions : seul le dernier résultat terminé les porte
+// Courbe, ordres et positions omis des exécutions : seul le dernier résultat terminé les porte
 export type BacktestWithExecutions = Prisma.BacktestGetPayload<{
-    include: { executions: { include: { result: { omit: { equityCurve: true; trades: true } } } } };
+    include: { executions: { include: { result: { omit: { equityCurve: true; trades: true; holdings: true } } } } };
 }>;
 
 export type BacktestDetails = BacktestWithExecutions & { result: BacktestResult | null };

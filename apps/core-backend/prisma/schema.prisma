@@ -197,6 +197,8 @@ model BacktestResult {
   equityCurve     Json      @default("[]")
   // [{ date: "YYYY-MM-DD", symbol, price }] : achats exécutés
   trades          Json      @default("[]")
+  // [{ symbol, quantity, value }] : positions en fin de simulation, valorisées au dernier cours
+  holdings        Json      @default("[]")
   createdAt       DateTime  @default(now())
 
   execution BacktestExecution @relation(fields: [executionId], references: [id], onDelete: Cascade)

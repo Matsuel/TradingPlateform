@@ -1,9 +1,9 @@
 import type { Column } from "@/components/data-table/data-table"
 import { ChangeCell, SymbolCell } from "@/components/data-table/cells"
 import { Badge } from "@/components/ui/badge"
-import { formatDay, formatDayRange, formatNumber } from "@/lib/format"
-import { statusBadges, strategyLabels } from "./constants"
-import type { Backtest, Trade } from "./types"
+import { formatDay, formatDayRange, formatNumber, formatPrice, formatQuantity } from "@/lib/format"
+import { BACKTEST_CURRENCY, statusBadges, strategyLabels } from "./constants"
+import type { Backtest, Holding, Trade } from "./types"
 import { getExecution, getExecutionDuration } from "./utils"
 import Dash from "@/components/custom/Dash"
 
@@ -44,4 +44,25 @@ export const tradeColumns: Column<Trade>[] = [
         className: "text-right",
         cell: (t) => formatNumber(t.price),
     },
+    {
+        header: "Quantité",
+        className: "text-right",
+        cell: (t) => (t.quantity == null ? <Dash /> : formatQuantity(t.quantity)),
+    },
+    {
+        header: "Montant",
+        className: "text-right",
+        cell: (t) => (t.amount == null ? <Dash /> : formatPrice(t.amount, BACKTEST_CURRENCY)),
+    },
+    {
+        header: "Frais",
+        className: "text-right",
+        cell: (t) => (t.fee == null ? <Dash /> : formatPrice(t.fee, BACKTEST_CURRENCY)),
+    },
+]
+
+export const holdingColumns: Column<Holding>[] = [
+    { header: "Symbole", cell: (h) => <SymbolCell symbol={h.symbol} /> },
+    { header: "Quantité", className: "text-right", cell: (h) => formatQuantity(h.quantity) },
+    { header: "Valeur", className: "text-right", cell: (h) => formatPrice(h.value, BACKTEST_CURRENCY) },
 ]

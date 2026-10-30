@@ -17,6 +17,11 @@ export const formatNumber = new Intl.NumberFormat(LOCALE, {
     minimumFractionDigits: 2, maximumFractionDigits: 2,
 }).format
 
+// Titres fractionnaires (DCA) : jusqu'à 6 décimales
+export const formatQuantity = new Intl.NumberFormat(LOCALE, {
+    maximumFractionDigits: 6,
+}).format
+
 export const formatVolume = new Intl.NumberFormat(LOCALE, {
     notation: "compact", maximumFractionDigits: 2,
 }).format

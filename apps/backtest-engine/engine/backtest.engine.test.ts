@@ -82,16 +82,31 @@ describe("runBacktest", () => {
         expect(result.totalTrades).toBe(2);
     });
 
-    test("enregistre chaque achat avec son cours", () => {
-        const result = runBacktest({ ...lumpSum, symbols: ["AAA", "BBB"] }, {
+    test("enregistre chaque achat avec cours, quantité, montant et frais", () => {
+        const result = runBacktest({ ...lumpSum, symbols: ["AAA", "BBB"], feeRate: 0.01 }, {
             AAA: [{ date: "2024-01-02", close: 10 }],
             BBB: [{ date: "2024-01-02", close: 50 }],
         });
 
         expect(result.trades).toEqual([
-            { date: "2024-01-02", symbol: "AAA", price: 10 },
-            { date: "2024-01-02", symbol: "BBB", price: 50 },
+            { date: "2024-01-02", symbol: "AAA", price: 10, quantity: 49.5, amount: 500, fee: 5 },
+            { date: "2024-01-02", symbol: "BBB", price: 50, quantity: 9.9, amount: 500, fee: 5 },
         ]);
+    });
+
+    test("positions finales : quantités accumulées valorisées au dernier cours", () => {
+        const result = runBacktest(
+            { ...lumpSum, investmentMode: "RECURRING", initialAmount: 0, recurringAmount: 100, investmentFrequency: "MONTHLY" },
+            {
+                AAA: [
+                    { date: "2024-01-02", close: 10 },
+                    { date: "2024-02-01", close: 20 },
+                    { date: "2024-02-02", close: 25 },
+                ],
+            },
+        );
+
+        expect(result.holdings).toEqual([{ symbol: "AAA", quantity: 15, value: 375 }]);
     });
 
     test("drawdown max mesuré hors versements", () => {

@@ -10,7 +10,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { PAGE_SIZE } from "@/constants/pagination"
 import { formatDayRange } from "@/lib/format"
 import { paginate } from "@/lib/pagination"
-import { tradeColumns } from "./column"
+import { holdingColumns, tradeColumns } from "./column"
 import { statusBadges, strategyLabels } from "./constants"
 import { EquityChart } from "./equity-chart"
 import { ExecutionHistory } from "./execution-history"
@@ -79,6 +79,14 @@ export function BacktestDetail({ id }: { id: string }) {
                 <>
                     <BacktestResultStats result={result} />
                     <EquityChart data={result.equityCurve} positive={Number(result.totalReturn) >= 0} />
+                    <DataTable
+                        query={{ ...query, data: result.holdings }}
+                        columns={holdingColumns}
+                        rowKey={(h) => h.symbol}
+                        title="Positions finales"
+                        description="Quantités accumulées, valorisées au dernier cours"
+                        emptyMessage="Positions non disponibles pour ce résultat."
+                    />
                     <DataTable
                         query={{ ...query, data: paginate(result.trades.toReversed(), tradePage, PAGE_SIZE) }}
                         columns={tradeColumns}

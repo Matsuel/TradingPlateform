@@ -668,11 +668,12 @@ Props communes `BaseProps<T>` (exportées par `field.tsx`), répétées dans cha
 | Export | Signature / valeur | Rôle (et unité) | Utilisé par |
 | --- | --- | --- | --- |
 | `LOCALE` | `"fr-FR"` | Locale des formats `Intl` locaux à un composant (ticks de graphique). | `components/chart.tsx`, `features/backtest/equity-chart.tsx`, `features/market/price-chart.tsx` |
-| `formatPrice` | `(v: number, currency: string) => string` | Montant dans la devise ISO **obligatoire** : `formatPrice(1234.5, "EUR")` → « 1 234,50 € ». | `components/chart.tsx`, `features/market/column.tsx`, `features/backtest/stats.tsx` |
+| `formatPrice` | `(v: number, currency: string) => string` | Montant dans la devise ISO **obligatoire** : `formatPrice(1234.5, "EUR")` → « 1 234,50 € ». | `components/chart.tsx`, `features/market/column.tsx`, `features/backtest/stats.tsx`, `features/backtest/column.tsx` |
 | `formatChange` | `(v: number) => string` | Nombre signé, 2 décimales, sans « % » : `1.5` → « +1,50 ». Pour un pourcentage déjà en %. | `components/data-table/cells.tsx`, `formatRatio` |
 | `formatRatio` | `(ratio: number) => string` | Ratio en **fraction** → variation signée en % : `0.342` → « +34,20 % ». Rendement, drawdown. | `features/backtest/stats.tsx`, `features/backtest/execution-history.tsx` |
 | `formatRate` | `(ratio: number) => string` | Proportion en **fraction** → % non signé, arrondi à l'unité : `0.3846` → « 38 % ». Taux de réussite/échec. | `features/backtest/stats.tsx` |
 | `formatNumber` | `(v: number) => string` | Nombre à 2 décimales : « 268,50 ». | `features/backtest/column.tsx` |
+| `formatQuantity` | `(v: number) => string` | Quantité de titres fractionnaire, jusqu'à 6 décimales : `12.3456789` → « 12,345679 ». | `features/backtest/column.tsx` |
 | `formatVolume` | `(v: number) => string` | Notation compacte : `41234567` → « 41,23 M ». | `features/market/column.tsx` |
 | `formatDate` | `(d: string \| Date) => string` | Date et heure courtes : « 28/10/2026 09:00 ». | `features/backtest/execution-history.tsx` |
 | `formatDay` | `(d: string \| Date) => string` | Jour court : « 28/10/26 ». | `features/backtest/column.tsx`, `features/backtest/stats.tsx` |
@@ -1059,12 +1060,13 @@ Source : `src/features/backtest/utils.ts`.
 
 ### `features/backtest/column.tsx`
 
-- **Import** : `import { backtestColumns, tradeColumns } from "@/features/backtest/column"`.
+- **Import** : `import { backtestColumns, holdingColumns, tradeColumns } from "@/features/backtest/column"`.
 
 | Export | Type | Colonnes | Utilisé par |
 | --- | --- | --- | --- |
 | `backtestColumns` | `Column<Backtest>[]` | Nom, Stratégie, Symboles (nombre), Période, Rendement (`totalReturn` × 100 via `ChangeCell`), Statut (badge), Durée. | `backtest-list.tsx` |
-| `tradeColumns` | `Column<Trade>[]` | Date, Symbole (`SymbolCell`), Prix d'achat (`formatNumber`, sans devise). | `backtest-detail.tsx` |
+| `tradeColumns` | `Column<Trade>[]` | Date, Symbole (`SymbolCell`), Prix d'achat (`formatNumber`, sans devise), Quantité (`formatQuantity`), Montant et Frais (`formatPrice` en `BACKTEST_CURRENCY`) ; `Dash` si absents (résultats antérieurs). | `backtest-detail.tsx` |
+| `holdingColumns` | `Column<Holding>[]` | Symbole (`SymbolCell`), Quantité (`formatQuantity`), Valeur au dernier cours (`formatPrice` en `BACKTEST_CURRENCY`). | `backtest-detail.tsx` |
 
 Source : `src/features/backtest/column.tsx`.
 

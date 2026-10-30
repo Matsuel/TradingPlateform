@@ -83,10 +83,19 @@ export default function runBacktest(params: BacktestParams, prices: PriceSeries)
 
         if (contribution > 0) {
             const perSymbol = contribution / symbols.length;
+            const fee = perSymbol * feeRate;
             for (const symbol of symbols) {
                 const price = lastClose.get(symbol)!;
-                shares.set(symbol, shares.get(symbol)! + (perSymbol * (1 - feeRate)) / price);
-                trades.push({ date, symbol, price: round(price, 4) });
+                const quantity = (perSymbol - fee) / price;
+                shares.set(symbol, shares.get(symbol)! + quantity);
+                trades.push({
+                    date,
+                    symbol,
+                    price: round(price, 4),
+                    quantity: round(quantity, 6),
+                    amount: round(perSymbol, 2),
+                    fee: round(fee, 2),
+                });
             }
             invested += contribution;
             fees += contribution * feeRate;
@@ -110,5 +119,10 @@ export default function runBacktest(params: BacktestParams, prices: PriceSeries)
         maxDrawdownDate,
         equityCurve,
         trades,
+        holdings: symbols.map((symbol) => ({
+            symbol,
+            quantity: round(shares.get(symbol)!, 6),
+            value: round(shares.get(symbol)! * lastClose.get(symbol)!, 2),
+        })),
     };
 }

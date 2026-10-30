@@ -19,10 +19,21 @@ export interface EquityPoint {
     invested: number
 }
 
+// quantity, amount et fee absents des résultats antérieurs à leur calcul
 export interface Trade {
     date: string // YYYY-MM-DD
     symbol: string
     price: number // cours d'achat
+    quantity?: number // titres achetés, fractionnaire
+    amount?: number // montant versé, frais compris
+    fee?: number
+}
+
+// Position en fin de simulation, valorisée au dernier cours
+export interface Holding {
+    symbol: string
+    quantity: number
+    value: number
 }
 
 // Decimal sérialisés en string ; ratios en fraction
@@ -36,6 +47,7 @@ export interface BacktestResult {
     maxDrawdownDate: string | null
     equityCurve: EquityPoint[]
     trades: Trade[]
+    holdings: Holding[] // vide pour les résultats antérieurs
 }
 
 export interface Backtest {
