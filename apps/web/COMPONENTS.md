@@ -40,7 +40,7 @@ Module de fonctions, hooks, constantes ou types (`lib/*.ts`, `features/<domaine>
 ## Sommaire
 
 - [`components/ui`](#componentsui)
-- [Mise en page et navigation](#mise-en-page-et-navigation) : `PageLayout`, `PageHeader`, `Header`, `AppSidebar`, `SidebarNav`, `NavUser`, `AppSheet`
+- [Mise en page et navigation](#mise-en-page-et-navigation) : `PageLayout`, `PageHeader`, `Header`, `AppSidebar`, `SidebarNav`, `NavUser`, `ThemeToggle`, `AppSheet`
 - [Données et tableaux](#données-et-tableaux) : `DataTable` (`Column`), `SymbolCell`, `ChangeCell`, `Dash`, `FilterTabs`, `StatCard`, `LoadingState`, `ErrorState`
 - [Graphiques](#graphiques) : `PriceAreaChart` (`PricePoint`), `Sparkline`
 - [Symboles](#symboles) : `SymbolPicker`
@@ -124,7 +124,7 @@ Primitives shadcn (base-ui), voir la doc shadcn. Ne les modifie qu'en cas de bes
 ### AppSidebar
 
 - **Import** : `import { AppSidebar } from "@/components/app-sidebar"`.
-- **Rôle** : sidebar de l'espace `/app` : sections de `constants/sidebar.tsx` (les sections `adminOnly` seulement si `isAdmin`) et menu utilisateur.
+- **Rôle** : sidebar de l'espace `/app` : sections de `constants/sidebar.tsx` (les sections `adminOnly` seulement si `isAdmin`), menu utilisateur et choix du thème en pied.
 - **Props** :
 
   | Nom | Type | Requis | Défaut | Description |
@@ -174,6 +174,18 @@ Primitives shadcn (base-ui), voir la doc shadcn. Ne les modifie qu'en cas de bes
   ```
 - **Utilisé par** : `src/components/app-sidebar.tsx`.
 - **Source** : `src/components/nav-user.tsx`.
+
+### ThemeToggle
+
+- **Import** : `import ThemeToggle from "@/components/themeToggle"`.
+- **Rôle** : bouton icône soleil/lune ouvrant un menu Light / Dark / System (`setTheme` de next-themes). Requiert `ThemeProvider` (`provider/theme.tsx`, monté dans `app/layout.tsx`).
+- **Props** : aucune.
+- **Exemple** (tiré de `src/components/app-sidebar.tsx`) :
+  ```tsx
+  <ThemeToggle />
+  ```
+- **Utilisé par** : `src/components/app-sidebar.tsx`.
+- **Source** : `src/components/themeToggle.tsx`.
 
 ### AppSheet
 
