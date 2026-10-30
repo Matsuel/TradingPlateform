@@ -80,18 +80,15 @@ export type CompleteExecutionDTO = Omit<
     | "executionId"
     | "finishedAt"
     | "maxDrawdownDate"
-    // Pas encore stockées : colonnes ajoutées par T-18
-    | "cagr"
-    | "volatility"
-    | "sharpeRatio"
     | "maxDrawdownPeakDate"
     | "maxDrawdownRecoveryDate"
-    | "recoveryDays"
     // Pas encore stocké : colonne ajoutée par T-23
     | "benchmark"
 > & {
     finishedAt: Date;
     maxDrawdownDate: Date | null;
+    maxDrawdownPeakDate: Date | null;
+    maxDrawdownRecoveryDate: Date | null;
 };
 
 // Le contrat recopie l'enum Prisma pour le web : ce type ne compile plus si les deux listes divergent

@@ -1,9 +1,12 @@
 import Dash from "@/components/custom/Dash"
 import { StatCard } from "@/components/stat-card"
-import { formatDay, formatPrice, formatRate, formatRatio } from "@/lib/format"
-import { BACKTEST_CURRENCY } from "./constants"
+import { LOCALE, formatDay, formatDuration, formatPercent, formatPrice, formatRate, formatRatio } from "@/lib/format"
+import { BACKTEST_CURRENCY, RISK_FREE_RATE } from "./constants"
 import type { BacktestListStats, BacktestResult, LumpSumComparison } from "./types"
 import { fromDecimal } from "./utils"
+
+// Sharpe sans unité, 2 décimales
+const formatSharpe = new Intl.NumberFormat(LOCALE, { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format
 
 /** Compteurs et taux de la liste, calculés par le backend ; `stats` undefined pendant le chargement. */
 export function BacktestStats({ stats }: { stats: BacktestListStats | undefined }) {
@@ -30,11 +33,28 @@ export function BacktestStats({ stats }: { stats: BacktestListStats | undefined 
 }
 
 /**
+ * Légende du max drawdown : date du plus haut et durée de récupération (« Non récupéré » si le plus haut n'est pas retrouvé).
+ * Résultat antérieur sans date de plus haut : date du creux seule.
+ */
+function drawdownCaption(result: BacktestResult, maxDrawdown: number | null) {
+    const { maxDrawdownPeakDate, recoveryDays, maxDrawdownDate } = result
+    if (maxDrawdownPeakDate) {
+        const recovery = recoveryDays == null ? "Non récupéré" : `récupéré en ${formatDuration(recoveryDays)}`
+        return `Plus haut le ${formatDay(maxDrawdownPeakDate)} · ${recovery}`
+    }
+    if (maxDrawdownDate) return `Le ${formatDay(maxDrawdownDate)}`
+    return maxDrawdown != null && "Aucune baisse"
+}
+
+/**
  * Métriques d'un résultat, toutes calculées par le moteur : le front ne fait que les formater.
- * Un champ absent d'un résultat antérieur s'affiche `<Dash />` ou masque sa légende.
+ * Un champ absent d'un résultat antérieur (`cagr` null, D10) s'affiche `<Dash />` ou masque sa légende.
  */
 export function BacktestResultStats({ result }: { result: BacktestResult }) {
     const totalReturn = fromDecimal(result.totalReturn)
+    const cagr = fromDecimal(result.cagr)
+    const volatility = fromDecimal(result.volatility)
+    const sharpe = fromDecimal(result.sharpeRatio)
     const finalValue = fromDecimal(result.finalValue)
     const invested = fromDecimal(result.totalInvested)
     const profit = fromDecimal(result.profit)
@@ -49,9 +69,24 @@ export function BacktestResultStats({ result }: { result: BacktestResult }) {
                 caption={profit != null && `Plus-value : ${formatPrice(profit, BACKTEST_CURRENCY)}`}
             />
             <StatCard
-                label="Drawdown max"
+                label="CAGR"
+                value={cagr == null ? <Dash /> : formatRatio(cagr)}
+                caption="Rendement annualisé, hors versements"
+            />
+            <StatCard
+                label="Volatilité"
+                value={volatility == null ? <Dash /> : formatPercent(volatility)}
+                caption="Annualisée, rendements journaliers"
+            />
+            <StatCard
+                label="Sharpe"
+                value={sharpe == null ? <Dash /> : formatSharpe(sharpe)}
+                caption={`Taux sans risque : ${formatPercent(RISK_FREE_RATE)}`}
+            />
+            <StatCard
+                label="Max drawdown"
                 value={maxDrawdown == null ? <Dash /> : formatRatio(maxDrawdown)}
-                caption={result.maxDrawdownDate ? `Le ${formatDay(result.maxDrawdownDate)}` : maxDrawdown != null && "Aucune baisse"}
+                caption={drawdownCaption(result, maxDrawdown)}
             />
             <StatCard
                 label="Valeur finale"

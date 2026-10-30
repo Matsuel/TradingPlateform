@@ -40,6 +40,9 @@ export const priceTypeLabels: Record<DataSource["priceType"], string> = {
     CLOSE_SPLIT_ADJUSTED: "Clôture ajustée des splits, hors dividendes",
 }
 
+// Taux sans risque du Sharpe, en fraction : miroir d'affichage de la constante de l'engine (D5)
+export const RISK_FREE_RATE = 0
+
 export const BACKTEST_DISCLAIMER =
     "Les performances passées ne préjugent pas des performances futures. Simulation pédagogique, pas un conseil en investissement."
 

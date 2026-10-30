@@ -21,5 +21,5 @@ export function getExecutionDuration(e: BacktestExecution) {
     return minutes ? `${minutes} min ${seconds % 60} s` : `${seconds} s`
 }
 
-/** Decimal sérialisé en string par l'API → number ; null conservé (champ absent des résultats antérieurs). */
-export const fromDecimal = (value: string | null) => (value == null ? null : Number(value))
+/** Decimal sérialisé en string par l'API → number ; null ou absent → null (champ absent des résultats antérieurs). */
+export const fromDecimal = (value: string | null | undefined) => (value == null ? null : Number(value))

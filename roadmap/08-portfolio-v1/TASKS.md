@@ -332,10 +332,10 @@ Critères d’acceptation :
 - **Fichiers** : `prisma/schema.prisma`, migration, `interfaces/backtest.interface.ts`, `repositories/`, `consumers/`
 
 Critères d’acceptation :
-- [ ] `BacktestResult` : `cagr`, `volatility`, `sharpeRatio` (`Decimal(12, 6)?`), `maxDrawdownPeakDate`, `maxDrawdownRecoveryDate` (`DateTime?`), `recoveryDays` (`Int?`), commentaires « null pour les résultats antérieurs » (D10).
-- [ ] `CompleteExecutionDTO` dérivé du payload, dates converties ; écriture dans la transaction de complétion existante.
-- [ ] Un événement `backtest.completed` rejoué ne modifie rien (transition gardée inchangée).
-- [ ] `GET /api/backtests/:id` renvoie les champs ; entrée `API.md` mise à jour.
+- [x] `BacktestResult` : `cagr`, `volatility`, `sharpeRatio` (`Decimal(12, 6)?`), `maxDrawdownPeakDate`, `maxDrawdownRecoveryDate` (`DateTime?`), `recoveryDays` (`Int?`), commentaires « null pour les résultats antérieurs » (D10).
+- [x] `CompleteExecutionDTO` dérivé du payload, dates converties ; écriture dans la transaction de complétion existante.
+- [x] Un événement `backtest.completed` rejoué ne modifie rien (transition gardée inchangée).
+- [x] `GET /api/backtests/:id` renvoie les champs ; entrée `API.md` mise à jour.
 
 ### T-19 · Web : cartes KPI et hypothèses
 
@@ -343,11 +343,11 @@ Critères d’acceptation :
 - **Fichiers** : `features/backtest/stats.tsx`, `assumptions.tsx`, `lib/format.ts`, `COMPONENTS.md`
 
 Critères d’acceptation :
-- [ ] Cartes (style maquette 19) : CAGR, Volatilité, Max drawdown (légende : date et récupération), Sharpe ; « Valeur finale » et « Frais payés » restent visibles.
-- [ ] Formatter de durée (`formatDuration` ou existant à étendre dans `lib/format.ts`) : « 14 mois », « 45 jours » ; « Non récupéré » si `maxDrawdownRecoveryDate` est `null` et `maxDrawdownPeakDate` présent.
-- [ ] Résultat antérieur (`cagr === null`) : `<Dash />` dans chaque carte, aucune valeur recalculée.
-- [ ] Hypothèse « Taux sans risque : 0 % » ajoutée.
-- [ ] `COMPONENTS.md` mis à jour pour tout formatter ajouté.
+- [x] Cartes (style maquette 19) : CAGR, Volatilité, Max drawdown (légende : date et récupération), Sharpe ; « Valeur finale » et « Frais payés » restent visibles.
+- [x] Formatter de durée (`formatDuration` ou existant à étendre dans `lib/format.ts`) : « 14 mois », « 45 jours » ; « Non récupéré » si `maxDrawdownRecoveryDate` est `null` et `maxDrawdownPeakDate` présent.
+- [x] Résultat antérieur (`cagr === null`) : `<Dash />` dans chaque carte, aucune valeur recalculée.
+- [x] Hypothèse « Taux sans risque : 0 % » ajoutée.
+- [x] `COMPONENTS.md` mis à jour pour tout formatter ajouté.
 
 ### T-20 · Web : courbe de drawdown
 
