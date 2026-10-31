@@ -37,6 +37,7 @@ type DataTableProps<T> = DataTableSource<T> & {
     description?: ReactNode
     actions?: ReactNode // ex. onglets de filtre, à droite du titre
     className?: string
+    frameless?: boolean // sans cadre ni marge, dans un conteneur qui en a déjà un
     pagination?: TablePaginationProps // page courante (à partir de 1) et count total, toutes pages confondues
 }
 
@@ -119,6 +120,7 @@ export function DataTable<T>({
     description,
     actions,
     className,
+    frameless = false,
     pagination,
 }: DataTableProps<T>) {
     const { data, isPending, isError, error, refetch } = query ?? { data: rows, isPending: false, isError: false, error: null, refetch: () => undefined }
@@ -132,7 +134,7 @@ export function DataTable<T>({
     )
 
     return (
-        <div className="flex flex-col gap-4 p-6 border rounded-xl">
+        <div className={cn("flex flex-col gap-4", !frameless && "p-6 border rounded-xl")}>
             {(title || description || actions) && (
                 <div className="flex items-center justify-between gap-4">
                     <div className="flex flex-col">

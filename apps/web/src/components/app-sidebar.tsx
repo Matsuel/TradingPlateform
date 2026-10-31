@@ -4,6 +4,7 @@ import * as React from "react";
 
 import SidebarNav from "@/components/SidebarNav";
 import { NavUser } from "@/components/nav-user";
+import ThemeToggle from "@/components/themeToggle";
 import {
   Sidebar,
   SidebarContent,
@@ -57,8 +58,11 @@ export function AppSidebar({
           <SidebarNav tabs={parts.tabs} name={parts.name} key={parts.name} />
         ))}
       </SidebarContent>
-      <SidebarFooter>
-        <NavUser user={user} />
+      <SidebarFooter className="flex-row items-center group-data-[collapsible=icon]:flex-col">
+        <div className="min-w-0 flex-1">
+          <NavUser user={user} />
+        </div>
+        <ThemeToggle />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

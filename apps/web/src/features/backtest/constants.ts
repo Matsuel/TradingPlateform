@@ -1,4 +1,4 @@
-import type { DataSource, ExecutionRule, ExecutionStatus, InvestmentMode } from "./types"
+import type { ComparedMetric, ComparisonParameter, DataSource, ExecutionRule, ExecutionStatus, InvestmentMode, RebalanceFrequency, TradeSide } from "./types"
 
 // Devise des montants saisis : les cours ne sont pas convertis
 export const BACKTEST_CURRENCY = "EUR"
@@ -6,10 +6,27 @@ export const BACKTEST_CURRENCY = "EUR"
 // Une exécution dans ces statuts peut encore évoluer
 export const activeStatuses = ["PENDING", "RUNNING"] as const satisfies readonly ExecutionStatus[]
 
-export const strategyOptions = [
-    { value: "dca", label: "DCA — investir un montant chaque mois" },
-    { value: "lump_sum", label: "Lump sum — investir en une seule fois" },
+export const investmentModeOptions: { value: InvestmentMode; label: string }[] = [
+    { value: "LUMP_SUM", label: "Investissement unique" },
+    { value: "RECURRING", label: "Investissement unique + versements mensuels" },
 ]
+
+export const rebalanceFrequencyLabels: Record<RebalanceFrequency, string> = {
+    NONE: "Aucun",
+    MONTHLY: "Mensuel",
+    QUARTERLY: "Trimestriel",
+    YEARLY: "Annuel",
+}
+
+// Valeur par défaut du formulaire et du test rapide, comme le défaut de createBacktestSchema
+export const DEFAULT_REBALANCE_FREQUENCY = "NONE" satisfies RebalanceFrequency
+
+export const rebalanceFrequencyOptions = Object.entries(rebalanceFrequencyLabels).map(([value, label]) => ({ value, label }))
+
+// Benchmark proposé par le formulaire (D9) : ETF iShares MSCI World
+export const DEFAULT_BENCHMARK_SYMBOL = "URTH"
+
+export const NO_BENCHMARK_LABEL = "Aucun"
 
 export const strategyLabels: Record<InvestmentMode, string> = {
     RECURRING: "DCA mensuel",
@@ -28,6 +45,13 @@ export const priceTypeLabels: Record<DataSource["priceType"], string> = {
     CLOSE_SPLIT_ADJUSTED: "Clôture ajustée des splits, hors dividendes",
 }
 
+// Étapes d'une exécution, dans l'ordre, affichées par le récapitulatif du formulaire (maquette 12.1)
+export const previewSteps = [
+    { label: "Données", description: "Cours de clôture journaliers des actifs" },
+    { label: "Simulation", description: "Versements, ordres et rebalancements" },
+    { label: "Métriques", description: "Rendement, risque et drawdown" },
+] as const
+
 export const BACKTEST_DISCLAIMER =
     "Les performances passées ne préjugent pas des performances futures. Simulation pédagogique, pas un conseil en investissement."
 
@@ -40,6 +64,11 @@ export const statusBadges: Record<ExecutionStatus, { label: string; variant: "ou
     CANCELLED: { label: "Annulé", variant: "secondary" },
 }
 
+export const tradeSideBadges: Record<TradeSide, { label: string; variant: "success" | "destructive" }> = {
+    BUY: { label: "Achat", variant: "success" },
+    SELL: { label: "Vente", variant: "destructive" },
+}
+
 export const statusFilters = {
     all: { label: "Tous", statuses: [] },
     running: { label: "En cours", statuses: activeStatuses },
@@ -48,3 +77,30 @@ export const statusFilters = {
 } as const satisfies Record<string, { label: string; statuses: readonly ExecutionStatus[] }>
 
 export type StatusFilter = keyof typeof statusFilters
+
+// Backtests proposés au choix de la comparaison : MAX_PAGE_SIZE de @trading-plateform/contracts (pagination.ts), pageSize
+// maximal de GET /api/backtest ; recopié car le web n'importe pas le package à l'exécution
+export const COMPARABLE_LIMIT = 100
+
+// Couleur de chaque côté de la comparaison (maquette 19 v2) : courbes, légende et pastilles de sélection
+export const comparisonSideColors = {
+    a: { stroke: "var(--chart-1)", className: "bg-chart-1" },
+    b: { stroke: "var(--chart-2)", className: "bg-chart-2" },
+} as const
+
+// Fragment du titre du bandeau « Comparaison non homogène : … » pour chaque paramètre qui diffère
+export const comparisonParameterLabels: Record<ComparisonParameter, string> = {
+    period: "périodes différentes",
+    feeRate: "frais différents",
+    benchmarkSymbol: "benchmarks différents",
+}
+
+// Sens favorable d'un écart A − B, pour le colorer : une volatilité plus haute est défavorable
+export const comparedMetricHigherIsBetter: Record<ComparedMetric, boolean> = {
+    cagr: true,
+    totalReturn: true,
+    volatility: false,
+    sharpeRatio: true,
+    // Ratio ≤ 0 : un écart positif = baisse maximale moins profonde
+    maxDrawdown: true,
+}

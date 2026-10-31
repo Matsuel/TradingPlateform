@@ -20,12 +20,15 @@ class BacktestService {
     async run(request: BacktestRequestedPayload): Promise<void> {
         const { executionId } = request;
 
-        logger.info("Backtest started", { executionId, symbols: request.symbols });
+        logger.info("Backtest started", { executionId, allocations: request.allocations });
         await this.publisher.started({ executionId, startedAt: new Date().toISOString() });
 
         try {
+            const symbols = request.allocations.map((allocation) => allocation.symbol);
+            // Cours du benchmark chargés avec ceux de l'allocation : inclus dans l'empreinte dataSource.fingerprint
+            if (request.benchmarkSymbol && !symbols.includes(request.benchmarkSymbol)) symbols.push(request.benchmarkSymbol);
             const prices = await this.repo.getDailyCloses(
-                request.symbols,
+                symbols,
                 new Date(request.startDate),
                 new Date(request.endDate),
             );

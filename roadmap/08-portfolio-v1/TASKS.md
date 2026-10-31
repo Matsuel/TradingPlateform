@@ -5,41 +5,45 @@
 
 ## Synthèse
 
-| Tâche | Titre | US | Couche | Priorité | Points | Dépend de |
-| --- | --- | --- | --- | --- | --- | --- |
-| T-00 | Valider les décisions D1–D10 | toutes | — | MUST | 1 | — |
-| T-01 | Contrat : `allocations` dans `backtest.requested` | US-01 | contracts | MUST | 2 | T-00 |
-| T-02 | Engine : simulation avec poids cibles | US-01 | engine | MUST | 3 | T-01 |
-| T-03 | Engine : service et cours lus depuis `allocations` | US-01 | engine | MUST | 1 | T-01 |
-| T-04 | Base : table `BacktestAllocation` et migration | US-01 | core-backend | MUST | 5 | T-00 |
-| T-05 | core-backend : allocation dans repository et service | US-01 | core-backend | MUST | 3 | T-01, T-04 |
-| T-06 | core-backend : nouveau schéma d’entrée `POST /api/backtests` | US-02 | core-backend | MUST | 3 | T-05 |
-| T-07 | Web : composant `AllocationField` | US-02 | web | MUST | 5 | — |
-| T-08 | Web : formulaire « Nouveau backtest » (maquette 12.1) | US-02 | web | MUST | 3 | T-06, T-07 |
-| T-09 | Contrat : `rebalanceFrequency` et `trade.side` | US-03, US-04 | contracts | MUST | 2 | T-01 |
-| T-10 | Engine : ventes, frais sur ventes et rebalancement | US-03 | engine | MUST | 8 | T-02, T-09 |
-| T-11 | core-backend : fréquence de rebalancement | US-03 | core-backend | MUST | 2 | T-04, T-06, T-09 |
-| T-12 | Web : champ « Rebalancement » et hypothèse | US-03 | web | MUST | 1 | T-08, T-11 |
-| T-13 | Web : colonne « Côté » des ordres | US-04 | web | MUST | 2 | T-09 |
-| T-14 | Engine : CAGR, volatilité et Sharpe | US-05 | engine | MUST | 5 | T-00 |
-| T-15 | Engine : durée de récupération et drawdown par point | US-06, US-07 | engine | MUST | 3 | T-00 |
-| T-16 | Contrat : métriques et `equityPoint.drawdown` | US-05, US-06, US-07 | contracts | MUST | 2 | T-09 |
-| T-17 | Engine : publier les métriques | US-05, US-06, US-07 | engine | MUST | 2 | T-10, T-14, T-15, T-16 |
-| T-18 | core-backend : colonnes de métriques | US-05, US-06 | core-backend | MUST | 3 | T-11, T-16 |
-| T-19 | Web : cartes KPI et hypothèses | US-05, US-06, US-07 | web | MUST | 3 | T-17, T-18 |
-| T-20 | Web : courbe de drawdown | US-07 | web | MUST | 3 | T-17, T-18 |
-| T-21 | Contrat : `benchmark` et `benchmarkValue` | US-08, US-09 | contracts | MUST | 2 | T-16 |
-| T-22 | Engine : rejeu du benchmark et écarts | US-08, US-09 | engine | MUST | 5 | T-03, T-17, T-21 |
-| T-23 | core-backend : benchmark persisté | US-08 | core-backend | MUST | 3 | T-18, T-21 |
-| T-24 | Web : champ « Benchmark » | US-08 | web | MUST | 1 | T-08, T-23 |
-| T-25 | Web : écarts, série et tableau « Métriques comparées » | US-09 | web | MUST | 5 | T-19, T-22, T-23 |
-| T-26 | core-backend : `GET /api/backtests/compare` | US-10 | core-backend | SHOULD | 5 | T-23 |
-| T-27 | Web : page « Comparaison » | US-10 | web | SHOULD | 5 | T-25, T-26 |
-| T-28 | Liste : colonnes « Allocation » et « CAGR » | US-11 | core-backend, web | SHOULD | 3 | T-05, T-18 |
-| T-29 | Récapitulatif prévisionnel du formulaire | US-02 | core-backend, web | SHOULD | 5 | T-11 |
-| T-30 | Documentation, limites et démo | US-12 | README | MUST | 2 | T-12, T-13, T-20, T-24, T-25 |
+| Tâche | Titre | US | Couche | Priorité | Points | Dépend de | Réalisé | Commits |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| T-00 | Valider les décisions D1–D10 | toutes | — | MUST | 1 | — | 1 | `e295d3c`, `56c5010` |
+| T-01 | Contrat : `allocations` dans `backtest.requested` | US-01 | contracts | MUST | 2 | T-00 | 2 | `7bbfab7`, `a8e3a2b` |
+| T-02 | Engine : simulation avec poids cibles | US-01 | engine | MUST | 3 | T-01 | 3 | `cc74b35` |
+| T-03 | Engine : service et cours lus depuis `allocations` | US-01 | engine | MUST | 1 | T-01 | 1 | `cc74b35` |
+| T-04 | Base : table `BacktestAllocation` et migration | US-01 | core-backend | MUST | 5 | T-00 | 5 | `dac7e8f` |
+| T-05 | core-backend : allocation dans repository et service | US-01 | core-backend | MUST | 3 | T-01, T-04 | 3 | `7e1f0af`, `7c190fb` |
+| T-06 | core-backend : nouveau schéma d’entrée `POST /api/backtests` | US-02 | core-backend | MUST | 3 | T-05 | 3 | `7e1f0af` |
+| T-07 | Web : composant `AllocationField` | US-02 | web | MUST | 5 | — | 5 | `166c15c` |
+| T-08 | Web : formulaire « Nouveau backtest » (maquette 12.1) | US-02 | web | MUST | 3 | T-06, T-07 | 3 | `7e1f0af`, `7c190fb` |
+| T-09 | Contrat : `rebalanceFrequency` et `trade.side` | US-03, US-04 | contracts | MUST | 2 | T-01 | 2 | `fc51a69` |
+| T-10 | Engine : ventes, frais sur ventes et rebalancement | US-03 | engine | MUST | 8 | T-02, T-09 | 8 | `392d482`, `1ef0895` |
+| T-11 | core-backend : fréquence de rebalancement | US-03 | core-backend | MUST | 2 | T-04, T-06, T-09 | 2 | `acf32fa` |
+| T-12 | Web : champ « Rebalancement » et hypothèse | US-03 | web | MUST | 1 | T-08, T-11 | 1 | `acf32fa` |
+| T-13 | Web : colonne « Côté » des ordres | US-04 | web | MUST | 2 | T-09 | 2 | `96030f6`, `1ef0895` |
+| T-14 | Engine : CAGR, volatilité et Sharpe | US-05 | engine | MUST | 5 | T-00 | 5 | `884c8bf`, `1ef0895` |
+| T-15 | Engine : durée de récupération et drawdown par point | US-06, US-07 | engine | MUST | 3 | T-00 | 3 | `884c8bf`, `1ef0895` |
+| T-16 | Contrat : métriques et `equityPoint.drawdown` | US-05, US-06, US-07 | contracts | MUST | 2 | T-09 | 2 | `8ebab30` |
+| T-17 | Engine : publier les métriques | US-05, US-06, US-07 | engine | MUST | 2 | T-10, T-14, T-15, T-16 | 2 | `8ebab30` |
+| T-18 | core-backend : colonnes de métriques | US-05, US-06 | core-backend | MUST | 3 | T-11, T-16 | 3 | `1061dfc` |
+| T-19 | Web : cartes KPI et hypothèses | US-05, US-06, US-07 | web | MUST | 3 | T-17, T-18 | 3 | `c721fde`, `7763846` |
+| T-20 | Web : courbe de drawdown | US-07 | web | MUST | 3 | T-17, T-18 | 3 | `00860ad` |
+| T-21 | Contrat : `benchmark` et `benchmarkValue` | US-08, US-09 | contracts | MUST | 2 | T-16 | 2 | `a37ec22` |
+| T-22 | Engine : rejeu du benchmark et écarts | US-08, US-09 | engine | MUST | 5 | T-03, T-17, T-21 | 5 | `a37ec22` |
+| T-23 | core-backend : benchmark persisté | US-08 | core-backend | MUST | 3 | T-18, T-21 | 3 | `996fc05` |
+| T-24 | Web : champ « Benchmark » | US-08 | web | MUST | 1 | T-08, T-23 | 1 | `0ea3bbe` |
+| T-25 | Web : écarts, série et tableau « Métriques comparées » | US-09 | web | MUST | 5 | T-19, T-22, T-23 | 8 | `1049a62`, `ad18362`, `d753c02`, `9bbd44f` |
+| T-26 | core-backend : `GET /api/backtests/compare` | US-10 | core-backend | SHOULD | 5 | T-23 | 5 | `78c101d` |
+| T-27 | Web : page « Comparaison » | US-10 | web | SHOULD | 5 | T-25, T-26 | 8 | `1cae77c`, `b956cd2`, `a02cfc8`, `881afae` |
+| T-28 | Liste : colonnes « Allocation » et « CAGR » | US-11 | core-backend, web | SHOULD | 3 | T-05, T-18 | 2 | `9bbd44f` |
+| T-29 | Récapitulatif prévisionnel du formulaire | US-02 | core-backend, web | SHOULD | 5 | T-11 | 5 | `3a3bb64` |
+| T-30 | Documentation, limites et démo | US-12 | README | MUST | 2 | T-12, T-13, T-20, T-24, T-25 | 3 | `5a03870`, `d3c2582` |
 
-**Total** : 98 points — MUST 80, SHOULD 18.
+**Total** : 98 points — MUST 80, SHOULD 18. **Réalisé** : 104 points (MUST 84, SHOULD 20).
+
+Écarts de plus d’un cran : T-25 (5 → 8) absorbe la refonte de l’écran de détail (maquette « 13 v2 · A » : blocs groupés, `rebalanceCount` de l’engine à l’écran, suppression des anciens graphiques) ; T-27 (5 → 8) ajoute la carte « Paramètres » de la maquette 19 v2 et, après revue, le filtre `hasResult` de `GET /api/backtest` et le traitement des liens invalides.
+
+Commits hors tâche, transverses : `e95c31e`, `858e3df`, `fcf2559` (skill `verify`), `326e44b`, `a167e09` (bascule clair/sombre), `4964f8c` (planification de la feature 09).
 
 | Lot | Tâches | Points |
 | --- | --- | --- |
@@ -119,12 +123,12 @@ flowchart LR
 
 ### T-00 · Valider les décisions D1–D10
 
-- **US** : toutes · **Priorité** : MUST · **Points** : 1 · **Dépend de** : —
+- **US** : toutes · **Priorité** : MUST · **Points** : 1 · **Dépend de** : — · **Réalisé** : 1 · **Commits** : `e295d3c`, `56c5010`
 - **Objet** : relire la section « Décisions » de `US.md`, trancher chaque point et corriger `US.md` si une décision change.
 
 Critères d’acceptation :
-- [ ] D1 à D10 sont validées ou amendées par écrit dans `US.md`.
-- [ ] La maquette 12.1 est alignée sur D8 (« Frais par ordre » au lieu de « Frais par achat ») ou l’écart est noté.
+- [x] D1 à D10 sont validées ou amendées par écrit dans `US.md` (D2 amendée : poids au pourcent entier).
+- [x] La maquette 12.1 est alignée sur D8 (« Frais par ordre » au lieu de « Frais par achat ») ou l’écart est noté : écart noté, la maquette garde « Frais par achat », le libellé du web suit D8 (T-08).
 
 ---
 
@@ -132,96 +136,96 @@ Critères d’acceptation :
 
 ### T-01 · Contrat : `allocations` dans `backtest.requested`
 
-- **US** : US-01 · **Priorité** : MUST · **Points** : 2 · **Dépend de** : T-00
+- **US** : US-01 · **Priorité** : MUST · **Points** : 2 · **Dépend de** : T-00 · **Réalisé** : 2 · **Commits** : `7bbfab7`, `a8e3a2b`
 - **Fichiers** : `packages/contracts/src/backtest.ts`
 
 Critères d’acceptation :
-- [ ] `symbols` est remplacé par `allocations: z.array(allocationSchema).min(1)`, avec `allocationSchema = { symbol, weight }` ; `weight` commenté « Ratio : 0.6 = 60 % du portefeuille ».
-- [ ] `refine` : symboles uniques, chaque poids dans `]0, 1]`, somme égale à 1 à `1e-6` près (tolérance en constante nommée du contrat).
-- [ ] Type `Allocation` exporté par `z.infer`.
-- [ ] Producteur (core-backend) et consommateur (engine) compilent : adaptés dans le même diff, au minimum en équipondéré si T-02/T-05 ne sont pas encore livrés.
+- [x] `symbols` est remplacé par `allocations: z.array(allocationSchema).min(1)`, avec `allocationSchema = { symbol, weight }` ; `weight` commenté « Ratio : 0.6 = 60 % du portefeuille ».
+- [x] `refine` : symboles uniques, chaque poids dans `]0, 1]` et au pourcent près (D2), somme égale à 1 à `1e-6` près (tolérance en constante nommée du contrat).
+- [x] Type `Allocation` exporté par `z.infer`.
+- [x] Producteur (core-backend) et consommateur (engine) compilent : adaptés dans le même diff, au minimum en équipondéré si T-02/T-05 ne sont pas encore livrés.
 
 ### T-02 · Engine : simulation avec poids cibles
 
-- **US** : US-01 · **Priorité** : MUST · **Points** : 3 · **Dépend de** : T-01
+- **US** : US-01 · **Priorité** : MUST · **Points** : 3 · **Dépend de** : T-01 · **Réalisé** : 3 · **Commits** : `cc74b35`
 - **Fichiers** : `apps/backtest-engine/engine/backtest.engine.ts`, `interfaces/backtest.interface.ts`, `engine/backtest.engine.test.ts`, `engine/backtest.fixture.ts`
 
 Critères d’acceptation :
-- [ ] Chaque versement est réparti selon `weight` (au lieu de `1 / symbols.length`), frais déduits de chaque ordre.
-- [ ] JSDoc de `simulate` mis à jour (« portefeuille équipondéré » remplacé par la règle des poids).
-- [ ] Test : versement de 10 000 € en 60/40 ⇒ montants d’ordre 6 000 / 4 000, frais compris.
-- [ ] Test de non-régression : poids égaux ⇒ résultat identique à la fixture actuelle.
-- [ ] Test de reproductibilité : mêmes entrées ⇒ même résultat et même empreinte.
+- [x] Chaque versement est réparti selon `weight` (au lieu de `1 / symbols.length`), frais déduits de chaque ordre.
+- [x] JSDoc de `simulate` mis à jour (« portefeuille équipondéré » remplacé par la règle des poids).
+- [x] Test : versement de 10 000 € en 60/40 ⇒ montants d’ordre 6 000 / 4 000, frais compris.
+- [x] Test de non-régression : poids égaux ⇒ résultat identique à la fixture actuelle.
+- [x] Test de reproductibilité : mêmes entrées ⇒ même résultat et même empreinte (empreinte non testée : elle ne hache que les cours, les poids ne la changent pas).
 
 ### T-03 · Engine : service et cours lus depuis `allocations`
 
-- **US** : US-01 · **Priorité** : MUST · **Points** : 1 · **Dépend de** : T-01
+- **US** : US-01 · **Priorité** : MUST · **Points** : 1 · **Dépend de** : T-01 · **Réalisé** : 1 · **Commits** : `cc74b35`
 - **Fichiers** : `apps/backtest-engine/services/backtest.service.ts`, `consumers/backtest.consumer.ts`
 
 Critères d’acceptation :
-- [ ] Les cours sont récupérés pour les symboles de `allocations`.
-- [ ] Un message aux poids invalides est loggué (`logger.warn`) et ignoré par le consumer, sans exception.
+- [x] Les cours sont récupérés pour les symboles de `allocations`.
+- [x] Un message aux poids invalides est loggué (`logger.warn`) et ignoré par le consumer, sans exception.
 
 ### T-04 · Base : table `BacktestAllocation` et migration
 
-- **US** : US-01 · **Priorité** : MUST · **Points** : 5 · **Dépend de** : T-00
+- **US** : US-01 · **Priorité** : MUST · **Points** : 5 · **Dépend de** : T-00 · **Réalisé** : 5 · **Commits** : `dac7e8f`
 - **Fichiers** : `apps/core-backend/prisma/schema.prisma`, `prisma/migrations/<timestamp>_backtest_allocation/migration.sql`
 
 Critères d’acceptation :
-- [ ] Modèle `BacktestAllocation` : `id`, `backtestId`, `symbol`, `weight Decimal @db.Decimal(3, 2)` (commentaire : ratio au pourcent près, D2), `@@unique([backtestId, symbol])`, `onDelete: Cascade`.
-- [ ] Migration en trois étapes dans un seul fichier : création de la table, backfill équipondéré au pourcent entier depuis `Backtest.symbols` (`floor(100 / n)`, le reste réparti +1 % sur les premiers symboles : somme exactement 1), suppression de `symbols`.
-- [ ] Testée sur une copie de la base locale contenant des backtests : nombre de lignes d’allocation = somme des longueurs de `symbols`, somme des poids = 1 par backtest.
-- [ ] `bunx prisma migrate diff --from-schema-datasource prisma/schema.prisma --to-schema-datamodel prisma/schema.prisma --script` renvoie une migration vide.
-- [ ] `bun run db:generate` exécuté.
+- [x] Modèle `BacktestAllocation` : `id`, `backtestId`, `symbol`, `weight Decimal @db.Decimal(3, 2)` (commentaire : ratio au pourcent près, D2), `@@unique([backtestId, symbol])`, `onDelete: Cascade`.
+- [x] Migration en trois étapes dans un seul fichier : création de la table, backfill équipondéré au pourcent entier depuis `Backtest.symbols` (`floor(100 / n)`, le reste réparti +1 % sur les premiers symboles : somme exactement 1), suppression de `symbols`.
+- [x] Testée sur une copie de la base locale contenant des backtests : nombre de lignes d’allocation = somme des longueurs de `symbols`, somme des poids = 1 par backtest.
+- [x] `bunx prisma migrate diff --from-schema-datasource prisma/schema.prisma --to-schema-datamodel prisma/schema.prisma --script` renvoie une migration vide.
+- [x] `bun run db:generate` exécuté.
 
 > Suppression de colonne irréversible : faire un `pg_dump` de la base locale avant d’appliquer.
 
 ### T-05 · core-backend : allocation dans repository et service
 
-- **US** : US-01 · **Priorité** : MUST · **Points** : 3 · **Dépend de** : T-01, T-04
+- **US** : US-01 · **Priorité** : MUST · **Points** : 3 · **Dépend de** : T-01, T-04 · **Réalisé** : 3 · **Commits** : `7e1f0af`, `7c190fb`
 - **Fichiers** : `repositories/backtest.repository.ts`, `services/backtest.service.ts`, `interfaces/backtest.interface.ts`
 
 Critères d’acceptation :
-- [ ] `create` écrit le backtest et ses allocations dans la même transaction (création imbriquée Prisma), avec `latestExecution` comme aujourd’hui.
-- [ ] `include` de l’allocation en constante `satisfies Prisma.BacktestInclude` en tête du repository.
-- [ ] Le service construit `allocations` du payload Kafka (`Decimal` → `number` uniquement à ce moment).
-- [ ] « Relancer » republie l’allocation persistée.
-- [ ] `GET /api/backtests/:id` renvoie `allocations` ; entrée `API.md` mise à jour.
+- [x] `create` écrit le backtest et ses allocations dans la même transaction (création imbriquée Prisma), avec `latestExecution` comme aujourd’hui.
+- [x] `include` de l’allocation en constante `satisfies Prisma.BacktestInclude` en tête du repository.
+- [x] Le service construit `allocations` du payload Kafka (`Decimal` → `number` uniquement à ce moment).
+- [x] « Relancer » republie l’allocation persistée.
+- [x] `GET /api/backtests/:id` renvoie `allocations` ; entrée `API.md` mise à jour.
 
 ### T-06 · core-backend : nouveau schéma d’entrée `POST /api/backtests`
 
-- **US** : US-02 · **Priorité** : MUST · **Points** : 3 · **Dépend de** : T-05
+- **US** : US-02 · **Priorité** : MUST · **Points** : 3 · **Dépend de** : T-05 · **Réalisé** : 3 · **Commits** : `7e1f0af`
 - **Fichiers** : `interfaces/backtest.interface.ts`, `services/backtest.service.ts`, `API.md`
 
 Critères d’acceptation :
-- [ ] `createBacktestSchema` : `name`, `investmentMode` (`LUMP_SUM` / `RECURRING`), `allocations: [{ symbol, weight }]` avec `weight` en pourcent entier (`z.number().int()`, 1 à 100, converti en ratio par le schéma), `start`, `end`, `initialAmount`, `recurringAmount` (requis si `RECURRING`, interdit sinon), `fee` (%).
-- [ ] Somme des poids ≠ 100 % ⇒ 400 avec `path: ["allocations"]`.
-- [ ] Les anciens champs `strategy` et `amount` disparaissent ; le web est adapté dans T-08 (signaler la rupture d’API si T-08 n’est pas dans le même diff).
-- [ ] Entrée `API.md` : body, réponses, erreurs.
+- [x] `createBacktestSchema` : `name`, `investmentMode` (`LUMP_SUM` / `RECURRING`), `allocations: [{ symbol, weight }]` avec `weight` en pourcent entier (`z.number().int()`, 1 à 100, converti en ratio par le schéma), `start`, `end`, `initialAmount`, `recurringAmount` (requis si `RECURRING`, interdit sinon), `fee` (%).
+- [x] Somme des poids ≠ 100 % ⇒ 400 avec `path: ["allocations"]`.
+- [x] Les anciens champs `strategy` et `amount` disparaissent ; le web est adapté dans T-08 (signaler la rupture d’API si T-08 n’est pas dans le même diff).
+- [x] Entrée `API.md` : body, réponses, erreurs.
 
 ### T-07 · Web : composant `AllocationField`
 
-- **US** : US-02 · **Priorité** : MUST · **Points** : 5 · **Dépend de** : —
+- **US** : US-02 · **Priorité** : MUST · **Points** : 5 · **Dépend de** : — · **Réalisé** : 5 · **Commits** : `166c15c`
 - **Fichiers** : `apps/web/src/components/` (champ de formulaire, à côté des champs existants) ou `features/backtest/` selon `COMPONENTS.md`, `COMPONENTS.md`
 
 Critères d’acceptation :
-- [ ] Une ligne par actif : symbole, nom, barre proportionnelle au poids, champ `%` entier (pas de 1, D2), bouton de suppression (maquette 12.1).
-- [ ] « + Ajouter un actif » ouvre la recherche de symboles existante (`symbol-search.tsx`) ; un symbole déjà présent n’est pas ajouté deux fois.
-- [ ] Badge « Total » : vert à 100 %, rouge sinon (la somme affichée est un affichage de saisie, la validation fait foi côté schéma).
-- [ ] Accessible au clavier, labels associés aux champs.
-- [ ] Entrée `COMPONENTS.md` (props, usage).
+- [x] Une ligne par actif : symbole, nom, barre proportionnelle au poids, champ `%` entier (pas de 1, D2), bouton de suppression (maquette 12.1).
+- [x] « + Ajouter un actif » ouvre la recherche de symboles existante (`symbol-search.tsx`) ; un symbole déjà présent n’est pas ajouté deux fois.
+- [x] Badge « Total » : vert à 100 %, rouge sinon (la somme affichée est un affichage de saisie, la validation fait foi côté schéma).
+- [x] Accessible au clavier, labels associés aux champs.
+- [x] Entrée `COMPONENTS.md` (props, usage).
 
 ### T-08 · Web : formulaire « Nouveau backtest » (maquette 12.1)
 
-- **US** : US-02 · **Priorité** : MUST · **Points** : 3 · **Dépend de** : T-06, T-07
+- **US** : US-02 · **Priorité** : MUST · **Points** : 3 · **Dépend de** : T-06, T-07 · **Réalisé** : 3 · **Commits** : `7e1f0af`, `7c190fb`
 - **Fichiers** : `features/backtest/new-backtest-form.tsx`, `sections.tsx`, `schema.ts`, `api.ts`, `constants.ts`
 
 Critères d’acceptation :
-- [ ] Section « Général » : nom, « Mode d’investissement », « Versement mensuel (€) » visible seulement en `RECURRING`.
-- [ ] Section « Allocation et période » : `AllocationField`, Début, Fin, « Capital initial (€) », « Frais par ordre (%) ».
-- [ ] « Lancer le backtest » désactivé tant que le total ≠ 100 % ; erreurs 400 affichées sous le champ concerné.
-- [ ] Le formulaire de test rapide (`quick-backtest-form.tsx`) envoie une allocation à 100 % sur son symbole.
-- [ ] Parcours vérifié dans le navigateur : création d’un 60/40, redirection vers le résultat.
+- [x] Section « Général » : nom, « Mode d’investissement », « Versement mensuel (€) » visible seulement en `RECURRING`.
+- [x] Section « Allocation et période » : `AllocationField`, Début, Fin, « Capital initial (€) », « Frais par ordre (%) ».
+- [x] « Lancer le backtest » désactivé tant que le total ≠ 100 % ; erreurs 400 affichées sous le champ concerné.
+- [x] Le formulaire de test rapide (`quick-backtest-form.tsx`) envoie une allocation à 100 % sur son symbole.
+- [ ] Parcours vérifié dans le navigateur : création d’un 60/40, redirection vers le résultat. *(non fait : parcours vérifié par l’API seulement, démo T-30)*
 
 ---
 
@@ -229,56 +233,56 @@ Critères d’acceptation :
 
 ### T-09 · Contrat : `rebalanceFrequency` et `trade.side`
 
-- **US** : US-03, US-04 · **Priorité** : MUST · **Points** : 2 · **Dépend de** : T-01
+- **US** : US-03, US-04 · **Priorité** : MUST · **Points** : 2 · **Dépend de** : T-01 · **Réalisé** : 2 · **Commits** : `fc51a69`
 - **Fichiers** : `packages/contracts/src/backtest.ts`
 
 Critères d’acceptation :
-- [ ] `REBALANCE_FREQUENCIES = ["NONE", "MONTHLY", "QUARTERLY", "YEARLY"] as const` et `rebalanceFrequency` dans `backtest.requested`.
-- [ ] `tradeSchema.side: z.enum(["BUY", "SELL"])` ; commentaire : quantité et montant toujours positifs, le sens porte le signe.
-- [ ] Commentaire de `feeRate` : « par ordre, achat ou vente » (D8).
+- [x] `REBALANCE_FREQUENCIES = ["NONE", "MONTHLY", "QUARTERLY", "YEARLY"] as const` et `rebalanceFrequency` dans `backtest.requested`.
+- [x] `tradeSchema.side: z.enum(["BUY", "SELL"])` ; commentaire : quantité et montant toujours positifs, le sens porte le signe.
+- [x] Commentaire de `feeRate` : « par ordre, achat ou vente » (D8).
 
 ### T-10 · Engine : ventes, frais sur ventes et rebalancement
 
-- **US** : US-03 · **Priorité** : MUST · **Points** : 8 · **Dépend de** : T-02, T-09
+- **US** : US-03 · **Priorité** : MUST · **Points** : 8 · **Dépend de** : T-02, T-09 · **Réalisé** : 8 · **Commits** : `392d482`, `1ef0895`
 - **Fichiers** : `engine/backtest.engine.ts`, `engine/backtest.utils.ts`, tests
 
 Critères d’acceptation :
-- [ ] Au premier jour de cotation de chaque période de rebalancement (hors premier jour de simulation), après le versement du jour : vente des actifs surpondérés, puis achat des sous-pondérés avec le produit net des ventes.
-- [ ] Après rebalancement, chaque poids est égal à sa cible, à la perte de frais près (test avec tolérance explicite).
-- [ ] Frais prélevés sur chaque vente et chaque achat, inclus dans `totalFees` ; `totalInvested` inchangé par un rebalancement.
-- [ ] Ordres de rebalancement inclus dans `trades` avec `side` ; `totalTrades` les compte.
-- [ ] `QUARTERLY` ajouté à `periodKey` (ou helper équivalent dans `backtest.utils.ts`), testé.
-- [ ] `NONE` ⇒ aucune vente, résultat identique à T-02 (non-régression).
-- [ ] Test sur fixture à deux actifs aux trajectoires opposées : poids dérivés avant la date, ramenés à la cible après.
-- [ ] Drawdown toujours mesuré hors versements : un rebalancement ne crée pas de rendement artificiel (test).
+- [x] Au premier jour de cotation de chaque période de rebalancement (hors premier jour de simulation), après le versement du jour : vente des actifs surpondérés, puis achat des sous-pondérés avec le produit net des ventes.
+- [x] Après rebalancement, chaque poids est égal à sa cible, à la perte de frais près (test avec tolérance explicite).
+- [x] Frais prélevés sur chaque vente et chaque achat, inclus dans `totalFees` ; `totalInvested` inchangé par un rebalancement.
+- [x] Ordres de rebalancement inclus dans `trades` avec `side` ; `totalTrades` les compte.
+- [x] `QUARTERLY` ajouté à `periodKey` (ou helper équivalent dans `backtest.utils.ts`), testé.
+- [x] `NONE` ⇒ aucune vente, résultat identique à T-02 (non-régression).
+- [x] Test sur fixture à deux actifs aux trajectoires opposées : poids dérivés avant la date, ramenés à la cible après.
+- [x] Drawdown toujours mesuré hors versements : un rebalancement ne crée pas de rendement artificiel (test).
 
 ### T-11 · core-backend : fréquence de rebalancement
 
-- **US** : US-03 · **Priorité** : MUST · **Points** : 2 · **Dépend de** : T-04, T-06, T-09
+- **US** : US-03 · **Priorité** : MUST · **Points** : 2 · **Dépend de** : T-04, T-06, T-09 · **Réalisé** : 2 · **Commits** : `acf32fa`
 - **Fichiers** : `prisma/schema.prisma`, migration, `interfaces/`, `services/`, `API.md`
 
 Critères d’acceptation :
-- [ ] `enum RebalanceFrequency` et `Backtest.rebalanceFrequency @default(NONE)` (lignes existantes : `NONE`).
-- [ ] Champ `rebalanceFrequency` dans `createBacktestSchema`, publié dans `backtest.requested`.
-- [ ] Entrée `API.md` mise à jour.
+- [x] `enum RebalanceFrequency` et `Backtest.rebalanceFrequency @default(NONE)` (lignes existantes : `NONE`).
+- [x] Champ `rebalanceFrequency` dans `createBacktestSchema`, publié dans `backtest.requested`.
+- [x] Entrée `API.md` mise à jour.
 
 ### T-12 · Web : champ « Rebalancement » et hypothèse
 
-- **US** : US-03 · **Priorité** : MUST · **Points** : 1 · **Dépend de** : T-08, T-11
+- **US** : US-03 · **Priorité** : MUST · **Points** : 1 · **Dépend de** : T-08, T-11 · **Réalisé** : 1 · **Commits** : `acf32fa`
 - **Fichiers** : `features/backtest/sections.tsx`, `constants.ts`, `assumptions.tsx`
 
 Critères d’acceptation :
-- [ ] Select « Rebalancement » (Aucun / Mensuel / Trimestriel / Annuel), aide « Ramène les poids à la cible ».
-- [ ] Ligne « Rebalancement » dans les hypothèses du résultat ; libellés en constantes de `features/backtest/constants.ts`.
+- [x] Select « Rebalancement » (Aucun / Mensuel / Trimestriel / Annuel), aide « Ramène les poids à la cible ».
+- [x] Ligne « Rebalancement » dans les hypothèses du résultat ; libellés en constantes de `features/backtest/constants.ts`.
 
 ### T-13 · Web : colonne « Côté » des ordres
 
-- **US** : US-04 · **Priorité** : MUST · **Points** : 2 · **Dépend de** : T-09
+- **US** : US-04 · **Priorité** : MUST · **Points** : 2 · **Dépend de** : T-09 · **Réalisé** : 2 · **Commits** : `96030f6`, `1ef0895`
 - **Fichiers** : `features/backtest/column.tsx`, `types.ts`
 
 Critères d’acceptation :
-- [ ] Colonne « Côté » : badge « Achat » (contour vert) / « Vente » (plein rouge), comme la maquette 13.
-- [ ] Type web dérivé du contrat avec `side` optionnel ; absence de `side` ⇒ « Achat » (D10).
+- [x] Colonne « Côté » : badge « Achat » (contour vert) / « Vente » (plein rouge), comme la maquette 13.
+- [x] Type web dérivé du contrat avec `side` optionnel ; absence de `side` ⇒ « Achat » (D10).
 
 ---
 
@@ -286,78 +290,78 @@ Critères d’acceptation :
 
 ### T-14 · Engine : CAGR, volatilité et Sharpe
 
-- **US** : US-05 · **Priorité** : MUST · **Points** : 5 · **Dépend de** : T-00
+- **US** : US-05 · **Priorité** : MUST · **Points** : 5 · **Dépend de** : T-00 · **Réalisé** : 5 · **Commits** : `884c8bf`, `1ef0895`
 - **Fichiers** : `engine/backtest.utils.ts`, `engine/backtest.utils.test.ts`
 
 Critères d’acceptation :
-- [ ] Fonctions pures sur la série des rendements journaliers TWR (hors versements) : `annualizedReturn` (D3), `annualizedVolatility` (D4), `sharpeRatio` (D5).
-- [ ] Constantes nommées : `TRADING_DAYS_PER_YEAR = 252`, `RISK_FREE_RATE = 0` (commentaire : ratio annuel, hypothèse affichée).
-- [ ] CAGR annualisé sur la durée calendaire réelle (jours / 365,25).
-- [ ] Sharpe `null` si volatilité nulle ; métriques `null` si moins de deux points.
-- [ ] Tests contre des valeurs calculées à la main : série constante, rendement journalier fixe, période inférieure à un an, série d’un seul point.
-- [ ] JSDoc : formule, unité, cas `null`.
+- [x] Fonctions pures sur la série des rendements journaliers TWR (hors versements) : `annualizedReturn` (D3), `annualizedVolatility` (D4), `sharpeRatio` (D5).
+- [x] Constantes nommées : `TRADING_DAYS_PER_YEAR = 252`, `RISK_FREE_RATE = 0` (commentaire : ratio annuel, hypothèse affichée).
+- [x] CAGR annualisé sur la durée calendaire réelle (jours / 365,25).
+- [x] Sharpe `null` si volatilité nulle ; métriques `null` si moins de deux points.
+- [x] Tests contre des valeurs calculées à la main : série constante, rendement journalier fixe, période inférieure à un an, série d’un seul point.
+- [x] JSDoc : formule, unité, cas `null`.
 
 ### T-15 · Engine : durée de récupération et drawdown par point
 
-- **US** : US-06, US-07 · **Priorité** : MUST · **Points** : 3 · **Dépend de** : T-00
+- **US** : US-06, US-07 · **Priorité** : MUST · **Points** : 3 · **Dépend de** : T-00 · **Réalisé** : 3 · **Commits** : `884c8bf`, `1ef0895`
 - **Fichiers** : `engine/backtest.utils.ts` (`createDrawdownTracker`), tests
 
 Critères d’acceptation :
-- [ ] Le tracker expose `maxDrawdownPeakDate`, `maxDrawdownRecoveryDate` (`null` si non récupéré) et `recoveryDays` (jours calendaires, `null` si non récupéré), selon D6.
-- [ ] Le tracker renvoie le drawdown courant (ratio ≤ 0) à chaque `record`, pour alimenter la courbe.
-- [ ] Tests : baisse récupérée, baisse jamais récupérée, aucune baisse, deux baisses dont la seconde est la plus profonde.
+- [x] Le tracker expose `maxDrawdownPeakDate`, `maxDrawdownRecoveryDate` (`null` si non récupéré) et `recoveryDays` (jours calendaires, `null` si non récupéré), selon D6.
+- [x] Le tracker renvoie le drawdown courant (ratio ≤ 0) à chaque `record`, pour alimenter la courbe.
+- [x] Tests : baisse récupérée, baisse jamais récupérée, aucune baisse, deux baisses dont la seconde est la plus profonde.
 
 ### T-16 · Contrat : métriques et `equityPoint.drawdown`
 
-- **US** : US-05, US-06, US-07 · **Priorité** : MUST · **Points** : 2 · **Dépend de** : T-09
+- **US** : US-05, US-06, US-07 · **Priorité** : MUST · **Points** : 2 · **Dépend de** : T-09 · **Réalisé** : 2 · **Commits** : `8ebab30`
 - **Fichiers** : `packages/contracts/src/backtest.ts`
 
 Critères d’acceptation :
-- [ ] `backtest.completed` : `cagr`, `volatility`, `sharpeRatio` (nullables), `maxDrawdownPeakDate`, `maxDrawdownRecoveryDate`, `recoveryDays` (nullables), chacun avec son unité commentée.
-- [ ] `equityPointSchema.drawdown: z.number().max(0)` (ratio, TWR).
+- [x] `backtest.completed` : `cagr`, `volatility`, `sharpeRatio` (nullables), `maxDrawdownPeakDate`, `maxDrawdownRecoveryDate`, `recoveryDays` (nullables), chacun avec son unité commentée.
+- [x] `equityPointSchema.drawdown: z.number().max(0)` (ratio, TWR).
 
 ### T-17 · Engine : publier les métriques
 
-- **US** : US-05, US-06, US-07 · **Priorité** : MUST · **Points** : 2 · **Dépend de** : T-10, T-14, T-15, T-16
+- **US** : US-05, US-06, US-07 · **Priorité** : MUST · **Points** : 2 · **Dépend de** : T-10, T-14, T-15, T-16 · **Réalisé** : 2 · **Commits** : `8ebab30`
 - **Fichiers** : `engine/backtest.engine.ts`, `interfaces/backtest.interface.ts`, `publishers/backtest.publisher.ts`
 
 Critères d’acceptation :
-- [ ] `runBacktest` renvoie les nouvelles métriques et `drawdown` sur chaque point.
-- [ ] Taille du message `backtest.completed` mesurée sur 20 ans à 3 actifs, compressé : sous la limite du broker (valeur notée dans la PR).
-- [ ] Test de bout en bout de l’engine sur la fixture : métriques présentes et cohérentes (`maxDrawdown` = minimum des `drawdown`).
+- [x] `runBacktest` renvoie les nouvelles métriques et `drawdown` sur chaque point.
+- [x] Taille du message `backtest.completed` mesurée sur 20 ans à 3 actifs, compressé : sous la limite du broker (valeur notée dans la PR). Mesure (5 220 points, enveloppe comprise) : DCA mensuel + rebalancement trimestriel, 963 ordres : 625 Ko bruts, **104 Ko gzip** ; pire cas DCA quotidien + rebalancement mensuel, 16 380 ordres : 2,24 Mo bruts, **277 Ko gzip**. Limite broker `message.max.bytes` par défaut (1 048 588 octets, non surchargée dans `docker-compose.yml`), producteur en `CompressionTypes.GZIP`.
+- [x] Test de bout en bout de l’engine sur la fixture : métriques présentes et cohérentes (`maxDrawdown` = minimum des `drawdown`).
 
 ### T-18 · core-backend : colonnes de métriques
 
-- **US** : US-05, US-06 · **Priorité** : MUST · **Points** : 3 · **Dépend de** : T-11, T-16
+- **US** : US-05, US-06 · **Priorité** : MUST · **Points** : 3 · **Dépend de** : T-11, T-16 · **Réalisé** : 3 · **Commits** : `1061dfc`
 - **Fichiers** : `prisma/schema.prisma`, migration, `interfaces/backtest.interface.ts`, `repositories/`, `consumers/`
 
 Critères d’acceptation :
-- [ ] `BacktestResult` : `cagr`, `volatility`, `sharpeRatio` (`Decimal(12, 6)?`), `maxDrawdownPeakDate`, `maxDrawdownRecoveryDate` (`DateTime?`), `recoveryDays` (`Int?`), commentaires « null pour les résultats antérieurs » (D10).
-- [ ] `CompleteExecutionDTO` dérivé du payload, dates converties ; écriture dans la transaction de complétion existante.
-- [ ] Un événement `backtest.completed` rejoué ne modifie rien (transition gardée inchangée).
-- [ ] `GET /api/backtests/:id` renvoie les champs ; entrée `API.md` mise à jour.
+- [x] `BacktestResult` : `cagr`, `volatility`, `sharpeRatio` (`Decimal(12, 6)?`), `maxDrawdownPeakDate`, `maxDrawdownRecoveryDate` (`DateTime?`), `recoveryDays` (`Int?`), commentaires « null pour les résultats antérieurs » (D10).
+- [x] `CompleteExecutionDTO` dérivé du payload, dates converties ; écriture dans la transaction de complétion existante.
+- [x] Un événement `backtest.completed` rejoué ne modifie rien (transition gardée inchangée).
+- [x] `GET /api/backtests/:id` renvoie les champs ; entrée `API.md` mise à jour.
 
 ### T-19 · Web : cartes KPI et hypothèses
 
-- **US** : US-05, US-06, US-07 · **Priorité** : MUST · **Points** : 3 · **Dépend de** : T-17, T-18
+- **US** : US-05, US-06, US-07 · **Priorité** : MUST · **Points** : 3 · **Dépend de** : T-17, T-18 · **Réalisé** : 3 · **Commits** : `c721fde`, `7763846`
 - **Fichiers** : `features/backtest/stats.tsx`, `assumptions.tsx`, `lib/format.ts`, `COMPONENTS.md`
 
 Critères d’acceptation :
-- [ ] Cartes (style maquette 19) : CAGR, Volatilité, Max drawdown (légende : date et récupération), Sharpe ; « Valeur finale » et « Frais payés » restent visibles.
-- [ ] Formatter de durée (`formatDuration` ou existant à étendre dans `lib/format.ts`) : « 14 mois », « 45 jours » ; « Non récupéré » si `maxDrawdownRecoveryDate` est `null` et `maxDrawdownPeakDate` présent.
-- [ ] Résultat antérieur (`cagr === null`) : `<Dash />` dans chaque carte, aucune valeur recalculée.
-- [ ] Hypothèse « Taux sans risque : 0 % » ajoutée.
-- [ ] `COMPONENTS.md` mis à jour pour tout formatter ajouté.
+- [x] Cartes (style maquette 19) : CAGR, Volatilité, Max drawdown (légende : date et récupération), Sharpe ; « Valeur finale » et « Frais payés » restent visibles.
+- [x] Formatter de durée (`formatDuration` ou existant à étendre dans `lib/format.ts`) : « 14 mois », « 45 jours » ; « Non récupéré » si `maxDrawdownRecoveryDate` est `null` et `maxDrawdownPeakDate` présent.
+- [x] Résultat antérieur (`cagr === null`) : `<Dash />` dans chaque carte, aucune valeur recalculée.
+- [x] Hypothèse « Taux sans risque : 0 % » ajoutée.
+- [x] `COMPONENTS.md` mis à jour pour tout formatter ajouté.
 
 ### T-20 · Web : courbe de drawdown
 
-- **US** : US-07 · **Priorité** : MUST · **Points** : 3 · **Dépend de** : T-17, T-18
+- **US** : US-07 · **Priorité** : MUST · **Points** : 3 · **Dépend de** : T-17, T-18 · **Réalisé** : 3 · **Commits** : `00860ad`
 - **Fichiers** : `features/backtest/` (nouveau graphique à côté de `equity-chart.tsx`), `backtest-detail.tsx`
 
 Critères d’acceptation :
-- [ ] Aire sous zéro du `drawdown` par date, axe en pourcentage, même axe temporel que la courbe de valeur.
-- [ ] Graphique masqué si les points n’ont pas de `drawdown` (résultat antérieur).
-- [ ] Lisible en mode clair et sombre.
+- [x] Aire sous zéro du `drawdown` par date, axe en pourcentage, même axe temporel que la courbe de valeur.
+- [x] Graphique masqué si les points n’ont pas de `drawdown` (résultat antérieur).
+- [ ] Lisible en mode clair et sombre. *(couleur `--destructive` et tokens du thème ; vérification navigateur clair/sombre non faite ; graphique remplacé par la courbe de drawdown de `ResultOverview` lors de la refonte T-25)*
 
 ---
 
@@ -365,57 +369,58 @@ Critères d’acceptation :
 
 ### T-21 · Contrat : `benchmark` et `benchmarkValue`
 
-- **US** : US-08, US-09 · **Priorité** : MUST · **Points** : 2 · **Dépend de** : T-16
+- **US** : US-08, US-09 · **Priorité** : MUST · **Points** : 2 · **Dépend de** : T-16 · **Réalisé** : 2 · **Commits** : `a37ec22`
 - **Fichiers** : `packages/contracts/src/backtest.ts`
 
 Critères d’acceptation :
-- [ ] `backtest.requested.benchmarkSymbol: string | null`.
-- [ ] `benchmarkSchema` : `symbol`, `finalValue`, `totalReturn`, `cagr`, `volatility`, `sharpeRatio`, `maxDrawdown`, `recoveryDays`, et écarts stratégie − benchmark `excessCagr`, `excessVolatility`, `excessMaxDrawdown`, `excessSharpe` (unités commentées : points de ratio).
-- [ ] `backtest.completed.benchmark: benchmarkSchema.nullable()` ; `equityPointSchema.benchmarkValue` optionnel.
+- [x] `backtest.requested.benchmarkSymbol: string | null`.
+- [x] `benchmarkSchema` : `symbol`, `finalValue`, `totalReturn`, `cagr`, `volatility`, `sharpeRatio`, `maxDrawdown`, `recoveryDays`, et écarts stratégie − benchmark `excessCagr`, `excessVolatility`, `excessMaxDrawdown`, `excessSharpe` (unités commentées : points de ratio).
+- [x] `backtest.completed.benchmark: benchmarkSchema.nullable()` ; `equityPointSchema.benchmarkValue` optionnel.
 
 ### T-22 · Engine : rejeu du benchmark et écarts
 
-- **US** : US-08, US-09 · **Priorité** : MUST · **Points** : 5 · **Dépend de** : T-03, T-17, T-21
+- **US** : US-08, US-09 · **Priorité** : MUST · **Points** : 5 · **Dépend de** : T-03, T-17, T-21 · **Réalisé** : 5 · **Commits** : `a37ec22`
 - **Fichiers** : `engine/backtest.engine.ts`, `services/backtest.service.ts`, tests
 
 Critères d’acceptation :
-- [ ] Benchmark simulé par `simulate` avec une allocation 100 % `benchmarkSymbol`, mêmes versements, dates et frais (D9), sans rebalancement.
-- [ ] Courbe alignée par date avec la stratégie (même règle de départ : premier jour où tous les symboles, benchmark compris, ont un cours).
-- [ ] Cours du benchmark inclus dans `dataSource.fingerprint`.
-- [ ] Benchmark sans données ⇒ `BacktestError` « No market data for <symbol> », exécution `FAILED`.
-- [ ] Tests : benchmark identique à l’unique actif du portefeuille ⇒ écarts nuls ; `benchmarkSymbol: null` ⇒ `benchmark: null` et pas de `benchmarkValue`.
+- [x] Benchmark simulé par `simulate` avec une allocation 100 % `benchmarkSymbol`, mêmes versements, dates et frais (D9), sans rebalancement.
+- [x] Courbe alignée par date avec la stratégie (même règle de départ : premier jour où tous les symboles, benchmark compris, ont un cours).
+- [x] Cours du benchmark inclus dans `dataSource.fingerprint`.
+- [x] Benchmark sans données ⇒ `BacktestError` « No market data for <symbol> », exécution `FAILED`.
+- [x] Tests : benchmark identique à l’unique actif du portefeuille ⇒ écarts nuls ; `benchmarkSymbol: null` ⇒ `benchmark: null` et pas de `benchmarkValue`.
 
 ### T-23 · core-backend : benchmark persisté
 
-- **US** : US-08 · **Priorité** : MUST · **Points** : 3 · **Dépend de** : T-18, T-21
+- **US** : US-08 · **Priorité** : MUST · **Points** : 3 · **Dépend de** : T-18, T-21 · **Réalisé** : 3 · **Commits** : `996fc05`
 - **Fichiers** : `prisma/schema.prisma`, migration, `interfaces/`, `repositories/`, `services/`, `API.md`
 
 Critères d’acceptation :
-- [ ] `Backtest.benchmarkSymbol String?` et `BacktestResult.benchmark Json?` (commentaire de forme, null pour les résultats antérieurs).
-- [ ] `benchmark` ajouté aux colonnes omises des exécutions dans `BacktestWithExecutions` (comme `lumpSumComparison`).
-- [ ] `benchmarkSymbol` dans `createBacktestSchema` (optionnel), publié et relancé.
-- [ ] Entrée `API.md` mise à jour.
+- [x] `Backtest.benchmarkSymbol String?` et `BacktestResult.benchmark Json?` (commentaire de forme, null pour les résultats antérieurs).
+- [x] `benchmark` ajouté aux colonnes omises des exécutions dans `BacktestWithExecutions` (comme `lumpSumComparison`).
+- [x] `benchmarkSymbol` dans `createBacktestSchema` (optionnel), publié et relancé.
+- [x] Entrée `API.md` mise à jour.
 
 ### T-24 · Web : champ « Benchmark »
 
-- **US** : US-08 · **Priorité** : MUST · **Points** : 1 · **Dépend de** : T-08, T-23
+- **US** : US-08 · **Priorité** : MUST · **Points** : 1 · **Dépend de** : T-08, T-23 · **Réalisé** : 1 · **Commits** : `0ea3bbe`
 - **Fichiers** : `features/backtest/sections.tsx`, `constants.ts`
 
 Critères d’acceptation :
-- [ ] Champ « Benchmark » (recherche de symboles), valeur proposée `URTH` en constante, effaçable.
-- [ ] Hypothèse « Benchmark » affichée sur le résultat.
+- [x] Champ « Benchmark » (recherche de symboles), valeur proposée `URTH` en constante, effaçable.
+- [x] Hypothèse « Benchmark » affichée sur le résultat.
+- [ ] Vérifié dans un navigateur (sélection, retrait, envoi `null`, hypothèse « Aucun »). *(non fait ; envoi avec benchmark vérifié par l’API, démo T-30)*
 
 ### T-25 · Web : écarts, série et tableau « Métriques comparées »
 
-- **US** : US-09 · **Priorité** : MUST · **Points** : 5 · **Dépend de** : T-19, T-22, T-23
+- **US** : US-09 · **Priorité** : MUST · **Points** : 5 · **Dépend de** : T-19, T-22, T-23 · **Réalisé** : 8 · **Commits** : `1049a62`, `ad18362`, `d753c02`, `9bbd44f`
 - **Fichiers** : `features/backtest/stats.tsx`, `equity-chart.tsx`, nouveau tableau dans `features/backtest/`
 
 Critères d’acceptation :
-- [ ] Badges d’écart sur les cartes KPI (« +1,3 pt »), lus dans `benchmark.excess*`, et légende « B : 16,1 % ».
-- [ ] Série « Benchmark » superposée sur la courbe de valeur, avec légende.
-- [ ] Tableau « Métriques comparées » : Rendement annualisé, Volatilité, Max drawdown, Durée de récupération, Sharpe ; colonnes Portefeuille / Benchmark.
-- [ ] Sans benchmark : badges, série et colonne masqués.
-- [ ] Aucun écart calculé côté web.
+- [x] ~~Badges d’écart sur les cartes KPI~~ : amendé par la refonte de l’écran de détail (maquette « 13 v2 · A », Figma `350:7214`) : plus de cartes KPI, la valeur du benchmark est une seconde colonne des blocs Performance et Risque (`BacktestResultBlocks`) ; rendement du benchmark rappelé sous la valeur finale. `benchmark.excess*` sera affiché par la page Comparaison (T-27).
+- [x] Série « Benchmark » superposée sur la courbe de valeur (pointillés, nommée dans l’infobulle) : `ResultOverview`.
+- [x] « Métriques comparées » : CAGR, rendement total, valeur finale (bloc Performance), volatilité, Sharpe, max drawdown, récupération (bloc Risque) ; colonnes Portefeuille / symbole du benchmark.
+- [x] Sans benchmark : colonne masquée, la série en pointillés redevient l’investissement unique (DCA).
+- [x] Aucun écart calculé côté web.
 
 ---
 
@@ -423,56 +428,56 @@ Critères d’acceptation :
 
 ### T-26 · core-backend : `GET /api/backtests/compare`
 
-- **US** : US-10 · **Priorité** : SHOULD · **Points** : 5 · **Dépend de** : T-23
+- **US** : US-10 · **Priorité** : SHOULD · **Points** : 5 · **Dépend de** : T-23 · **Réalisé** : 5 · **Commits** : `78c101d`
 - **Fichiers** : `interfaces/`, `repositories/`, `services/`, `controller/`, `routes/backtest/`, `API.md`
 
 Critères d’acceptation :
-- [ ] `?ids=a,b` validé par zod (exactement deux identifiants distincts).
-- [ ] Réponse : pour chaque backtest, paramètres, allocation, métriques et courbe du dernier résultat terminé ; écarts A − B calculés par le service ; drapeau `homogeneous` (même période, mêmes frais, même benchmark) et liste des différences.
-- [ ] Backtest d’un autre utilisateur ⇒ `NotFoundError` (helper `assertOwner`) ; sans résultat terminé ⇒ `BadRequestError`.
-- [ ] Lecture des colonnes lourdes uniquement pour la réponse, pas pour l’autorisation.
-- [ ] Entrée `API.md` (appelant web : page Comparaison).
+- [x] `?ids=a,b` validé par zod (exactement deux identifiants distincts).
+- [x] Réponse : pour chaque backtest, paramètres, allocation, métriques et courbe du dernier résultat terminé ; écarts A − B calculés par le service ; drapeau `homogeneous` (même période, mêmes frais, même benchmark) et liste des différences. Route servie sous le préfixe existant `/api/backtest/compare` ; type de réponse `BacktestComparison` exporté par le contrat pour le web.
+- [x] Backtest d’un autre utilisateur ⇒ `NotFoundError` ; sans résultat terminé ⇒ `BadRequestError`. Écart : pas d’`assertOwner` (il lève `ForbiddenError` pour un autre utilisateur), la lecture légère est filtrée sur `userId` et un backtest absent lève `NotFoundError`.
+- [x] Lecture des colonnes lourdes uniquement pour la réponse, pas pour l’autorisation.
+- [x] Entrée `API.md` (appelant web : page Comparaison, à brancher par T-27).
 
 ### T-27 · Web : page « Comparaison »
 
-- **US** : US-10 · **Priorité** : SHOULD · **Points** : 5 · **Dépend de** : T-25, T-26
+- **US** : US-10 · **Priorité** : SHOULD · **Points** : 5 · **Dépend de** : T-25, T-26 · **Réalisé** : 8 · **Commits** : `1cae77c`, `b956cd2`, `a02cfc8`, `881afae`
 - **Fichiers** : `app/(base)/.../comparaison/page.tsx`, `features/backtest/` (ou `features/comparison/` si le domaine grossit), sidebar
 
 Critères d’acceptation :
-- [ ] Sélection de deux backtests terminés ; URL partageable (`?ids=`).
-- [ ] Blocs du haut de la maquette 19 : cartes KPI de A avec écart à B, « Valeur des portefeuilles » (A, B, benchmark), « Métriques comparées » (A, B, benchmark). Réutilise les composants de T-19 et T-25.
-- [ ] Bandeau d’avertissement si `homogeneous === false`, avec les différences.
-- [ ] Blocs « Selon la date de départ », « Rendements glissants », « Effet devise » absents (mois 5).
+- [x] Sélection de deux backtests terminés ; URL partageable (`?ids=`). Page `/app/backtest/compare` (`app/app/backtest/compare/page.tsx`, à côté du détail), entrée « Analyse > Comparaison » de la sidebar ; choix parmi les 100 plus récents qui ont un résultat terminé, même relancés depuis (`GET /api/backtest?hasResult=true`, ajouté après revue, `881afae`), « Échanger », « Copier le lien » ; un lien `?ids=x,x` ou à plus de deux ids est traité comme sans sélection. Responsive vérifié par l’utilisateur le 31/10/2026.
+- [x] Blocs du haut de la maquette 19 : ~~cartes KPI de A avec écart à B~~, « Valeur des portefeuilles » (A, B, benchmark), « Métriques comparées » (A, B, benchmark). Réutilise les composants de T-19 et T-25. Écart : codé depuis la maquette validée « 19 v2 · Comparaison de backtests » (Figma `360:7783`), qui remplace les cartes KPI par la colonne « Écart » (`deltas` de l’API) du tableau « Métriques comparées » et ajoute la carte « Paramètres » (badge « diffère »). Réutilise `PriceAreaChart` (seconde série pleine `other` ajoutée), `MetricBlock` (props `strong`, `rowHeader`, badge de ligne) et les helpers d’affichage (`show`, `formatAmount`, `formatRecovery`, déplacés de `stats.tsx` vers `utils.tsx` après revue) ; benchmark de A, sinon de B ; aucun écart calculé côté web.
+- [x] Bandeau d’avertissement si `homogeneous === false`, avec les différences.
+- [x] Blocs « Selon la date de départ », « Rendements glissants », « Effet devise » absents (mois 5).
 
 ### T-28 · Liste : colonnes « Allocation » et « CAGR »
 
-- **US** : US-11 · **Priorité** : SHOULD · **Points** : 3 · **Dépend de** : T-05, T-18
+- **US** : US-11 · **Priorité** : SHOULD · **Points** : 3 · **Dépend de** : T-05, T-18 · **Réalisé** : 2 · **Commits** : `9bbd44f`
 - **Fichiers** : `repositories/backtest.repository.ts`, `features/backtest/column.tsx`, `API.md`
 
 Critères d’acceptation :
-- [ ] `GET /api/backtests` inclut l’allocation et le `cagr` du dernier résultat, sans `equityCurve`, `trades`, `holdings`, `benchmark`.
-- [ ] Colonne « Allocation » : `AAPL 30 % · MSFT 30 % · IEF 40 %`, tronquée avec infobulle.
-- [ ] Colonne « CAGR » : `<Dash />` si non terminé ou résultat antérieur.
+- [x] `GET /api/backtest` inclut l’allocation et le `cagr` du dernier résultat, sans `equityCurve`, `trades`, `holdings`, `benchmark` : déjà le cas (`latestExecution` + `executionSummary` du repository) ; seule l’entrée `API.md` est précisée.
+- [x] Colonne « Allocation » : `AAPL 30 % · MSFT 30 % · IEF 40 %` (`formatAllocation`), tronquée avec infobulle native (`title`).
+- [x] Colonne « CAGR » : `<Dash />` si non terminé ou résultat antérieur.
 
 ### T-29 · Récapitulatif prévisionnel du formulaire
 
-- **US** : US-02 · **Priorité** : SHOULD · **Points** : 5 · **Dépend de** : T-11
+- **US** : US-02 · **Priorité** : SHOULD · **Points** : 5 · **Dépend de** : T-11 · **Réalisé** : 5 · **Commits** : `3a3bb64`
 - **Fichiers** : core-backend (service + route de prévisualisation), `features/backtest/` (panneau), `API.md`
 
 Critères d’acceptation :
-- [ ] Route de prévisualisation (ex. `POST /api/backtests/preview`, sans écriture) : nombre de versements et de rebalancements prévus, calculés par le service à partir du calendrier, sans appel à l’engine.
-- [ ] Panneau « Récapitulatif » de la maquette 12.1 : étapes Données / Simulation / Métriques, « Rebalancements prévus », « Versements prévus », « Source des données ».
-- [ ] Appel débouncé, panneau en `<Dash />` tant que le formulaire est invalide.
-- [ ] Les nombres prévus sont des estimations calendaires (jours fériés non connus avant les cours) : libellé explicite.
+- [x] Route de prévisualisation (ex. `POST /api/backtests/preview`, sans écriture) : nombre de versements et de rebalancements prévus, calculés par le service à partir du calendrier, sans appel à l’engine. Livrée en `POST /api/backtest/preview` (préfixe existant au singulier) ; vérifiée par appel direct du service (12 versements / 3 rebalancements trimestriels sur 2024 saisi depuis Paris).
+- [x] Panneau « Récapitulatif » de la maquette 12.1 : étapes Données / Simulation / Métriques, « Rebalancements prévus », « Versements prévus », « Source des données ». Rendu non vérifié dans un navigateur (tsc et lint seulement).
+- [x] Appel débouncé, panneau en `<Dash />` tant que le formulaire est invalide. Comportement à confirmer dans un navigateur.
+- [x] Les nombres prévus sont des estimations calendaires (jours fériés non connus avant les cours) : libellé explicite.
 
 ### T-30 · Documentation, limites et démo
 
-- **US** : US-12 · **Priorité** : MUST · **Points** : 2 · **Dépend de** : T-12, T-13, T-20, T-24, T-25
+- **US** : US-12 · **Priorité** : MUST · **Points** : 2 · **Dépend de** : T-12, T-13, T-20, T-24, T-25 · **Réalisé** : 3 · **Commits** : `5a03870`, `d3c2582`
 - **Fichiers** : `README.md`, `roadmap/08-portfolio-v1/` (US, tâches, bilan), `roadmap/README.md`
 
 Critères d’acceptation :
-- [ ] README, « Définition de terminé » : case portefeuille multi-actifs cochée.
-- [ ] Limites documentées : taux sans risque à 0, dividendes non inclus, actifs en USD affichés sans conversion (mois 5), rebalancement à la clôture du premier jour de la période.
-- [ ] Scénario de démo exécuté de bout en bout : 60 % `AAPL` / 40 % `MSFT`, rebalancement annuel, frais 0,1 %, benchmark `URTH`, `PENDING` → `RUNNING` → `COMPLETED`, métriques face au benchmark.
-- [ ] Rejeu d’un `backtest.requested` : ni double exécution ni double résultat.
-- [ ] Feature clôturée avec le skill `feature-roadmap` (mode clôture) : cases cochées, commits et points réalisés, bilan, statut `Livrée` dans l’index.
+- [x] README, « Définition de terminé » : case portefeuille multi-actifs cochée.
+- [x] Limites documentées : taux sans risque à 0, dividendes non inclus, actifs en USD affichés sans conversion (mois 5), rebalancement à la clôture du premier jour de la période. Section « Limites à rendre visibles » du README, chaque limite vérifiée dans le code (`RISK_FREE_RATE`, `market.repository.ts`, `BACKTEST_CURRENCY`, `simulate`). Précisions du code : le rebalancement n’a jamais lieu le premier jour de la simulation, suit le versement du jour, laisse les lignes achetées légèrement sous leur cible à cause des frais, et suit le calendrier union allocation + benchmark.
+- [x] Scénario de démo exécuté de bout en bout : 60 % `AAPL` / 40 % `MSFT`, rebalancement annuel, frais 0,1 %, benchmark `URTH`, `PENDING` → `RUNNING` → `COMPLETED`, métriques face au benchmark. Exécuté le 2026-10-31 par HTTP sur core-backend (utilisateur de test, `LUMP_SUM` 10 000 €, 2015-01-01 → 2025-01-01) : `202` en `PENDING`, `RUNNING` puis `COMPLETED` en 0,26 s (`startedAt` → `finishedAt`). Résultat : 2 516 points, 20 ordres dont 9 ventes, 9 rebalancements au premier jour de cotation de chaque année (2016-01-04 … 2024-01-02), frais 27,36 €, valeur finale 93 518,35 €. Portefeuille / `URTH` : CAGR 25,08 % / 8,06 %, volatilité 25,75 % / 17,36 %, Sharpe 0,97 / 0,46, max drawdown −32,47 % / −34,01 %, récupération 534 / 196 jours, valeur finale 93 518,35 € / 21 681,02 €. Vérifié par l’API seulement, pas dans un navigateur.
+- [x] Rejeu d’un `backtest.requested` : ni double exécution ni double résultat. Message d’origine relu sur le topic et republié à l’identique (même clé, `eventId`, payload) : l’engine recalcule et republie `backtest.started` et `backtest.completed` (nouveaux `eventId`, même empreinte `dataSource.fingerprint`, mêmes métriques). core-backend les ignore : une seule `BacktestExecution` (`COMPLETED`, attempt 1, dates inchangées) et un seul `BacktestResult` (même `id`, même `createdAt`), comparés par Prisma Client avant et après le rejeu.
+- [x] Feature clôturée avec le skill `feature-roadmap` (mode clôture) : cases cochées, commits et points réalisés, bilan, statut `Livrée` dans l’index.

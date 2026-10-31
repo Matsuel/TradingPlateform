@@ -881,8 +881,12 @@ Pour éviter une ambiguïté : ce mode mesure le résultat **après** le lanceme
 ### Limites à rendre visibles
 
 - Les données historiques peuvent contenir des ajustements de split ou dividende : leur traitement doit être déclaré et testé avant d’être activé.
-- Le MVP utilise une fréquence mensuelle, un actif et des bougies journalières ; pas de stratégie intraday ni d’optimisation automatique.
+- Les backtests utilisent des bougies journalières (versements quotidiens à annuels) ; pas de stratégie intraday ni d’optimisation automatique.
 - Les frais, la fiscalité, la liquidité et le slippage réel ne sont pas connus avec précision ; le MVP ne simule que les frais configurés.
+- **Dividendes non inclus** : les cours sont les clôtures journalières yahoo-finance2 ajustées des splits, pas des dividendes (`priceType: CLOSE_SPLIT_ADJUSTED`) ; aucun dividende n’est versé ni réinvesti. Le rendement d’un actif qui distribue, benchmark compris, est sous-estimé.
+- **Taux sans risque à 0** : le Sharpe vaut `(CAGR − 0) / volatilité` (`RISK_FREE_RATE` de l’engine), publié avec chaque résultat (`riskFreeRate`) et affiché dans ses hypothèses.
+- **Pas de conversion de devise (mois 5)** : les montants saisis sont affichés en `EUR`, mais les ordres sont passés au cours de cotation de l’actif sans taux de change. Pour un actif coté en USD (`AAPL`, `MSFT`, `URTH`), 1 € versé achète 1 $ de titres ; l’effet devise n’est pas mesuré.
+- **Rebalancement à la clôture du premier jour de la période** : au premier jour de cotation de chaque mois, trimestre ou année civile, jamais le premier jour de la simulation, après le versement du jour. Les lignes surpondérées sont vendues, le produit net des ventes rachète les lignes sous-pondérées : à cause des frais, ces lignes finissent légèrement sous leur cible (environ 2 × frais de leur écart). Le calendrier est celui des jours de cotation de l’allocation, à partir du premier jour où l’allocation et le benchmark ont tous un cours : un benchmark coté plus tard retarde donc le départ de la stratégie. Un cours absent un jour du calendrier (benchmark compris) est reporté de la dernière clôture connue.
 - L’UI affiche : « Les performances passées ne préjugent pas des performances futures. Simulation pédagogique, pas un conseil en investissement. »
 
 ## Simulation, bots et replay
@@ -1057,8 +1061,8 @@ Si le temps manque : finir le MVP du mois 4, documenter ses limites et préparer
 - [ ] Un nouvel environnement démarre avec une commande documentée et un jeu de données de démo.
 - [ ] Un backtest DCA mensuel sur un actif historique est reproductible, liste ses transactions et affiche sa courbe de valeur.
 - [ ] Le résultat compare explicitement le DCA à un investissement unique et indique les frais, période et règle d’exécution.
-- [ ] Un portefeuille multi-actifs avec poids et rebalancement affiche CAGR, volatilité, max drawdown, durée de récupération, Sharpe et benchmark.
-- [ ] Un message `backtest.requested` rejoué ne crée ni double exécution ni double résultat.
+- [x] Un portefeuille multi-actifs avec poids et rebalancement affiche CAGR, volatilité, max drawdown, durée de récupération, Sharpe et benchmark.
+- [x] Un message `backtest.requested` rejoué ne crée ni double exécution ni double résultat.
 - [ ] Les calculs du moteur et les invariants critiques sont couverts par des tests automatisés.
 - [ ] Kafka et PostgreSQL sont observables ; un dashboard montre au moins simulations, lag et erreurs.
 - [ ] La recherche d’instruments, la fiche et le graphique lisent les données persistées par MarketFlow, sans appel navigateur vers un fournisseur externe.

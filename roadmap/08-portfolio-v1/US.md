@@ -1,7 +1,7 @@
 # 08 · Portfolio Management V1 — User stories
 
 > Roadmap (`README.md`, « Roadmap annuelle ») : **poids par actif, rebalancement, benchmark, CAGR, volatilité, durée de récupération et Sharpe.**
-> Maquettes Figma (fichier `Trading`) : `12.1 · Nouveau backtest · Allocation`, `13 · Résultats d’un backtest`, `19 · Comparaison de portefeuilles` (cartes KPI et tableau « Métriques comparées »), `11 · Liste des backtests`.
+> Maquettes Figma (fichier `Trading`) : `12.1 · Nouveau backtest · Allocation`, `13 · Résultats d’un backtest`, `19 · Comparaison de portefeuilles` (cartes KPI et tableau « Métriques comparées »), `11 · Liste des backtests` : références antérieures à la règle « Maquette d'abord » (`apps/web/AGENTS.md`), à revalider avant de coder un écran qui n'est pas encore implémenté. `13 v2 · A · Héros + blocs groupés` (`350:7214`) : détail d'un backtest, validée le 31/10/2026 ; `13 v2 · B` (`350:7651`) et `13 v2 · C` (`350:8088`) : écartées. `19 v2 · Comparaison de backtests` (`360:7783`) : page Comparaison (T-27), validée le 31/10/2026.
 
 ## Point de départ (fin du mois 3)
 
@@ -34,14 +34,14 @@ Ces choix structurent le contrat et la base. Ils sont proposés par défaut ; à
 | --- | --- | --- | --- |
 | D1 | Stockage de l’allocation | Table `BacktestAllocation` (`backtestId`, `symbol`, `weight Decimal(3,2)`, ratio au pourcent près), unique `(backtestId, symbol)`. Migration : backfill équipondéré au pourcent entier depuis `symbols` (le reste de 100 réparti sur les premiers symboles), puis suppression de `Backtest.symbols`. **Validée.** | Une seule source pour les actifs (règle « une signification, un seul endroit ») ; Prisma sait filtrer et inclure une relation. |
 | D2 | Poids | Saisie et API au **pourcent entier** (1 à 100, somme = 100 exactement). Contrat et base en ratio (`0.6`), multiple de `0.01` : somme = 1 à `1e-6` près (tolérance flottante), chaque poids dans `]0, 1]`, symboles uniques. Validé par zod côté API **et** dans le contrat. **Validée (amendée : précision au pourcent).** | Convention des ratios du dépôt ; une précision plus fine n’apporte rien à l’utilisateur et complique la saisie. |
-| D3 | Rendement annualisé | CAGR calculé sur la performance pondérée dans le temps (TWR, hors versements), comme le drawdown actuel. | Comparable entre DCA, investissement unique et benchmark ; le rendement total actuel (profit / versé) reste affiché. |
-| D4 | Volatilité | Écart-type des rendements journaliers TWR × √252, annualisé. | Standard ; 252 jours de cotation par an en constante nommée de l’engine. |
-| D5 | Sharpe | (rendement annualisé − taux sans risque) / volatilité, avec **taux sans risque fixé à 0** en constante de l’engine et affiché dans les hypothèses. `null` si volatilité nulle. | Pas de série de taux disponible ; une constante visible vaut mieux qu’un paramètre non justifié. |
-| D6 | Durée de récupération | Jours calendaires entre le plus-haut précédant le max drawdown et le premier retour à ce plus-haut. `maxDrawdownRecoveryDate: null` = pas encore récupéré. | Question du README : « combien de temps pour retrouver le précédent plus-haut ». |
-| D7 | Rebalancement | Fréquence `NONE` / `MONTHLY` / `QUARTERLY` / `YEARLY`, au premier jour de cotation de la période, à la clôture (décision planifiée : règle `CLOSE_ON_SCHEDULED_DAY` inchangée). Ordre du jour : versement d’abord (réparti selon les poids cibles), puis rebalancement. | Pas de look-ahead : la date est connue à l’avance. |
-| D8 | Frais | Le taux s’applique à **chaque ordre**, achat ou vente (`feeRate` : « frais par ordre »). | Le rebalancement introduit des ventes ; ignorer leurs frais surestimerait le résultat. |
-| D9 | Benchmark | Un symbole optionnel (`benchmarkSymbol`), rejoué avec **les mêmes versements, dates et frais**, 100 % sur le benchmark. Suggestion par défaut dans le formulaire : `URTH` (MSCI World). | Comparaison à capital et flux identiques, seule l’allocation change. |
-| D10 | Résultats antérieurs | Nouvelles colonnes nullables ; `cagr === null` signale un résultat antérieur au mois 4 : le web affiche `<Dash />` sans recalcul. Les `trades` sans `side` sont lus comme des achats. | Règle « Résultats stockés qui évoluent ». |
+| D3 | Rendement annualisé | CAGR calculé sur la performance pondérée dans le temps (TWR, hors versements), comme le drawdown actuel. **Validée.** | Comparable entre DCA, investissement unique et benchmark ; le rendement total actuel (profit / versé) reste affiché. |
+| D4 | Volatilité | Écart-type des rendements journaliers TWR × √252, annualisé. **Validée.** | Standard ; 252 jours de cotation par an en constante nommée de l’engine. |
+| D5 | Sharpe | (rendement annualisé − taux sans risque) / volatilité, avec **taux sans risque fixé à 0** en constante de l’engine et affiché dans les hypothèses. `null` si volatilité nulle. **Validée.** | Pas de série de taux disponible ; une constante visible vaut mieux qu’un paramètre non justifié. |
+| D6 | Durée de récupération | Jours calendaires entre le plus-haut précédant le max drawdown et le premier retour à ce plus-haut. `maxDrawdownRecoveryDate: null` = pas encore récupéré. **Validée.** | Question du README : « combien de temps pour retrouver le précédent plus-haut ». |
+| D7 | Rebalancement | Fréquence `NONE` / `MONTHLY` / `QUARTERLY` / `YEARLY`, au premier jour de cotation de la période, à la clôture (décision planifiée : règle `CLOSE_ON_SCHEDULED_DAY` inchangée). Ordre du jour : versement d’abord (réparti selon les poids cibles), puis rebalancement. **Validée.** | Pas de look-ahead : la date est connue à l’avance. |
+| D8 | Frais | Le taux s’applique à **chaque ordre**, achat ou vente (`feeRate` : « frais par ordre »). **Validée.** | Le rebalancement introduit des ventes ; ignorer leurs frais surestimerait le résultat. |
+| D9 | Benchmark | Un symbole optionnel (`benchmarkSymbol`), rejoué avec **les mêmes versements, dates et frais**, 100 % sur le benchmark. Suggestion par défaut dans le formulaire : `URTH` (MSCI World). **Validée.** | Comparaison à capital et flux identiques, seule l’allocation change. |
+| D10 | Résultats antérieurs | Nouvelles colonnes nullables ; `cagr === null` signale un résultat antérieur au mois 4 : le web affiche `<Dash />` sans recalcul. Les `trades` sans `side` sont lus comme des achats. **Validée.** | Règle « Résultats stockés qui évoluent ». |
 
 ---
 
@@ -57,10 +57,10 @@ Chaque US touche toutes les couches concernées dans le même diff et met à jou
 **En tant qu’** utilisateur, **je veux** attribuer un poids à chaque actif **afin de** simuler une allocation précise (ex. 60 % actions / 40 % obligations) plutôt qu’un panier équipondéré.
 
 Critères d’acceptation :
-- [ ] Chaque versement est réparti entre les actifs selon leurs poids cibles, frais déduits de chaque ordre.
-- [ ] Un panier aux poids égaux exactement représentables au pourcent (ex. 50/50, 25×4) donne exactement le résultat actuel : test de non-régression sur la fixture existante. Un panier de 3 actifs passe de 1/3 à 34/33/33 (D2) : seul un « Relancer » diffère légèrement, les résultats stockés ne changent pas.
-- [ ] Les poids invalides (somme ≠ 1, poids ≤ 0, symbole dupliqué) sont rejetés par le contrat ; le consumer de l’engine loggue et ignore le message.
-- [ ] Même entrée + mêmes cours ⇒ même résultat (test de reproductibilité étendu aux poids).
+- [x] Chaque versement est réparti entre les actifs selon leurs poids cibles, frais déduits de chaque ordre.
+- [x] Un panier aux poids égaux exactement représentables au pourcent (ex. 50/50, 25×4) donne exactement le résultat actuel : test de non-régression sur la fixture existante. Un panier de 3 actifs passe de 1/3 à 34/33/33 (D2) : seul un « Relancer » diffère légèrement, les résultats stockés ne changent pas.
+- [x] Les poids invalides (somme ≠ 1, poids ≤ 0, symbole dupliqué) sont rejetés par le contrat ; le consumer de l’engine loggue et ignore le message.
+- [x] Même entrée + mêmes cours ⇒ même résultat (test de reproductibilité étendu aux poids).
 
 Tâches :
 - `packages/contracts` : remplacer `symbols` par `allocations: [{ symbol, weight }]` (unité : ratio) dans `backtestRequestedPayloadSchema`, avec le `refine` de somme.
@@ -73,11 +73,11 @@ Tâches :
 **En tant qu’** utilisateur, **je veux** composer mon portefeuille dans le formulaire « Nouveau backtest » **afin de** saisir actifs, poids, capital initial et versement mensuel au même endroit (maquette `12.1`).
 
 Critères d’acceptation :
-- [ ] Section « Allocation et période » : liste « Actifs et poids » avec, par ligne, symbole + nom, barre proportionnelle et champ `%` ; bouton « + Ajouter un actif » qui ouvre la recherche de symboles existante ; suppression d’une ligne.
-- [ ] Badge « Total » vert à 100 %, rouge sinon ; le bouton « Lancer le backtest » est désactivé tant que le total ≠ 100 %.
-- [ ] Section « Général » : « Mode d’investissement » (`Investissement unique` / `Investissement unique + versements mensuels`), « Versement mensuel (€) » visible seulement en DCA ; « Capital initial (€) » dans « Allocation et période », avec Début, Fin et « Frais par ordre (%) ».
-- [ ] L’API `POST /api/backtests` accepte `allocations` (poids en pourcent entier côté formulaire, convertis en ratio par le schéma d’entrée du backend), `initialAmount`, `recurringAmount` ; erreurs zod renvoyées en 400 et affichées sous le champ.
-- [ ] « Relancer » réutilise l’allocation persistée.
+- [x] Section « Allocation et période » : liste « Actifs et poids » avec, par ligne, symbole + nom, barre proportionnelle et champ `%` ; bouton « + Ajouter un actif » qui ouvre la recherche de symboles existante ; suppression d’une ligne.
+- [x] Badge « Total » vert à 100 %, rouge sinon ; le bouton « Lancer le backtest » est désactivé tant que le total ≠ 100 %.
+- [x] Section « Général » : « Mode d’investissement » (`Investissement unique` / `Investissement unique + versements mensuels`), « Versement mensuel (€) » visible seulement en DCA ; « Capital initial (€) » dans « Allocation et période », avec Début, Fin et « Frais par ordre (%) ».
+- [x] L’API `POST /api/backtests` accepte `allocations` (poids en pourcent entier côté formulaire, convertis en ratio par le schéma d’entrée du backend), `initialAmount`, `recurringAmount` ; erreurs zod renvoyées en 400 et affichées sous le champ. Livrée sous le préfixe existant `POST /api/backtest` (singulier).
+- [x] « Relancer » réutilise l’allocation persistée.
 
 Tâches :
 - `core-backend/interfaces` : nouveau `createBacktestSchema` (allocations, capital initial, versement, fréquence), mapping dans le service ; `API.md` mis à jour.
@@ -91,11 +91,11 @@ Tâches :
 **En tant qu’** utilisateur, **je veux** choisir une fréquence de rebalancement **afin de** ramener le portefeuille à ses poids cibles et éviter que l’allocation ne dérive.
 
 Critères d’acceptation :
-- [ ] Champ « Rebalancement » (Aucun / Mensuel / Trimestriel / Annuel, aide « Ramène les poids à la cible ») dans le formulaire.
-- [ ] Aux dates de D7, l’engine vend les actifs surpondérés et achète les sous-pondérés ; après l’opération, chaque poids est égal à la cible (aux frais près).
-- [ ] Frais appliqués aux ventes comme aux achats (D8) et inclus dans `totalFees`.
-- [ ] `NONE` reproduit le comportement actuel (aucune vente).
-- [ ] Tests : dérive puis retour à la cible sur une fixture à deux actifs aux trajectoires opposées ; pas de rebalancement le premier jour ; aucune vente sans rebalancement.
+- [x] Champ « Rebalancement » (Aucun / Mensuel / Trimestriel / Annuel, aide « Ramène les poids à la cible ») dans le formulaire.
+- [x] Aux dates de D7, l’engine vend les actifs surpondérés et achète les sous-pondérés ; après l’opération, chaque poids est égal à la cible (aux frais près).
+- [x] Frais appliqués aux ventes comme aux achats (D8) et inclus dans `totalFees`.
+- [x] `NONE` reproduit le comportement actuel (aucune vente).
+- [x] Tests : dérive puis retour à la cible sur une fixture à deux actifs aux trajectoires opposées ; pas de rebalancement le premier jour ; aucune vente sans rebalancement.
 
 Tâches :
 - Contrat : `rebalanceFrequency` dans `backtest.requested`.
@@ -108,10 +108,10 @@ Tâches :
 **En tant qu’** utilisateur, **je veux** voir le sens de chaque ordre **afin de** comprendre ce que le rebalancement a exécuté.
 
 Critères d’acceptation :
-- [ ] `trade.side` (`BUY` / `SELL`) dans le contrat ; quantité et montant restent positifs, le sens porte le signe.
-- [ ] Tableau des ordres : colonne « Côté » avec badges « Achat » / « Vente » (maquette `13`).
-- [ ] Un ordre d’un résultat antérieur sans `side` s’affiche « Achat » (D10).
-- [ ] `holdings` reflète les quantités après ventes.
+- [x] `trade.side` (`BUY` / `SELL`) dans le contrat ; quantité et montant restent positifs, le sens porte le signe.
+- [x] Tableau des ordres : colonne « Côté » avec badges « Achat » / « Vente » (maquette `13`).
+- [x] Un ordre d’un résultat antérieur sans `side` s’affiche « Achat » (D10).
+- [x] `holdings` reflète les quantités après ventes.
 
 ### Lot 3 — Métriques
 
@@ -120,29 +120,29 @@ Critères d’acceptation :
 **En tant qu’** utilisateur, **je veux** connaître le CAGR, la volatilité et le Sharpe de ma stratégie **afin de** juger le rendement obtenu au regard du risque pris.
 
 Critères d’acceptation :
-- [ ] L’engine calcule `cagr`, `volatility` et `sharpeRatio` selon D3, D4, D5 ; unités documentées dans le contrat (ratios annualisés, Sharpe sans unité).
-- [ ] Tests unitaires contre des valeurs calculées à la main : série constante (volatilité 0, Sharpe `null`), série à rendement journalier fixe (CAGR connu), période inférieure à un an.
-- [ ] Colonnes nullables dans `BacktestResult` (`Decimal(12,6)`), écrites dans la transaction de complétion existante.
-- [ ] Le taux sans risque utilisé (0 %) apparaît dans les hypothèses.
+- [x] L’engine calcule `cagr`, `volatility` et `sharpeRatio` selon D3, D4, D5 ; unités documentées dans le contrat (ratios annualisés, Sharpe sans unité).
+- [x] Tests unitaires contre des valeurs calculées à la main : série constante (volatilité 0, Sharpe `null`), série à rendement journalier fixe (CAGR connu), période inférieure à un an.
+- [x] Colonnes nullables dans `BacktestResult` (`Decimal(12,6)`), écrites dans la transaction de complétion existante.
+- [x] Le taux sans risque utilisé (0 %) apparaît dans les hypothèses.
 
 #### US-06 · Mesurer la durée de récupération — MUST
 
 **En tant qu’** utilisateur, **je veux** savoir combien de temps le portefeuille a mis à retrouver son plus-haut après la pire baisse **afin de** mesurer la douleur réelle d’un drawdown.
 
 Critères d’acceptation :
-- [ ] L’engine publie `maxDrawdownPeakDate`, `maxDrawdownRecoveryDate` (`null` si non récupéré) et `recoveryDays` (jours calendaires, `null` si non récupéré) selon D6, en étendant `createDrawdownTracker`.
-- [ ] Tests : baisse récupérée, baisse jamais récupérée, aucune baisse (`maxDrawdown` 0).
-- [ ] Affichage « 14 mois » / « 45 jours » (formatage d’une durée côté web) ; « Non récupéré » si `null` avec une date de plus-haut présente ; `<Dash />` pour un résultat antérieur.
+- [x] L’engine publie `maxDrawdownPeakDate`, `maxDrawdownRecoveryDate` (`null` si non récupéré) et `recoveryDays` (jours calendaires, `null` si non récupéré) selon D6, en étendant `createDrawdownTracker`.
+- [x] Tests : baisse récupérée, baisse jamais récupérée, aucune baisse (`maxDrawdown` 0).
+- [x] Affichage « 14 mois » / « 45 jours » (formatage d’une durée côté web) ; « Non récupéré » si `null` avec une date de plus-haut présente ; `<Dash />` pour un résultat antérieur.
 
 #### US-07 · Afficher les métriques et la courbe de drawdown — MUST
 
 **En tant qu’** utilisateur, **je veux** retrouver toutes les métriques sur la page de résultat **afin de** lire la performance et le risque d’un coup d’œil.
 
 Critères d’acceptation :
-- [ ] Cartes KPI (style maquette `19`) : CAGR, Volatilité, Max drawdown (légende : date et récupération), Sharpe ; les cartes actuelles « Valeur finale » et « Frais payés » restent accessibles.
-- [ ] Courbe de drawdown sous la courbe de valeur : `equityPoint.drawdown` (ratio ≤ 0, TWR) calculé par l’engine, absent des résultats antérieurs (le graphique est alors masqué).
-- [ ] Vérifier la taille du message `backtest.completed` sur une période de 20 ans (le champ ajouté par point ne doit pas dépasser la limite du broker, cf. gzip).
-- [ ] Ratios affichés en pourcentage via `lib/format.ts`, aucun calcul dans le composant.
+- [x] ~~Cartes KPI (style maquette `19`)~~ : amendé par la refonte du détail (maquette « 13 v2 · A », `350:7214`) : CAGR, volatilité, Sharpe, max drawdown (date, récupération), valeur finale et frais dans les blocs Performance, Risque et Coûts (`BacktestResultBlocks`, T-25).
+- [x] Courbe de drawdown sous la courbe de valeur : `equityPoint.drawdown` (ratio ≤ 0, TWR) calculé par l’engine, absent des résultats antérieurs (le graphique est alors masqué).
+- [x] Vérifier la taille du message `backtest.completed` sur une période de 20 ans (le champ ajouté par point ne doit pas dépasser la limite du broker, cf. gzip).
+- [x] Ratios affichés en pourcentage via `lib/format.ts`, aucun calcul dans le composant.
 
 ### Lot 4 — Benchmark
 
@@ -151,11 +151,11 @@ Critères d’acceptation :
 **En tant qu’** utilisateur, **je veux** choisir un indice de référence **afin de** savoir si mon allocation a fait mieux ou moins bien qu’un placement passif.
 
 Critères d’acceptation :
-- [ ] Champ « Benchmark » dans le formulaire (recherche de symboles, défaut suggéré `URTH`) ; optionnel.
-- [ ] L’engine rejoue le benchmark selon D9 et publie `benchmark: { symbol, finalValue, totalReturn, cagr, volatility, sharpeRatio, maxDrawdown, recoveryDays } | null` et `benchmarkValue` sur chaque point de courbe.
-- [ ] Données du benchmark incluses dans l’empreinte `dataSource.fingerprint`.
-- [ ] Benchmark sans données sur la période → exécution en échec avec un message explicite (« Données indisponibles pour URTH »).
-- [ ] Tests : benchmark identique à l’unique actif du portefeuille ⇒ mêmes métriques.
+- [x] Champ « Benchmark » dans le formulaire (recherche de symboles, défaut suggéré `URTH`) ; optionnel.
+- [x] L’engine rejoue le benchmark selon D9 et publie `benchmark: { symbol, finalValue, totalReturn, cagr, volatility, sharpeRatio, maxDrawdown, recoveryDays } | null` et `benchmarkValue` sur chaque point de courbe.
+- [x] Données du benchmark incluses dans l’empreinte `dataSource.fingerprint`.
+- [x] Benchmark sans données sur la période → exécution en échec avec un message explicite (« Données indisponibles pour URTH »). Message livré : « No market data for URTH » (`BacktestError`, T-22).
+- [x] Tests : benchmark identique à l’unique actif du portefeuille ⇒ mêmes métriques.
 
 Tâches :
 - Base : `Backtest.benchmarkSymbol String?`, `BacktestResult.benchmark Json?` (omis des listes comme `lumpSumComparison`).
@@ -165,11 +165,11 @@ Tâches :
 **En tant qu’** utilisateur, **je veux** voir l’écart entre ma stratégie et le benchmark sur chaque métrique **afin de** interpréter le résultat sans calcul mental.
 
 Critères d’acceptation :
-- [ ] Badges d’écart sur les cartes KPI (« +1,3 pt vs benchmark MSCI World ») et légende `B : 16,1 %`.
-- [ ] Les écarts (CAGR, volatilité, drawdown, Sharpe) sont calculés par l’engine et publiés dans `benchmark` (ex. `excessCagr`) : deux clients doivent montrer le même chiffre.
-- [ ] Courbe de valeur : série « Benchmark » superposée, légende.
-- [ ] Tableau « Métriques comparées » : lignes Rendement annualisé, Volatilité, Max drawdown, Durée de récupération, Sharpe ; colonnes Portefeuille / Benchmark.
-- [ ] Sans benchmark : badges et colonne masqués.
+- [ ] ~~Badges d’écart sur les cartes KPI~~ : retiré par la refonte du détail (plus de cartes KPI). Les écarts `benchmark.excess*` sont publiés et stockés mais affichés nulle part : la page Comparaison montre les écarts A − B, pas l’écart au benchmark (dette).
+- [x] Les écarts (CAGR, volatilité, drawdown, Sharpe) sont calculés par l’engine et publiés dans `benchmark` (ex. `excessCagr`) : deux clients doivent montrer le même chiffre.
+- [x] Courbe de valeur : série « Benchmark » superposée, légende.
+- [x] Tableau « Métriques comparées » : lignes Rendement annualisé, Volatilité, Max drawdown, Durée de récupération, Sharpe ; colonnes Portefeuille / Benchmark.
+- [x] Sans benchmark : colonne masquée (badges retirés avec les cartes KPI, voir plus haut).
 
 ### Lot 5 — Comparaison et finitions
 
@@ -178,28 +178,28 @@ Critères d’acceptation :
 **En tant qu’** utilisateur, **je veux** comparer deux backtests terminés côte à côte **afin de** comprendre le compromis rendement / risque entre deux allocations (README, « Comparaison de portefeuilles »).
 
 Critères d’acceptation :
-- [ ] Page `Analyse > Comparaison` (maquette `19`, blocs du haut uniquement) : sélection de deux backtests terminés de l’utilisateur, cartes KPI de A avec écart à B, courbe « Valeur des portefeuilles » (A, B, benchmark), tableau « Métriques comparées ».
-- [ ] Route `GET /api/backtests/compare?ids=a,b` : lit les derniers résultats terminés, `NotFoundError` si un backtest n’appartient pas à l’utilisateur, `BadRequestError` si un backtest n’a pas de résultat terminé. Les écarts A − B sont calculés par le service.
-- [ ] Bandeau d’avertissement si les périodes, frais ou benchmarks diffèrent (comparaison non homogène), signalé par le backend.
-- [ ] Entrée dans `API.md`.
+- [x] Page `Analyse > Comparaison` (maquette « 19 v2 », `360:7783`, validée le 31/10/2026) : sélection de deux backtests de l’utilisateur ayant un résultat terminé, courbe « Valeur des portefeuilles » (A, B, benchmark), tableau « Métriques comparées » avec colonne « Écart » A − B (remplace les cartes KPI de la maquette `19`), carte « Paramètres ». Responsive vérifié par l’utilisateur le 31/10/2026.
+- [x] Route `GET /api/backtests/compare?ids=a,b` : lit les derniers résultats terminés, `NotFoundError` si un backtest n’appartient pas à l’utilisateur, `BadRequestError` si un backtest n’a pas de résultat terminé. Les écarts A − B sont calculés par le service. Livrée en `GET /api/backtest/compare` (T-26).
+- [x] Bandeau d’avertissement si les périodes, frais ou benchmarks diffèrent (comparaison non homogène), signalé par le backend.
+- [x] Entrée dans `API.md`.
 
 #### US-11 · Lire l’allocation et le CAGR dans la liste — SHOULD
 
 **En tant qu’** utilisateur, **je veux** voir l’allocation et le rendement annualisé dans la liste des backtests **afin de** retrouver un portefeuille sans l’ouvrir.
 
 Critères d’acceptation :
-- [ ] Colonne « Allocation » (ex. `AAPL 30 % · MSFT 30 % · IEF 40 %`, tronquée) et colonne « CAGR » (`<Dash />` pour un résultat antérieur ou non terminé).
-- [ ] La liste n’inclut pas les colonnes lourdes (`equityCurve`, `trades`, `benchmark`) : règle « lecture légère » du repository.
+- [x] Colonne « Allocation » (ex. `AAPL 30 % · MSFT 30 % · IEF 40 %`, tronquée) et colonne « CAGR » (`<Dash />` pour un résultat antérieur ou non terminé).
+- [x] La liste n’inclut pas les colonnes lourdes (`equityCurve`, `trades`, `benchmark`) : règle « lecture légère » du repository.
 
 #### US-12 · Documenter et préparer la démo du mois 4 — MUST
 
 **En tant qu’** évaluateur, **je veux** un scénario reproductible et des limites explicites **afin de** vérifier que le Portfolio Management V1 est terminé.
 
 Critères d’acceptation :
-- [ ] README : « Définition de terminé », case « Un portefeuille multi-actifs avec poids et rebalancement affiche CAGR, volatilité, max drawdown, durée de récupération, Sharpe et benchmark » cochée ; limites ajoutées (taux sans risque à 0, dividendes non inclus, actifs cotés en USD affichés en EUR sans conversion jusqu’au mois 5).
-- [ ] Scénario : 60 % `AAPL` / 40 % `MSFT`, rebalancement annuel, frais 0,1 %, benchmark `URTH`, statut `PENDING` → `RUNNING` → `COMPLETED`, métriques face au benchmark.
-- [ ] `bunx tsc --noEmit` dans chaque app/package touché, `bun test` dans `apps/backtest-engine`, `bun run lint` dans `apps/web`.
-- [ ] Services redémarrés après chaque changement de contrat (engine et core-backend).
+- [x] README : « Définition de terminé », case « Un portefeuille multi-actifs avec poids et rebalancement affiche CAGR, volatilité, max drawdown, durée de récupération, Sharpe et benchmark » cochée ; limites ajoutées (taux sans risque à 0, dividendes non inclus, actifs cotés en USD affichés en EUR sans conversion jusqu’au mois 5).
+- [x] Scénario : 60 % `AAPL` / 40 % `MSFT`, rebalancement annuel, frais 0,1 %, benchmark `URTH`, statut `PENDING` → `RUNNING` → `COMPLETED`, métriques face au benchmark.
+- [x] `bunx tsc --noEmit` dans chaque app/package touché, `bun test` dans `apps/backtest-engine`, `bun run lint` dans `apps/web`.
+- [x] Services redémarrés après chaque changement de contrat (engine et core-backend). Vérifié indirectement : démo T-30 sur les services à jour (code identique au dépôt).
 
 ---
 

@@ -2,12 +2,12 @@ import type { Column } from "@/components/data-table/data-table"
 import { ChangeCell, SymbolCell } from "@/components/data-table/cells"
 import { Badge } from "@/components/ui/badge"
 import { formatDay, formatDayRange, formatPrice, LOCALE } from "@/lib/format"
-import { BACKTEST_CURRENCY, statusBadges, strategyLabels } from "./constants"
+import { BACKTEST_CURRENCY, statusBadges, strategyLabels, tradeSideBadges } from "./constants"
 import type { Backtest, Holding, Trade } from "./types"
-import { getExecution, getExecutionDuration } from "./utils"
+import { formatAllocation, getExecution, getExecutionDuration } from "./utils"
 import Dash from "@/components/custom/Dash"
 
-// Cours d'achat sans devise : « 268,50 »
+// Cours de l'ordre sans devise : « 268,50 »
 const formatTradePrice = new Intl.NumberFormat(LOCALE, { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format
 
 // Titres fractionnaires (DCA) : jusqu'à 6 décimales
@@ -16,13 +16,28 @@ const formatQuantity = new Intl.NumberFormat(LOCALE, { maximumFractionDigits: 6 
 export const backtestColumns: Column<Backtest>[] = [
     { header: "Nom", cell: (b) => <span className="text-body-medium">{b.name}</span> },
     { header: "Stratégie", cell: (b) => strategyLabels[b.investmentMode] },
-    { header: "Symboles", cell: (b) => `${b.symbols.length} symbole${b.symbols.length > 1 ? "s" : ""}` },
+    {
+        header: "Allocation",
+        cell: (b) => {
+            const allocation = formatAllocation(b.allocations)
+            return <span className="block max-w-56 truncate" title={allocation}>{allocation}</span>
+        },
+    },
     { header: "Période", cell: (b) => formatDayRange(b.startDate, b.endDate) },
     {
         header: "Rendement",
         className: "text-right",
         cell: (b) => {
             const value = getExecution(b)?.result?.totalReturn
+            return value == null ? <Dash /> : <ChangeCell value={Number(value) * 100} />
+        },
+    },
+    {
+        header: "CAGR",
+        className: "text-right",
+        cell: (b) => {
+            // Dernière exécution non terminée ou résultat antérieur aux métriques : pas de CAGR
+            const value = getExecution(b)?.result?.cagr
             return value == null ? <Dash /> : <ChangeCell value={Number(value) * 100} />
         },
     },
@@ -46,7 +61,15 @@ export const tradeColumns: Column<Trade>[] = [
     { header: "Date", cell: (t) => formatDay(t.date) },
     { header: "Symbole", cell: (t) => <SymbolCell symbol={t.symbol} /> },
     {
-        header: "Prix d'achat",
+        header: "Côté",
+        cell: (t) => {
+            // Résultats antérieurs au rebalancement : uniquement des achats, sans side (D10)
+            const { label, variant } = tradeSideBadges[t.side ?? "BUY"]
+            return <Badge variant={variant}>{label}</Badge>
+        },
+    },
+    {
+        header: "Prix",
         className: "text-right",
         cell: (t) => formatTradePrice(t.price),
     },

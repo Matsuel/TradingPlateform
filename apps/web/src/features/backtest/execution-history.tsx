@@ -1,8 +1,6 @@
 "use client"
 
-import type { ReactNode } from "react"
 import { Badge } from "@/components/ui/badge"
-import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { formatDate, formatRatio } from "@/lib/format"
 import { cn } from "@/lib/utils"
 import { statusBadges } from "./constants"
@@ -56,24 +54,11 @@ function ExecutionRow({ execution: e }: { execution: BacktestExecution }) {
     )
 }
 
-interface ExecutionHistoryProps {
-    executions: BacktestExecution[]
-    actions?: ReactNode // ex. bouton de relance
-}
-
-export function ExecutionHistory({ executions, actions }: ExecutionHistoryProps) {
+/** Exécutions d'un backtest, de la plus récente à la plus ancienne : statut, résumé ou cause d'échec, durée. */
+export function ExecutionList({ executions }: { executions: BacktestExecution[] }) {
     return (
-        <Card className="gap-4">
-            <CardHeader>
-                <CardTitle className="text-body-semibold">Historique d’exécution</CardTitle>
-                <CardDescription className="text-small">
-                    Relancez ce backtest : chaque exécution conserve son propre état et ses résultats.
-                </CardDescription>
-                {actions && <CardAction>{actions}</CardAction>}
-            </CardHeader>
-            <CardContent className="flex flex-col">
-                {executions.map((e) => <ExecutionRow key={e.id} execution={e} />)}
-            </CardContent>
-        </Card>
+        <div className="flex flex-col">
+            {executions.map((e) => <ExecutionRow key={e.id} execution={e} />)}
+        </div>
     )
 }
