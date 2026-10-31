@@ -241,7 +241,7 @@ Les montants sont dans la devise saisie, affichée `EUR` par le web (`BACKTEST_C
   ```
 - **Erreurs** : `400 { "error": "Invalid query", "issues": [ZodIssue] }` → `ids` absent, un seul id, plus de deux, id vide (`ids=a,`) ou deux fois le même (`"Ids must be distinct"`) ; `400 { "error": "Backtest has no completed result", "id": "…" }` → aucune exécution `COMPLETED` pour ce backtest ; `401` ; `404 { "error": "Backtest not found", "id": "…" }` → backtest inexistant **ou d'un autre utilisateur** (pas de `403` : l'existence n'est pas révélée).
 - **Effets** : aucun. Lecture légère (propriété + nombre d'exécutions `COMPLETED`, sans colonne lourde) puis lecture des paramètres, allocations et du dernier résultat terminé des deux backtests.
-- **Appelant** : aucun (page « Comparaison », T-27).
+- **Appelant** : `compareBacktests(a, b)` de `apps/web/src/features/backtest/api.ts`, hook `useBacktestComparison(a, b)` (clé `["backtest", "compare", a, b]`, désactivé sans deux ids distincts) ; utilisé par `BacktestCompare` (page `/app/backtest/compare?ids=a,b`).
 - **Source** : `routes/backtest/backtest.routes.ts`, `controller/backtest.controller.ts`, `services/backtest.service.ts` (`compare`), `repositories/backtest.repository.ts` (`countExecutionsByIds`, `getComparedByIds`), `constants/backtest.constants.ts` (`COMPARABLE_STATUSES`), `packages/contracts/src/backtest.ts`.
 
 ### GET /api/backtest/:id

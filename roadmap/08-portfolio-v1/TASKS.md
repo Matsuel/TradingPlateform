@@ -440,10 +440,10 @@ Critères d’acceptation :
 - **Fichiers** : `app/(base)/.../comparaison/page.tsx`, `features/backtest/` (ou `features/comparison/` si le domaine grossit), sidebar
 
 Critères d’acceptation :
-- [ ] Sélection de deux backtests terminés ; URL partageable (`?ids=`).
-- [ ] Blocs du haut de la maquette 19 : cartes KPI de A avec écart à B, « Valeur des portefeuilles » (A, B, benchmark), « Métriques comparées » (A, B, benchmark). Réutilise les composants de T-19 et T-25.
-- [ ] Bandeau d’avertissement si `homogeneous === false`, avec les différences.
-- [ ] Blocs « Selon la date de départ », « Rendements glissants », « Effet devise » absents (mois 5).
+- [x] Sélection de deux backtests terminés ; URL partageable (`?ids=`). Page `/app/backtest/compare` (`app/app/backtest/compare/page.tsx`, à côté du détail), entrée « Analyse > Comparaison » de la sidebar ; choix parmi les 100 plus récents dont la dernière exécution est terminée (`pageSize` maximal de la liste), « Échanger », « Copier le lien ».
+- [x] Blocs du haut de la maquette 19 : ~~cartes KPI de A avec écart à B~~, « Valeur des portefeuilles » (A, B, benchmark), « Métriques comparées » (A, B, benchmark). Réutilise les composants de T-19 et T-25. Écart : codé depuis la maquette validée « 19 v2 · Comparaison de backtests » (Figma `360:7783`), qui remplace les cartes KPI par la colonne « Écart » (`deltas` de l’API) du tableau « Métriques comparées » et ajoute la carte « Paramètres » (badge « diffère »). Réutilise `PriceAreaChart` (seconde série pleine `other` ajoutée), `MetricBlock` (props `strong`, `rowHeader`, badge de ligne) et les formatters de `stats.tsx` ; aucun écart calculé côté web.
+- [x] Bandeau d’avertissement si `homogeneous === false`, avec les différences.
+- [x] Blocs « Selon la date de départ », « Rendements glissants », « Effet devise » absents (mois 5).
 
 ### T-28 · Liste : colonnes « Allocation » et « CAGR »
 

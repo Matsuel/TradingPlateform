@@ -1,4 +1,4 @@
-import { Activity, ChartCandlestick, FlaskConical, LayoutDashboard, ListOrdered, Plus, User, Wallet } from "lucide-react"
+import { Activity, ChartCandlestick, FlaskConical, GitCompareArrows, LayoutDashboard, ListOrdered, Plus, User, Wallet } from "lucide-react"
 
 export const prefix = "/app";
 
@@ -53,6 +53,19 @@ const tabs = [
                 url: `${prefix}/backtest/new`,
                 icon: (
                     <Plus />
+                )
+            }
+        ]
+    },
+    {
+        name: "Analyse",
+        adminOnly: false,
+        tabs: [
+            {
+                name: "Comparaison",
+                url: `${prefix}/backtest/compare`,
+                icon: (
+                    <GitCompareArrows />
                 )
             }
         ]

@@ -1,7 +1,7 @@
 # 08 · Portfolio Management V1 — User stories
 
 > Roadmap (`README.md`, « Roadmap annuelle ») : **poids par actif, rebalancement, benchmark, CAGR, volatilité, durée de récupération et Sharpe.**
-> Maquettes Figma (fichier `Trading`) : `12.1 · Nouveau backtest · Allocation`, `13 · Résultats d’un backtest`, `19 · Comparaison de portefeuilles` (cartes KPI et tableau « Métriques comparées »), `11 · Liste des backtests` : références antérieures à la règle « Maquette d'abord » (`apps/web/AGENTS.md`), à revalider avant de coder un écran qui n'est pas encore implémenté. `13 v2 · A · Héros + blocs groupés` (`350:7214`) : détail d'un backtest, validée le 31/10/2026 ; `13 v2 · B` (`350:7651`) et `13 v2 · C` (`350:8088`) : écartées. `19 v2 · Comparaison de backtests` (`360:7783`) : page Comparaison (T-27), proposée le 31/10/2026.
+> Maquettes Figma (fichier `Trading`) : `12.1 · Nouveau backtest · Allocation`, `13 · Résultats d’un backtest`, `19 · Comparaison de portefeuilles` (cartes KPI et tableau « Métriques comparées »), `11 · Liste des backtests` : références antérieures à la règle « Maquette d'abord » (`apps/web/AGENTS.md`), à revalider avant de coder un écran qui n'est pas encore implémenté. `13 v2 · A · Héros + blocs groupés` (`350:7214`) : détail d'un backtest, validée le 31/10/2026 ; `13 v2 · B` (`350:7651`) et `13 v2 · C` (`350:8088`) : écartées. `19 v2 · Comparaison de backtests` (`360:7783`) : page Comparaison (T-27), validée le 31/10/2026.
 
 ## Point de départ (fin du mois 3)
 

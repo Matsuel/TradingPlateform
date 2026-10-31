@@ -1,10 +1,14 @@
 import type {
     Allocation,
+    BacktestComparison,
     BacktestCompletedPayload,
     BacktestPreview,
     BacktestRequestedPayload,
     BacktestStats,
     BacktestStatus,
+    ComparedBacktest,
+    ComparedMetric,
+    ComparisonParameter,
     DataSource,
     EquityPoint as CompletedEquityPoint,
     ExecutionRule,
@@ -19,6 +23,9 @@ export type { DataSource, ExecutionRule, Holding, LumpSumComparison, TradeSide }
 
 // Réponse de POST /api/backtest/preview : nombres prévus estimés sur le calendrier par core-backend
 export type { BacktestPreview }
+
+// Réponse de GET /api/backtest/compare : écarts A − B et homogénéité calculés par core-backend
+export type { BacktestComparison, ComparedBacktest, ComparedMetric, ComparisonParameter }
 
 export type ExecutionStatus = BacktestStatus
 

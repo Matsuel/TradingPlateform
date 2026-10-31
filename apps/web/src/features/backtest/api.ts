@@ -2,7 +2,7 @@ import { apiFetch } from "@/lib/api";
 import type { Paginated } from "@trading-plateform/contracts";
 import type { PaginationParams } from "@/lib/pagination";
 import type { BacktestValues } from "./schema";
-import type { Backtest, BacktestDetails, BacktestPreview, BacktestExecution, BacktestListStats, ExecutionStatus } from "./types";
+import type { Backtest, BacktestComparison, BacktestDetails, BacktestPreview, BacktestExecution, BacktestListStats, ExecutionStatus } from "./types";
 
 // Body commun à la création et à la prévisualisation ; benchmarkSymbols vide ou absent : envoyé null (sans benchmark)
 const toBacktestBody = ({ benchmarkSymbols, ...values }: BacktestValues) =>
@@ -33,6 +33,11 @@ export async function getBacktests({ page, pageSize, status }: PaginationParams 
 
 export async function getBacktestStats(): Promise<BacktestListStats> {
     return apiFetch<BacktestListStats>("/backtest/stats");
+}
+
+// a et b : ids distincts de deux backtests terminés, dans l'ordre A, B
+export async function compareBacktests(a: string, b: string): Promise<BacktestComparison> {
+    return apiFetch<BacktestComparison>(`/backtest/compare?ids=${a},${b}`);
 }
 
 export async function getBacktest(id: string): Promise<BacktestDetails> {
