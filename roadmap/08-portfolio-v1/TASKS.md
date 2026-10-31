@@ -5,41 +5,45 @@
 
 ## Synthèse
 
-| Tâche | Titre | US | Couche | Priorité | Points | Dépend de |
-| --- | --- | --- | --- | --- | --- | --- |
-| T-00 | Valider les décisions D1–D10 | toutes | — | MUST | 1 | — |
-| T-01 | Contrat : `allocations` dans `backtest.requested` | US-01 | contracts | MUST | 2 | T-00 |
-| T-02 | Engine : simulation avec poids cibles | US-01 | engine | MUST | 3 | T-01 |
-| T-03 | Engine : service et cours lus depuis `allocations` | US-01 | engine | MUST | 1 | T-01 |
-| T-04 | Base : table `BacktestAllocation` et migration | US-01 | core-backend | MUST | 5 | T-00 |
-| T-05 | core-backend : allocation dans repository et service | US-01 | core-backend | MUST | 3 | T-01, T-04 |
-| T-06 | core-backend : nouveau schéma d’entrée `POST /api/backtests` | US-02 | core-backend | MUST | 3 | T-05 |
-| T-07 | Web : composant `AllocationField` | US-02 | web | MUST | 5 | — |
-| T-08 | Web : formulaire « Nouveau backtest » (maquette 12.1) | US-02 | web | MUST | 3 | T-06, T-07 |
-| T-09 | Contrat : `rebalanceFrequency` et `trade.side` | US-03, US-04 | contracts | MUST | 2 | T-01 |
-| T-10 | Engine : ventes, frais sur ventes et rebalancement | US-03 | engine | MUST | 8 | T-02, T-09 |
-| T-11 | core-backend : fréquence de rebalancement | US-03 | core-backend | MUST | 2 | T-04, T-06, T-09 |
-| T-12 | Web : champ « Rebalancement » et hypothèse | US-03 | web | MUST | 1 | T-08, T-11 |
-| T-13 | Web : colonne « Côté » des ordres | US-04 | web | MUST | 2 | T-09 |
-| T-14 | Engine : CAGR, volatilité et Sharpe | US-05 | engine | MUST | 5 | T-00 |
-| T-15 | Engine : durée de récupération et drawdown par point | US-06, US-07 | engine | MUST | 3 | T-00 |
-| T-16 | Contrat : métriques et `equityPoint.drawdown` | US-05, US-06, US-07 | contracts | MUST | 2 | T-09 |
-| T-17 | Engine : publier les métriques | US-05, US-06, US-07 | engine | MUST | 2 | T-10, T-14, T-15, T-16 |
-| T-18 | core-backend : colonnes de métriques | US-05, US-06 | core-backend | MUST | 3 | T-11, T-16 |
-| T-19 | Web : cartes KPI et hypothèses | US-05, US-06, US-07 | web | MUST | 3 | T-17, T-18 |
-| T-20 | Web : courbe de drawdown | US-07 | web | MUST | 3 | T-17, T-18 |
-| T-21 | Contrat : `benchmark` et `benchmarkValue` | US-08, US-09 | contracts | MUST | 2 | T-16 |
-| T-22 | Engine : rejeu du benchmark et écarts | US-08, US-09 | engine | MUST | 5 | T-03, T-17, T-21 |
-| T-23 | core-backend : benchmark persisté | US-08 | core-backend | MUST | 3 | T-18, T-21 |
-| T-24 | Web : champ « Benchmark » | US-08 | web | MUST | 1 | T-08, T-23 |
-| T-25 | Web : écarts, série et tableau « Métriques comparées » | US-09 | web | MUST | 5 | T-19, T-22, T-23 |
-| T-26 | core-backend : `GET /api/backtests/compare` | US-10 | core-backend | SHOULD | 5 | T-23 |
-| T-27 | Web : page « Comparaison » | US-10 | web | SHOULD | 5 | T-25, T-26 |
-| T-28 | Liste : colonnes « Allocation » et « CAGR » | US-11 | core-backend, web | SHOULD | 3 | T-05, T-18 |
-| T-29 | Récapitulatif prévisionnel du formulaire | US-02 | core-backend, web | SHOULD | 5 | T-11 |
-| T-30 | Documentation, limites et démo | US-12 | README | MUST | 2 | T-12, T-13, T-20, T-24, T-25 |
+| Tâche | Titre | US | Couche | Priorité | Points | Dépend de | Réalisé | Commits |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| T-00 | Valider les décisions D1–D10 | toutes | — | MUST | 1 | — | 1 | `e295d3c`, `56c5010` |
+| T-01 | Contrat : `allocations` dans `backtest.requested` | US-01 | contracts | MUST | 2 | T-00 | 2 | `7bbfab7`, `a8e3a2b` |
+| T-02 | Engine : simulation avec poids cibles | US-01 | engine | MUST | 3 | T-01 | 3 | `cc74b35` |
+| T-03 | Engine : service et cours lus depuis `allocations` | US-01 | engine | MUST | 1 | T-01 | 1 | `cc74b35` |
+| T-04 | Base : table `BacktestAllocation` et migration | US-01 | core-backend | MUST | 5 | T-00 | 5 | `dac7e8f` |
+| T-05 | core-backend : allocation dans repository et service | US-01 | core-backend | MUST | 3 | T-01, T-04 | 3 | `7e1f0af`, `7c190fb` |
+| T-06 | core-backend : nouveau schéma d’entrée `POST /api/backtests` | US-02 | core-backend | MUST | 3 | T-05 | 3 | `7e1f0af` |
+| T-07 | Web : composant `AllocationField` | US-02 | web | MUST | 5 | — | 5 | `166c15c` |
+| T-08 | Web : formulaire « Nouveau backtest » (maquette 12.1) | US-02 | web | MUST | 3 | T-06, T-07 | 3 | `7e1f0af`, `7c190fb` |
+| T-09 | Contrat : `rebalanceFrequency` et `trade.side` | US-03, US-04 | contracts | MUST | 2 | T-01 | 2 | `fc51a69` |
+| T-10 | Engine : ventes, frais sur ventes et rebalancement | US-03 | engine | MUST | 8 | T-02, T-09 | 8 | `392d482`, `1ef0895` |
+| T-11 | core-backend : fréquence de rebalancement | US-03 | core-backend | MUST | 2 | T-04, T-06, T-09 | 2 | `acf32fa` |
+| T-12 | Web : champ « Rebalancement » et hypothèse | US-03 | web | MUST | 1 | T-08, T-11 | 1 | `acf32fa` |
+| T-13 | Web : colonne « Côté » des ordres | US-04 | web | MUST | 2 | T-09 | 2 | `96030f6`, `1ef0895` |
+| T-14 | Engine : CAGR, volatilité et Sharpe | US-05 | engine | MUST | 5 | T-00 | 5 | `884c8bf`, `1ef0895` |
+| T-15 | Engine : durée de récupération et drawdown par point | US-06, US-07 | engine | MUST | 3 | T-00 | 3 | `884c8bf`, `1ef0895` |
+| T-16 | Contrat : métriques et `equityPoint.drawdown` | US-05, US-06, US-07 | contracts | MUST | 2 | T-09 | 2 | `8ebab30` |
+| T-17 | Engine : publier les métriques | US-05, US-06, US-07 | engine | MUST | 2 | T-10, T-14, T-15, T-16 | 2 | `8ebab30` |
+| T-18 | core-backend : colonnes de métriques | US-05, US-06 | core-backend | MUST | 3 | T-11, T-16 | 3 | `1061dfc` |
+| T-19 | Web : cartes KPI et hypothèses | US-05, US-06, US-07 | web | MUST | 3 | T-17, T-18 | 3 | `c721fde`, `7763846` |
+| T-20 | Web : courbe de drawdown | US-07 | web | MUST | 3 | T-17, T-18 | 3 | `00860ad` |
+| T-21 | Contrat : `benchmark` et `benchmarkValue` | US-08, US-09 | contracts | MUST | 2 | T-16 | 2 | `a37ec22` |
+| T-22 | Engine : rejeu du benchmark et écarts | US-08, US-09 | engine | MUST | 5 | T-03, T-17, T-21 | 5 | `a37ec22` |
+| T-23 | core-backend : benchmark persisté | US-08 | core-backend | MUST | 3 | T-18, T-21 | 3 | `996fc05` |
+| T-24 | Web : champ « Benchmark » | US-08 | web | MUST | 1 | T-08, T-23 | 1 | `0ea3bbe` |
+| T-25 | Web : écarts, série et tableau « Métriques comparées » | US-09 | web | MUST | 5 | T-19, T-22, T-23 | 8 | `1049a62`, `ad18362`, `d753c02`, `9bbd44f` |
+| T-26 | core-backend : `GET /api/backtests/compare` | US-10 | core-backend | SHOULD | 5 | T-23 | 5 | `78c101d` |
+| T-27 | Web : page « Comparaison » | US-10 | web | SHOULD | 5 | T-25, T-26 | 8 | `1cae77c`, `b956cd2`, `a02cfc8`, `881afae` |
+| T-28 | Liste : colonnes « Allocation » et « CAGR » | US-11 | core-backend, web | SHOULD | 3 | T-05, T-18 | 2 | `9bbd44f` |
+| T-29 | Récapitulatif prévisionnel du formulaire | US-02 | core-backend, web | SHOULD | 5 | T-11 | 5 | `3a3bb64` |
+| T-30 | Documentation, limites et démo | US-12 | README | MUST | 2 | T-12, T-13, T-20, T-24, T-25 | 3 | `5a03870`, `d3c2582` |
 
-**Total** : 98 points — MUST 80, SHOULD 18.
+**Total** : 98 points — MUST 80, SHOULD 18. **Réalisé** : 104 points (MUST 84, SHOULD 20).
+
+Écarts de plus d’un cran : T-25 (5 → 8) absorbe la refonte de l’écran de détail (maquette « 13 v2 · A » : blocs groupés, `rebalanceCount` de l’engine à l’écran, suppression des anciens graphiques) ; T-27 (5 → 8) ajoute la carte « Paramètres » de la maquette 19 v2 et, après revue, le filtre `hasResult` de `GET /api/backtest` et le traitement des liens invalides.
+
+Commits hors tâche, transverses : `e95c31e`, `858e3df`, `fcf2559` (skill `verify`), `326e44b`, `a167e09` (bascule clair/sombre), `4964f8c` (planification de la feature 09).
 
 | Lot | Tâches | Points |
 | --- | --- | --- |
@@ -119,7 +123,7 @@ flowchart LR
 
 ### T-00 · Valider les décisions D1–D10
 
-- **US** : toutes · **Priorité** : MUST · **Points** : 1 · **Dépend de** : —
+- **US** : toutes · **Priorité** : MUST · **Points** : 1 · **Dépend de** : — · **Réalisé** : 1 · **Commits** : `e295d3c`, `56c5010`
 - **Objet** : relire la section « Décisions » de `US.md`, trancher chaque point et corriger `US.md` si une décision change.
 
 Critères d’acceptation :
@@ -132,7 +136,7 @@ Critères d’acceptation :
 
 ### T-01 · Contrat : `allocations` dans `backtest.requested`
 
-- **US** : US-01 · **Priorité** : MUST · **Points** : 2 · **Dépend de** : T-00
+- **US** : US-01 · **Priorité** : MUST · **Points** : 2 · **Dépend de** : T-00 · **Réalisé** : 2 · **Commits** : `7bbfab7`, `a8e3a2b`
 - **Fichiers** : `packages/contracts/src/backtest.ts`
 
 Critères d’acceptation :
@@ -143,7 +147,7 @@ Critères d’acceptation :
 
 ### T-02 · Engine : simulation avec poids cibles
 
-- **US** : US-01 · **Priorité** : MUST · **Points** : 3 · **Dépend de** : T-01
+- **US** : US-01 · **Priorité** : MUST · **Points** : 3 · **Dépend de** : T-01 · **Réalisé** : 3 · **Commits** : `cc74b35`
 - **Fichiers** : `apps/backtest-engine/engine/backtest.engine.ts`, `interfaces/backtest.interface.ts`, `engine/backtest.engine.test.ts`, `engine/backtest.fixture.ts`
 
 Critères d’acceptation :
@@ -155,7 +159,7 @@ Critères d’acceptation :
 
 ### T-03 · Engine : service et cours lus depuis `allocations`
 
-- **US** : US-01 · **Priorité** : MUST · **Points** : 1 · **Dépend de** : T-01
+- **US** : US-01 · **Priorité** : MUST · **Points** : 1 · **Dépend de** : T-01 · **Réalisé** : 1 · **Commits** : `cc74b35`
 - **Fichiers** : `apps/backtest-engine/services/backtest.service.ts`, `consumers/backtest.consumer.ts`
 
 Critères d’acceptation :
@@ -164,7 +168,7 @@ Critères d’acceptation :
 
 ### T-04 · Base : table `BacktestAllocation` et migration
 
-- **US** : US-01 · **Priorité** : MUST · **Points** : 5 · **Dépend de** : T-00
+- **US** : US-01 · **Priorité** : MUST · **Points** : 5 · **Dépend de** : T-00 · **Réalisé** : 5 · **Commits** : `dac7e8f`
 - **Fichiers** : `apps/core-backend/prisma/schema.prisma`, `prisma/migrations/<timestamp>_backtest_allocation/migration.sql`
 
 Critères d’acceptation :
@@ -178,7 +182,7 @@ Critères d’acceptation :
 
 ### T-05 · core-backend : allocation dans repository et service
 
-- **US** : US-01 · **Priorité** : MUST · **Points** : 3 · **Dépend de** : T-01, T-04
+- **US** : US-01 · **Priorité** : MUST · **Points** : 3 · **Dépend de** : T-01, T-04 · **Réalisé** : 3 · **Commits** : `7e1f0af`, `7c190fb`
 - **Fichiers** : `repositories/backtest.repository.ts`, `services/backtest.service.ts`, `interfaces/backtest.interface.ts`
 
 Critères d’acceptation :
@@ -190,7 +194,7 @@ Critères d’acceptation :
 
 ### T-06 · core-backend : nouveau schéma d’entrée `POST /api/backtests`
 
-- **US** : US-02 · **Priorité** : MUST · **Points** : 3 · **Dépend de** : T-05
+- **US** : US-02 · **Priorité** : MUST · **Points** : 3 · **Dépend de** : T-05 · **Réalisé** : 3 · **Commits** : `7e1f0af`
 - **Fichiers** : `interfaces/backtest.interface.ts`, `services/backtest.service.ts`, `API.md`
 
 Critères d’acceptation :
@@ -201,7 +205,7 @@ Critères d’acceptation :
 
 ### T-07 · Web : composant `AllocationField`
 
-- **US** : US-02 · **Priorité** : MUST · **Points** : 5 · **Dépend de** : —
+- **US** : US-02 · **Priorité** : MUST · **Points** : 5 · **Dépend de** : — · **Réalisé** : 5 · **Commits** : `166c15c`
 - **Fichiers** : `apps/web/src/components/` (champ de formulaire, à côté des champs existants) ou `features/backtest/` selon `COMPONENTS.md`, `COMPONENTS.md`
 
 Critères d’acceptation :
@@ -213,7 +217,7 @@ Critères d’acceptation :
 
 ### T-08 · Web : formulaire « Nouveau backtest » (maquette 12.1)
 
-- **US** : US-02 · **Priorité** : MUST · **Points** : 3 · **Dépend de** : T-06, T-07
+- **US** : US-02 · **Priorité** : MUST · **Points** : 3 · **Dépend de** : T-06, T-07 · **Réalisé** : 3 · **Commits** : `7e1f0af`, `7c190fb`
 - **Fichiers** : `features/backtest/new-backtest-form.tsx`, `sections.tsx`, `schema.ts`, `api.ts`, `constants.ts`
 
 Critères d’acceptation :
@@ -221,7 +225,7 @@ Critères d’acceptation :
 - [x] Section « Allocation et période » : `AllocationField`, Début, Fin, « Capital initial (€) », « Frais par ordre (%) ».
 - [x] « Lancer le backtest » désactivé tant que le total ≠ 100 % ; erreurs 400 affichées sous le champ concerné.
 - [x] Le formulaire de test rapide (`quick-backtest-form.tsx`) envoie une allocation à 100 % sur son symbole.
-- [ ] Parcours vérifié dans le navigateur : création d’un 60/40, redirection vers le résultat.
+- [ ] Parcours vérifié dans le navigateur : création d’un 60/40, redirection vers le résultat. *(non fait : parcours vérifié par l’API seulement, démo T-30)*
 
 ---
 
@@ -229,7 +233,7 @@ Critères d’acceptation :
 
 ### T-09 · Contrat : `rebalanceFrequency` et `trade.side`
 
-- **US** : US-03, US-04 · **Priorité** : MUST · **Points** : 2 · **Dépend de** : T-01
+- **US** : US-03, US-04 · **Priorité** : MUST · **Points** : 2 · **Dépend de** : T-01 · **Réalisé** : 2 · **Commits** : `fc51a69`
 - **Fichiers** : `packages/contracts/src/backtest.ts`
 
 Critères d’acceptation :
@@ -239,7 +243,7 @@ Critères d’acceptation :
 
 ### T-10 · Engine : ventes, frais sur ventes et rebalancement
 
-- **US** : US-03 · **Priorité** : MUST · **Points** : 8 · **Dépend de** : T-02, T-09
+- **US** : US-03 · **Priorité** : MUST · **Points** : 8 · **Dépend de** : T-02, T-09 · **Réalisé** : 8 · **Commits** : `392d482`, `1ef0895`
 - **Fichiers** : `engine/backtest.engine.ts`, `engine/backtest.utils.ts`, tests
 
 Critères d’acceptation :
@@ -254,7 +258,7 @@ Critères d’acceptation :
 
 ### T-11 · core-backend : fréquence de rebalancement
 
-- **US** : US-03 · **Priorité** : MUST · **Points** : 2 · **Dépend de** : T-04, T-06, T-09
+- **US** : US-03 · **Priorité** : MUST · **Points** : 2 · **Dépend de** : T-04, T-06, T-09 · **Réalisé** : 2 · **Commits** : `acf32fa`
 - **Fichiers** : `prisma/schema.prisma`, migration, `interfaces/`, `services/`, `API.md`
 
 Critères d’acceptation :
@@ -264,7 +268,7 @@ Critères d’acceptation :
 
 ### T-12 · Web : champ « Rebalancement » et hypothèse
 
-- **US** : US-03 · **Priorité** : MUST · **Points** : 1 · **Dépend de** : T-08, T-11
+- **US** : US-03 · **Priorité** : MUST · **Points** : 1 · **Dépend de** : T-08, T-11 · **Réalisé** : 1 · **Commits** : `acf32fa`
 - **Fichiers** : `features/backtest/sections.tsx`, `constants.ts`, `assumptions.tsx`
 
 Critères d’acceptation :
@@ -273,7 +277,7 @@ Critères d’acceptation :
 
 ### T-13 · Web : colonne « Côté » des ordres
 
-- **US** : US-04 · **Priorité** : MUST · **Points** : 2 · **Dépend de** : T-09
+- **US** : US-04 · **Priorité** : MUST · **Points** : 2 · **Dépend de** : T-09 · **Réalisé** : 2 · **Commits** : `96030f6`, `1ef0895`
 - **Fichiers** : `features/backtest/column.tsx`, `types.ts`
 
 Critères d’acceptation :
@@ -286,7 +290,7 @@ Critères d’acceptation :
 
 ### T-14 · Engine : CAGR, volatilité et Sharpe
 
-- **US** : US-05 · **Priorité** : MUST · **Points** : 5 · **Dépend de** : T-00
+- **US** : US-05 · **Priorité** : MUST · **Points** : 5 · **Dépend de** : T-00 · **Réalisé** : 5 · **Commits** : `884c8bf`, `1ef0895`
 - **Fichiers** : `engine/backtest.utils.ts`, `engine/backtest.utils.test.ts`
 
 Critères d’acceptation :
@@ -299,7 +303,7 @@ Critères d’acceptation :
 
 ### T-15 · Engine : durée de récupération et drawdown par point
 
-- **US** : US-06, US-07 · **Priorité** : MUST · **Points** : 3 · **Dépend de** : T-00
+- **US** : US-06, US-07 · **Priorité** : MUST · **Points** : 3 · **Dépend de** : T-00 · **Réalisé** : 3 · **Commits** : `884c8bf`, `1ef0895`
 - **Fichiers** : `engine/backtest.utils.ts` (`createDrawdownTracker`), tests
 
 Critères d’acceptation :
@@ -309,7 +313,7 @@ Critères d’acceptation :
 
 ### T-16 · Contrat : métriques et `equityPoint.drawdown`
 
-- **US** : US-05, US-06, US-07 · **Priorité** : MUST · **Points** : 2 · **Dépend de** : T-09
+- **US** : US-05, US-06, US-07 · **Priorité** : MUST · **Points** : 2 · **Dépend de** : T-09 · **Réalisé** : 2 · **Commits** : `8ebab30`
 - **Fichiers** : `packages/contracts/src/backtest.ts`
 
 Critères d’acceptation :
@@ -318,7 +322,7 @@ Critères d’acceptation :
 
 ### T-17 · Engine : publier les métriques
 
-- **US** : US-05, US-06, US-07 · **Priorité** : MUST · **Points** : 2 · **Dépend de** : T-10, T-14, T-15, T-16
+- **US** : US-05, US-06, US-07 · **Priorité** : MUST · **Points** : 2 · **Dépend de** : T-10, T-14, T-15, T-16 · **Réalisé** : 2 · **Commits** : `8ebab30`
 - **Fichiers** : `engine/backtest.engine.ts`, `interfaces/backtest.interface.ts`, `publishers/backtest.publisher.ts`
 
 Critères d’acceptation :
@@ -328,7 +332,7 @@ Critères d’acceptation :
 
 ### T-18 · core-backend : colonnes de métriques
 
-- **US** : US-05, US-06 · **Priorité** : MUST · **Points** : 3 · **Dépend de** : T-11, T-16
+- **US** : US-05, US-06 · **Priorité** : MUST · **Points** : 3 · **Dépend de** : T-11, T-16 · **Réalisé** : 3 · **Commits** : `1061dfc`
 - **Fichiers** : `prisma/schema.prisma`, migration, `interfaces/backtest.interface.ts`, `repositories/`, `consumers/`
 
 Critères d’acceptation :
@@ -339,7 +343,7 @@ Critères d’acceptation :
 
 ### T-19 · Web : cartes KPI et hypothèses
 
-- **US** : US-05, US-06, US-07 · **Priorité** : MUST · **Points** : 3 · **Dépend de** : T-17, T-18
+- **US** : US-05, US-06, US-07 · **Priorité** : MUST · **Points** : 3 · **Dépend de** : T-17, T-18 · **Réalisé** : 3 · **Commits** : `c721fde`, `7763846`
 - **Fichiers** : `features/backtest/stats.tsx`, `assumptions.tsx`, `lib/format.ts`, `COMPONENTS.md`
 
 Critères d’acceptation :
@@ -351,13 +355,13 @@ Critères d’acceptation :
 
 ### T-20 · Web : courbe de drawdown
 
-- **US** : US-07 · **Priorité** : MUST · **Points** : 3 · **Dépend de** : T-17, T-18
+- **US** : US-07 · **Priorité** : MUST · **Points** : 3 · **Dépend de** : T-17, T-18 · **Réalisé** : 3 · **Commits** : `00860ad`
 - **Fichiers** : `features/backtest/` (nouveau graphique à côté de `equity-chart.tsx`), `backtest-detail.tsx`
 
 Critères d’acceptation :
 - [x] Aire sous zéro du `drawdown` par date, axe en pourcentage, même axe temporel que la courbe de valeur.
 - [x] Graphique masqué si les points n’ont pas de `drawdown` (résultat antérieur).
-- [ ] Lisible en mode clair et sombre. *(couleur `--destructive` et tokens du thème ; vérification navigateur clair/sombre non faite)*
+- [ ] Lisible en mode clair et sombre. *(couleur `--destructive` et tokens du thème ; vérification navigateur clair/sombre non faite ; graphique remplacé par la courbe de drawdown de `ResultOverview` lors de la refonte T-25)*
 
 ---
 
@@ -365,7 +369,7 @@ Critères d’acceptation :
 
 ### T-21 · Contrat : `benchmark` et `benchmarkValue`
 
-- **US** : US-08, US-09 · **Priorité** : MUST · **Points** : 2 · **Dépend de** : T-16
+- **US** : US-08, US-09 · **Priorité** : MUST · **Points** : 2 · **Dépend de** : T-16 · **Réalisé** : 2 · **Commits** : `a37ec22`
 - **Fichiers** : `packages/contracts/src/backtest.ts`
 
 Critères d’acceptation :
@@ -375,7 +379,7 @@ Critères d’acceptation :
 
 ### T-22 · Engine : rejeu du benchmark et écarts
 
-- **US** : US-08, US-09 · **Priorité** : MUST · **Points** : 5 · **Dépend de** : T-03, T-17, T-21
+- **US** : US-08, US-09 · **Priorité** : MUST · **Points** : 5 · **Dépend de** : T-03, T-17, T-21 · **Réalisé** : 5 · **Commits** : `a37ec22`
 - **Fichiers** : `engine/backtest.engine.ts`, `services/backtest.service.ts`, tests
 
 Critères d’acceptation :
@@ -387,7 +391,7 @@ Critères d’acceptation :
 
 ### T-23 · core-backend : benchmark persisté
 
-- **US** : US-08 · **Priorité** : MUST · **Points** : 3 · **Dépend de** : T-18, T-21
+- **US** : US-08 · **Priorité** : MUST · **Points** : 3 · **Dépend de** : T-18, T-21 · **Réalisé** : 3 · **Commits** : `996fc05`
 - **Fichiers** : `prisma/schema.prisma`, migration, `interfaces/`, `repositories/`, `services/`, `API.md`
 
 Critères d’acceptation :
@@ -398,17 +402,17 @@ Critères d’acceptation :
 
 ### T-24 · Web : champ « Benchmark »
 
-- **US** : US-08 · **Priorité** : MUST · **Points** : 1 · **Dépend de** : T-08, T-23
+- **US** : US-08 · **Priorité** : MUST · **Points** : 1 · **Dépend de** : T-08, T-23 · **Réalisé** : 1 · **Commits** : `0ea3bbe`
 - **Fichiers** : `features/backtest/sections.tsx`, `constants.ts`
 
 Critères d’acceptation :
 - [x] Champ « Benchmark » (recherche de symboles), valeur proposée `URTH` en constante, effaçable.
 - [x] Hypothèse « Benchmark » affichée sur le résultat.
-- [ ] Vérifié dans un navigateur (sélection, retrait, envoi `null`, hypothèse « Aucun »).
+- [ ] Vérifié dans un navigateur (sélection, retrait, envoi `null`, hypothèse « Aucun »). *(non fait ; envoi avec benchmark vérifié par l’API, démo T-30)*
 
 ### T-25 · Web : écarts, série et tableau « Métriques comparées »
 
-- **US** : US-09 · **Priorité** : MUST · **Points** : 5 · **Dépend de** : T-19, T-22, T-23
+- **US** : US-09 · **Priorité** : MUST · **Points** : 5 · **Dépend de** : T-19, T-22, T-23 · **Réalisé** : 8 · **Commits** : `1049a62`, `ad18362`, `d753c02`, `9bbd44f`
 - **Fichiers** : `features/backtest/stats.tsx`, `equity-chart.tsx`, nouveau tableau dans `features/backtest/`
 
 Critères d’acceptation :
@@ -424,7 +428,7 @@ Critères d’acceptation :
 
 ### T-26 · core-backend : `GET /api/backtests/compare`
 
-- **US** : US-10 · **Priorité** : SHOULD · **Points** : 5 · **Dépend de** : T-23
+- **US** : US-10 · **Priorité** : SHOULD · **Points** : 5 · **Dépend de** : T-23 · **Réalisé** : 5 · **Commits** : `78c101d`
 - **Fichiers** : `interfaces/`, `repositories/`, `services/`, `controller/`, `routes/backtest/`, `API.md`
 
 Critères d’acceptation :
@@ -436,18 +440,18 @@ Critères d’acceptation :
 
 ### T-27 · Web : page « Comparaison »
 
-- **US** : US-10 · **Priorité** : SHOULD · **Points** : 5 · **Dépend de** : T-25, T-26
+- **US** : US-10 · **Priorité** : SHOULD · **Points** : 5 · **Dépend de** : T-25, T-26 · **Réalisé** : 8 · **Commits** : `1cae77c`, `b956cd2`, `a02cfc8`, `881afae`
 - **Fichiers** : `app/(base)/.../comparaison/page.tsx`, `features/backtest/` (ou `features/comparison/` si le domaine grossit), sidebar
 
 Critères d’acceptation :
-- [x] Sélection de deux backtests terminés ; URL partageable (`?ids=`). Page `/app/backtest/compare` (`app/app/backtest/compare/page.tsx`, à côté du détail), entrée « Analyse > Comparaison » de la sidebar ; choix parmi les 100 plus récents dont la dernière exécution est terminée (`pageSize` maximal de la liste), « Échanger », « Copier le lien ».
-- [x] Blocs du haut de la maquette 19 : ~~cartes KPI de A avec écart à B~~, « Valeur des portefeuilles » (A, B, benchmark), « Métriques comparées » (A, B, benchmark). Réutilise les composants de T-19 et T-25. Écart : codé depuis la maquette validée « 19 v2 · Comparaison de backtests » (Figma `360:7783`), qui remplace les cartes KPI par la colonne « Écart » (`deltas` de l’API) du tableau « Métriques comparées » et ajoute la carte « Paramètres » (badge « diffère »). Réutilise `PriceAreaChart` (seconde série pleine `other` ajoutée), `MetricBlock` (props `strong`, `rowHeader`, badge de ligne) et les formatters de `stats.tsx` ; aucun écart calculé côté web.
+- [x] Sélection de deux backtests terminés ; URL partageable (`?ids=`). Page `/app/backtest/compare` (`app/app/backtest/compare/page.tsx`, à côté du détail), entrée « Analyse > Comparaison » de la sidebar ; choix parmi les 100 plus récents qui ont un résultat terminé, même relancés depuis (`GET /api/backtest?hasResult=true`, ajouté après revue, `881afae`), « Échanger », « Copier le lien » ; un lien `?ids=x,x` ou à plus de deux ids est traité comme sans sélection. Responsive vérifié par l’utilisateur le 31/10/2026.
+- [x] Blocs du haut de la maquette 19 : ~~cartes KPI de A avec écart à B~~, « Valeur des portefeuilles » (A, B, benchmark), « Métriques comparées » (A, B, benchmark). Réutilise les composants de T-19 et T-25. Écart : codé depuis la maquette validée « 19 v2 · Comparaison de backtests » (Figma `360:7783`), qui remplace les cartes KPI par la colonne « Écart » (`deltas` de l’API) du tableau « Métriques comparées » et ajoute la carte « Paramètres » (badge « diffère »). Réutilise `PriceAreaChart` (seconde série pleine `other` ajoutée), `MetricBlock` (props `strong`, `rowHeader`, badge de ligne) et les helpers d’affichage (`show`, `formatAmount`, `formatRecovery`, déplacés de `stats.tsx` vers `utils.tsx` après revue) ; benchmark de A, sinon de B ; aucun écart calculé côté web.
 - [x] Bandeau d’avertissement si `homogeneous === false`, avec les différences.
 - [x] Blocs « Selon la date de départ », « Rendements glissants », « Effet devise » absents (mois 5).
 
 ### T-28 · Liste : colonnes « Allocation » et « CAGR »
 
-- **US** : US-11 · **Priorité** : SHOULD · **Points** : 3 · **Dépend de** : T-05, T-18
+- **US** : US-11 · **Priorité** : SHOULD · **Points** : 3 · **Dépend de** : T-05, T-18 · **Réalisé** : 2 · **Commits** : `9bbd44f`
 - **Fichiers** : `repositories/backtest.repository.ts`, `features/backtest/column.tsx`, `API.md`
 
 Critères d’acceptation :
@@ -457,7 +461,7 @@ Critères d’acceptation :
 
 ### T-29 · Récapitulatif prévisionnel du formulaire
 
-- **US** : US-02 · **Priorité** : SHOULD · **Points** : 5 · **Dépend de** : T-11
+- **US** : US-02 · **Priorité** : SHOULD · **Points** : 5 · **Dépend de** : T-11 · **Réalisé** : 5 · **Commits** : `3a3bb64`
 - **Fichiers** : core-backend (service + route de prévisualisation), `features/backtest/` (panneau), `API.md`
 
 Critères d’acceptation :
@@ -468,7 +472,7 @@ Critères d’acceptation :
 
 ### T-30 · Documentation, limites et démo
 
-- **US** : US-12 · **Priorité** : MUST · **Points** : 2 · **Dépend de** : T-12, T-13, T-20, T-24, T-25
+- **US** : US-12 · **Priorité** : MUST · **Points** : 2 · **Dépend de** : T-12, T-13, T-20, T-24, T-25 · **Réalisé** : 3 · **Commits** : `5a03870`, `d3c2582`
 - **Fichiers** : `README.md`, `roadmap/08-portfolio-v1/` (US, tâches, bilan), `roadmap/README.md`
 
 Critères d’acceptation :
@@ -476,4 +480,4 @@ Critères d’acceptation :
 - [x] Limites documentées : taux sans risque à 0, dividendes non inclus, actifs en USD affichés sans conversion (mois 5), rebalancement à la clôture du premier jour de la période. Section « Limites à rendre visibles » du README, chaque limite vérifiée dans le code (`RISK_FREE_RATE`, `market.repository.ts`, `BACKTEST_CURRENCY`, `simulate`). Précisions du code : le rebalancement n’a jamais lieu le premier jour de la simulation, suit le versement du jour, laisse les lignes achetées légèrement sous leur cible à cause des frais, et suit le calendrier union allocation + benchmark.
 - [x] Scénario de démo exécuté de bout en bout : 60 % `AAPL` / 40 % `MSFT`, rebalancement annuel, frais 0,1 %, benchmark `URTH`, `PENDING` → `RUNNING` → `COMPLETED`, métriques face au benchmark. Exécuté le 2026-10-31 par HTTP sur core-backend (utilisateur de test, `LUMP_SUM` 10 000 €, 2015-01-01 → 2025-01-01) : `202` en `PENDING`, `RUNNING` puis `COMPLETED` en 0,26 s (`startedAt` → `finishedAt`). Résultat : 2 516 points, 20 ordres dont 9 ventes, 9 rebalancements au premier jour de cotation de chaque année (2016-01-04 … 2024-01-02), frais 27,36 €, valeur finale 93 518,35 €. Portefeuille / `URTH` : CAGR 25,08 % / 8,06 %, volatilité 25,75 % / 17,36 %, Sharpe 0,97 / 0,46, max drawdown −32,47 % / −34,01 %, récupération 534 / 196 jours, valeur finale 93 518,35 € / 21 681,02 €. Vérifié par l’API seulement, pas dans un navigateur.
 - [x] Rejeu d’un `backtest.requested` : ni double exécution ni double résultat. Message d’origine relu sur le topic et republié à l’identique (même clé, `eventId`, payload) : l’engine recalcule et republie `backtest.started` et `backtest.completed` (nouveaux `eventId`, même empreinte `dataSource.fingerprint`, mêmes métriques). core-backend les ignore : une seule `BacktestExecution` (`COMPLETED`, attempt 1, dates inchangées) et un seul `BacktestResult` (même `id`, même `createdAt`), comparés par Prisma Client avant et après le rejeu.
-- [ ] Feature clôturée avec le skill `feature-roadmap` (mode clôture) : cases cochées, commits et points réalisés, bilan, statut `Livrée` dans l’index.
+- [x] Feature clôturée avec le skill `feature-roadmap` (mode clôture) : cases cochées, commits et points réalisés, bilan, statut `Livrée` dans l’index.

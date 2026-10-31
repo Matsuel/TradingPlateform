@@ -17,7 +17,7 @@ La vision et la roadmap annuelle restent dans le [`README.md`](../README.md) rac
 | 05 | [Strategy Lab MVP](05-strategy-lab-mvp/) | 2 | 2026-10-24 → 2026-10-28 | #3 | Livrée | 50 ᵃ |
 | 06 | [Extraction de market-service](06-market-service/) | 2 | 2026-10-28 | #3 | Livrée | 8 ᵃ |
 | 07 | [Clôture du Strategy Lab](07-strategy-lab-cloture/) | 3 | 2026-10-29 → 2026-10-30 | #3 | Livrée | 24 ᵃ |
-| 08 | [Portfolio Management V1](08-portfolio-v1/) | 4 | à partir du 2026-10-30 | — | Planifiée | 98 |
+| 08 | [Portfolio Management V1](08-portfolio-v1/) | 4 | 2026-10-30 → 2026-10-31 | — | Livrée | 104 |
 | 09 | [Aide contextuelle sur les données](09-aide-contextuelle/) | 4–5 ᵇ | à planifier | — | Planifiée | 21 |
 
 ᵃ estimés a posteriori d’après les diffs.
@@ -28,7 +28,7 @@ La vision et la roadmap annuelle restent dans le [`README.md`](../README.md) rac
 | 1 — Cadrage et socle | 01, 02, 03, 04 | 75 ᵃ |
 | 2 — Strategy Lab MVP | 05, 06 | 58 ᵃ |
 | 3 — Clôture du Strategy Lab | 07 | 24 ᵃ |
-| 4 — Portfolio Management V1 | 08 | 98 (prévus) |
+| 4 — Portfolio Management V1 | 08 | 104 |
 
 ## Journal des décisions structurantes
 
