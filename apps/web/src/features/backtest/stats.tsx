@@ -1,14 +1,11 @@
 import type { ReactNode } from "react"
 import Dash from "@/components/custom/Dash"
 import { StatCard } from "@/components/stat-card"
-import { LOCALE, formatDay, formatDuration, formatPercent, formatPrice, formatRate, formatRatio } from "@/lib/format"
+import { formatDay, formatDuration, formatPercent, formatPrice, formatRate, formatRatio, formatSharpe } from "@/lib/format"
 import { BACKTEST_CURRENCY, RISK_FREE_RATE, rebalanceFrequencyLabels } from "./constants"
 import { MetricBlock } from "./metric-block"
 import type { BacktestListStats, BacktestResult, RebalanceFrequency } from "./types"
 import { fromDecimal } from "./utils"
-
-// Sharpe sans unité, 2 décimales
-const formatSharpe = new Intl.NumberFormat(LOCALE, { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format
 
 /** Compteurs et taux de la liste, calculés par le backend ; `stats` undefined pendant le chargement. */
 export function BacktestStats({ stats }: { stats: BacktestListStats | undefined }) {
@@ -34,15 +31,17 @@ export function BacktestStats({ stats }: { stats: BacktestListStats | undefined 
     )
 }
 
-// Résultat antérieur (champ absent) : <Dash /> ; null calculé par le moteur : non récupéré, ou aucune baisse
-function formatRecovery(recoveryDays: number | null | undefined, maxDrawdown: number | null) {
+/** Durée de récupération : `<Dash />` pour un résultat antérieur (champ absent) ; null calculé par le moteur : « Non récupéré », ou « Aucune baisse ». */
+export function formatRecovery(recoveryDays: number | null | undefined, maxDrawdown: number | null) {
     if (recoveryDays != null) return formatDuration(recoveryDays)
     if (recoveryDays === undefined || maxDrawdown == null) return <Dash />
     return maxDrawdown < 0 ? "Non récupéré" : "Aucune baisse"
 }
 
-const show = (value: number | null, format: (v: number) => string) => (value == null ? <Dash /> : format(value))
-const formatAmount = (v: number) => formatPrice(v, BACKTEST_CURRENCY)
+/** Valeur formatée, ou `<Dash />` si elle manque (résultat antérieur, moins de deux points). */
+export const show = (value: number | null, format: (v: number) => string) => (value == null ? <Dash /> : format(value))
+/** Montant en `BACKTEST_CURRENCY`. */
+export const formatAmount = (v: number) => formatPrice(v, BACKTEST_CURRENCY)
 
 /**
  * Indicateurs d'un résultat en trois blocs (performance, risque, coûts et activité), tous calculés par le moteur :

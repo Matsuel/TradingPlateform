@@ -1,6 +1,7 @@
+import type { PricePoint } from "@/components/chart"
 import { formatRate } from "@/lib/format"
 import { activeStatuses } from "./constants"
-import type { Backtest, BacktestExecution, ExecutionStatus } from "./types"
+import type { Backtest, BacktestExecution, EquityPoint, ExecutionStatus } from "./types"
 
 /** Dernière exécution d'un backtest (l'API les trie de la plus récente à la plus ancienne). */
 export const getExecution = (b: Backtest) => b.executions[0]
@@ -28,3 +29,14 @@ export const formatAllocation = (allocations: Backtest["allocations"]) =>
     allocations.map(({ symbol, weight }) => `${symbol} ${formatRate(Number(weight))}`).join(" · ")
 
 export const fromDecimal = (value: string | null | undefined) => (value == null ? null : Number(value))
+
+/**
+ * Aligne les courbes de A et B sur l'union de leurs dates, triées, pour un même graphique : `price` = série de A (null
+ * les jours hors de sa période), `other` = série de B, `compare` = benchmark de A. `value` choisit la série (valeur, drawdown).
+ */
+export function alignCurves(a: EquityPoint[], b: EquityPoint[], value: (p: EquityPoint) => number | undefined): PricePoint[] {
+    const points = new Map<string, PricePoint>()
+    for (const p of a) points.set(p.date, { date: p.date, price: value(p) ?? null, compare: p.benchmarkValue })
+    for (const p of b) points.set(p.date, { ...(points.get(p.date) ?? { date: p.date, price: null }), other: value(p) })
+    return [...points.values()].sort((x, y) => x.date.localeCompare(y.date))
+}

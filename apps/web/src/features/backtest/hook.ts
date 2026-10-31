@@ -1,5 +1,5 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createBacktest, getBacktest, getBacktests, getBacktestStats, previewBacktest, rerunBacktest } from "./api";
+import { compareBacktests, createBacktest, getBacktest, getBacktests, getBacktestStats, previewBacktest, rerunBacktest } from "./api";
 import { activeStatuses } from "./constants";
 import type { BacktestValues } from "./schema";
 import { hasStatus } from "./utils";
@@ -46,6 +46,15 @@ export function useBacktest(id: string) {
         queryFn: () => getBacktest(id),
         // Rafraîchit tant que la dernière exécution n'est pas terminée
         refetchInterval: (query) => query.state.data && hasStatus(query.state.data, activeStatuses) ? 2000 : false,
+    })
+}
+
+// Requête seulement avec deux ids distincts (l'API refuse sinon)
+export function useBacktestComparison(a: string, b: string) {
+    return useQuery({
+        queryKey: ["backtest", "compare", a, b],
+        queryFn: () => compareBacktests(a, b),
+        enabled: Boolean(a && b) && a !== b,
     })
 }
 

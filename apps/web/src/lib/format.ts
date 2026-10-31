@@ -16,6 +16,9 @@ export const formatRate = new Intl.NumberFormat(LOCALE, { style: "percent", maxi
 // Taux en fraction affiché sans signe, jusqu'à 2 décimales (0,001 → 0,1 % ; 0,1532 → 15,32 %) : formatRate arrondit à l'unité
 export const formatPercent = new Intl.NumberFormat(LOCALE, { style: "percent", maximumFractionDigits: 2 }).format
 
+// Ratio de Sharpe, sans unité, 2 décimales (1,25)
+export const formatSharpe = new Intl.NumberFormat(LOCALE, { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format
+
 export const formatVolume = new Intl.NumberFormat(LOCALE, {
     notation: "compact", maximumFractionDigits: 2,
 }).format

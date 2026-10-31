@@ -401,12 +401,12 @@ Primitives shadcn (base-ui), voir la doc shadcn. Ne les modifie qu'en cas de bes
 ### PriceAreaChart
 
 - **Import** : `import { PriceAreaChart, type PricePoint } from "@/components/chart"`.
-- **Rôle** : courbe d'aire d'une série `PricePoint`, verte ou rouge, remplie jusqu'à zéro (une série négative donne une aire sous zéro) ; seconde série `compare` optionnelle en pointillés ; l'appelant fournit la devise (ou `formatValue`) et les formats de date.
+- **Rôle** : courbe d'aire d'une série `PricePoint`, verte ou rouge (ou `color`), remplie jusqu'à zéro (une série négative donne une aire sous zéro) ; série `compare` optionnelle en pointillés ; seconde série pleine `other` optionnelle (les deux séries pleines sont alors sans remplissage) ; l'appelant fournit la devise (ou `formatValue`) et les formats de date.
 - **Props** :
 
   | Nom | Type | Requis | Défaut | Description |
   | --- | --- | --- | --- | --- |
-  | `data` | `PricePoint[]` = `{ date: string; price: number; compare?: number }[]` | oui | — | Points, `date` ISO ou `YYYY-MM-DD` ; `compare` = valeur de la série de référence. |
+  | `data` | `PricePoint[]` = `{ date: string; price: number \| null; compare?: number; other?: number }[]` | oui | — | Points, `date` ISO ou `YYYY-MM-DD` ; `price` null = pas de point ce jour (périodes différentes) ; `compare` = valeur de la série de référence ; `other` = valeur de la seconde série pleine. |
   | `formatTick` | `(date: string) => string` | oui | — | Libellés de l'axe X. |
   | `formatTooltipDate` | `(date: string) => string` | oui | — | Date de l'infobulle. |
   | `currency` | `string` | oui, sauf avec `formatValue` | — | Code ISO passé à `formatPrice` dans l'infobulle (`BACKTEST_CURRENCY`, `MARKET_CURRENCY`). Exclusif avec `formatValue`. |
@@ -414,7 +414,10 @@ Primitives shadcn (base-ui), voir la doc shadcn. Ne les modifie qu'en cas de bes
   | `formatAxis` | `(value: number) => string` | non | nombre sans devise | Libellés de l'axe Y (ex. `formatRate`). |
   | `label` | `string` | non | `"Prix"` | Nom de la série. |
   | `positive` | `boolean` | non | dernier point ≥ premier | Couleur verte si vrai. |
-  | `compareLabel` | `string` | non | — | Nom de la série `compare` ; absent = pas de seconde courbe. Préfixe chaque valeur de l'infobulle par son nom. |
+  | `color` | `string` | non | vert/rouge selon `positive` | Couleur CSS de la série `price` (ex. `"var(--chart-1)"`). |
+  | `compareLabel` | `string` | non | — | Nom de la série `compare` ; absent = pas de courbe en pointillés. Préfixe chaque valeur de l'infobulle par son nom. |
+  | `otherLabel` | `string` | non | — | Nom de la série `other` ; absent = pas de seconde courbe pleine. Préfixe chaque valeur de l'infobulle par son nom. |
+  | `otherColor` | `string` | non | `"var(--chart-2)"` | Couleur CSS de la série `other`. |
   | `hideXAxis` | `boolean` | non | `false` | Masque l'axe des dates, pour un graphique empilé au-dessus d'un autre qui le porte (valeur au-dessus du drawdown). |
   | `className` | `string` | non | — | Sur `ChartContainer` (hauteur par défaut `h-82.5`). |
 
@@ -432,7 +435,7 @@ Primitives shadcn (base-ui), voir la doc shadcn. Ne les modifie qu'en cas de bes
       className="h-56"
   />
   ```
-- **Utilisé par** : `src/features/backtest/result-overview.tsx`, `src/features/market/price-chart.tsx` ; `PricePoint` par `src/components/sparkline.tsx`.
+- **Utilisé par** : `src/features/backtest/result-overview.tsx`, `src/features/backtest/comparison-overview.tsx`, `src/features/market/price-chart.tsx` ; `PricePoint` par `src/components/sparkline.tsx`, `src/features/backtest/utils.ts`.
 - **Source** : `src/components/chart.tsx`.
 
 ### Sparkline
@@ -710,18 +713,19 @@ Props communes `BaseProps<T>` (exportées par `field.tsx`), répétées dans cha
 
 | Export | Signature / valeur | Rôle (et unité) | Utilisé par |
 | --- | --- | --- | --- |
-| `LOCALE` | `"fr-FR"` | Locale des formats `Intl` locaux à un composant (ticks de graphique, colonnes). | `components/chart.tsx`, `features/backtest/column.tsx`, `features/backtest/stats.tsx`, `features/market/price-chart.tsx` |
+| `LOCALE` | `"fr-FR"` | Locale des formats `Intl` locaux à un composant (ticks de graphique, colonnes). | `components/chart.tsx`, `features/backtest/column.tsx`, `features/backtest/comparison-blocks.tsx`, `features/market/price-chart.tsx` |
 | `formatPrice` | `(v: number, currency: string) => string` | Montant dans la devise ISO **obligatoire** : `formatPrice(1234.5, "EUR")` → « 1 234,50 € ». | `components/chart.tsx`, `features/market/column.tsx`, `features/backtest/stats.tsx`, `features/backtest/column.tsx` |
-| `formatChange` | `(v: number) => string` | Nombre signé, 2 décimales, sans « % » : `1.5` → « +1,50 ». Pour un pourcentage déjà en %. | `components/data-table/cells.tsx`, `formatRatio` |
-| `formatRatio` | `(ratio: number) => string` | Ratio en **fraction** → variation signée en % : `0.342` → « +34,20 % ». Rendement, drawdown. | `features/backtest/stats.tsx`, `features/backtest/execution-history.tsx` |
-| `formatRate` | `(ratio: number) => string` | Proportion en **fraction** → % non signé, arrondi à l'unité : `0.3846` → « 38 % ». Taux de réussite/échec, poids d'allocation, axe du drawdown. | `features/backtest/stats.tsx`, `features/backtest/utils.ts`, `features/backtest/result-overview.tsx` |
-| `formatPercent` | `(ratio: number) => string` | Taux en **fraction** → % non signé, jusqu'à 2 décimales : `0.001` → « 0,1 % », `0.1532` → « 15,32 % ». Frais, volatilité, taux sans risque. | `features/backtest/assumptions.tsx`, `features/backtest/stats.tsx` |
+| `formatChange` | `(v: number) => string` | Nombre signé, 2 décimales, sans « % » : `1.5` → « +1,50 ». Pour un pourcentage déjà en %, ou un écart de Sharpe. | `components/data-table/cells.tsx`, `features/backtest/comparison-blocks.tsx`, `formatRatio` |
+| `formatRatio` | `(ratio: number) => string` | Ratio en **fraction** → variation signée en % : `0.342` → « +34,20 % ». Rendement, drawdown. | `features/backtest/stats.tsx`, `features/backtest/execution-history.tsx`, `features/backtest/comparison-blocks.tsx`, `features/backtest/comparison-overview.tsx` |
+| `formatRate` | `(ratio: number) => string` | Proportion en **fraction** → % non signé, arrondi à l'unité : `0.3846` → « 38 % ». Taux de réussite/échec, poids d'allocation, axe du drawdown. | `features/backtest/stats.tsx`, `features/backtest/utils.ts`, `features/backtest/result-overview.tsx`, `features/backtest/comparison-overview.tsx`, `features/backtest/comparison-blocks.tsx` |
+| `formatPercent` | `(ratio: number) => string` | Taux en **fraction** → % non signé, jusqu'à 2 décimales : `0.001` → « 0,1 % », `0.1532` → « 15,32 % ». Frais, volatilité, taux sans risque. | `features/backtest/assumptions.tsx`, `features/backtest/stats.tsx`, `features/backtest/comparison-blocks.tsx`, `features/backtest/backtest-compare.tsx` |
+| `formatSharpe` | `(v: number) => string` | Ratio de Sharpe, sans unité, 2 décimales : `1.25` → « 1,25 ». | `features/backtest/stats.tsx`, `features/backtest/comparison-blocks.tsx` |
 | `formatVolume` | `(v: number) => string` | Notation compacte : `41234567` → « 41,23 M ». | `features/market/column.tsx` |
 | `formatDate` | `(d: string \| Date) => string` | Date et heure courtes : « 28/10/2026 09:00 ». | `features/backtest/execution-history.tsx`, `features/backtest/assumptions.tsx` |
 | `formatDay` | `(d: string \| Date) => string` | Jour court : « 28/10/26 ». | `features/backtest/column.tsx`, `features/backtest/stats.tsx` |
-| `formatDayRange` | `(start: string \| Date, end: string \| Date) => string` | Période : « 28/10/25 – 28/10/26 ». | `features/backtest/column.tsx`, `features/backtest/backtest-detail.tsx`, `features/backtest/assumptions.tsx` |
-| `formatMonthTick` | `(d: string \| Date) => string` | Mois court et année pour un axe temporel : « janv. 24 ». | `features/backtest/result-overview.tsx` |
-| `formatMediumDate` | `(d: string \| Date) => string` | Date moyenne : « 28 oct. 2026 » (infobulle de graphique). | `features/backtest/result-overview.tsx` |
+| `formatDayRange` | `(start: string \| Date, end: string \| Date) => string` | Période : « 28/10/25 – 28/10/26 ». | `features/backtest/column.tsx`, `features/backtest/backtest-detail.tsx`, `features/backtest/assumptions.tsx`, `features/backtest/comparison-blocks.tsx`, `features/backtest/backtest-compare.tsx` |
+| `formatMonthTick` | `(d: string \| Date) => string` | Mois court et année pour un axe temporel : « janv. 24 ». | `features/backtest/result-overview.tsx`, `features/backtest/comparison-overview.tsx` |
+| `formatMediumDate` | `(d: string \| Date) => string` | Date moyenne : « 28 oct. 2026 » (infobulle de graphique). | `features/backtest/result-overview.tsx`, `features/backtest/comparison-overview.tsx` |
 | `formatDuration` | `(days: number) => string` | Durée en jours calendaires : en jours sous deux mois (`45` → « 45 jours », `1` → « 1 jour »), sinon en mois arrondis (`426` → « 14 mois »). | `features/backtest/stats.tsx` |
 
 Source : `src/lib/format.ts`.
@@ -1001,7 +1005,7 @@ Source : `src/features/auth/schema.ts`.
 ### MetricBlock
 
 - **Import** : `import { MetricBlock, type MetricRow } from "@/features/backtest/metric-block"`.
-- **Rôle** : carte d'indicateurs en liste : titre, description, une ligne par métrique, une colonne de valeurs par série (ex. portefeuille puis benchmark) ; première colonne en gras, suivantes en retrait ; note optionnelle sous la liste. Valeurs déjà formatées.
+- **Rôle** : carte d'indicateurs en liste : titre, description, une ligne par métrique (badge optionnel après le libellé), une colonne de valeurs par série (ex. portefeuille puis benchmark) ; `strong` premières colonnes en gras, suivantes en retrait ; note optionnelle sous la liste. Valeurs déjà formatées.
 - **Props** :
 
   | Nom | Type | Requis | Défaut | Description |
@@ -1009,7 +1013,9 @@ Source : `src/features/auth/schema.ts`.
   | `title` | `string` | oui | — | Titre de la carte. |
   | `description` | `string` | non | — | Sous le titre. |
   | `columns` | `string[]` | oui | — | En-tête de chaque colonne de valeurs. |
-  | `rows` | `MetricRow[]` = `{ label: string; values: ReactNode[] }[]` | oui | — | `values` dans l'ordre de `columns`. |
+  | `rows` | `MetricRow[]` = `{ label: string; badge?: ReactNode; values: ReactNode[] }[]` | oui | — | `values` dans l'ordre de `columns` ; `badge` après le libellé (ex. « diffère »). |
+  | `strong` | `number` | non | `1` | Nombre de premières colonnes en gras ; `0` = toutes en retrait. |
+  | `rowHeader` | `string` | non | « Indicateur » pour lecteurs d'écran | En-tête visible de la colonne des libellés. |
   | `note` | `ReactNode` | non | — | Texte sous la liste. |
   | `className` | `string` | non | — | Sur la carte. |
 
@@ -1017,7 +1023,7 @@ Source : `src/features/auth/schema.ts`.
   ```tsx
   <MetricBlock title="Coûts et activité" columns={["Total"]} rows={[{ label: "Ordres", values: [result.totalTrades] }]} />
   ```
-- **Utilisé par** : `src/features/backtest/stats.tsx`.
+- **Utilisé par** : `src/features/backtest/stats.tsx`, `src/features/backtest/comparison-blocks.tsx`.
 - **Source** : `src/features/backtest/metric-block.tsx`.
 
 ### ResultDetails
@@ -1105,7 +1111,83 @@ Source : `src/features/auth/schema.ts`.
   <BacktestResultBlocks result={result} rebalanceFrequency={backtest.rebalanceFrequency} />
   ```
 - **Utilisé par** : `src/features/backtest/backtest-detail.tsx`.
-- **Source** : `src/features/backtest/stats.tsx`.
+- **Source** : `src/features/backtest/stats.tsx`. Le même fichier exporte les helpers d'affichage d'une métrique, réutilisés par `comparison-blocks.tsx` :
+
+  | Export | Signature | Rôle |
+  | --- | --- | --- |
+  | `show` | `(value: number \| null, format: (v: number) => string) => ReactNode` | Valeur formatée, `<Dash />` si `null`. |
+  | `formatAmount` | `(v: number) => string` | Montant en `BACKTEST_CURRENCY`. |
+  | `formatRecovery` | `(recoveryDays: number \| null \| undefined, maxDrawdown: number \| null) => ReactNode` | Durée `formatDuration` ; `<Dash />` si absent (résultat antérieur) ; « Non récupéré » ou « Aucune baisse » si `null`. |
+
+### BacktestCompare
+
+- **Import** : `import { BacktestCompare } from "@/features/backtest/backtest-compare"`.
+- **Rôle** : écran comparaison (maquette 19 v2) : en-tête et « Copier le lien », `ComparisonSelection`, puis, avec deux backtests choisis, bandeau « Comparaison non homogène » si `homogeneous` est faux (une phrase par élément de `differences`), `ComparisonOverview`, `ComparisonMetrics` et `ComparisonParameters` (côte à côte à partir de `xl`). La sélection vit dans l'URL : `?ids=a,b` (`router.replace`), lien partageable. Instancie `useBacktestComparison`.
+- **Props** :
+
+  | Nom | Type | Requis | Défaut | Description |
+  | --- | --- | --- | --- | --- |
+  | `ids` | `string \| string[] \| undefined` | oui | — | Valeur brute du paramètre `ids` de l'URL : ids de A et B séparés par une virgule, un côté vide si non choisi. |
+
+- **Exemple** (tiré de `src/app/app/backtest/compare/page.tsx`) :
+  ```tsx
+  <BacktestCompare ids={ids} />
+  ```
+- **Utilisé par** : `src/app/app/backtest/compare/page.tsx`.
+- **Source** : `src/features/backtest/backtest-compare.tsx`.
+
+### ComparisonSelection
+
+- **Import** : `import { ComparisonSelection } from "@/features/backtest/comparison-selection"`.
+- **Rôle** : carte de choix des backtests A et B parmi les `COMPARABLE_LIMIT` plus récents dont la dernière exécution est terminée (`useBacktests`, `statusFilters.done`), bouton « Échanger ». Un backtest choisi d'un côté n'est pas proposé de l'autre.
+- **Props** :
+
+  | Nom | Type | Requis | Défaut | Description |
+  | --- | --- | --- | --- | --- |
+  | `a` | `string` | oui | — | Id de A, `""` si non choisi. |
+  | `b` | `string` | oui | — | Id de B, `""` si non choisi. |
+  | `onChange` | `(a: string, b: string) => void` | oui | — | Nouvelle paire (choix ou échange). |
+
+- **Exemple** (tiré de `src/features/backtest/backtest-compare.tsx`) :
+  ```tsx
+  <ComparisonSelection a={a} b={b} onChange={select} />
+  ```
+- **Utilisé par** : `src/features/backtest/backtest-compare.tsx`.
+- **Source** : `src/features/backtest/comparison-selection.tsx`.
+
+### ComparisonOverview
+
+- **Import** : `import { ComparisonOverview } from "@/features/backtest/comparison-overview"`.
+- **Rôle** : carte « Valeur des portefeuilles » : légende, valeurs de A (`--chart-1`) et B (`--chart-2`) et benchmark de A en pointillés (`PriceAreaChart`, courbes alignées par `alignCurves`), puis drawdowns de A et B sur le même axe ; drawdown masqué si aucun point n'en porte.
+- **Props** :
+
+  | Nom | Type | Requis | Défaut | Description |
+  | --- | --- | --- | --- | --- |
+  | `comparison` | `BacktestComparison` | oui | — | Réponse de `GET /api/backtest/compare`. |
+
+- **Exemple** (tiré de `src/features/backtest/backtest-compare.tsx`) :
+  ```tsx
+  <ComparisonOverview comparison={comparison} />
+  ```
+- **Utilisé par** : `src/features/backtest/backtest-compare.tsx`.
+- **Source** : `src/features/backtest/comparison-overview.tsx`.
+
+### ComparisonMetrics, ComparisonParameters
+
+- **Import** : `import { ComparisonMetrics, ComparisonParameters } from "@/features/backtest/comparison-blocks"`.
+- **Rôle** : deux `MetricBlock`. `ComparisonMetrics` : « Métriques comparées » (CAGR, rendement total, volatilité, Sharpe, max drawdown, récupération, valeur finale) en colonnes A, B, « Écart » (`deltas` de l'API, en points de ratio « ±x,x pts », Sharpe sans unité ; vert si favorable à A selon `comparedMetricHigherIsBetter`, rouge sinon ; `<Dash />` sans écart) et, si A a un benchmark, son symbole. `ComparisonParameters` : « Paramètres » (période, mode, allocation, rebalancement, frais, benchmark) de A et B, badge « diffère » sur ceux de `differences`.
+- **Props** (les deux) :
+
+  | Nom | Type | Requis | Défaut | Description |
+  | --- | --- | --- | --- | --- |
+  | `comparison` | `BacktestComparison` | oui | — | Réponse de `GET /api/backtest/compare`. |
+
+- **Exemple** (tiré de `src/features/backtest/backtest-compare.tsx`) :
+  ```tsx
+  <ComparisonMetrics comparison={comparison} />
+  ```
+- **Utilisé par** : `src/features/backtest/backtest-compare.tsx`.
+- **Source** : `src/features/backtest/comparison-blocks.tsx`.
 
 ### `features/backtest/api.ts`
 
@@ -1118,6 +1200,7 @@ Source : `src/features/auth/schema.ts`.
 | `getBacktests` | `(params: PaginationParams & { status: readonly ExecutionStatus[] }) => Promise<Paginated<Backtest>>` | `GET /api/backtest?page&pageSize&status` (`status` = statuts séparés par des virgules, omis si vide) | `useBacktests` |
 | `getBacktestStats` | `() => Promise<BacktestListStats>` | `GET /api/backtest/stats` | `useBacktestStats` |
 | `getBacktest` | `(id: string) => Promise<BacktestDetails>` | `GET /api/backtest/:id` | `useBacktest` |
+| `compareBacktests` | `(a: string, b: string) => Promise<BacktestComparison>` | `GET /api/backtest/compare?ids=a,b` | `useBacktestComparison` |
 | `rerunBacktest` | `(id: string) => Promise<BacktestExecution>` | `POST /api/backtest/:id/executions` | `useRerunBacktest` |
 
 Source : `src/features/backtest/api.ts`.
@@ -1130,9 +1213,10 @@ Source : `src/features/backtest/api.ts`.
 | --- | --- | --- | --- |
 | `useCreateBacktest` | `() => UseMutationResult<Backtest, Error, BacktestValues>` | Invalide `["backtest", "list"]` et `["backtest", "stats"]` au succès. | `new-backtest-form.tsx`, `quick-backtest-form.tsx` |
 | `useBacktestPreview` | `(values: BacktestValues \| null) => UseQueryResult<BacktestPreview>` | `["backtest", "preview", values]` ; désactivé si `values` est `null` (formulaire invalide) ; réponse précédente gardée pendant le recalcul (`keepPreviousData`). | `preview-summary.tsx` |
-| `useBacktests` | `(params: Parameters<typeof getBacktests>[0]) => UseQueryResult<Paginated<Backtest>>` | `["backtest", "list", params]` ; page précédente gardée pendant le chargement (`keepPreviousData`). | `backtest-list.tsx` |
+| `useBacktests` | `(params: Parameters<typeof getBacktests>[0]) => UseQueryResult<Paginated<Backtest>>` | `["backtest", "list", params]` ; page précédente gardée pendant le chargement (`keepPreviousData`). | `backtest-list.tsx`, `comparison-selection.tsx` |
 | `useBacktestStats` | `() => UseQueryResult<BacktestListStats>` | `["backtest", "stats"]`. | `backtest-list.tsx` |
 | `useBacktest` | `(id: string) => UseQueryResult<BacktestDetails>` | `["backtest", "detail", id]` ; rafraîchi toutes les 2 s tant que la dernière exécution est dans `activeStatuses`. | `backtest-detail.tsx` |
+| `useBacktestComparison` | `(a: string, b: string) => UseQueryResult<BacktestComparison>` | `["backtest", "compare", a, b]` ; désactivé sans deux ids distincts. | `backtest-compare.tsx` |
 | `useRerunBacktest` | `(id: string) => UseMutationResult<BacktestExecution>` (`mutate()` sans argument) | Invalide `["backtest"]` au succès (liste, stats et détail). | `backtest-detail.tsx` |
 
 Source : `src/features/backtest/hook.ts`.
@@ -1159,12 +1243,12 @@ Source : `src/features/backtest/schema.ts`.
 | `BACKTEST_CURRENCY` | `"EUR"` | Devise d'affichage des montants (cours non convertis). | `result-overview.tsx`, `result-details.tsx`, `stats.tsx`, `assumptions.tsx` |
 | `activeStatuses` | `["PENDING", "RUNNING"]` | Statuts d'une exécution qui peut encore évoluer (miroir de `ACTIVE_STATUSES` backend). | `hook.ts`, `utils.ts`, `statusFilters` |
 | `investmentModeOptions` | `{ value: InvestmentMode; label: string }[]` : `LUMP_SUM` → « Investissement unique », `RECURRING` → « Investissement unique + versements mensuels » | Options du `SelectField` `investmentMode`. | `sections.tsx`, `quick-backtest-form.tsx` |
-| `rebalanceFrequencyLabels` | `Record<RebalanceFrequency, string>` : `NONE` → « Aucun », `MONTHLY` → « Mensuel », `QUARTERLY` → « Trimestriel », `YEARLY` → « Annuel » | Libellé de la fréquence de rebalancement d'un backtest stocké. | `assumptions.tsx` |
+| `rebalanceFrequencyLabels` | `Record<RebalanceFrequency, string>` : `NONE` → « Aucun », `MONTHLY` → « Mensuel », `QUARTERLY` → « Trimestriel », `YEARLY` → « Annuel » | Libellé de la fréquence de rebalancement d'un backtest stocké. | `assumptions.tsx`, `comparison-blocks.tsx` |
 | `DEFAULT_REBALANCE_FREQUENCY` | `"NONE"` | Fréquence par défaut du formulaire complet et du test rapide (même défaut que `createBacktestSchema`). | `new-backtest-form.tsx`, `quick-backtest-form.tsx` |
 | `rebalanceFrequencyOptions` | `{ value: string; label: string }[]` dérivé de `rebalanceFrequencyLabels` | Options du `SelectField` `rebalanceFrequency`. | `sections.tsx` |
 | `DEFAULT_BENCHMARK_SYMBOL` | `"URTH"` (ETF MSCI World) | Benchmark proposé par le formulaire complet (D9), retirable. | `new-backtest-form.tsx` |
-| `NO_BENCHMARK_LABEL` | `"Aucun"` | Hypothèse « Benchmark » d'un backtest sans benchmark. | `assumptions.tsx` |
-| `strategyLabels` | `Record<InvestmentMode, string>` : `RECURRING` → « DCA mensuel », `LUMP_SUM` → « Lump sum » | Libellé de stratégie d'un backtest stocké. | `column.tsx`, `backtest-detail.tsx` |
+| `NO_BENCHMARK_LABEL` | `"Aucun"` | Hypothèse « Benchmark » d'un backtest sans benchmark. | `assumptions.tsx`, `comparison-blocks.tsx`, `backtest-compare.tsx` |
+| `strategyLabels` | `Record<InvestmentMode, string>` : `RECURRING` → « DCA mensuel », `LUMP_SUM` → « Lump sum » | Libellé de stratégie d'un backtest stocké. | `column.tsx`, `backtest-detail.tsx`, `comparison-blocks.tsx` |
 | `executionRuleLabels` | `Record<ExecutionRule, string>` : `CLOSE_ON_SCHEDULED_DAY` → « Achat à la clôture du premier jour de cotation de chaque échéance » | Libellé de la règle d'exécution d'un résultat. | `assumptions.tsx` |
 | `dataProviderLabels` | `Record<DataSource["provider"], string>` : `yahoo-finance2` → « Yahoo Finance » | Libellé du fournisseur de cours. | `assumptions.tsx`, `preview-summary.tsx` |
 | `priceTypeLabels` | `Record<DataSource["priceType"], string>` : `CLOSE_SPLIT_ADJUSTED` → « Clôture ajustée des splits, hors dividendes » | Libellé du type de cours. | `assumptions.tsx`, `preview-summary.tsx` |
@@ -1173,8 +1257,11 @@ Source : `src/features/backtest/schema.ts`.
 | `BACKTEST_DISCLAIMER` | « Les performances passées ne préjugent pas des performances futures. Simulation pédagogique, pas un conseil en investissement. » | Avertissement affiché avec tout résultat. | `assumptions.tsx` |
 | `statusBadges` | `Record<ExecutionStatus, { label; variant: "outline" \| "destructive" \| "secondary" \| "success" }>` | Badge de statut d'exécution. | `column.tsx`, `backtest-detail.tsx`, `execution-history.tsx` |
 | `tradeSideBadges` | `Record<TradeSide, { label; variant: "success" \| "destructive" }>` : `BUY` → « Achat » (`success`), `SELL` → « Vente » (`destructive`) | Badge du côté d'un ordre ; `side` absent (résultat antérieur) lu comme `BUY` (D10). | `column.tsx` |
-| `statusFilters` | `{ all, running, done, failed }` → `{ label, statuses: ExecutionStatus[] }` | Onglets de filtre de la liste ; `statuses` envoyés en `status` à `getBacktests` (`all` = vide, aucun filtre). | `backtest-list.tsx` |
+| `statusFilters` | `{ all, running, done, failed }` → `{ label, statuses: ExecutionStatus[] }` | Onglets de filtre de la liste ; `statuses` envoyés en `status` à `getBacktests` (`all` = vide, aucun filtre). | `backtest-list.tsx`, `comparison-selection.tsx` (`done`) |
 | `StatusFilter` | `keyof typeof statusFilters` | Type de l'onglet actif. | `backtest-list.tsx` |
+| `COMPARABLE_LIMIT` | `100` | Nombre de backtests terminés proposés au choix de la comparaison (`pageSize` maximal de `GET /api/backtest`). | `comparison-selection.tsx` |
+| `comparisonParameterLabels` | `Record<ComparisonParameter, string>` : `period` → « périodes différentes », `feeRate` → « frais différents », `benchmarkSymbol` → « benchmarks différents » | Titre du bandeau « Comparaison non homogène ». | `backtest-compare.tsx` |
+| `comparedMetricHigherIsBetter` | `Record<ComparedMetric, boolean>` : `volatility` → `false`, les autres → `true` | Sens favorable d'un écart A − B, pour sa couleur (affichage seulement). | `comparison-blocks.tsx` |
 
 Source : `src/features/backtest/constants.ts`.
 
@@ -1188,8 +1275,9 @@ Source : `src/features/backtest/constants.ts`.
 | `hasStatus` | `(b: Backtest, statuses: readonly ExecutionStatus[]) => boolean` | Statut de la dernière exécution dans la liste. | `hook.ts` |
 | `isActive` | `(e: BacktestExecution) => boolean` | Exécution `PENDING` ou `RUNNING`. | `backtest-detail.tsx`, `execution-history.tsx` |
 | `getExecutionDuration` | `(e: BacktestExecution) => string \| null` | Durée `finishedAt − (startedAt ?? createdAt)`, « 2 min 5 s » ou « 12 s » (minimum 1 s) ; `null` si non terminée. | `column.tsx`, `backtest-detail.tsx`, `execution-history.tsx` |
-| `fromDecimal` | `(value: string \| null \| undefined) => number \| null` | `Decimal` sérialisé → `number`, `null` ou absent → `null`. | `stats.tsx`, `result-overview.tsx` |
+| `fromDecimal` | `(value: string \| null \| undefined) => number \| null` | `Decimal` sérialisé → `number`, `null` ou absent → `null`. | `stats.tsx`, `result-overview.tsx`, `comparison-blocks.tsx` |
 | `formatAllocation` | `(allocations: Backtest["allocations"]) => string` | Allocation lisible : « AAPL 60 % · MSFT 40 % » (`formatRate` du poids). | `column.tsx`, `backtest-detail.tsx` |
+| `alignCurves` | `(a: EquityPoint[], b: EquityPoint[], value: (p: EquityPoint) => number \| undefined) => PricePoint[]` | Courbes de A et B sur l'union de leurs dates triées : `price` = A (`null` hors de sa période), `other` = B, `compare` = `benchmarkValue` de A ; `value` choisit la série (valeur, drawdown). | `comparison-overview.tsx` |
 
 Source : `src/features/backtest/utils.ts`.
 
@@ -1226,6 +1314,7 @@ Source : `src/features/backtest/column.tsx`.
 | `BacktestPreview` | contrat : `{ contributionCount: number; rebalanceCount: number; dataSource: { provider; priceType } }` (estimations calendaires de `POST /api/backtest/preview`) | `api.ts`, `hook.ts` |
 | `BacktestListStats` | contrat `BacktestStats` : `{ total, active, completed, failed: number; completedRate, failedRate: number (fraction) }`, d'après le statut de la dernière exécution ; renommé pour ne pas masquer le composant `BacktestStats` | `api.ts`, `stats.tsx` |
 | `BacktestDetails` | `Backtest & { executions (toutes); result: BacktestResult \| null }` | `api.ts`, `backtest-detail.tsx` |
+| `BacktestComparison`, `ComparedBacktest`, `ComparedMetric`, `ComparisonParameter` | contrat : réponse de `GET /api/backtest/compare` (`a`, `b` avec paramètres, allocation et dernier résultat réduit ; `deltas` A − B en points de ratio ; `homogeneous` ; `differences`) | `api.ts`, `hook.ts`, `constants.ts`, `backtest-compare.tsx`, `comparison-*.tsx` |
 
 Source : `src/features/backtest/types.ts`.
 

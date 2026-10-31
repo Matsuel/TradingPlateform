@@ -1,4 +1,4 @@
-import type { DataSource, ExecutionRule, ExecutionStatus, InvestmentMode, RebalanceFrequency, TradeSide } from "./types"
+import type { ComparedMetric, ComparisonParameter, DataSource, ExecutionRule, ExecutionStatus, InvestmentMode, RebalanceFrequency, TradeSide } from "./types"
 
 // Devise des montants saisis : les cours ne sont pas convertis
 export const BACKTEST_CURRENCY = "EUR"
@@ -80,3 +80,23 @@ export const statusFilters = {
 } as const satisfies Record<string, { label: string; statuses: readonly ExecutionStatus[] }>
 
 export type StatusFilter = keyof typeof statusFilters
+
+// Backtests proposés au choix de la comparaison : pageSize maximal de GET /api/backtest
+export const COMPARABLE_LIMIT = 100
+
+// Fragment du titre du bandeau « Comparaison non homogène : … » pour chaque paramètre qui diffère
+export const comparisonParameterLabels: Record<ComparisonParameter, string> = {
+    period: "périodes différentes",
+    feeRate: "frais différents",
+    benchmarkSymbol: "benchmarks différents",
+}
+
+// Sens favorable d'un écart A − B, pour le colorer : une volatilité plus haute est défavorable
+export const comparedMetricHigherIsBetter: Record<ComparedMetric, boolean> = {
+    cagr: true,
+    totalReturn: true,
+    volatility: false,
+    sharpeRatio: true,
+    // Ratio ≤ 0 : un écart positif = baisse maximale moins profonde
+    maxDrawdown: true,
+}
