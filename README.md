@@ -881,7 +881,7 @@ Pour éviter une ambiguïté : ce mode mesure le résultat **après** le lanceme
 ### Limites à rendre visibles
 
 - Les données historiques peuvent contenir des ajustements de split ou dividende : leur traitement doit être déclaré et testé avant d’être activé.
-- Le MVP utilise une fréquence mensuelle, un actif et des bougies journalières ; pas de stratégie intraday ni d’optimisation automatique.
+- Les backtests utilisent des bougies journalières (versements quotidiens à annuels) ; pas de stratégie intraday ni d’optimisation automatique.
 - Les frais, la fiscalité, la liquidité et le slippage réel ne sont pas connus avec précision ; le MVP ne simule que les frais configurés.
 - **Dividendes non inclus** : les cours sont les clôtures journalières yahoo-finance2 ajustées des splits, pas des dividendes (`priceType: CLOSE_SPLIT_ADJUSTED`) ; aucun dividende n’est versé ni réinvesti. Le rendement d’un actif qui distribue, benchmark compris, est sous-estimé.
 - **Taux sans risque à 0** : le Sharpe vaut `(CAGR − 0) / volatilité` (`RISK_FREE_RATE` de l’engine), hypothèse affichée sur le résultat.
@@ -1062,7 +1062,7 @@ Si le temps manque : finir le MVP du mois 4, documenter ses limites et préparer
 - [ ] Un backtest DCA mensuel sur un actif historique est reproductible, liste ses transactions et affiche sa courbe de valeur.
 - [ ] Le résultat compare explicitement le DCA à un investissement unique et indique les frais, période et règle d’exécution.
 - [x] Un portefeuille multi-actifs avec poids et rebalancement affiche CAGR, volatilité, max drawdown, durée de récupération, Sharpe et benchmark.
-- [ ] Un message `backtest.requested` rejoué ne crée ni double exécution ni double résultat.
+- [x] Un message `backtest.requested` rejoué ne crée ni double exécution ni double résultat.
 - [ ] Les calculs du moteur et les invariants critiques sont couverts par des tests automatisés.
 - [ ] Kafka et PostgreSQL sont observables ; un dashboard montre au moins simulations, lag et erreurs.
 - [ ] La recherche d’instruments, la fiche et le graphique lisent les données persistées par MarketFlow, sans appel navigateur vers un fournisseur externe.
