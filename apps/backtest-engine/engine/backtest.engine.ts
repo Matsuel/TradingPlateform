@@ -1,9 +1,10 @@
 import type { EquityPoint, Trade, TradeSide } from "@trading-plateform/contracts";
+import { periodKey } from "@trading-plateform/utils";
 import BacktestError from "../errors/backtest.error";
 import type { BacktestOutcome, BacktestParams, PriceSeries, TwrPoint } from "../interfaces/backtest.interface";
-import { annualizedReturn, annualizedVolatility, createDrawdownTracker, periodKey, round, sharpeRatio } from "./backtest.utils";
+import { annualizedReturn, annualizedVolatility, createDrawdownTracker, RISK_FREE_RATE, round, sharpeRatio } from "./backtest.utils";
 
-type Simulation = Omit<BacktestOutcome, "lumpSumComparison" | "benchmark" | "executionRule">;
+type Simulation = Omit<BacktestOutcome, "lumpSumComparison" | "benchmark" | "executionRule" | "riskFreeRate">;
 
 const roundOrNull = (ratio: number | null) => (ratio === null ? null : round(ratio, 6));
 
@@ -15,11 +16,28 @@ const excess = (strategy: number | null, benchmark: number | null) =>
 const MIN_REBALANCE_ORDER = 0.01;
 
 /**
+ * Calendrier partagé par les simulations d'un backtest : jours de cotation des symboles de l'allocation (`YYYY-MM-DD`,
+ * triés), à partir du premier jour où l'allocation et `alignedSymbols` (le benchmark) ont tous un cours. Les jours où seul
+ * le benchmark cote n'en font pas partie : ils ajouteraient à la stratégie des points plats qui baisseraient sa volatilité.
+ * Le benchmark peut donc retarder le départ de la stratégie (premier cours du benchmark postérieur au sien).
+ *
+ * Lève `BacktestError` « No market data for <symbol> » si un symbole n'a aucun cours.
+ */
+function buildCalendar(prices: PriceSeries, strategySymbols: string[], alignedSymbols: string[]): string[] {
+    const firstDates = [...strategySymbols, ...alignedSymbols].map((symbol) => {
+        const first = prices[symbol]?.[0];
+        if (!first) throw new BacktestError(`No market data for ${symbol}`);
+        return first.date;
+    });
+    const start = firstDates.sort().at(-1)!;
+    return [...new Set(strategySymbols.flatMap((symbol) => prices[symbol]!.map((point) => point.date)))].filter((date) => date >= start).sort();
+}
+
+/**
  * Simule un portefeuille aux poids cibles de `allocations`, jour de cotation par jour de cotation.
  *
- * - Calendrier : jours de cotation de `calendarSymbols` (les symboles de l'allocation et ceux des simulations à aligner
- *   sur elle, comme le benchmark) ; deux simulations au même calendrier ont exactement les mêmes dates.
- * - Départ : premier jour où tous les symboles du calendrier ont un cours ; un cours manquant est reporté du dernier jour connu.
+ * - Calendrier : `dates` (`buildCalendar`) ; deux simulations au même calendrier ont exactement les mêmes dates.
+ *   Un cours manquant un jour du calendrier est reporté du dernier jour connu.
  * - Versements : `initialAmount` le premier jour, puis `recurringAmount` au premier jour de chaque période (DCA).
  * - Exécution : achat au cours de clôture du jour du versement, réparti selon `weight` (ratio, somme = 1),
  *   frais prélevés sur chaque ordre : 10 000 € en 60/40 ⇒ ordres de 6 000 € et 4 000 €, frais compris.
@@ -34,30 +52,21 @@ const MIN_REBALANCE_ORDER = 0.01;
  * - Métriques de risque (D3 à D6) et `drawdown` de chaque point : sur l'indice TWR chaîné jour après jour,
  *   rendement du jour mesuré avant le versement, donc hors apports.
  *
- * Lève `BacktestError` si un symbole du calendrier n'a pas de données de marché ou si rien n'a été investi.
+ * Lève `BacktestError` si rien n'a été investi (calendrier vide).
  */
-function simulate(params: BacktestParams, prices: PriceSeries, calendarSymbols: string[]): Simulation {
+function simulate(params: BacktestParams, prices: PriceSeries, dates: string[]): Simulation {
     const { allocations, investmentMode, initialAmount, recurringAmount, investmentFrequency, rebalanceFrequency, feeRate } = params;
     const symbols = allocations.map((allocation) => allocation.symbol);
 
-    const closes = new Map<string, Map<string, number>>();
-    for (const symbol of calendarSymbols) {
-        const series = prices[symbol] ?? [];
-        if (series.length === 0) throw new BacktestError(`No market data for ${symbol}`);
-        closes.set(symbol, new Map(series.map((point) => [point.date, point.close])));
-    }
-
-    // Début de la simulation : premier jour où tous les symboles du calendrier ont un cours
-    const start = calendarSymbols.map((symbol) => prices[symbol]![0]!.date).sort().at(-1)!;
-    const dates = [...new Set(calendarSymbols.flatMap((symbol) => prices[symbol]!.map((point) => point.date)))].sort();
-
+    // Prochain cours non lu de chaque symbole (séries triées par date)
+    const cursors = new Map<string, number>(symbols.map((symbol) => [symbol, 0]));
     const lastClose = new Map<string, number>();
     const shares = new Map<string, number>(symbols.map((symbol) => [symbol, 0]));
     const equityCurve: EquityPoint[] = [];
     const trades: Trade[] = [];
     const recurring = investmentMode === "RECURRING" ? recurringAmount ?? 0 : 0;
     const portfolioValue = () => symbols.reduce((sum, symbol) => sum + shares.get(symbol)! * lastClose.get(symbol)!, 0);
-    const drawdown = createDrawdownTracker(start);
+    const drawdown = createDrawdownTracker(dates[0]);
     const twr: TwrPoint[] = [];
     // Cumuls non arrondis : seules les valeurs publiées le sont
     let invested = 0;
@@ -87,11 +96,12 @@ function simulate(params: BacktestParams, prices: PriceSeries, calendarSymbols: 
     };
 
     for (const date of dates) {
-        for (const symbol of calendarSymbols) {
-            const close = closes.get(symbol)!.get(date);
-            if (close !== undefined) lastClose.set(symbol, close);
+        for (const symbol of symbols) {
+            const series = prices[symbol]!;
+            let cursor = cursors.get(symbol)!;
+            while (cursor < series.length && series[cursor]!.date <= date) lastClose.set(symbol, series[cursor++]!.close);
+            cursors.set(symbol, cursor);
         }
-        if (date < start) continue;
 
         // Rendement du jour mesuré avant le versement : un apport n'est pas une performance
         const dailyReturn = previousValue > 0 ? portfolioValue() / previousValue : 1;
@@ -178,15 +188,15 @@ function simulate(params: BacktestParams, prices: PriceSeries, calendarSymbols: 
  * Hors DCA, `lumpSumComparison` vaut null et la courbe n'a pas de `lumpSumValue`.
  *
  * Le benchmark (D9) rejoue les mêmes versements, dates et frais à 100 % sur `benchmarkSymbol`, sans rebalancement.
- * Toutes les simulations partagent le calendrier stratégie + benchmark : même départ, mêmes dates, courbes alignées
- * par indice. Sa valeur quotidienne va dans `benchmarkValue`, ses métriques et les écarts stratégie − benchmark
+ * Toutes les simulations partagent le calendrier de la stratégie (`buildCalendar`) : même départ, mêmes dates, courbes
+ * alignées par indice ; un jour sans cotation du benchmark reporte son dernier cours. Sa valeur quotidienne va dans `benchmarkValue`, ses métriques et les écarts stratégie − benchmark
  * dans `benchmark`. Sans benchmark, `benchmark` vaut null et la courbe n'a pas de `benchmarkValue`.
  * Lève `BacktestError` « No market data for <symbol> » si le benchmark n'a aucun cours.
  */
 export default function runBacktest(params: BacktestParams, prices: PriceSeries): BacktestOutcome {
     const { benchmarkSymbol } = params;
-    const calendarSymbols = [...new Set([...params.allocations.map((allocation) => allocation.symbol), ...(benchmarkSymbol ? [benchmarkSymbol] : [])])];
-    const outcome = simulate(params, prices, calendarSymbols);
+    const calendar = buildCalendar(prices, params.allocations.map((allocation) => allocation.symbol), benchmarkSymbol ? [benchmarkSymbol] : []);
+    const outcome = simulate(params, prices, calendar);
     // Seule règle du MVP : chaque versement est planifié, donc exécuté à la clôture du jour de l'échéance (README, look-ahead bias)
     const executionRule = "CLOSE_ON_SCHEDULED_DAY";
 
@@ -201,17 +211,18 @@ export default function runBacktest(params: BacktestParams, prices: PriceSeries)
                       investmentFrequency: null,
                   },
                   prices,
-                  calendarSymbols,
+                  calendar,
               )
             : null;
 
     const benchmark = benchmarkSymbol
-        ? simulate({ ...params, allocations: [{ symbol: benchmarkSymbol, weight: 1 }], rebalanceFrequency: "NONE" }, prices, calendarSymbols)
+        ? simulate({ ...params, allocations: [{ symbol: benchmarkSymbol, weight: 1 }], rebalanceFrequency: "NONE" }, prices, calendar)
         : null;
 
     return {
         ...outcome,
         executionRule,
+        riskFreeRate: RISK_FREE_RATE,
         // Même calendrier, même départ : les courbes ont exactement les mêmes dates, alignées par indice
         equityCurve: outcome.equityCurve.map((point, i) => ({
             ...point,

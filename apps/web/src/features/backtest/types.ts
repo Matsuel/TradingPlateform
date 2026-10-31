@@ -57,9 +57,9 @@ type DecimalField = "finalValue" | "totalInvested" | "totalFees" | "profit" | "t
 // Hypothèses de calcul enregistrées avec le résultat, null pour les résultats antérieurs à leur ajout
 type AssumptionField = "executionRule" | "dataSource"
 
-// Métriques de risque (D10) : Decimal sérialisé en string, cagr et volatility en fraction annuelle, sharpeRatio sans unité ;
-// null ou absentes pour les résultats antérieurs
-type MetricField = "cagr" | "volatility" | "sharpeRatio"
+// Métriques de risque (D10) : Decimal sérialisé en string, cagr, volatility et riskFreeRate (taux sans risque du Sharpe)
+// en fraction annuelle, sharpeRatio sans unité ; null ou absentes pour les résultats antérieurs
+type MetricField = "cagr" | "volatility" | "sharpeRatio" | "riskFreeRate"
 
 // holdings vide et lumpSumComparison null pour les résultats antérieurs ; lumpSumComparison null hors DCA ;
 // benchmark null sans benchmark, absent ou null pour les résultats antérieurs
@@ -83,7 +83,7 @@ export interface Backtest {
     endDate: string
     investmentMode: InvestmentMode
     rebalanceFrequency: RebalanceFrequency // NONE pour les backtests antérieurs au rebalancement
-    feeRate: string // Decimal sérialisé en string, fraction par achat ("0.001" = 0,1 %)
+    feeRate: string // Decimal sérialisé en string, fraction par ordre, achat ou vente ("0.001" = 0,1 %)
     benchmarkSymbol: BacktestRequestedPayload["benchmarkSymbol"] // null sans benchmark et pour les backtests antérieurs
     createdAt: string
     executions: BacktestExecution[] // la plus récente en premier

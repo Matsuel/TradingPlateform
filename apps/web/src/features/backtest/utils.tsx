@@ -24,11 +24,11 @@ export function getExecutionDuration(e: BacktestExecution) {
     return minutes ? `${minutes} min ${seconds % 60} s` : `${seconds} s`
 }
 
-/** Decimal sérialisé en string par l'API → number ; null ou absent → null (champ absent des résultats antérieurs). */
 /** Allocation lisible : « AAPL 60 % · MSFT 40 % » (poids en ratio, au pourcent entier, D2). */
 export const formatAllocation = (allocations: Backtest["allocations"]) =>
     allocations.map(({ symbol, weight }) => `${symbol} ${formatRate(Number(weight))}`).join(" · ")
 
+/** Decimal sérialisé en string par l'API → number ; null ou absent → null (champ absent des résultats antérieurs). */
 export const fromDecimal = (value: string | null | undefined) => (value == null ? null : Number(value))
 
 /** Valeur formatée, ou `<Dash />` si elle manque (résultat antérieur, moins de deux points). */
@@ -37,11 +37,15 @@ export const show = (value: number | null, format: (v: number) => string) => (va
 /** Montant en `BACKTEST_CURRENCY`. */
 export const formatAmount = (v: number) => formatPrice(v, BACKTEST_CURRENCY)
 
-/** Durée de récupération : `<Dash />` pour un résultat antérieur (champ absent) ; null calculé par le moteur : « Non récupéré », ou « Aucune baisse ». */
-export function formatRecovery(recoveryDays: number | null | undefined, maxDrawdown: number | null) {
+/**
+ * Durée de récupération ; `recoveryDays` null : « Aucune baisse » sans baisse, « Non récupéré » si la baisse a un plus haut
+ * daté par le moteur (`peakDated`), `<Dash />` sinon : résultat antérieur au calcul, où l'API renvoie aussi null.
+ */
+export function formatRecovery(recoveryDays: number | null | undefined, maxDrawdown: number | null, peakDated: boolean) {
     if (recoveryDays != null) return formatDuration(recoveryDays)
-    if (recoveryDays === undefined || maxDrawdown == null) return <Dash />
-    return maxDrawdown < 0 ? "Non récupéré" : "Aucune baisse"
+    if (maxDrawdown == null) return <Dash />
+    if (maxDrawdown === 0) return "Aucune baisse"
+    return peakDated ? "Non récupéré" : <Dash />
 }
 
 /** Libellé d'un côté de la comparaison : « A · 60/40 ». */

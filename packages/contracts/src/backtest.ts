@@ -210,8 +210,10 @@ export const backtestCompletedPayloadSchema = z.object({
     cagr: z.number().nullable(),
     // Ratio annuel (0.15 = 15 %/an) : écart-type des rendements journaliers TWR × √252 (D4) ; null sous deux points
     volatility: z.number().min(0).nullable(),
-    // Sans unité : (cagr − taux sans risque 0) / volatility (D5) ; null si volatilité nulle ou sous deux points
+    // Sans unité : (cagr − riskFreeRate) / volatility (D5) ; null si volatilité nulle ou sous deux points
     sharpeRatio: z.number().nullable(),
+    // Ratio annuel (0 = 0 %/an) : taux sans risque du Sharpe, hypothèse fixée par l'engine (D5)
+    riskFreeRate: z.number(),
     equityCurve: z.array(equityPointSchema),
     trades: z.array(tradeSchema),
     holdings: z.array(holdingSchema),
@@ -254,6 +256,8 @@ export interface ComparedBacktest {
     // Dernier résultat terminé. Montants en devise saisie ; ratios en fraction ; null pour les résultats antérieurs au champ
     result: Record<"finalValue" | "totalInvested" | ComparedMetric, string | null> &
         Pick<BacktestCompletedPayload, "recoveryDays" | "benchmark"> & {
+            // ISO ; null sans baisse et pour les résultats antérieurs
+            maxDrawdownPeakDate: string | null;
             // drawdown absent des résultats antérieurs à son calcul
             equityCurve: (Omit<EquityPoint, "drawdown"> & Partial<Pick<EquityPoint, "drawdown">>)[];
         };
@@ -271,7 +275,7 @@ export interface BacktestComparison {
     differences: ComparisonParameter[];
 }
 
-export const backtestRequestedEventSchema =kafkaEventSchema(backtestRequestedPayloadSchema);
+export const backtestRequestedEventSchema = kafkaEventSchema(backtestRequestedPayloadSchema);
 export const backtestStartedEventSchema = kafkaEventSchema(backtestStartedPayloadSchema);
 export const backtestCompletedEventSchema = kafkaEventSchema(backtestCompletedPayloadSchema);
 export const backtestFailedEventSchema = kafkaEventSchema(backtestFailedPayloadSchema);

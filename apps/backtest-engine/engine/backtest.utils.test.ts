@@ -1,11 +1,11 @@
 import { describe, expect, test } from "bun:test";
+import { periodKey } from "@trading-plateform/utils";
 import { referencePrices } from "./backtest.fixture";
 import {
     annualizedReturn,
     annualizedVolatility,
     createDrawdownTracker,
     fingerprintPrices,
-    periodKey,
     round,
     sharpeRatio,
 } from "./backtest.utils";

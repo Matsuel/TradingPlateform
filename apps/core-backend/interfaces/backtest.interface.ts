@@ -8,6 +8,7 @@ import {
     type BacktestStatus as ContractBacktestStatus,
 } from "@trading-plateform/contracts";
 import { BacktestStatus, type BacktestResult, type Prisma } from "../generated/prisma/client";
+import type { comparedBacktest, comparedResult } from "../repositories/backtest.repository";
 
 const FULL_PERCENT = 100;
 
@@ -71,6 +72,9 @@ export const backtestListQuerySchema = paginationQuerySchema.extend({
 
 export type BacktestListQuery = z.infer<typeof backtestListQuerySchema>;
 
+// Filtres de la liste : statut de la dernière exécution, et au moins une exécution (même ancienne) à l'un de ces statuts
+export type BacktestListFilters = Pick<BacktestListQuery, "status"> & { executionStatus?: BacktestStatus[] };
+
 // ?ids=a,b : exactement deux backtests distincts, comparés A − B dans cet ordre
 export const backtestCompareQuerySchema = z.object({
     ids: z
@@ -89,35 +93,7 @@ export type BacktestExecutionCount = Prisma.BacktestGetPayload<{
 
 // Backtest comparé : paramètres, allocation et dernière exécution COMPLETED avec ses métriques et sa courbe
 export type ComparedBacktestRecord = Prisma.BacktestGetPayload<{
-    select: {
-        id: true;
-        name: true;
-        startDate: true;
-        endDate: true;
-        investmentMode: true;
-        rebalanceFrequency: true;
-        feeRate: true;
-        benchmarkSymbol: true;
-        allocations: { select: { symbol: true; weight: true } };
-        executions: {
-            select: {
-                result: {
-                    select: {
-                        finalValue: true;
-                        totalInvested: true;
-                        totalReturn: true;
-                        cagr: true;
-                        volatility: true;
-                        sharpeRatio: true;
-                        maxDrawdown: true;
-                        recoveryDays: true;
-                        benchmark: true;
-                        equityCurve: true;
-                    };
-                };
-            };
-        };
-    };
+    select: typeof comparedBacktest & { executions: { select: { result: { select: typeof comparedResult } } } };
 }>;
 
 export type CreateBacktestDTO = Prisma.BacktestUncheckedCreateInput;
@@ -135,7 +111,7 @@ export type ComparedBacktestDTO = Omit<ComparedBacktestRecord, "executions"> & {
 // Forme du contrat BacktestComparison avant sérialisation (Decimal, Date)
 export type BacktestComparisonDTO = Omit<BacktestComparison, "a" | "b"> & { a: ComparedBacktestDTO; b: ComparedBacktestDTO };
 
-export type BacktestDetails =BacktestWithExecutions & { result: BacktestResult | null };
+export type BacktestDetails = BacktestWithExecutions & { result: BacktestResult | null };
 
 export type CompleteExecutionDTO = Omit<
     BacktestCompletedPayload,

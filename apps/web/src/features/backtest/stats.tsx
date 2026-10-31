@@ -2,7 +2,7 @@ import type { ReactNode } from "react"
 import Dash from "@/components/custom/Dash"
 import { StatCard } from "@/components/stat-card"
 import { formatDay, formatPercent, formatRate, formatRatio, formatSharpe } from "@/lib/format"
-import { RISK_FREE_RATE, rebalanceFrequencyLabels } from "./constants"
+import { rebalanceFrequencyLabels } from "./constants"
 import { MetricBlock } from "./metric-block"
 import type { BacktestListStats, BacktestResult, RebalanceFrequency } from "./types"
 import { formatAmount, formatRecovery, fromDecimal, show } from "./utils"
@@ -45,6 +45,7 @@ export function BacktestResultBlocks({
 }) {
     const { benchmark, lumpSumComparison: lumpSum, maxDrawdownPeakDate } = result
     const maxDrawdown = fromDecimal(result.maxDrawdown)
+    const riskFreeRate = fromDecimal(result.riskFreeRate)
     const columns = benchmark ? ["Portefeuille", benchmark.symbol] : ["Portefeuille"]
     // Valeur du portefeuille puis, avec un benchmark, la sienne
     const row = (label: string, value: ReactNode, benchmarkValue?: ReactNode) => ({
@@ -68,19 +69,19 @@ export function BacktestResultBlocks({
             />
             <MetricBlock
                 title="Risque"
-                description={`Annualisé, taux sans risque ${formatPercent(RISK_FREE_RATE)}`}
+                description={riskFreeRate == null ? "Annualisé" : `Annualisé, taux sans risque ${formatPercent(riskFreeRate)}`}
                 columns={columns}
                 rows={[
                     row("Volatilité", show(fromDecimal(result.volatility), formatPercent), benchmark && show(benchmark.volatility, formatPercent)),
                     row("Sharpe", show(fromDecimal(result.sharpeRatio), formatSharpe), benchmark && show(benchmark.sharpeRatio, formatSharpe)),
                     row("Max drawdown", show(maxDrawdown, formatRatio), benchmark && formatRatio(benchmark.maxDrawdown)),
-                    row("Récupération", formatRecovery(result.recoveryDays, maxDrawdown), benchmark && formatRecovery(benchmark.recoveryDays, benchmark.maxDrawdown)),
+                    row("Récupération", formatRecovery(result.recoveryDays, maxDrawdown, maxDrawdownPeakDate != null), benchmark && formatRecovery(benchmark.recoveryDays, benchmark.maxDrawdown, true)),
                 ]}
                 note={maxDrawdownPeakDate && `Baisse maximale depuis le plus haut du ${formatDay(maxDrawdownPeakDate)}`}
             />
             <MetricBlock
                 title="Coûts et activité"
-                description={`${rebalancing} · frais inclus dans le montant investi`}
+                description={`${rebalancing} · frais déduits de la valeur, achats et ventes`}
                 columns={["Total"]}
                 rows={[
                     { label: "Frais payés", values: [show(fromDecimal(result.totalFees), formatAmount)] },

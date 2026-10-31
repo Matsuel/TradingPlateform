@@ -5,13 +5,13 @@ import {
     BACKTEST_CURRENCY,
     BACKTEST_DISCLAIMER,
     NO_BENCHMARK_LABEL,
-    RISK_FREE_RATE,
     dataProviderLabels,
     executionRuleLabels,
     priceTypeLabels,
     rebalanceFrequencyLabels,
 } from "./constants"
 import type { Backtest, BacktestResult } from "./types"
+import { fromDecimal, show } from "./utils"
 
 // Préfixe de l'empreinte SHA-256, assez long pour distinguer deux jeux de données à l'œil
 const FINGERPRINT_PREVIEW_LENGTH = 12
@@ -27,7 +27,7 @@ function Assumption({ label, children }: { label: string; children: ReactNode })
 
 /**
  * Hypothèses d'un résultat, en deux colonnes à partir de `sm` : période, devise, frais, rebalancement, benchmark (« Aucun » sans), taux sans risque du Sharpe, règle d'exécution et provenance des cours,
- * suivie de l'avertissement. Règle et source absentes des résultats antérieurs : `<Dash />`.
+ * suivie de l'avertissement. Taux sans risque, règle et source absents des résultats antérieurs : `<Dash />`.
  */
 export function BacktestAssumptions({ backtest, result }: { backtest: Backtest; result: BacktestResult }) {
     const { executionRule, dataSource } = result
@@ -40,7 +40,7 @@ export function BacktestAssumptions({ backtest, result }: { backtest: Backtest; 
                 <Assumption label="Frais">{formatPercent(Number(backtest.feeRate))} par ordre, achat et vente</Assumption>
                 <Assumption label="Rebalancement">{rebalanceFrequencyLabels[backtest.rebalanceFrequency]}</Assumption>
                 <Assumption label="Benchmark">{backtest.benchmarkSymbol ?? NO_BENCHMARK_LABEL}</Assumption>
-                <Assumption label="Taux sans risque">{formatPercent(RISK_FREE_RATE)}</Assumption>
+                <Assumption label="Taux sans risque">{show(fromDecimal(result.riskFreeRate), formatPercent)}</Assumption>
                 <Assumption label="Règle d’exécution">
                     {executionRule ? executionRuleLabels[executionRule] : <Dash />}
                 </Assumption>

@@ -214,7 +214,7 @@ model BacktestResult {
   finalValue              Decimal?       @db.Decimal(18, 2)
   // Total versé, frais compris
   totalInvested           Decimal?       @db.Decimal(18, 2)
-  // Frais prélevés sur les achats, devise saisie ; null pour les résultats antérieurs
+  // Frais prélevés sur les achats et les ventes (D8), devise saisie ; null pour les résultats antérieurs
   totalFees               Decimal?       @db.Decimal(18, 2)
   // Valeur finale − total versé, devise saisie ; null pour les résultats antérieurs
   profit                  Decimal?       @db.Decimal(18, 2)
@@ -235,11 +235,13 @@ model BacktestResult {
   cagr                    Decimal?       @db.Decimal(12, 6)
   // Ratio annuel (écart-type journalier TWR × √252) ; null sous deux points et pour les résultats antérieurs
   volatility              Decimal?       @db.Decimal(12, 6)
-  // Sans unité, taux sans risque 0 ; null si volatilité nulle, sous deux points et pour les résultats antérieurs
+  // Sans unité, avec riskFreeRate ; null si volatilité nulle, sous deux points et pour les résultats antérieurs
   sharpeRatio             Decimal?       @db.Decimal(12, 6)
+  // Ratio annuel : taux sans risque du Sharpe publié par l'engine ; null pour les résultats antérieurs (0 à l'époque)
+  riskFreeRate            Decimal?       @db.Decimal(12, 6)
   // [{ date: "YYYY-MM-DD", value, invested, lumpSumValue? }], écrite une seule fois à la complétion
   equityCurve             Json           @default("[]")
-  // [{ date: "YYYY-MM-DD", symbol, price, quantity, amount, fee }] : achats exécutés
+  // [{ date: "YYYY-MM-DD", symbol, side, price, quantity, amount, fee }] : ordres exécutés, achats et ventes (side absent = achat)
   trades                  Json           @default("[]")
   // [{ symbol, quantity, value }] : positions en fin de simulation, valorisées au dernier cours
   holdings                Json           @default("[]")

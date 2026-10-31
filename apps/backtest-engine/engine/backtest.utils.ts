@@ -5,7 +5,7 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 // Année calendaire moyenne (années bissextiles comprises), base d'annualisation du CAGR
 const DAYS_PER_YEAR = 365.25;
 export const TRADING_DAYS_PER_YEAR = 252;
-// Taux sans risque du Sharpe : ratio annuel, hypothèse fixe affichée avec le résultat
+// Taux sans risque du Sharpe : ratio annuel, hypothèse fixe publiée avec le résultat (riskFreeRate)
 export const RISK_FREE_RATE = 0;
 
 const calendarDaysBetween = (from: string, to: string) => Math.round((Date.parse(to) - Date.parse(from)) / DAY_MS);
@@ -17,30 +17,6 @@ const calendarDaysBetween = (from: string, to: string) => Math.round((Date.parse
 export const round = (value: number, decimals: number) => {
     const factor = 10 ** decimals;
     return Math.round(value * factor) / factor;
-};
-
-/**
- * Clé de la période d'une date de cotation (`YYYY-MM-DD`) selon la fréquence de versement ou de rebalancement.
- * Un versement récurrent (ou un rebalancement) a lieu au premier jour de cotation dont la clé diffère de la veille.
- * Sans fréquence (investissement unique), chaque jour est sa propre période.
- */
-export const periodKey = (
-    date: string,
-    frequency: BacktestParams["investmentFrequency"] | Exclude<BacktestParams["rebalanceFrequency"], "NONE">,
-) => {
-    switch (frequency) {
-        case "WEEKLY":
-            // 1970-01-01 est un jeudi : +3 jours fait commencer les semaines le lundi
-            return String(Math.floor((Date.parse(date) / DAY_MS + 3) / 7));
-        case "MONTHLY":
-            return date.slice(0, 7);
-        case "QUARTERLY":
-            return `${date.slice(0, 4)}-Q${Math.ceil(Number(date.slice(5, 7)) / 3)}`;
-        case "YEARLY":
-            return date.slice(0, 4);
-        default:
-            return date;
-    }
 };
 
 /**

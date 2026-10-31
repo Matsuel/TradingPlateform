@@ -46,7 +46,7 @@ export function ComparisonMetrics({ comparison }: { comparison: BacktestComparis
                 row("Volatilité", (r) => show(fromDecimal(r.volatility), formatPercent), <Delta metric="volatility" value={deltas.volatility} format={formatPoints} />, benchmark && show(benchmark.volatility, formatPercent)),
                 row("Sharpe", (r) => show(fromDecimal(r.sharpeRatio), formatSharpe), <Delta metric="sharpeRatio" value={deltas.sharpeRatio} format={formatChange} />, benchmark && show(benchmark.sharpeRatio, formatSharpe)),
                 row("Max drawdown", (r) => show(fromDecimal(r.maxDrawdown), formatRatio), <Delta metric="maxDrawdown" value={deltas.maxDrawdown} format={formatPoints} />, benchmark && formatRatio(benchmark.maxDrawdown)),
-                row("Récupération", (r) => formatRecovery(r.recoveryDays, fromDecimal(r.maxDrawdown)), <Dash />, benchmark && formatRecovery(benchmark.recoveryDays, benchmark.maxDrawdown)),
+                row("Récupération", (r) => formatRecovery(r.recoveryDays, fromDecimal(r.maxDrawdown), r.maxDrawdownPeakDate != null), <Dash />, benchmark && formatRecovery(benchmark.recoveryDays, benchmark.maxDrawdown, true)),
                 row("Valeur finale", (r) => show(fromDecimal(r.finalValue), formatAmount), <Dash />, benchmark && formatAmount(benchmark.finalValue)),
             ]}
         />

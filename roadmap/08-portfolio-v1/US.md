@@ -169,7 +169,7 @@ Critères d’acceptation :
 - [x] Les écarts (CAGR, volatilité, drawdown, Sharpe) sont calculés par l’engine et publiés dans `benchmark` (ex. `excessCagr`) : deux clients doivent montrer le même chiffre.
 - [x] Courbe de valeur : série « Benchmark » superposée, légende.
 - [x] Tableau « Métriques comparées » : lignes Rendement annualisé, Volatilité, Max drawdown, Durée de récupération, Sharpe ; colonnes Portefeuille / Benchmark.
-- [x] Sans benchmark : badges et colonne masqués.
+- [x] Sans benchmark : colonne masquée (badges retirés avec les cartes KPI, voir plus haut).
 
 ### Lot 5 — Comparaison et finitions
 

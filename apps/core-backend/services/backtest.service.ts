@@ -1,4 +1,4 @@
-import { Logger } from "@trading-plateform/utils";
+import { Logger, periodKey } from "@trading-plateform/utils";
 import { createKafkaEvent } from "@trading-plateform/kafka";
 import {
     BACKTEST_TOPICS,
@@ -53,21 +53,8 @@ const businessDays = (start: Date, end: Date) => {
     return days
 }
 
-// Clé de période d'un jour `YYYY-MM-DD` : même règle que `periodKey` de backtest-engine/engine/backtest.utils.ts,
-// recopiée car une app n'importe pas une autre ; à garder alignée si l'engine change ses périodes
-const periodKey = (date: string, frequency: Exclude<CreateBacktestInput["rebalanceFrequency"], "NONE">) => {
-    switch (frequency) {
-        case "MONTHLY":
-            return date.slice(0, 7)
-        case "QUARTERLY":
-            return `${date.slice(0, 4)}-Q${Math.ceil(Number(date.slice(5, 7)) / 3)}`
-        case "YEARLY":
-            return date.slice(0, 4)
-    }
-}
-
 /** Nombre de périodes distinctes rencontrées dans `days` (triés) : chacune commence à son premier jour. */
-const countPeriods = (days: string[], frequency: Parameters<typeof periodKey>[1]) =>
+const countPeriods = (days: string[], frequency: Exclude<CreateBacktestInput["rebalanceFrequency"], "NONE">) =>
     new Set(days.map((day) => periodKey(day, frequency))).size
 
 /** Remonte le résultat de la dernière exécution `COMPLETED` ; `NotFoundError` si le backtest ou son résultat a disparu entre les deux lectures. */
@@ -149,7 +136,8 @@ class BacktestService {
 
     async getAll(userId: string, { status, hasResult, ...pagination }: BacktestListQuery): Promise<Paginated<BacktestWithExecutions>> {
         logger.info("Fetching all backtests", { userId, ...pagination, status, hasResult })
-        const result = await this.repo.getAllByUserId(userId, pagination, { status, hasResult })
+        // Comparables : au moins une exécution au statut comparable, même relancés depuis
+        const result = await this.repo.getAllByUserId(userId, pagination, { status, executionStatus: hasResult ? COMPARABLE_STATUSES : undefined })
         logger.info("Backtests fetched", { userId, count: result.count })
         return { ...result, ...pagination }
     }

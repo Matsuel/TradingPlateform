@@ -408,7 +408,7 @@ describe("runBacktest", () => {
             expect(benchmark.excessSharpe).toBeCloseTo(result.sharpeRatio! - benchmark.sharpeRatio!, 6);
         });
 
-        test("départ commun : premier jour où stratégie et benchmark ont un cours", () => {
+        test("départ commun, dates de la stratégie seules : le benchmark reporte son dernier cours", () => {
             const result = runBacktest({ ...lumpSum, benchmarkSymbol: "BBB" }, {
                 AAA: [
                     { date: "2024-01-02", close: 10 },
@@ -423,7 +423,6 @@ describe("runBacktest", () => {
 
             expect(result.equityCurve).toEqual([
                 { date: "2024-01-03", value: 1000, invested: 1000, drawdown: 0, benchmarkValue: 1000 },
-                { date: "2024-01-04", value: 1000, invested: 1000, drawdown: 0, benchmarkValue: 1100 },
                 { date: "2024-01-05", value: 1090.91, invested: 1000, drawdown: 0, benchmarkValue: 1100 },
             ]);
         });
@@ -482,6 +481,7 @@ describe("runBacktest", () => {
                 volatility: 0.21697,
                 sharpeRatio: -0.019632,
                 executionRule: "CLOSE_ON_SCHEDULED_DAY",
+                riskFreeRate: 0,
                 lumpSumComparison: { finalValue: 2363.86, totalReturn: -0.015058, maxDrawdown: -0.302102, dcaAdvantage: 85.84 },
                 benchmark: null,
             });

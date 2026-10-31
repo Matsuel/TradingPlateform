@@ -52,9 +52,6 @@ export const previewSteps = [
     { label: "Métriques", description: "Rendement, risque et drawdown" },
 ] as const
 
-// Taux sans risque du Sharpe, en fraction : miroir d'affichage de la constante de l'engine (D5)
-export const RISK_FREE_RATE = 0
-
 export const BACKTEST_DISCLAIMER =
     "Les performances passées ne préjugent pas des performances futures. Simulation pédagogique, pas un conseil en investissement."
 

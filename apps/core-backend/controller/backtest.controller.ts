@@ -44,7 +44,7 @@ class BacktestController {
         res.json(comparison)
     }
 
-    getBacktestStats =async (req: Request, res: Response) => {
+    getBacktestStats = async (req: Request, res: Response) => {
         const stats = await this.backtestService.getStats(req.userId!)
         res.json(stats)
     }
