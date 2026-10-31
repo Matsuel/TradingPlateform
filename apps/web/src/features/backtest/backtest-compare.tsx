@@ -49,7 +49,10 @@ function HeterogeneityBanner({ comparison }: { comparison: BacktestComparison })
  */
 export function BacktestCompare({ ids }: { ids: string | string[] | undefined }) {
     const router = useRouter()
-    const [a = "", b = ""] = String(ids ?? "").split(",")
+    const parts = String(ids ?? "").split(",")
+    // Lien modifié à la main (`?ids=x,x`, trois ids) : traité comme sans sélection, la requête n'étant pas lancée
+    const invalidLink = parts.length > 2 || (parts[0] !== "" && parts[0] === parts[1])
+    const [a = "", b = ""] = invalidLink ? [] : parts
     const { data: comparison, isPending, isError, error, refetch } = useBacktestComparison(a, b)
     const [copied, setCopied] = useState(false)
 
@@ -64,7 +67,7 @@ export function BacktestCompare({ ids }: { ids: string | string[] | undefined })
         content = (
             <Card>
                 <CardContent className="flex h-40 items-center justify-center text-sm text-muted-foreground">
-                    Choisissez deux backtests terminés à comparer.
+                    {invalidLink ? "Ce lien ne désigne pas deux backtests différents : choisissez-en deux." : "Choisissez deux backtests terminés à comparer."}
                 </CardContent>
             </Card>
         )

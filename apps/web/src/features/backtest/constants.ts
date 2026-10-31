@@ -81,8 +81,15 @@ export const statusFilters = {
 
 export type StatusFilter = keyof typeof statusFilters
 
-// Backtests proposés au choix de la comparaison : pageSize maximal de GET /api/backtest
+// Backtests proposés au choix de la comparaison : MAX_PAGE_SIZE de @trading-plateform/contracts (pagination.ts), pageSize
+// maximal de GET /api/backtest ; recopié car le web n'importe pas le package à l'exécution
 export const COMPARABLE_LIMIT = 100
+
+// Couleur de chaque côté de la comparaison (maquette 19 v2) : courbes, légende et pastilles de sélection
+export const comparisonSideColors = {
+    a: { stroke: "var(--chart-1)", className: "bg-chart-1" },
+    b: { stroke: "var(--chart-2)", className: "bg-chart-2" },
+} as const
 
 // Fragment du titre du bandeau « Comparaison non homogène : … » pour chaque paramètre qui diffère
 export const comparisonParameterLabels: Record<ComparisonParameter, string> = {

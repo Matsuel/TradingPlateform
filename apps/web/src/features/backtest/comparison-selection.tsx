@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
-import { COMPARABLE_LIMIT, statusFilters } from "./constants"
+import { COMPARABLE_LIMIT, comparisonSideColors } from "./constants"
 import { useBacktests } from "./hook"
 
 const PLACEHOLDER = "Sélectionner…"
@@ -44,12 +44,12 @@ function BacktestSelect({ id, label, dotClassName, value, options, onChange }: {
 }
 
 /**
- * Carte de sélection de la comparaison (maquette 19 v2) : backtests A et B parmi les terminés de l'utilisateur (les
- * `COMPARABLE_LIMIT` plus récents), et « Échanger ». Un backtest choisi d'un côté n'est pas proposé de l'autre.
+ * Carte de sélection de la comparaison (maquette 19 v2) : backtests A et B parmi ceux de l'utilisateur qui ont un résultat
+ * terminé, même relancés depuis (les `COMPARABLE_LIMIT` plus récents), et « Échanger ». Un backtest choisi d'un côté n'est pas proposé de l'autre.
  * `a`, `b` : ids, `""` si non choisi ; `onChange` reçoit la nouvelle paire.
  */
 export function ComparisonSelection({ a, b, onChange }: { a: string; b: string; onChange: (a: string, b: string) => void }) {
-    const { data } = useBacktests({ page: 1, pageSize: COMPARABLE_LIMIT, status: statusFilters.done.statuses })
+    const { data } = useBacktests({ page: 1, pageSize: COMPARABLE_LIMIT, status: [], hasResult: true })
     const options = (data?.data ?? []).map((t) => ({
         value: t.id,
         label: `${t.name} · ${t.allocations.map((x) => x.symbol).join(" / ")}`,
@@ -62,7 +62,7 @@ export function ComparisonSelection({ a, b, onChange }: { a: string; b: string; 
                     <BacktestSelect
                         id="backtest-a"
                         label="Backtest A"
-                        dotClassName="bg-chart-1"
+                        dotClassName={comparisonSideColors.a.className}
                         value={a}
                         options={options.filter((o) => o.value !== b)}
                         onChange={(v) => onChange(v, b)}
@@ -71,7 +71,7 @@ export function ComparisonSelection({ a, b, onChange }: { a: string; b: string; 
                     <BacktestSelect
                         id="backtest-b"
                         label="Backtest B"
-                        dotClassName="bg-chart-2"
+                        dotClassName={comparisonSideColors.b.className}
                         value={b}
                         options={options.filter((o) => o.value !== a)}
                         onChange={(v) => onChange(a, v)}

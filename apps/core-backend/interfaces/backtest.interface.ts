@@ -59,12 +59,14 @@ export const createBacktestSchema = z
 export type CreateBacktestInput = z.infer<typeof createBacktestSchema>;
 
 // ?status=PENDING,RUNNING : filtre sur le statut de la dernière exécution
+// ?hasResult=true : seulement les backtests qui ont au moins une exécution COMPLETED (comparables), même relancés depuis
 export const backtestListQuerySchema = paginationQuerySchema.extend({
     status: z
         .string()
         .transform((v) => v.split(","))
         .pipe(z.array(z.enum(BacktestStatus)))
         .optional(),
+    hasResult: z.stringbool().optional(),
 });
 
 export type BacktestListQuery = z.infer<typeof backtestListQuerySchema>;

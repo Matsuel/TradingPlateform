@@ -147,9 +147,9 @@ class BacktestService {
         return this.assertOwner(await this.repo.getDetailsById(id), userId)
     }
 
-    async getAll(userId: string, { status, ...pagination }: BacktestListQuery): Promise<Paginated<BacktestWithExecutions>> {
-        logger.info("Fetching all backtests", { userId, ...pagination, status })
-        const result = await this.repo.getAllByUserId(userId, pagination, status)
+    async getAll(userId: string, { status, hasResult, ...pagination }: BacktestListQuery): Promise<Paginated<BacktestWithExecutions>> {
+        logger.info("Fetching all backtests", { userId, ...pagination, status, hasResult })
+        const result = await this.repo.getAllByUserId(userId, pagination, { status, hasResult })
         logger.info("Backtests fetched", { userId, count: result.count })
         return { ...result, ...pagination }
     }

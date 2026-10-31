@@ -262,15 +262,17 @@ Les montants sont dans la devise saisie, affichée `EUR` par le web (`BACKTEST_C
 - **Auth** : session requise.
 - **Entrée** : query `backtestListQuerySchema` (`interfaces/backtest.interface.ts`) :
   - `page`, `pageSize` ([Pagination](#pagination)) ;
-  - `status` (optionnel) : statuts séparés par des virgules parmi `DRAFT`, `PENDING`, `RUNNING`, `COMPLETED`, `FAILED`, `CANCELLED` ; ne garde que les backtests dont la **dernière** exécution a l'un de ces statuts (`count` en tient compte). Absent = tous.
+  - `status` (optionnel) : statuts séparés par des virgules parmi `DRAFT`, `PENDING`, `RUNNING`, `COMPLETED`, `FAILED`, `CANCELLED` ; ne garde que les backtests dont la **dernière** exécution a l'un de ces statuts (`count` en tient compte). Absent = tous ;
+  - `hasResult` (optionnel, `"true"` | `"false"`) : `true` ne garde que les backtests qui ont au moins une exécution `COMPLETED`, même relancés depuis (backtests comparables par `GET /api/backtest/compare`) ; combinable avec `status`.
   ```
   GET /api/backtest?page=1&pageSize=20&status=PENDING,RUNNING
+  GET /api/backtest?page=1&pageSize=100&hasResult=true
   ```
 - **Réponse** : `200`, `Paginated<BacktestWithExecutions>` ([Pagination](#pagination)) : backtests de l'utilisateur, plus récents d'abord (`createdAt desc`) ; chacun porte son `allocations` et `executions` limité à **la dernière** exécution (avec résumé de résultat, cf. `GET /api/backtest/:id`, ou `null` : métriques dont `cagr`, sans `equityCurve`, `trades`, `holdings`, `lumpSumComparison` ni `benchmark`).
   ```json
   { "data": [{ "id": "cm…", "name": "…", "executions": [{ "status": "RUNNING", "attempt": 1, "result": null, "...": "…" }], "...": "…" }], "count": 6, "page": 1, "pageSize": 20 }
   ```
-- **Erreurs** : `400 { "error": "Invalid query", "issues": [ZodIssue] }` → pagination invalide ou `status` inconnu (`status=FOO`, `status=PENDING,`) ; `401`.
+- **Erreurs** : `400 { "error": "Invalid query", "issues": [ZodIssue] }` → pagination invalide, `status` inconnu (`status=FOO`, `status=PENDING,`) ou `hasResult` hors `true`/`false` ; `401`.
 - **Effets** : aucun.
-- **Appelant** : `getBacktests(params)` de `apps/web/src/features/backtest/api.ts`, hook `useBacktests(params)` (clé `["backtest", "list", params]`, `keepPreviousData`) ; utilisé par `BacktestList` (colonnes Allocation et CAGR).
+- **Appelant** : `getBacktests(params)` de `apps/web/src/features/backtest/api.ts`, hook `useBacktests(params)` (clé `["backtest", "list", params]`, `keepPreviousData`) ; utilisé par `BacktestList` (colonnes Allocation et CAGR) et `ComparisonSelection` (`hasResult=true`).
 - **Source** : `routes/backtest/backtest.routes.ts`, `controller/backtest.controller.ts`, `services/backtest.service.ts`, `repositories/backtest.repository.ts`.

@@ -24,10 +24,11 @@ export async function previewBacktest(values: BacktestValues): Promise<BacktestP
     });
 }
 
-// status vide = tous les backtests
-export async function getBacktests({ page, pageSize, status }: PaginationParams & { status: readonly ExecutionStatus[] }): Promise<Paginated<Backtest>> {
+// status vide = tous les backtests ; hasResult : seulement ceux qui ont au moins une exécution terminée
+export async function getBacktests({ page, pageSize, status, hasResult }: PaginationParams & { status: readonly ExecutionStatus[]; hasResult?: boolean }): Promise<Paginated<Backtest>> {
     const params = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
     if (status.length) params.set("status", status.join(","));
+    if (hasResult) params.set("hasResult", "true");
     return apiFetch<Paginated<Backtest>>(`/backtest?${params.toString()}`);
 }
 

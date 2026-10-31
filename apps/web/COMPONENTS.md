@@ -435,7 +435,7 @@ Primitives shadcn (base-ui), voir la doc shadcn. Ne les modifie qu'en cas de bes
       className="h-56"
   />
   ```
-- **Utilisé par** : `src/features/backtest/result-overview.tsx`, `src/features/backtest/comparison-overview.tsx`, `src/features/market/price-chart.tsx` ; `PricePoint` par `src/components/sparkline.tsx`, `src/features/backtest/utils.ts`.
+- **Utilisé par** : `src/features/backtest/result-overview.tsx`, `src/features/backtest/comparison-overview.tsx`, `src/features/market/price-chart.tsx` ; `PricePoint` par `src/components/sparkline.tsx`, `src/features/backtest/utils.tsx`.
 - **Source** : `src/components/chart.tsx`.
 
 ### Sparkline
@@ -717,7 +717,7 @@ Props communes `BaseProps<T>` (exportées par `field.tsx`), répétées dans cha
 | `formatPrice` | `(v: number, currency: string) => string` | Montant dans la devise ISO **obligatoire** : `formatPrice(1234.5, "EUR")` → « 1 234,50 € ». | `components/chart.tsx`, `features/market/column.tsx`, `features/backtest/stats.tsx`, `features/backtest/column.tsx` |
 | `formatChange` | `(v: number) => string` | Nombre signé, 2 décimales, sans « % » : `1.5` → « +1,50 ». Pour un pourcentage déjà en %, ou un écart de Sharpe. | `components/data-table/cells.tsx`, `features/backtest/comparison-blocks.tsx`, `formatRatio` |
 | `formatRatio` | `(ratio: number) => string` | Ratio en **fraction** → variation signée en % : `0.342` → « +34,20 % ». Rendement, drawdown. | `features/backtest/stats.tsx`, `features/backtest/execution-history.tsx`, `features/backtest/comparison-blocks.tsx`, `features/backtest/comparison-overview.tsx` |
-| `formatRate` | `(ratio: number) => string` | Proportion en **fraction** → % non signé, arrondi à l'unité : `0.3846` → « 38 % ». Taux de réussite/échec, poids d'allocation, axe du drawdown. | `features/backtest/stats.tsx`, `features/backtest/utils.ts`, `features/backtest/result-overview.tsx`, `features/backtest/comparison-overview.tsx`, `features/backtest/comparison-blocks.tsx` |
+| `formatRate` | `(ratio: number) => string` | Proportion en **fraction** → % non signé, arrondi à l'unité : `0.3846` → « 38 % ». Taux de réussite/échec, poids d'allocation, axe du drawdown. | `features/backtest/stats.tsx`, `features/backtest/utils.tsx`, `features/backtest/result-overview.tsx`, `features/backtest/comparison-overview.tsx`, `features/backtest/comparison-blocks.tsx` |
 | `formatPercent` | `(ratio: number) => string` | Taux en **fraction** → % non signé, jusqu'à 2 décimales : `0.001` → « 0,1 % », `0.1532` → « 15,32 % ». Frais, volatilité, taux sans risque. | `features/backtest/assumptions.tsx`, `features/backtest/stats.tsx`, `features/backtest/comparison-blocks.tsx`, `features/backtest/backtest-compare.tsx` |
 | `formatSharpe` | `(v: number) => string` | Ratio de Sharpe, sans unité, 2 décimales : `1.25` → « 1,25 ». | `features/backtest/stats.tsx`, `features/backtest/comparison-blocks.tsx` |
 | `formatVolume` | `(v: number) => string` | Notation compacte : `41234567` → « 41,23 M ». | `features/market/column.tsx` |
@@ -1111,18 +1111,12 @@ Source : `src/features/auth/schema.ts`.
   <BacktestResultBlocks result={result} rebalanceFrequency={backtest.rebalanceFrequency} />
   ```
 - **Utilisé par** : `src/features/backtest/backtest-detail.tsx`.
-- **Source** : `src/features/backtest/stats.tsx`. Le même fichier exporte les helpers d'affichage d'une métrique, réutilisés par `comparison-blocks.tsx` :
-
-  | Export | Signature | Rôle |
-  | --- | --- | --- |
-  | `show` | `(value: number \| null, format: (v: number) => string) => ReactNode` | Valeur formatée, `<Dash />` si `null`. |
-  | `formatAmount` | `(v: number) => string` | Montant en `BACKTEST_CURRENCY`. |
-  | `formatRecovery` | `(recoveryDays: number \| null \| undefined, maxDrawdown: number \| null) => ReactNode` | Durée `formatDuration` ; `<Dash />` si absent (résultat antérieur) ; « Non récupéré » ou « Aucune baisse » si `null`. |
+- **Source** : `src/features/backtest/stats.tsx`. Helpers d'affichage d'une métrique (`show`, `formatAmount`, `formatRecovery`) : [`features/backtest/utils.tsx`](#featuresbacktestutilstsx).
 
 ### BacktestCompare
 
 - **Import** : `import { BacktestCompare } from "@/features/backtest/backtest-compare"`.
-- **Rôle** : écran comparaison (maquette 19 v2) : en-tête et « Copier le lien », `ComparisonSelection`, puis, avec deux backtests choisis, bandeau « Comparaison non homogène » si `homogeneous` est faux (une phrase par élément de `differences`), `ComparisonOverview`, `ComparisonMetrics` et `ComparisonParameters` (côte à côte à partir de `xl`). La sélection vit dans l'URL : `?ids=a,b` (`router.replace`), lien partageable. Instancie `useBacktestComparison`.
+- **Rôle** : écran comparaison (maquette 19 v2) : en-tête et « Copier le lien », `ComparisonSelection`, puis, avec deux backtests choisis, bandeau « Comparaison non homogène » si `homogeneous` est faux (une phrase par élément de `differences`), `ComparisonOverview`, `ComparisonMetrics` et `ComparisonParameters` (côte à côte à partir de `xl`). La sélection vit dans l'URL : `?ids=a,b` (`router.replace`), lien partageable ; un lien modifié à la main (`?ids=x,x`, plus de deux ids) est traité comme sans sélection, avec un message. Instancie `useBacktestComparison`.
 - **Props** :
 
   | Nom | Type | Requis | Défaut | Description |
@@ -1139,7 +1133,7 @@ Source : `src/features/auth/schema.ts`.
 ### ComparisonSelection
 
 - **Import** : `import { ComparisonSelection } from "@/features/backtest/comparison-selection"`.
-- **Rôle** : carte de choix des backtests A et B parmi les `COMPARABLE_LIMIT` plus récents dont la dernière exécution est terminée (`useBacktests`, `statusFilters.done`), bouton « Échanger ». Un backtest choisi d'un côté n'est pas proposé de l'autre.
+- **Rôle** : carte de choix des backtests A et B parmi les `COMPARABLE_LIMIT` plus récents qui ont un résultat terminé, même relancés depuis (`useBacktests` avec `hasResult`), bouton « Échanger ». Un backtest choisi d'un côté n'est pas proposé de l'autre.
 - **Props** :
 
   | Nom | Type | Requis | Défaut | Description |
@@ -1158,7 +1152,7 @@ Source : `src/features/auth/schema.ts`.
 ### ComparisonOverview
 
 - **Import** : `import { ComparisonOverview } from "@/features/backtest/comparison-overview"`.
-- **Rôle** : carte « Valeur des portefeuilles » : légende, valeurs de A (`--chart-1`) et B (`--chart-2`) et benchmark de A en pointillés (`PriceAreaChart`, courbes alignées par `alignCurves`), puis drawdowns de A et B sur le même axe ; drawdown masqué si aucun point n'en porte.
+- **Rôle** : carte « Valeur des portefeuilles » : légende, valeurs de A et B (`comparisonSideColors`) et benchmark de A, sinon de B (`getComparisonBenchmark`), en pointillés (`PriceAreaChart`, courbes alignées par `alignCurves`), puis drawdowns de A et B sur le même axe ; drawdown masqué si aucun point n'en porte.
 - **Props** :
 
   | Nom | Type | Requis | Défaut | Description |
@@ -1175,7 +1169,7 @@ Source : `src/features/auth/schema.ts`.
 ### ComparisonMetrics, ComparisonParameters
 
 - **Import** : `import { ComparisonMetrics, ComparisonParameters } from "@/features/backtest/comparison-blocks"`.
-- **Rôle** : deux `MetricBlock`. `ComparisonMetrics` : « Métriques comparées » (CAGR, rendement total, volatilité, Sharpe, max drawdown, récupération, valeur finale) en colonnes A, B, « Écart » (`deltas` de l'API, en points de ratio « ±x,x pts », Sharpe sans unité ; vert si favorable à A selon `comparedMetricHigherIsBetter`, rouge sinon ; `<Dash />` sans écart) et, si A a un benchmark, son symbole. `ComparisonParameters` : « Paramètres » (période, mode, allocation, rebalancement, frais, benchmark) de A et B, badge « diffère » sur ceux de `differences`.
+- **Rôle** : deux `MetricBlock`. `ComparisonMetrics` : « Métriques comparées » (CAGR, rendement total, volatilité, Sharpe, max drawdown, récupération, valeur finale) en colonnes A, B, « Écart » (`deltas` de l'API, en points de ratio « ±x,x pts », Sharpe sans unité ; vert si favorable à A selon `comparedMetricHigherIsBetter`, rouge sinon ; `<Dash />` sans écart) et, si A (sinon B) a un benchmark (`getComparisonBenchmark`), son symbole. `ComparisonParameters` : « Paramètres » (période, mode, allocation, rebalancement, frais, benchmark) de A et B, badge « diffère » sur ceux de `differences`.
 - **Props** (les deux) :
 
   | Nom | Type | Requis | Défaut | Description |
@@ -1197,7 +1191,7 @@ Source : `src/features/auth/schema.ts`.
 | --- | --- | --- | --- |
 | `createBacktest` | `(values: BacktestValues) => Promise<Backtest>` ; `benchmarkSymbols` envoyé en `benchmarkSymbol` (premier symbole, `null` si vide ou absent) | `POST /api/backtest` | `useCreateBacktest` |
 | `previewBacktest` | `(values: BacktestValues) => Promise<BacktestPreview>` | `POST /api/backtest/preview` | `useBacktestPreview` |
-| `getBacktests` | `(params: PaginationParams & { status: readonly ExecutionStatus[] }) => Promise<Paginated<Backtest>>` | `GET /api/backtest?page&pageSize&status` (`status` = statuts séparés par des virgules, omis si vide) | `useBacktests` |
+| `getBacktests` | `(params: PaginationParams & { status: readonly ExecutionStatus[]; hasResult?: boolean }) => Promise<Paginated<Backtest>>` | `GET /api/backtest?page&pageSize&status&hasResult` (`status` = statuts séparés par des virgules, omis si vide ; `hasResult=true` si vrai) | `useBacktests` |
 | `getBacktestStats` | `() => Promise<BacktestListStats>` | `GET /api/backtest/stats` | `useBacktestStats` |
 | `getBacktest` | `(id: string) => Promise<BacktestDetails>` | `GET /api/backtest/:id` | `useBacktest` |
 | `compareBacktests` | `(a: string, b: string) => Promise<BacktestComparison>` | `GET /api/backtest/compare?ids=a,b` | `useBacktestComparison` |
@@ -1257,15 +1251,16 @@ Source : `src/features/backtest/schema.ts`.
 | `BACKTEST_DISCLAIMER` | « Les performances passées ne préjugent pas des performances futures. Simulation pédagogique, pas un conseil en investissement. » | Avertissement affiché avec tout résultat. | `assumptions.tsx` |
 | `statusBadges` | `Record<ExecutionStatus, { label; variant: "outline" \| "destructive" \| "secondary" \| "success" }>` | Badge de statut d'exécution. | `column.tsx`, `backtest-detail.tsx`, `execution-history.tsx` |
 | `tradeSideBadges` | `Record<TradeSide, { label; variant: "success" \| "destructive" }>` : `BUY` → « Achat » (`success`), `SELL` → « Vente » (`destructive`) | Badge du côté d'un ordre ; `side` absent (résultat antérieur) lu comme `BUY` (D10). | `column.tsx` |
-| `statusFilters` | `{ all, running, done, failed }` → `{ label, statuses: ExecutionStatus[] }` | Onglets de filtre de la liste ; `statuses` envoyés en `status` à `getBacktests` (`all` = vide, aucun filtre). | `backtest-list.tsx`, `comparison-selection.tsx` (`done`) |
+| `statusFilters` | `{ all, running, done, failed }` → `{ label, statuses: ExecutionStatus[] }` | Onglets de filtre de la liste ; `statuses` envoyés en `status` à `getBacktests` (`all` = vide, aucun filtre). | `backtest-list.tsx` |
 | `StatusFilter` | `keyof typeof statusFilters` | Type de l'onglet actif. | `backtest-list.tsx` |
-| `COMPARABLE_LIMIT` | `100` | Nombre de backtests terminés proposés au choix de la comparaison (`pageSize` maximal de `GET /api/backtest`). | `comparison-selection.tsx` |
+| `COMPARABLE_LIMIT` | `100` | Nombre de backtests proposés au choix de la comparaison (`MAX_PAGE_SIZE` du contrat, `pageSize` maximal de `GET /api/backtest`). | `comparison-selection.tsx` |
+| `comparisonSideColors` | `{ a, b }` → `{ stroke: "var(--chart-1|2)", className: "bg-chart-1|2" }` | Couleur de A et B : courbes, légende, pastilles de sélection. | `comparison-overview.tsx`, `comparison-selection.tsx` |
 | `comparisonParameterLabels` | `Record<ComparisonParameter, string>` : `period` → « périodes différentes », `feeRate` → « frais différents », `benchmarkSymbol` → « benchmarks différents » | Titre du bandeau « Comparaison non homogène ». | `backtest-compare.tsx` |
 | `comparedMetricHigherIsBetter` | `Record<ComparedMetric, boolean>` : `volatility` → `false`, les autres → `true` | Sens favorable d'un écart A − B, pour sa couleur (affichage seulement). | `comparison-blocks.tsx` |
 
 Source : `src/features/backtest/constants.ts`.
 
-### `features/backtest/utils.ts`
+### `features/backtest/utils.tsx`
 
 - **Import** : `import { getExecution } from "@/features/backtest/utils"`.
 
@@ -1277,9 +1272,14 @@ Source : `src/features/backtest/constants.ts`.
 | `getExecutionDuration` | `(e: BacktestExecution) => string \| null` | Durée `finishedAt − (startedAt ?? createdAt)`, « 2 min 5 s » ou « 12 s » (minimum 1 s) ; `null` si non terminée. | `column.tsx`, `backtest-detail.tsx`, `execution-history.tsx` |
 | `fromDecimal` | `(value: string \| null \| undefined) => number \| null` | `Decimal` sérialisé → `number`, `null` ou absent → `null`. | `stats.tsx`, `result-overview.tsx`, `comparison-blocks.tsx` |
 | `formatAllocation` | `(allocations: Backtest["allocations"]) => string` | Allocation lisible : « AAPL 60 % · MSFT 40 % » (`formatRate` du poids). | `column.tsx`, `backtest-detail.tsx` |
-| `alignCurves` | `(a: EquityPoint[], b: EquityPoint[], value: (p: EquityPoint) => number \| undefined) => PricePoint[]` | Courbes de A et B sur l'union de leurs dates triées : `price` = A (`null` hors de sa période), `other` = B, `compare` = `benchmarkValue` de A ; `value` choisit la série (valeur, drawdown). | `comparison-overview.tsx` |
+| `alignCurves` | `(a: EquityPoint[], b: EquityPoint[], value: (p: EquityPoint) => number \| undefined, benchmarkSide: "a" \| "b") => PricePoint[]` | Courbes de A et B sur l'union de leurs dates triées : `price` = A (`null` hors de sa période), `other` = B, `compare` = `benchmarkValue` du côté `benchmarkSide` ; `value` choisit la série (valeur, drawdown). | `comparison-overview.tsx` |
+| `show` | `(value: number \| null, format: (v: number) => string) => ReactNode` | Valeur formatée, `<Dash />` si `null`. | `stats.tsx`, `comparison-blocks.tsx` |
+| `formatAmount` | `(v: number) => string` | Montant en `BACKTEST_CURRENCY`. | `stats.tsx`, `comparison-blocks.tsx` |
+| `formatRecovery` | `(recoveryDays: number \| null \| undefined, maxDrawdown: number \| null) => ReactNode` | Durée `formatDuration` ; `<Dash />` si absent (résultat antérieur) ; « Non récupéré » ou « Aucune baisse » si `null`. | `stats.tsx`, `comparison-blocks.tsx` |
+| `comparisonLabel` | `(side: "A" \| "B", name: string) => string` | « A · 60/40 » : colonnes, légende et infobulles de la comparaison. | `comparison-overview.tsx`, `comparison-blocks.tsx` |
+| `getComparisonBenchmark` | `(c: BacktestComparison) => { side: "a" \| "b"; benchmark }` | Benchmark affiché : celui de A, sinon celui de B ; `benchmark` null si aucun. | `comparison-overview.tsx`, `comparison-blocks.tsx` |
 
-Source : `src/features/backtest/utils.ts`.
+Source : `src/features/backtest/utils.tsx`.
 
 ### `features/backtest/column.tsx`
 

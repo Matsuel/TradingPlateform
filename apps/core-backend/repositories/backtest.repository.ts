@@ -1,13 +1,13 @@
 import type { PaginationQuery } from "@trading-plateform/contracts"
 import { prisma } from "../prisma"
 import { Prisma, type BacktestExecution, type BacktestStatus } from "../generated/prisma/client"
-import type { BacktestDetails, BacktestExecutionCount, BacktestStatusCounts, BacktestWithExecutions, ComparedBacktestRecord, CompleteExecutionDTO, CreateBacktestDTO } from "../interfaces/backtest.interface"
+import type { BacktestDetails, BacktestExecutionCount, BacktestListQuery, BacktestStatusCounts, BacktestWithExecutions, ComparedBacktestRecord, CompleteExecutionDTO, CreateBacktestDTO } from "../interfaces/backtest.interface"
 
 export interface IBacktestRepository {
     create(data: CreateBacktestDTO): Promise<BacktestWithExecutions>
     getById(id: string): Promise<BacktestWithExecutions | null>
     getDetailsById(id: string): Promise<BacktestDetails | null>
-    getAllByUserId(userId: string, pagination: PaginationQuery, statuses?: BacktestStatus[]): Promise<{ data: BacktestWithExecutions[], count: number }>
+    getAllByUserId(userId: string, pagination: PaginationQuery, filters: Pick<BacktestListQuery, "status" | "hasResult">): Promise<{ data: BacktestWithExecutions[], count: number }>
     countByLatestStatus(userId: string): Promise<BacktestStatusCounts>
     countExecutionsByIds(ids: string[], userId: string, statuses: BacktestStatus[]): Promise<BacktestExecutionCount[]>
     getComparedByIds(ids: string[], statuses: BacktestStatus[]): Promise<ComparedBacktestRecord[]>
@@ -94,10 +94,11 @@ class BacktestRepository implements IBacktestRepository {
         return backtest && { ...backtest, result }
     }
 
-    async getAllByUserId(userId: string, { page, pageSize }: PaginationQuery, statuses?: BacktestStatus[]): Promise<{ data: BacktestWithExecutions[], count: number }> {
+    async getAllByUserId(userId: string, { page, pageSize }: PaginationQuery, { status, hasResult }: Pick<BacktestListQuery, "status" | "hasResult">): Promise<{ data: BacktestWithExecutions[], count: number }> {
         const where = {
             userId,
-            ...(statuses && { latestExecution: { is: { status: { in: statuses } } } }),
+            ...(status && { latestExecution: { is: { status: { in: status } } } }),
+            ...(hasResult && { executions: { some: { status: "COMPLETED" } } }),
         } satisfies Prisma.BacktestWhereInput
         const [data, count] = await prisma.$transaction([
             prisma.backtest.findMany({

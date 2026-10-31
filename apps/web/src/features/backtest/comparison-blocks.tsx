@@ -5,9 +5,8 @@ import { LOCALE, formatChange, formatDayRange, formatPercent, formatRate, format
 import { cn } from "@/lib/utils"
 import { comparedMetricHigherIsBetter, NO_BENCHMARK_LABEL, rebalanceFrequencyLabels, strategyLabels } from "./constants"
 import { MetricBlock } from "./metric-block"
-import { formatAmount, formatRecovery, show } from "./stats"
 import type { BacktestComparison, ComparedBacktest, ComparedMetric, ComparisonParameter } from "./types"
-import { fromDecimal } from "./utils"
+import { comparisonLabel, formatAmount, formatRecovery, fromDecimal, getComparisonBenchmark, show } from "./utils"
 
 // Écart en points de ratio (0.044 → « +4,4 pts »)
 const formatPointChange = new Intl.NumberFormat(LOCALE, { minimumFractionDigits: 1, maximumFractionDigits: 1, signDisplay: "always" }).format
@@ -21,13 +20,13 @@ function Delta({ metric, value, format }: { metric: ComparedMetric; value: numbe
 }
 
 /**
- * Tableau « Métriques comparées » (maquette 19 v2) : A, B, écart A − B calculé par le backend (`deltas`) et, si A a un
- * benchmark, ses métriques. Récupération et valeur finale n'ont pas d'écart. `<Dash />` pour une valeur absente.
+ * Tableau « Métriques comparées » (maquette 19 v2) : A, B, écart A − B calculé par le backend (`deltas`) et, si A (sinon
+ * B) a un benchmark, ses métriques. Récupération et valeur finale n'ont pas d'écart. `<Dash />` pour une valeur absente.
  */
 export function ComparisonMetrics({ comparison }: { comparison: BacktestComparison }) {
     const { a, b, deltas } = comparison
-    const { benchmark } = a.result
-    const columns = [`A · ${a.name}`, `B · ${b.name}`, "Écart", ...(benchmark ? [benchmark.symbol] : [])]
+    const { benchmark } = getComparisonBenchmark(comparison)
+    const columns = [comparisonLabel("A", a.name), comparisonLabel("B", b.name), "Écart", ...(benchmark ? [benchmark.symbol] : [])]
     // Valeur de A, de B, écart puis, avec un benchmark, la sienne
     const row = (label: string, value: (r: ComparedBacktest["result"]) => ReactNode, delta: ReactNode, benchmarkValue: ReactNode) => ({
         label,
