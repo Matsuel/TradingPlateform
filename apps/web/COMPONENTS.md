@@ -55,7 +55,9 @@ Module de fonctions, hooks, constantes ou types (`lib/*.ts`, `features/<domaine>
 
 ## `components/ui`
 
-Primitives shadcn (base-ui), voir la doc shadcn. Ne les modifie qu'en cas de besoin réel.
+Primitives shadcn (base-ui), voir la doc shadcn. Seule base des briques d'interface (`AGENTS.md`, « shadcn d'abord ») : un composant manquant s'ajoute par `bunx --bun shadcn@latest add <nom>`, un style manquant par un variant de son `cva`. Chaque variant ajouté au-delà de shadcn est listé ici.
+
+- `ui/badge.tsx` : variant `success` (bordure et texte `--success`), ajouté au projet ; badges de statut terminé, d'achat et de hausse.
 
 - `ui/pagination.tsx` (`Pagination`, `PaginationContent`, `PaginationItem`, `PaginationLink`, `PaginationPrevious`, `PaginationNext`, `PaginationEllipsis`) : généré par `bunx --bun shadcn@latest add pagination`, non modifié ; libellés anglais par défaut, passer `text` et `aria-label` en français. Utilisé seulement via la prop `pagination` de `DataTable`.
 

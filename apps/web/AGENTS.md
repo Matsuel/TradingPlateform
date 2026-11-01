@@ -33,6 +33,16 @@ Un écran, ou une section d'écran, se code uniquement depuis un cadre Figma **v
 
 Restent hors règle, sans nouveau cadre : composant non visuel, correctif de bug ou de responsive qui respecte la maquette, retouche demandée explicitement par l'utilisateur (libellé, champ retiré) ; l'écart à la maquette est alors noté dans le résumé.
 
+## shadcn d'abord (règle stricte)
+
+Toute brique d'interface vient de `components/ui/` (shadcn, style `base-nova` de `components.json`) :
+
+- **Primitive** (bouton, champ, label, tableau, carte, badge, onglets, dialog, menu…) : le composant `ui/` correspondant. Absent du dossier : ajoute-le avec `bunx --bun shadcn@latest add <nom>`, puis utilise-le.
+- **Style ou état que le composant n'a pas** : un **variant** de plus dans son `cva`, dans `ui/<composant>.tsx` (ex. `success` de `Badge`), appelé par `variant="…"`. Un style partagé par deux écrans est un variant.
+- **Classes autour d'un composant `ui/`** : la mise en page seulement (marges, grille, largeur, position).
+- **Élément HTML brut** à la place d'une primitive (`<table>`, `<button>`, `<label>`, `<select>`) : seulement si shadcn n'a aucun équivalent, avec la raison en commentaire sur la ligne.
+- `components/` et `features/` composent les `ui/` ; un variant ajouté a son entrée dans `COMPONENTS.md` (« `components/ui` ») dans le même diff.
+
 ## Structure `src/`
 
 | Dossier | Rôle |
@@ -85,7 +95,7 @@ Règles :
 - Une mutation est instanciée **une fois** par écran, dans le composant d'écran ; les sections reçoivent l'action ou le bouton par props (`actions`).
 - `DataTable` : `query` pour des lignes issues d'une requête (états chargement / erreur), `rows` pour des lignes déjà en mémoire (sous-liste d'un détail chargé). Ne pas fabriquer un faux `query`.
 - Conversion `Decimal` → `number` : `fromDecimal` (`features/<domaine>/utils.ts`), qui garde `null` pour un champ absent.
-- Composants partagés : consulte `COMPONENTS.md`, réutilise-les en priorité (`DataTable`, `StatCard`, `AreaSeriesChart`, `SymbolCell`, `PageHeader`). Un besoin manquant s'ajoute par une prop optionnelle rétrocompatible (slot `ReactNode` nommé `actions`, `badge`, `leading`), jamais par une copie. Ne modifie un composant `ui/` shadcn qu'en cas de besoin réel.
+- Composants partagés : consulte `COMPONENTS.md`, réutilise-les en priorité (`DataTable`, `StatCard`, `AreaSeriesChart`, `SymbolCell`, `PageHeader`). Un besoin manquant s'ajoute par une prop optionnelle rétrocompatible (slot `ReactNode` nommé `actions`, `badge`, `leading`), jamais par une copie. Un style manquant à une primitive s'ajoute en variant `ui/` (« shadcn d'abord »).
 - **Aide sur les données** : une donnée calculée ou interprétée affichée (métrique, taux, écart, frais, empreinte, paramètre qui change le calcul) a son entrée dans `constants/glossary.ts` et son libellé en `InfoHint` (ou `hint` d'un champ) **dans le même diff**. Le texte cite en `source` le symbole qui calcule la donnée et se relit contre lui quand ce calcul change. Champs bruts évidents (nom, date, symbole, statut) : pas d'aide.
 - Formulaires : react-hook-form + schéma de `schema.ts` + champs de `components/form/fields`. Après création, redirige vers la page de détail de la ressource.
 - Server Component par défaut ; `"use client"` seulement si le fichier utilise hooks, état ou événements.
