@@ -3,12 +3,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { cn } from "@/lib/utils"
 
 // badge : signal affiché après le libellé (ex. « diffère »)
-export type MetricRow = { label: string; badge?: ReactNode; values: ReactNode[] }
+export type MetricRow = { label: ReactNode; badge?: ReactNode; values: ReactNode[] }
 
 interface MetricBlockProps {
     title: string
     description?: string
-    columns: string[] // un en-tête par colonne de valeurs
+    columns: ReactNode[] // un en-tête par colonne de valeurs, dans un ordre fixe
     rows: MetricRow[]
     strong?: number // nombre de premières colonnes en gras, les suivantes en retrait
     rowHeader?: string // en-tête visible de la colonne des libellés ; absent = « Indicateur » pour les lecteurs d'écran
@@ -34,19 +34,20 @@ export function MetricBlock({ title, description, columns, rows, strong = 1, row
                             <th className="pb-2.5 text-left text-small font-medium text-muted-foreground">
                                 {rowHeader ?? <span className="sr-only">Indicateur</span>}
                             </th>
-                            {columns.map((c) => (
-                                <th key={c} className="pb-2.5 pl-2 text-right text-small font-medium text-muted-foreground">{c}</th>
+                            {columns.map((c, i) => (
+                                <th key={i} className="pb-2.5 pl-2 text-right text-small font-medium text-muted-foreground">{c}</th>
                             ))}
                         </tr>
                     </thead>
                     <tbody>
-                        {rows.map(({ label, badge, values }) => (
-                            <tr key={label}>
+                        {rows.map(({ label, badge, values }, i) => (
+                            // Lignes fixes, jamais réordonnées : l'index suffit comme clé
+                            <tr key={i}>
                                 <th scope="row" className="py-2.5 text-left font-normal">
                                     {badge ? <span className="flex items-center gap-2">{label}{badge}</span> : label}
                                 </th>
-                                {values.map((v, i) => (
-                                    <td key={columns[i]} className={cn("py-2.5 pl-2 text-right whitespace-nowrap", i < strong ? "font-semibold" : "text-muted-foreground")}>
+                                {values.map((v, j) => (
+                                    <td key={j} className={cn("py-2.5 pl-2 text-right whitespace-nowrap", j < strong ? "font-semibold" : "text-muted-foreground")}>
                                         {v}
                                     </td>
                                 ))}

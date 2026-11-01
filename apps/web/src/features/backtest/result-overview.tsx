@@ -2,6 +2,7 @@
 
 import Dash from "@/components/custom/Dash"
 import { PriceAreaChart } from "@/components/chart"
+import { InfoHint } from "@/components/info-hint"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { formatMediumDate, formatMonthTick, formatPrice, formatRate, formatRatio } from "@/lib/format"
@@ -30,7 +31,9 @@ export function ResultOverview({ result }: { result: BacktestResult }) {
         <Card className="gap-4">
             <CardContent className="flex flex-col gap-6">
                 <div className="flex flex-col gap-1.5">
-                    <span className="text-body-medium text-muted-foreground">Valeur finale</span>
+                    <span className="text-body-medium text-muted-foreground">
+                        <InfoHint entry="finalValue" value={finalValue == null ? undefined : formatPrice(finalValue, BACKTEST_CURRENCY)}>Valeur finale</InfoHint>
+                    </span>
                     <div className="flex flex-wrap items-center gap-3">
                         <span className="text-h1">
                             {finalValue == null ? <Dash /> : formatPrice(finalValue, BACKTEST_CURRENCY)}
@@ -41,8 +44,15 @@ export function ResultOverview({ result }: { result: BacktestResult }) {
                     </div>
                     {profit != null && invested != null && (
                         <p className="text-body text-muted-foreground">
-                            Plus-value {formatPrice(profit, BACKTEST_CURRENCY)} sur {formatPrice(invested, BACKTEST_CURRENCY)} investis
-                            {benchmark && ` · ${benchmark.symbol} sur la même période : ${formatRatio(benchmark.totalReturn)}`}
+                            <InfoHint entry="profit" value={formatPrice(profit, BACKTEST_CURRENCY)}>Plus-value</InfoHint> {formatPrice(profit, BACKTEST_CURRENCY)} sur {formatPrice(invested, BACKTEST_CURRENCY)}{" "}
+                            <InfoHint entry="totalInvested" value={formatPrice(invested, BACKTEST_CURRENCY)}>investis</InfoHint>
+                            {benchmark && (
+                                <>
+                                    {" · "}
+                                    <InfoHint entry="benchmark" value={formatRatio(benchmark.totalReturn)}>{benchmark.symbol}</InfoHint>
+                                    {` sur la même période : ${formatRatio(benchmark.totalReturn)}`}
+                                </>
+                            )}
                         </p>
                     )}
                 </div>
@@ -60,7 +70,9 @@ export function ResultOverview({ result }: { result: BacktestResult }) {
                     />
                     {drawdown.length > 0 && (
                         <>
-                            <span className="text-small font-medium text-muted-foreground">Drawdown</span>
+                            <span className="text-small font-medium text-muted-foreground">
+                                <InfoHint entry="drawdownCurve">Drawdown</InfoHint>
+                            </span>
                             <PriceAreaChart
                                 data={drawdown}
                                 formatTick={formatMonthTick}

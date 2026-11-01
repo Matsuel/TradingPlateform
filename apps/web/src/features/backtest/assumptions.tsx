@@ -1,5 +1,6 @@
 import type { ReactNode } from "react"
 import Dash from "@/components/custom/Dash"
+import { InfoHint } from "@/components/info-hint"
 import { formatDate, formatDayRange, formatPercent } from "@/lib/format"
 import {
     BACKTEST_CURRENCY,
@@ -16,7 +17,7 @@ import { fromDecimal, show } from "./utils"
 // Préfixe de l'empreinte SHA-256, assez long pour distinguer deux jeux de données à l'œil
 const FINGERPRINT_PREVIEW_LENGTH = 12
 
-function Assumption({ label, children }: { label: string; children: ReactNode }) {
+function Assumption({ label, children }: { label: ReactNode; children: ReactNode }) {
     return (
         <div className="flex items-start gap-4 border-b py-2">
             <dt className="flex-1 text-muted-foreground">{label}</dt>
@@ -40,11 +41,11 @@ export function BacktestAssumptions({ backtest, result }: { backtest: Backtest; 
                 <Assumption label="Frais">{formatPercent(Number(backtest.feeRate))} par ordre, achat et vente</Assumption>
                 <Assumption label="Rebalancement">{rebalanceFrequencyLabels[backtest.rebalanceFrequency]}</Assumption>
                 <Assumption label="Benchmark">{backtest.benchmarkSymbol ?? NO_BENCHMARK_LABEL}</Assumption>
-                <Assumption label="Taux sans risque">{show(fromDecimal(result.riskFreeRate), formatPercent)}</Assumption>
-                <Assumption label="Règle d’exécution">
+                <Assumption label={<InfoHint entry="riskFreeRate">Taux sans risque</InfoHint>}>{show(fromDecimal(result.riskFreeRate), formatPercent)}</Assumption>
+                <Assumption label={<InfoHint entry="executionRule">Règle d’exécution</InfoHint>}>
                     {executionRule ? executionRuleLabels[executionRule] : <Dash />}
                 </Assumption>
-                <Assumption label="Source des données">
+                <Assumption label={<InfoHint entry="dataSource">Source des données</InfoHint>}>
                     {dataSource
                         ? `${dataProviderLabels[dataSource.provider]} · ${priceTypeLabels[dataSource.priceType]}`
                         : <Dash />}
@@ -52,7 +53,7 @@ export function BacktestAssumptions({ backtest, result }: { backtest: Backtest; 
                 <Assumption label="Données récupérées le">
                     {dataSource ? formatDate(dataSource.fetchedAt) : <Dash />}
                 </Assumption>
-                <Assumption label="Empreinte des données">
+                <Assumption label={<InfoHint entry="dataFingerprint">Empreinte des données</InfoHint>}>
                     {dataSource
                         ? <span className="font-mono" title={dataSource.fingerprint}>{dataSource.fingerprint.slice(0, FINGERPRINT_PREVIEW_LENGTH)}</span>
                         : <Dash />}

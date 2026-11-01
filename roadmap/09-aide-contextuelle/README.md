@@ -1,9 +1,9 @@
 # 09 · Aide contextuelle sur les données
 
-- **Statut** : Planifiée
+- **Statut** : En cours
 - **Roadmap** : hors « Roadmap annuelle », demande du 2026-10-30 ; à mener après la feature 08, avant le mois 5. Sert l’objectif pédagogique n° 1 (« implémenter et expliquer »).
-- **Période** : à planifier (environ 1 semaine)
-- **Branche / PR** : à créer
+- **Période** : 2026-11-01 →
+- **Branche / PR** : `feat/aide-contextuelle` / à créer
 - **Points** : 22 (MUST 20, SHOULD 2) — prévus
 - **Maquettes** : `15 · Aide sur une donnée (sheet)` (`341:6986`) et `15.1 · Déclencheur de l’aide · libellés soulignés` (`391:9918`), validées le 01/11/2026
 

@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { PriceAreaChart } from "@/components/chart"
+import { InfoHint } from "@/components/info-hint"
 import { ErrorState, LoadingState } from "@/components/query-status"
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -40,7 +41,9 @@ export function PriceChart({ symbol }: { symbol: string }) {
     return (
         <Card className="gap-4">
             <CardHeader>
-                <CardTitle className="text-body-semibold">Prix</CardTitle>
+                <CardTitle className="text-body-semibold">
+                    <InfoHint entry="priceChart">Prix</InfoHint>
+                </CardTitle>
                 <CardDescription className="text-small">
                     {symbol} · points toutes les {interval}
                 </CardDescription>
