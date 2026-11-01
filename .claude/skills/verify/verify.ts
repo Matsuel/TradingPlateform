@@ -120,15 +120,36 @@ for (const { code, catalog } of catalogs) {
     }
 }
 
-// Taille : un fichier web qui grossit au-delà du seuil d'apps/web/AGENTS.md (« Taille et complexité ») se découpe
-const WEB_FILE_MAX_LINES = 150;
-const longFiles = changed
-    .filter((file) => /^apps\/web\/src\/(?!components\/ui\/|constants\/glossary\.ts$).*\.tsx?$/.test(file))
-    .map((file) => ({ file, lines: readFileSync(file, "utf8").split("\n").length }))
-    .filter(({ lines }) => lines > WEB_FILE_MAX_LINES);
-if (longFiles.length > 0)
+// Taille et complexité (apps/web/AGENTS.md) : fichier ≤ 150 lignes, fonction de premier niveau ≤ 60 lignes, ≤ 8 props.
+// Heuristique sur le format Biome : une fonction va de `function X` en colonne 0 jusqu'à la `}` en colonne 0 suivante.
+const WEB_LIMITS = { fileLines: 150, functionLines: 60, props: 8 };
+const webSources = changed.filter((file) =>
+    /^apps\/web\/src\/(?!components\/ui\/|constants\/glossary\.ts$).*\.tsx?$/.test(file),
+);
+const sizeIssues: string[] = [];
+for (const file of webSources) {
+    const lines = readFileSync(file, "utf8").split("\n");
+    if (lines.length > WEB_LIMITS.fileLines) sizeIssues.push(`${file} : ${lines.length} lignes`);
+    let start = -1;
+    let name = "";
+    lines.forEach((line, i) => {
+        const declaration = /^(?:export )?(?:async )?function (\w+)/.exec(line);
+        if (start < 0 && declaration) {
+            start = i;
+            name = declaration[1] ?? "";
+        } else if (start >= 0 && line === "}") {
+            if (i - start + 1 > WEB_LIMITS.functionLines) sizeIssues.push(`${file}:${start + 1} ${name} : ${i - start + 1} lignes`);
+            start = -1;
+        }
+    });
+    for (const match of lines.join("\n").matchAll(/(?:interface|type) (\w+Props)\b[^{]*\{([^]*?)\n\}/g)) {
+        const props = (match[2] ?? "").split("\n").filter((l) => /^\s+\w+\??:/.test(l)).length;
+        if (props > WEB_LIMITS.props) sizeIssues.push(`${file} ${match[1]} : ${props} props`);
+    }
+}
+if (sizeIssues.length > 0)
     warnings.push(
-        `Fichier web de plus de ${WEB_FILE_MAX_LINES} lignes (découpe-le ou justifie) :\n${longFiles.map(({ file, lines }) => `${file} (${lines})`).join("\n")}`,
+        `Taille web au-delà des seuils (fichier ${WEB_LIMITS.fileLines} l., fonction ${WEB_LIMITS.functionLines} l., ${WEB_LIMITS.props} props) : découpe ou justifie :\n${sizeIssues.join("\n")}`,
     );
 
 // Écran rendu modifié : la conformité à la maquette se juge en regardant, pas en lisant le diff

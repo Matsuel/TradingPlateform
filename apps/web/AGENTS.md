@@ -58,8 +58,8 @@ Restent hors règle, sans nouveau cadre : composant non visuel, correctif de bug
 Le code reste lisible d'une traite ; au-delà de ces seuils, découpe avant d'ajouter :
 
 - **Fichier** ≤ 150 lignes (hors `components/ui/` et `constants/glossary.ts`) ; `verify` avertit au-delà.
-- **Composant ou fonction** ≤ 60 lignes, JSX imbriqué sur peu de niveaux : une ligne de liste, un en-tête, un bloc deviennent un sous-composant nommé (`AllocationRow`, `ResultHeadline`).
-- **Props** ≤ 8 ; au-delà, une liste de données remplace les variantes (`AreaSeriesChart` et son `series`).
+- **Composant ou fonction** ≤ 60 lignes (`verify` avertit au-delà), JSX imbriqué sur peu de niveaux : une ligne de liste, un en-tête, un bloc deviennent un sous-composant nommé (`AllocationRow`, `ResultHeadline`).
+- **Props** ≤ 8 (`verify` avertit au-delà) ; au-delà, une liste de données remplace les variantes (`AreaSeriesChart` et son `series`).
 - **Une table plutôt qu'une répétition** : une même correspondance (métrique → libellé, aide, format) écrite deux fois devient une table partagée (`features/backtest/metrics.tsx`).
 - **Un état unique plutôt que des conditions répétées** : un écran à plusieurs états calcule l'état une fois, puis l'affiche (`searchState` de `SymbolPicker`).
 
