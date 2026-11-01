@@ -53,6 +53,16 @@ Restent hors règle, sans nouveau cadre : composant non visuel, correctif de bug
 - **Nouvelle page** : sa route dans `routes`, son onglet dans `constants/sidebar.tsx`, puis `app/app/<route>/page.tsx`. Une page pas encore construite n'affiche que `PageHeader` (titre et description).
 - `process.env` ne se lit que dans `lib/env.ts` (validé par zod).
 
+## Taille et complexité
+
+Le code reste lisible d'une traite ; au-delà de ces seuils, découpe avant d'ajouter :
+
+- **Fichier** ≤ 150 lignes (hors `components/ui/` et `constants/glossary.ts`) ; `verify` avertit au-delà.
+- **Composant ou fonction** ≤ 60 lignes, JSX imbriqué sur peu de niveaux : une ligne de liste, un en-tête, un bloc deviennent un sous-composant nommé (`AllocationRow`, `ResultHeadline`).
+- **Props** ≤ 8 ; au-delà, une liste de données remplace les variantes (`AreaSeriesChart` et son `series`).
+- **Une table plutôt qu'une répétition** : une même correspondance (métrique → libellé, aide, format) écrite deux fois devient une table partagée (`features/backtest/metrics.tsx`).
+- **Un état unique plutôt que des conditions répétées** : un écran à plusieurs états calcule l'état une fois, puis l'affiche (`searchState` de `SymbolPicker`).
+
 ## Rangement dans `features/<domaine>/`
 
 Chaque élément a un fichier attitré ; copie la forme de `features/backtest` et `features/market`.

@@ -1207,7 +1207,7 @@ Source : `src/features/backtest/metrics.tsx`.
 
 ### ComparisonMetrics, ComparisonParameters
 
-- **Import** : `import { ComparisonMetrics, ComparisonParameters } from "@/features/backtest/comparison-blocks"`.
+- **Import** : `import { ComparisonMetrics } from "@/features/backtest/comparison-metrics"`, `import { ComparisonParameters } from "@/features/backtest/comparison-parameters"`.
 - **Rôle** : deux `MetricBlock`. `ComparisonMetrics` : « Métriques comparées » (CAGR, rendement total, volatilité, Sharpe, max drawdown, récupération, valeur finale) en colonnes A, B, « Écart » (`deltas` de l'API, en points de ratio « ±x,x pts », Sharpe sans unité ; vert si favorable à A selon `comparedMetricHigherIsBetter`, rouge sinon ; `<Dash />` sans écart) et, si A (sinon B) a un benchmark (`getComparisonBenchmark`), son symbole. `ComparisonParameters` : « Paramètres » (période, mode, allocation, rebalancement, frais, benchmark) de A et B, badge « diffère » sur ceux de `differences`.
 - **Props** (les deux) :
 
@@ -1219,7 +1219,7 @@ Source : `src/features/backtest/metrics.tsx`.
   ```tsx
   <ComparisonMetrics comparison={comparison} />
   ```
-- **Source** : `src/features/backtest/comparison-blocks.tsx`.
+- **Source** : `src/features/backtest/comparison-metrics.tsx` (lignes construites depuis `metricDefinitions`, écart coloré par `Delta`), `src/features/backtest/comparison-parameters.tsx`.
 
 ### `features/backtest/api.ts`
 

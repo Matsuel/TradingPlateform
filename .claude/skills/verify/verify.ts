@@ -120,6 +120,17 @@ for (const { code, catalog } of catalogs) {
     }
 }
 
+// Taille : un fichier web qui grossit au-delà du seuil d'apps/web/AGENTS.md (« Taille et complexité ») se découpe
+const WEB_FILE_MAX_LINES = 150;
+const longFiles = changed
+    .filter((file) => /^apps\/web\/src\/(?!components\/ui\/|constants\/glossary\.ts$).*\.tsx?$/.test(file))
+    .map((file) => ({ file, lines: readFileSync(file, "utf8").split("\n").length }))
+    .filter(({ lines }) => lines > WEB_FILE_MAX_LINES);
+if (longFiles.length > 0)
+    warnings.push(
+        `Fichier web de plus de ${WEB_FILE_MAX_LINES} lignes (découpe-le ou justifie) :\n${longFiles.map(({ file, lines }) => `${file} (${lines})`).join("\n")}`,
+    );
+
 // Écran rendu modifié : la conformité à la maquette se juge en regardant, pas en lisant le diff
 const screens = changed.filter((file) => /^apps\/web\/src\/(app|features|components\/(?!ui\/))[^]*\.tsx$/.test(file));
 if (screens.length > 0) warnings.push(`UI web modifiée (${screens.join(", ")}) : compare chaque écran touché à sa maquette Figma (étape 5 du skill).`);
