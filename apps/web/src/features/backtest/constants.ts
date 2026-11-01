@@ -30,6 +30,11 @@ export const rebalanceFrequencyLabels: Record<RebalanceFrequency, string> = {
     YEARLY: "Annuel",
 }
 
+// Valeurs initiales du formulaire et du test rapide : capital en `BACKTEST_CURRENCY`, frais en pourcent par ordre
+export const DEFAULT_INVESTMENT_MODE = "LUMP_SUM" satisfies InvestmentMode
+export const DEFAULT_INITIAL_AMOUNT = 10_000
+export const DEFAULT_FEE_PERCENT = 0.1
+
 // Valeur par défaut du formulaire et du test rapide, comme le défaut de createBacktestSchema
 export const DEFAULT_REBALANCE_FREQUENCY = "NONE" satisfies RebalanceFrequency
 

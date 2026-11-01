@@ -1,3 +1,4 @@
+import type { FieldPath, FieldValues, UseFormSetError } from "react-hook-form"
 import { z } from "zod"
 import { env } from "./env"
 
@@ -24,10 +25,18 @@ const issuesBodySchema = z.object({
 })
 
 /**
+ * Place chaque issue zod d'un `400` de core-backend sous le champ de son chemin (`form.setError`) ; toute autre erreur
+ * est ignorée ici : l'écran l'affiche depuis la mutation.
+ */
+export function setFormIssues<T extends FieldValues>(error: unknown, setError: UseFormSetError<T>) {
+    for (const { path, message } of apiIssues(error)) setError(path as FieldPath<T>, { message })
+}
+
+/**
  * Issues zod d'un `400` de core-backend, chemin joint par des points (`"allocations.0.weight"`) pour `setError`.
  * `[]` pour toute autre erreur ; une issue sans chemin (racine du body) est ignorée.
  */
-export function apiIssues(error: unknown): { path: string; message: string }[] {
+function apiIssues(error: unknown): { path: string; message: string }[] {
     if (!(error instanceof ApiError) || error.status !== 400) return []
     const parsed = issuesBodySchema.safeParse(error.body)
     if (!parsed.success) return []

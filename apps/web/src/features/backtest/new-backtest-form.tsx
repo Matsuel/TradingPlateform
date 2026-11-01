@@ -2,12 +2,19 @@
 
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useRouter } from "next/navigation"
-import { type FieldPath, FormProvider, useForm, useWatch } from "react-hook-form"
+import { FormProvider, useForm, useWatch } from "react-hook-form"
 
 import { Button } from "@/components/ui/button"
-import { apiIssues } from "@/lib/api"
+import { setFormIssues } from "@/lib/api"
 import { routes } from "@/lib/routes"
-import { DEFAULT_BENCHMARK_SYMBOL, DEFAULT_REBALANCE_FREQUENCY, FULL_PERCENT } from "./constants"
+import {
+    DEFAULT_BENCHMARK_SYMBOL,
+    DEFAULT_FEE_PERCENT,
+    DEFAULT_INITIAL_AMOUNT,
+    DEFAULT_INVESTMENT_MODE,
+    DEFAULT_REBALANCE_FREQUENCY,
+    FULL_PERCENT,
+} from "./constants"
 import { useCreateBacktest } from "./hook"
 import { BacktestPreviewSummary } from "./preview-summary"
 import { type BacktestValues, backtestSchema } from "./schema"
@@ -21,11 +28,11 @@ export function NewBacktestForm() {
         resolver: zodResolver(backtestSchema),
         defaultValues: {
             name: "",
-            investmentMode: "LUMP_SUM",
+            investmentMode: DEFAULT_INVESTMENT_MODE,
             allocations: [],
-            initialAmount: 10_000,
+            initialAmount: DEFAULT_INITIAL_AMOUNT,
             rebalanceFrequency: DEFAULT_REBALANCE_FREQUENCY,
-            fee: 0.1,
+            fee: DEFAULT_FEE_PERCENT,
             benchmarkSymbols: [DEFAULT_BENCHMARK_SYMBOL],
         },
     })
@@ -36,8 +43,7 @@ export function NewBacktestForm() {
             const backtest = await mutateAsync(values)
             router.push(routes.backtest(backtest.id))
         } catch (e) {
-            // 400 : chaque issue zod du backend s'affiche sous le champ de son chemin
-            for (const { path, message } of apiIssues(e)) form.setError(path as FieldPath<BacktestValues>, { message })
+            setFormIssues(e, form.setError)
         }
     }
 

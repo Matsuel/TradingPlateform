@@ -692,19 +692,20 @@ Props communes `BaseProps<T>` (exportées par `field.tsx`), répétées dans cha
 | `formatDayRange` | Période : « 28/10/25 – 28/10/26 ». |
 | `formatMonthTick` | Mois court et année pour un axe temporel : « janv. 24 ». |
 | `formatMediumDate` | Date moyenne : « 28 oct. 2026 » (infobulle de graphique). |
+| `currencySymbol` | Symbole d'une devise ISO pour un libellé : `currencySymbol("EUR")` → « € ». |
 | `formatDuration` | Durée en jours calendaires : en jours sous deux mois (`45` → « 45 jours », `1` → « 1 jour »), sinon en mois arrondis (`426` → « 14 mois »). |
 
 Source : `src/lib/format.ts`.
 
 ### `lib/api.ts`
 
-- **Import** : `import { apiFetch, apiIssues } from "@/lib/api"`.
+- **Import** : `import { apiFetch, setFormIssues } from "@/lib/api"`.
 
 | Export | Rôle |
 | --- | --- |
 | `apiFetch` | Seul point d'appel HTTP : préfixe `path` par `env.NEXT_PUBLIC_API_URL`, envoie les cookies, ajoute `Accept: application/json`. Statut non 2xx → `ApiError` (message `"Erreur API : <status> <statusText>"`) ; `204` → `undefined`. Routes : `apps/core-backend/API.md`. |
 | `ApiError` | Erreur levée par `apiFetch` : `body` = corps JSON d'erreur (`{ error, ...data }`), `null` s'il n'est pas du JSON. |
-| `apiIssues` | Issues zod d'un `400` (`{ error, issues }`), chemin joint par des points (`"allocations.0.weight"`) pour `form.setError` ; `[]` pour toute autre erreur, issues sans chemin ignorées. |
+| `setFormIssues` | `setFormIssues(error, form.setError)` dans le `catch` d'une mutation : chaque issue zod d'un `400` (`{ error, issues }`) va sous le champ de son chemin (`"allocations.0.weight"`) ; toute autre erreur est ignorée ici, l'écran l'affiche depuis la mutation. |
 
 Source : `src/lib/api.ts`.
 
@@ -947,7 +948,7 @@ Source : `src/features/auth/schema.ts`.
 ### NewBacktestForm
 
 - **Import** : `import { NewBacktestForm } from "@/features/backtest/new-backtest-form"`.
-- **Rôle** : formulaire « Nouveau backtest » (maquette 12.1, `backtestSchema`, sections `GeneralSection` + `AllocationSection`, benchmark proposé `DEFAULT_BENCHMARK_SYMBOL`, `BacktestPreviewSummary` à droite à partir de `lg`, empilé dessous sinon) ; « Lancer le backtest » désactivé tant que `allocationTotal` ≠ 100 ; un `400` du backend place chaque issue sous le champ de son chemin (`apiIssues` + `setError`) ; redirige vers le détail créé.
+- **Rôle** : formulaire « Nouveau backtest » (maquette 12.1, `backtestSchema`, sections `GeneralSection` + `AllocationSection`, benchmark proposé `DEFAULT_BENCHMARK_SYMBOL`, `BacktestPreviewSummary` à droite à partir de `lg`, empilé dessous sinon) ; « Lancer le backtest » désactivé tant que `allocationTotal` ≠ 100 ; un `400` du backend place chaque issue sous le champ de son chemin (`setFormIssues`) ; redirige vers le détail créé.
 - **Props** : aucune.
 - **Exemple** (tiré de `src/app/app/backtest/new/page.tsx`) :
   ```tsx
@@ -969,7 +970,7 @@ Source : `src/features/auth/schema.ts`.
 ### QuickBacktestForm
 
 - **Import** : `import { QuickBacktestForm } from "@/features/backtest/quick-backtest-form"`.
-- **Rôle** : test rapide sur un seul symbole (`quickBacktestSchema`, nom `Test rapide <symbol>`, allocation `[{ symbol, weight: 100 }]`, par défaut `LUMP_SUM`, 1 an jusqu'à aujourd'hui, `initialAmount` 10 000, `fee` 0,1 % ; « Versement mensuel (€) » affiché en `RECURRING`) ; un `400` du backend place chaque issue sous le champ de son chemin (`apiIssues`) ; redirige vers le détail créé.
+- **Rôle** : test rapide sur un seul symbole (`quickBacktestSchema`, nom `Test rapide <symbol>`, allocation `[{ symbol, weight: 100 }]`, défauts `DEFAULT_INVESTMENT_MODE`, `DEFAULT_INITIAL_AMOUNT`, `DEFAULT_FEE_PERCENT`, 1 an jusqu'à aujourd'hui ; champs `InvestmentModeFields` et `PeriodAndCapitalFields` partagés avec le formulaire complet ; récapitulatif `QuickTestSummary` et boutons `QuickTestActions` internes) ; un `400` du backend place chaque issue sous le champ de son chemin (`setFormIssues`) ; redirige vers le détail créé.
 - **Props** :
 
   | Nom | Type | Requis | Défaut | Description |
@@ -1005,7 +1006,7 @@ Source : `src/features/auth/schema.ts`.
 ### GeneralSection
 
 - **Import** : `import { GeneralSection } from "@/features/backtest/sections"`.
-- **Rôle** : section « Général » (`name`, `investmentMode`, `recurringAmount` affiché seulement en `RECURRING`) d'un formulaire `BacktestValues`, sous `FormProvider`.
+- **Rôle** : section « Général » (`name`, puis `InvestmentModeFields`) d'un formulaire `BacktestValues`, sous `FormProvider`.
 - **Props** : aucune.
 - **Exemple** (tiré de `src/features/backtest/new-backtest-form.tsx`) :
   ```tsx
@@ -1017,9 +1018,16 @@ Source : `src/features/auth/schema.ts`.
 ### AllocationSection
 
 - **Import** : `import { AllocationSection } from "@/features/backtest/sections"`.
-- **Rôle** : section « Allocation et période » (`allocations` via `AllocationField`, `start`, `end`, `initialAmount`, `fee`, `rebalanceFrequency` via `SelectField` « Rebalancement », aide « Ramène les poids à la cible », `benchmarkSymbols` via `SymbolsField` « Benchmark » à un symbole au plus, retirable pour simuler sans benchmark) d'un formulaire `BacktestValues`.
+- **Rôle** : section « Allocation et période » (`allocations` via `AllocationField`, `PeriodAndCapitalFields`, `rebalanceFrequency` via `SelectField` « Rebalancement », aide « Ramène les poids à la cible », `benchmarkSymbols` via `SymbolsField` « Benchmark » à un symbole au plus, retirable pour simuler sans benchmark) d'un formulaire `BacktestValues`.
 - **Props** : aucune.
 - **Exemple** : voir `GeneralSection`.
+- **Source** : `src/features/backtest/sections.tsx`.
+
+### InvestmentModeFields, PeriodAndCapitalFields
+
+- **Import** : `import { InvestmentModeFields, PeriodAndCapitalFields } from "@/features/backtest/sections"`.
+- **Rôle** : champs communs au formulaire complet et au test rapide, sous `FormProvider`. `InvestmentModeFields` : mode d'investissement, puis versement mensuel en `RECURRING` seulement. `PeriodAndCapitalFields` : début et fin, capital initial et frais par ordre (aide `feeRate`). Montants libellés avec `currencySymbol(BACKTEST_CURRENCY)`.
+- **Props** : aucune.
 - **Source** : `src/features/backtest/sections.tsx`.
 
 ### ResultOverview
@@ -1286,6 +1294,7 @@ Source : `src/features/backtest/schema.ts`.
 | `activeStatuses` | Statuts d'une exécution qui peut encore évoluer (miroir de `ACTIVE_STATUSES` backend). |
 | `investmentModeOptions` | Options du `SelectField` `investmentMode`. |
 | `rebalanceFrequencyLabels` | Libellé de la fréquence de rebalancement d'un backtest stocké. |
+| `DEFAULT_INVESTMENT_MODE`, `DEFAULT_INITIAL_AMOUNT`, `DEFAULT_FEE_PERCENT` | Valeurs initiales du formulaire et du test rapide : `LUMP_SUM`, 10 000 en `BACKTEST_CURRENCY`, 0,1 % par ordre. |
 | `DEFAULT_REBALANCE_FREQUENCY` | Fréquence par défaut du formulaire complet et du test rapide (même défaut que `createBacktestSchema`). |
 | `rebalanceFrequencyOptions` | Options du `SelectField` `rebalanceFrequency`. |
 | `DEFAULT_BENCHMARK_SYMBOL` | Benchmark proposé par le formulaire complet (D9), retirable. |

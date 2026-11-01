@@ -42,3 +42,8 @@ const DAYS_PER_MONTH = 365.25 / 12
 /** Durée en jours calendaires : en jours sous deux mois (« 45 jours »), sinon en mois arrondis (« 14 mois »). */
 export const formatDuration = (days: number) =>
     days < 2 * DAYS_PER_MONTH ? `${days} ${days > 1 ? "jours" : "jour"}` : `${Math.round(days / DAYS_PER_MONTH)} mois`
+
+/** Symbole d'une devise ISO pour un libellé : `currencySymbol("EUR")` → « € ». */
+export const currencySymbol = (currency: string) =>
+    new Intl.NumberFormat(LOCALE, { style: "currency", currency }).formatToParts(0).find((p) => p.type === "currency")
+        ?.value ?? currency
