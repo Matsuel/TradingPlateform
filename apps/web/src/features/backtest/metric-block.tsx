@@ -4,6 +4,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import type { GlossaryKey } from "@/constants/glossary"
 import { cn } from "@/lib/utils"
 
+// En-tête d'une colonne de valeurs ; `hint` : entrée du glossaire ouverte par l'en-tête (ex. « Écart »)
+export type MetricColumn = { label: string; hint?: GlossaryKey }
+
 // hint : entrée du glossaire ouverte par le libellé ; details : lignes ajoutées au panneau après les valeurs des colonnes ;
 // badge : signal affiché après le libellé (ex. « diffère »)
 export type MetricRow = {
@@ -14,36 +17,64 @@ export type MetricRow = {
     values: ReactNode[]
 }
 
+const headClassName = "pb-2.5 text-small font-medium text-muted-foreground"
+
+// Une ligne : libellé (avec son aide, qui rappelle la valeur de chaque colonne puis `details`), badge, valeurs
+function MetricBlockRow({
+    row,
+    columns,
+    boldColumns,
+}: {
+    row: MetricRow
+    columns: MetricColumn[]
+    boldColumns: number
+}) {
+    const { label, hint, details = [], badge, values } = row
+    const shown = [...columns.map((c, i) => ({ label: c.label, value: values[i] })), ...details]
+
+    return (
+        <tr>
+            <th scope="row" className="py-2.5 text-left font-normal">
+                <span className="flex items-center gap-2">
+                    <InfoHint entry={hint} details={shown}>
+                        {label}
+                    </InfoHint>
+                    {badge}
+                </span>
+            </th>
+            {values.map((value, i) => (
+                <td
+                    key={columns[i].label}
+                    className={cn(
+                        "py-2.5 pl-2 text-right whitespace-nowrap",
+                        i < boldColumns ? "font-semibold" : "text-muted-foreground",
+                    )}
+                >
+                    {value}
+                </td>
+            ))}
+        </tr>
+    )
+}
+
 interface MetricBlockProps {
     title: string
     description?: string
-    columns: string[] // un en-tête par colonne de valeurs
-    columnHints?: Partial<Record<string, GlossaryKey>> // entrée du glossaire d'un en-tête, par libellé (ex. « Écart »)
+    columns: MetricColumn[] // un en-tête par colonne de valeurs
     rows: MetricRow[]
-    strong?: number // nombre de premières colonnes en gras, les suivantes en retrait
+    boldColumns?: number // nombre de premières colonnes en gras, les suivantes en retrait
     rowHeader?: string // en-tête visible de la colonne des libellés ; absent = « Indicateur » pour les lecteurs d'écran
     note?: ReactNode
-    className?: string
 }
 
 /**
  * Carte d'indicateurs en liste : une ligne par métrique, une colonne de valeurs par série (ex. portefeuille puis benchmark).
- * Les `strong` premières colonnes (une par défaut) sont en gras, les suivantes en retrait. Les valeurs arrivent déjà formatées.
- * Une ligne à `hint` a un libellé `InfoHint` dont le panneau rappelle la valeur de chaque colonne puis ses `details`.
+ * Les `boldColumns` premières colonnes (une par défaut) sont en gras, les suivantes en retrait. Les valeurs arrivent déjà
+ * formatées.
  */
-export function MetricBlock({
-    title,
-    description,
-    columns,
-    columnHints = {},
-    rows,
-    strong = 1,
-    rowHeader,
-    note,
-    className,
-}: MetricBlockProps) {
+export function MetricBlock({ title, description, columns, rows, boldColumns = 1, rowHeader, note }: MetricBlockProps) {
     return (
-        <Card className={cn("gap-4", className)}>
+        <Card className="gap-4">
             <CardHeader>
                 <CardTitle className="text-body-semibold">{title}</CardTitle>
                 {description && <CardDescription className="text-small">{description}</CardDescription>}
@@ -52,56 +83,20 @@ export function MetricBlock({
                 <table className="w-full text-sm">
                     <thead>
                         <tr className="border-b">
-                            <th className="pb-2.5 text-left text-small font-medium text-muted-foreground">
+                            <th className={cn(headClassName, "text-left")}>
                                 {rowHeader ?? <span className="sr-only">Indicateur</span>}
                             </th>
                             {columns.map((c) => (
-                                <th
-                                    key={c}
-                                    className="pb-2.5 pl-2 text-right text-small font-medium text-muted-foreground"
-                                >
-                                    <InfoHint entry={columnHints[c]}>{c}</InfoHint>
+                                <th key={c.label} className={cn(headClassName, "pl-2 text-right")}>
+                                    <InfoHint entry={c.hint}>{c.label}</InfoHint>
                                 </th>
                             ))}
                         </tr>
                     </thead>
                     <tbody>
-                        {rows.map(({ label, hint, details = [], badge, values }) => {
-                            // Panneau d'aide : la valeur de chaque colonne, puis les détails propres à la ligne
-                            const hinted = (
-                                <InfoHint
-                                    entry={hint}
-                                    details={[...columns.map((c, i) => ({ label: c, value: values[i] })), ...details]}
-                                >
-                                    {label}
-                                </InfoHint>
-                            )
-                            return (
-                                <tr key={label}>
-                                    <th scope="row" className="py-2.5 text-left font-normal">
-                                        {badge ? (
-                                            <span className="flex items-center gap-2">
-                                                {hinted}
-                                                {badge}
-                                            </span>
-                                        ) : (
-                                            hinted
-                                        )}
-                                    </th>
-                                    {values.map((v, i) => (
-                                        <td
-                                            key={columns[i]}
-                                            className={cn(
-                                                "py-2.5 pl-2 text-right whitespace-nowrap",
-                                                i < strong ? "font-semibold" : "text-muted-foreground",
-                                            )}
-                                        >
-                                            {v}
-                                        </td>
-                                    ))}
-                                </tr>
-                            )
-                        })}
+                        {rows.map((row) => (
+                            <MetricBlockRow key={row.label} row={row} columns={columns} boldColumns={boldColumns} />
+                        ))}
                     </tbody>
                 </table>
                 {note && <p className="mt-3 text-small text-muted-foreground">{note}</p>}

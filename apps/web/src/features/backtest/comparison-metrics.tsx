@@ -3,8 +3,15 @@ import { Dash } from "@/components/dash"
 import { formatChange, LOCALE } from "@/lib/format"
 import { cn } from "@/lib/utils"
 import { comparedMetricHigherIsBetter } from "./constants"
-import { MetricBlock, type MetricRow } from "./metric-block"
-import { benchmarkRecovery, benchmarkValue, metricDefinitions, resultRecovery, resultValue } from "./metrics"
+import { MetricBlock, type MetricColumn, type MetricRow } from "./metric-block"
+import {
+    benchmarkRecovery,
+    benchmarkValue,
+    metricDefinitions,
+    recoveryDefinition,
+    resultRecovery,
+    resultValue,
+} from "./metrics"
 import type { BacktestComparison, Benchmark, ComparedBacktest, ComparedMetric } from "./types"
 import { comparisonLabel, getComparisonBenchmark } from "./utils"
 
@@ -56,11 +63,11 @@ type ComparedResult = ComparedBacktest["result"]
 export function ComparisonMetrics({ comparison }: { comparison: BacktestComparison }) {
     const { a, b, deltas } = comparison
     const { benchmark } = getComparisonBenchmark(comparison)
-    const columns = [
-        comparisonLabel("A", a.name),
-        comparisonLabel("B", b.name),
-        "Écart",
-        ...(benchmark ? [benchmark.symbol] : []),
+    const columns: MetricColumn[] = [
+        { label: comparisonLabel("A", a.name) },
+        { label: comparisonLabel("B", b.name) },
+        { label: "Écart", hint: "comparisonDelta" },
+        ...(benchmark ? [{ label: benchmark.symbol }] : []),
     ]
     // Valeur de A, de B, écart puis, avec un benchmark, la sienne
     const row = (
@@ -83,7 +90,7 @@ export function ComparisonMetrics({ comparison }: { comparison: BacktestComparis
                 (bm) => benchmarkValue(bm, metric),
             ),
         ),
-        row({ label: "Récupération", hint: "recovery" }, resultRecovery, <Dash />, benchmarkRecovery),
+        row(recoveryDefinition, resultRecovery, <Dash />, benchmarkRecovery),
         row(
             metricDefinitions.finalValue,
             (r) => resultValue(r, "finalValue"),
@@ -98,8 +105,7 @@ export function ComparisonMetrics({ comparison }: { comparison: BacktestComparis
             description="Écart = A − B, en points (Sharpe sans unité)"
             rowHeader="Indicateur"
             columns={columns}
-            columnHints={{ Écart: "comparisonDelta" }}
-            strong={2}
+            boldColumns={2}
             rows={rows}
         />
     )

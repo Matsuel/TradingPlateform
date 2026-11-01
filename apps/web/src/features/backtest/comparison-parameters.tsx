@@ -20,8 +20,8 @@ export function ComparisonParameters({ comparison }: { comparison: BacktestCompa
             title="Paramètres"
             description="Ceux qui diffèrent sont signalés"
             rowHeader="Paramètre"
-            columns={["A", "B"]}
-            strong={0}
+            columns={[{ label: "A" }, { label: "B" }]}
+            boldColumns={0}
             rows={[
                 {
                     label: "Période",

@@ -1036,27 +1036,25 @@ Source : `src/features/auth/schema.ts`.
 
 ### MetricBlock
 
-- **Import** : `import { MetricBlock, type MetricRow } from "@/features/backtest/metric-block"`.
-- **Rôle** : carte d'indicateurs en liste : titre, description, une ligne par métrique (badge optionnel après le libellé), une colonne de valeurs par série (ex. portefeuille puis benchmark) ; `strong` premières colonnes en gras, suivantes en retrait ; note optionnelle sous la liste. Valeurs déjà formatées.
+- **Import** : `import { MetricBlock, type MetricColumn, type MetricRow } from "@/features/backtest/metric-block"`.
+- **Rôle** : carte d'indicateurs en liste : titre, description, une ligne par métrique (badge optionnel après le libellé), une colonne de valeurs par série (ex. portefeuille puis benchmark) ; `boldColumns` premières colonnes en gras, suivantes en retrait ; note optionnelle sous la liste. Valeurs déjà formatées.
 - **Props** :
 
   | Nom | Type | Requis | Défaut | Description |
   | --- | --- | --- | --- | --- |
   | `title` | `string` | oui | — | Titre de la carte. |
   | `description` | `string` | non | — | Sous le titre. |
-  | `columns` | `string[]` | oui | — | En-tête de chaque colonne de valeurs. |
-  | `columnHints` | `Partial<Record<string, GlossaryKey>>` | non | `{}` | Entrée du glossaire d'un en-tête, par libellé (ex. `{ Écart: "comparisonDelta" }`). |
-  | `rows` | `MetricRow[]` = `{ label: string; hint?: GlossaryKey; details?: HintDetail[]; badge?: ReactNode; values: ReactNode[] }[]` | oui | — | `values` dans l'ordre de `columns` ; avec `hint`, le libellé est un `InfoHint` dont le panneau rappelle la valeur de chaque colonne puis `details` ; `badge` après le libellé (ex. « diffère »). |
-  | `strong` | `number` | non | `1` | Nombre de premières colonnes en gras ; `0` = toutes en retrait. |
+  | `columns` | `MetricColumn[]` = `{ label: string; hint?: GlossaryKey }[]` | oui | — | En-tête de chaque colonne de valeurs ; `hint` ouvre l'aide de l'en-tête (ex. « Écart »). |
+  | `rows` | `MetricRow[]` = `{ label; hint?; details?: HintDetail[]; badge?: ReactNode; values: ReactNode[] }[]` | oui | — | `values` dans l'ordre de `columns` ; avec `hint`, le libellé est un `InfoHint` dont le panneau rappelle la valeur de chaque colonne puis `details` ; `badge` après le libellé (ex. « diffère »). |
+  | `boldColumns` | `number` | non | `1` | Nombre de premières colonnes en gras ; `0` = toutes en retrait. |
   | `rowHeader` | `string` | non | « Indicateur » pour lecteurs d'écran | En-tête visible de la colonne des libellés. |
   | `note` | `ReactNode` | non | — | Texte sous la liste. |
-  | `className` | `string` | non | — | Sur la carte. |
 
-- **Exemple** (tiré de `src/features/backtest/stats.tsx`) :
+- **Exemple** (tiré de `src/features/backtest/result-metrics.tsx`) :
   ```tsx
-  <MetricBlock title="Coûts et activité" columns={["Total"]} rows={[{ label: "Ordres", hint: "totalTrades", values: [result.totalTrades] }]} />
+  <MetricBlock title="Coûts et activité" columns={[{ label: "Total" }]} rows={[{ label: "Ordres", hint: "totalTrades", values: [result.totalTrades] }]} />
   ```
-- **Source** : `src/features/backtest/metric-block.tsx`.
+- **Source** : `src/features/backtest/metric-block.tsx` (ligne rendue par `MetricBlockRow`, interne).
 
 ### ResultDetails
 
@@ -1151,6 +1149,7 @@ Source : `src/features/auth/schema.ts`.
 | `metricDefinitions` | CAGR, rendement total et max drawdown en `formatRatio`, volatilité en `formatPercent`, Sharpe en `formatSharpe`, valeur finale en `formatAmount`. |
 | `resultValue` | Métrique d'un résultat (Decimal sérialisé), formatée ; `<Dash />` si absente (résultat antérieur). |
 | `benchmarkValue` | Métrique d'un benchmark (nombre du moteur), formatée ; `<Dash />` si `null`. |
+| `recoveryDefinition` | Libellé « Récupération » et aide `recovery` de la ligne, sans format. |
 | `resultRecovery`, `benchmarkRecovery` | Récupération via `formatRecovery` ; `<Dash />` pour un résultat antérieur au calcul. |
 
 Source : `src/features/backtest/metrics.tsx`.

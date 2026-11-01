@@ -2,20 +2,28 @@ import { Dash, orDash } from "@/components/dash"
 import { type HintDetail, InfoHint } from "@/components/info-hint"
 import { formatDay, formatPercent } from "@/lib/format"
 import { rebalanceFrequencyLabels } from "./constants"
-import { MetricBlock, type MetricRow } from "./metric-block"
+import { MetricBlock, type MetricColumn, type MetricRow } from "./metric-block"
 import {
     benchmarkRecovery,
     benchmarkValue,
     type Metric,
     metricDefinitions,
+    recoveryDefinition,
     resultRecovery,
     resultValue,
 } from "./metrics"
 import type { BacktestResult, RebalanceFrequency } from "./types"
 import { formatAmount, fromDecimal } from "./utils"
 
+// Lignes des blocs, dans l'ordre de la maquette 13 v2
+const performanceMetrics: Metric[] = ["cagr", "totalReturn", "finalValue"]
+const riskMetrics: Metric[] = ["volatility", "sharpeRatio", "maxDrawdown"]
+
 // Colonnes : le portefeuille puis, avec un benchmark, son symbole
-const columnsOf = ({ benchmark }: BacktestResult) => (benchmark ? ["Portefeuille", benchmark.symbol] : ["Portefeuille"])
+const columnsOf = ({ benchmark }: BacktestResult): MetricColumn[] => [
+    { label: "Portefeuille" },
+    ...(benchmark ? [{ label: benchmark.symbol }] : []),
+]
 
 function metricRow(result: BacktestResult, metric: Metric, details?: HintDetail[]): MetricRow {
     const { label, hint } = metricDefinitions[metric]
@@ -26,8 +34,7 @@ function metricRow(result: BacktestResult, metric: Metric, details?: HintDetail[
 
 function recoveryRow({ benchmark, ...result }: BacktestResult): MetricRow {
     return {
-        label: "Récupération",
-        hint: "recovery",
+        ...recoveryDefinition,
         values: [resultRecovery(result), ...(benchmark ? [benchmarkRecovery(benchmark)] : [])],
     }
 }
@@ -58,7 +65,7 @@ function PerformanceBlock({ result }: { result: BacktestResult }) {
             title="Performance"
             description="Rendement, hors versements"
             columns={columnsOf(result)}
-            rows={[metricRow(result, "cagr"), metricRow(result, "totalReturn"), metricRow(result, "finalValue")]}
+            rows={performanceMetrics.map((metric) => metricRow(result, metric))}
             note={lumpSumComparison && <LumpSumNote lumpSum={lumpSumComparison} />}
         />
     )
@@ -77,9 +84,9 @@ function RiskBlock({ result }: { result: BacktestResult }) {
             }
             columns={columnsOf(result)}
             rows={[
-                metricRow(result, "volatility"),
-                metricRow(result, "sharpeRatio"),
-                metricRow(result, "maxDrawdown", troughDetails),
+                ...riskMetrics.map((metric) =>
+                    metricRow(result, metric, metric === "maxDrawdown" ? troughDetails : undefined),
+                ),
                 recoveryRow(result),
             ]}
             note={maxDrawdownPeakDate && `Baisse maximale depuis le plus haut du ${formatDay(maxDrawdownPeakDate)}`}
@@ -97,7 +104,7 @@ function CostsBlock({ result, rebalanceFrequency }: ResultMetricsProps) {
         <MetricBlock
             title="Coûts et activité"
             description={`${rebalancing} · frais déduits de la valeur, achats et ventes`}
-            columns={["Total"]}
+            columns={[{ label: "Total" }]}
             rows={[
                 {
                     label: "Frais payés",

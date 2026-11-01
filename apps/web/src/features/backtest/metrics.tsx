@@ -18,6 +18,9 @@ export const metricDefinitions: Record<Metric, MetricDefinition> = {
     maxDrawdown: { label: "Max drawdown", hint: "maxDrawdown", format: formatRatio },
 }
 
+/** Libellé et aide de la ligne « Récupération », sans format : la valeur vient de `resultRecovery` / `benchmarkRecovery`. */
+export const recoveryDefinition: Pick<MetricDefinition, "label" | "hint"> = { label: "Récupération", hint: "recovery" }
+
 // Champs d'un résultat (détail ou comparaison) : Decimal sérialisé, null ou absent pour un résultat antérieur au champ
 type ResultFields = Partial<Record<Metric, string | null>> & {
     recoveryDays?: number | null
