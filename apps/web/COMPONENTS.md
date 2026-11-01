@@ -941,7 +941,7 @@ Source : `src/features/auth/schema.ts`.
 ### BacktestDetail
 
 - **Import** : `import { BacktestDetail } from "@/features/backtest/backtest-detail"`.
-- **Rôle** : écran détail (maquette 13 v2 · A) : en-tête avec statut, allocation, rebalancement, benchmark et relance ; `ResultOverview` (valeur finale, courbes de valeur et de drawdown) ; `ResultMetrics` (indicateurs groupés) ; ordres : les `RECENT_TRADES` (5) plus récents, puis tous, paginés côté client (`paginate`, `PAGE_SIZE`) sur « Voir les N ordres » ; `ResultDetails` (positions, hypothèses, historique repliés). Instancie `useBacktest` et `useRerunBacktest`.
+- **Rôle** : écran détail (maquette 13 v2 · A) : en-tête avec statut, allocation, rebalancement, benchmark et relance ; `ResultOverview` (valeur finale, courbes de valeur et de drawdown) ; `ResultMetrics` (indicateurs groupés) ; `TradesTable` (ordres) ; `ResultDetails` (positions, hypothèses, historique repliés). Instancie `useBacktest` et `useRerunBacktest`.
 - **Props** :
 
   | Nom | Type | Requis | Défaut | Description |
@@ -954,6 +954,20 @@ Source : `src/features/auth/schema.ts`.
   ```
 - **Utilisé par** : `src/app/app/backtest/[id]/page.tsx`.
 - **Source** : `src/features/backtest/backtest-detail.tsx`.
+
+### TradesTable
+
+- **Import** : `import { TradesTable } from "@/features/backtest/trades-table"`.
+- **Rôle** : table « Ordres » d'un résultat : les 5 plus récents (`RECENT_TRADES`), puis sur « Voir les N ordres » tous, paginés côté client (`paginate`, `PAGE_SIZE`), du plus récent au plus ancien.
+- **Props** : `trades: Trade[]`, ordres du moteur du plus ancien au plus récent.
+- **Source** : `src/features/backtest/trades-table.tsx`.
+
+### StatusBadge
+
+- **Import** : `import { StatusBadge } from "@/features/backtest/status-badge"`.
+- **Rôle** : badge du statut d'une exécution, libellé et variante de `statusBadges` (liste, détail, historique).
+- **Props** : `status: ExecutionStatus`.
+- **Source** : `src/features/backtest/status-badge.tsx`.
 
 ### NewBacktestForm
 

@@ -1,7 +1,7 @@
-import { Badge } from "@/components/ui/badge"
 import { formatDate, formatRatio } from "@/lib/format"
 import { cn } from "@/lib/utils"
 import { statusBadges } from "./constants"
+import { StatusBadge } from "./status-badge"
 import type { BacktestExecution } from "./types"
 import { getExecutionDuration, isActive } from "./utils"
 
@@ -29,14 +29,12 @@ function duration(e: BacktestExecution) {
 }
 
 function ExecutionRow({ execution: e }: { execution: BacktestExecution }) {
-    const { label, variant } = statusBadges[e.status]
-
     return (
         <div className="flex items-center justify-between gap-4 border-b py-3 last:border-b-0">
             <div className="flex w-full max-w-165 flex-col gap-1">
                 <div className="flex items-center gap-2">
                     <span className="text-body-medium">#{e.attempt}</span>
-                    <Badge variant={variant}>{label}</Badge>
+                    <StatusBadge status={e.status} />
                 </div>
                 <span className={cn("text-small text-muted-foreground", e.status === "FAILED" && "text-destructive")}>
                     {formatDate(e.createdAt)} · {describe(e)}

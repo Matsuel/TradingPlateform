@@ -4,7 +4,8 @@ import type { Column } from "@/components/data-table/data-table"
 import { InfoHint } from "@/components/info-hint"
 import { Badge } from "@/components/ui/badge"
 import { formatDay, formatDayRange, formatPrice, LOCALE } from "@/lib/format"
-import { BACKTEST_CURRENCY, statusBadges, strategyLabels, tradeSideBadges } from "./constants"
+import { BACKTEST_CURRENCY, strategyLabels, tradeSideBadges } from "./constants"
+import { StatusBadge } from "./status-badge"
 import type { Backtest, Holding, Trade } from "./types"
 import { formatAllocation, getExecution, getExecutionDuration } from "./utils"
 
@@ -52,8 +53,7 @@ export const backtestColumns: Column<Backtest>[] = [
         cell: (b) => {
             const e = getExecution(b)
             if (!e) return <Dash />
-            const { label, variant } = statusBadges[e.status]
-            return <Badge variant={variant}>{label}</Badge>
+            return <StatusBadge status={e.status} />
         },
     },
     {
