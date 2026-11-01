@@ -1,7 +1,8 @@
 import { z } from "zod"
 
-import { allocationTotal, FULL_PERCENT } from "@/components/form"
+import { FULL_PERCENT } from "./constants"
 import type { InvestmentMode, RebalanceFrequency } from "./types"
+import { allocationTotal } from "./utils"
 
 const general = {
     name: z.string().min(1, "Requis"),

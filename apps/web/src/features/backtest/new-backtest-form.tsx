@@ -4,15 +4,15 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useRouter } from "next/navigation"
 import { type FieldPath, FormProvider, useForm, useWatch } from "react-hook-form"
 
-import { allocationTotal, FULL_PERCENT } from "@/components/form"
 import { Button } from "@/components/ui/button"
 import { apiIssues } from "@/lib/api"
 import { routes } from "@/lib/routes"
-import { DEFAULT_BENCHMARK_SYMBOL, DEFAULT_REBALANCE_FREQUENCY } from "./constants"
+import { DEFAULT_BENCHMARK_SYMBOL, DEFAULT_REBALANCE_FREQUENCY, FULL_PERCENT } from "./constants"
 import { useCreateBacktest } from "./hook"
 import { BacktestPreviewSummary } from "./preview-summary"
 import { type BacktestValues, backtestSchema } from "./schema"
 import { AllocationSection, GeneralSection } from "./sections"
+import { allocationTotal } from "./utils"
 
 export function NewBacktestForm() {
     const router = useRouter()

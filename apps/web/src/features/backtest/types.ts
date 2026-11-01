@@ -35,6 +35,9 @@ export type {
     TradeSide,
 }
 
+// Ligne d'allocation saisie : poids en pourcent entier (60 = 60 %, D2), converti en ratio par le backend ; NaN = champ vidé
+export type AllocationInput = Pick<Allocation, "symbol"> & { name?: string; weight: number }
+
 export type ExecutionStatus = BacktestStatus
 
 export type InvestmentMode = BacktestRequestedPayload["investmentMode"]

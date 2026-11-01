@@ -1,4 +1,3 @@
-export { AllocationField, type AllocationInput, allocationTotal, FULL_PERCENT } from "./allocation-field"
 export { CheckboxField } from "./checkbox-field"
 export { DateField } from "./date-field"
 export { NumberField } from "./number-field"

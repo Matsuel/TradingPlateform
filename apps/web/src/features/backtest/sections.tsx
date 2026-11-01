@@ -2,16 +2,8 @@
 
 import { useWatch } from "react-hook-form"
 
-import {
-    AllocationField,
-    DateField,
-    FieldRow,
-    FormSection,
-    NumberField,
-    SelectField,
-    SymbolsField,
-    TextField,
-} from "@/components/form"
+import { DateField, FieldRow, FormSection, NumberField, SelectField, SymbolsField, TextField } from "@/components/form"
+import { AllocationField } from "./allocation-field"
 import { investmentModeOptions, rebalanceFrequencyOptions } from "./constants"
 
 export function GeneralSection() {

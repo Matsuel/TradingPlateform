@@ -44,7 +44,7 @@ Module de fonctions, hooks, constantes ou types (`lib/*.ts`, `features/<domaine>
 - [Données et tableaux](#données-et-tableaux) : `DataTable` (`Column`), `SymbolCell`, `ChangeCell`, `Dash` (`orDash`), `OptionSelect`, `FilterTabs`, `StatCard`, `LoadingState`, `ErrorState`
 - [Graphiques](#graphiques) : `AreaSeriesChart` (`ChartPoint`, `ChartSeries`, `trendColor`), `Sparkline`
 - [Symboles](#symboles) : `SymbolPicker`
-- [Formulaires (`components/form`)](#formulaires-componentsform) : `AppField`, `TextField`, `NumberField`, `TextareaField`, `SelectField`, `DateField`, `CheckboxField`, `SwitchField`, `SymbolsField`, `AllocationField`, `FormSection`, `FieldRow`
+- [Formulaires (`components/form`)](#formulaires-componentsform) : `AppField`, `TextField`, `NumberField`, `TextareaField`, `SelectField`, `DateField`, `CheckboxField`, `SwitchField`, `SymbolsField`, `FormSection`, `FieldRow`
 - [`lib`](#lib) : `format.ts`, `api.ts`, `pagination.ts`, `routes.ts`, `navigation.ts`, `env.ts`, `utils.ts`, `auth.ts`, `session.ts`
 - [`constants`](#constants) : `pagination.ts`, `sidebar.tsx`, `glossary.ts`
 - [`hooks`](#hooks) : `use-debounced-value.ts`
@@ -647,27 +647,6 @@ Props communes `BaseProps<T>` (exportées par `field.tsx`), répétées dans cha
 - **Utilisé par** : `src/features/backtest/sections.tsx` (benchmark, `max={1}`).
 - **Source** : `src/components/form/fields/symbols-field.tsx`.
 
-### AllocationField
-
-- **Import** : `import { AllocationField, allocationTotal, FULL_PERCENT, type AllocationInput } from "@/components/form"`.
-- **Rôle** : allocation d'un portefeuille (`AllocationInput[]`) : une ligne par actif (symbole, nom, barre proportionnelle au poids, champ `%` entier de 1 à 100 au pas de 1, bouton de retrait), ajout via `SymbolPicker` (symbole déjà présent masqué et ignoré ; le nouvel actif reçoit le reste jusqu'à 100 %, vide s'il n'en reste pas), badge « Total » vert à 100 %, rouge sinon. Le total n'est qu'un affichage de la saisie : la somme = 100 se valide dans le schéma zod du formulaire.
-- **Valeur** : `AllocationInput = Pick<Allocation, "symbol"> & { name?: string; weight: number }` ; `weight` en **pourcent entier** (60 = 60 %, D2), `NaN` quand le champ est vidé (rejeté par `z.number()`) ; `name` sert à l'affichage seulement. Le backend convertit le pourcent en ratio.
-- **Props** : `BaseProps<T>` +
-
-  | Nom | Type | Requis | Défaut | Description |
-  | --- | --- | --- | --- | --- |
-  | `addLabel` | `string` | non | `"Ajouter un actif"` | Libellé du bouton d'ajout. |
-
-- **Erreurs** : une erreur sur toute l'allocation (`path: [<name>]` : vide, total ≠ 100, symbole en double) s'affiche sous le champ ; une erreur sur un poids (`<name>.<index>.weight` : vide, non entier, hors bornes) s'affiche sous sa ligne.
-- **Helpers** : `FULL_PERCENT` (`100`) ; `allocationTotal(rows: AllocationInput[]) => number`, somme des poids saisis en pourcent (`NaN` compte 0), utilisée par le badge, par le schéma du formulaire et pour désactiver l'envoi.
-- **Accessibilité** : le symbole et le nom de chaque ligne sont le `label` de son champ `%` (`id` = `<name>.<index>.weight`, qui reçoit `aria-invalid` si l'erreur zod porte sur ce poids) ; bouton de retrait `aria-label="Retirer <symbole>"` ; badge « Total » en `aria-live="polite"`.
-- **Exemple** (tiré de `src/features/backtest/sections.tsx`) :
-  ```tsx
-  <AllocationField name="allocations" label="Actifs et poids" />
-  ```
-- **Utilisé par** : `src/features/backtest/sections.tsx` ; `allocationTotal` et `FULL_PERCENT` par `src/features/backtest/schema.ts`, `new-backtest-form.tsx` (`FULL_PERCENT` aussi par `quick-backtest-form.tsx`).
-- **Source** : `src/components/form/fields/allocation-field.tsx`.
-
 ### FormSection
 
 - **Import** : `import { FormSection } from "@/components/form"`.
@@ -1016,6 +995,27 @@ Source : `src/features/auth/schema.ts`.
   ```
 - **Utilisé par** : `src/features/market/symbol-sheet.tsx`.
 - **Source** : `src/features/backtest/quick-backtest-form.tsx`.
+
+### AllocationField
+
+- **Import** : `import { AllocationField } from "@/features/backtest/allocation-field"` (seul domaine utilisateur, d'où sa place dans la feature).
+- **Rôle** : allocation d'un portefeuille (`AllocationInput[]`) : une ligne par actif (symbole, nom, barre proportionnelle au poids, champ `%` entier de 1 à 100 au pas de 1, bouton de retrait), ajout via `SymbolPicker` (symbole déjà présent masqué et ignoré ; le nouvel actif reçoit le reste jusqu'à 100 %, vide s'il n'en reste pas), badge « Total » vert à 100 %, rouge sinon. Le total n'est qu'un affichage de la saisie : la somme = 100 se valide dans le schéma zod du formulaire.
+- **Valeur** : `AllocationInput = Pick<Allocation, "symbol"> & { name?: string; weight: number }` ; `weight` en **pourcent entier** (60 = 60 %, D2), `NaN` quand le champ est vidé (rejeté par `z.number()`) ; `name` sert à l'affichage seulement. Le backend convertit le pourcent en ratio.
+- **Props** : `BaseProps<T>` +
+
+  | Nom | Type | Requis | Défaut | Description |
+  | --- | --- | --- | --- | --- |
+  | `addLabel` | `string` | non | `"Ajouter un actif"` | Libellé du bouton d'ajout. |
+
+- **Erreurs** : une erreur sur toute l'allocation (`path: [<name>]` : vide, total ≠ 100, symbole en double) s'affiche sous le champ ; une erreur sur un poids (`<name>.<index>.weight` : vide, non entier, hors bornes) s'affiche sous sa ligne.
+- **Helpers** : `FULL_PERCENT` (`100`, `constants.ts`), `allocationTotal(rows) => number` (`utils.ts`, somme des poids saisis en pourcent, `NaN` compte 0), `AllocationInput` (`types.ts`) ; utilisés par le badge, le schéma du formulaire et pour désactiver l'envoi. Rendu interne : une `AllocationRow` par actif.
+- **Accessibilité** : le symbole et le nom de chaque ligne sont le `label` de son champ `%` (`id` = `<name>.<index>.weight`, qui reçoit `aria-invalid` si l'erreur zod porte sur ce poids) ; bouton de retrait `aria-label="Retirer <symbole>"` ; badge « Total » en `aria-live="polite"`.
+- **Exemple** (tiré de `src/features/backtest/sections.tsx`) :
+  ```tsx
+  <AllocationField name="allocations" label="Actifs et poids" />
+  ```
+- **Utilisé par** : `src/features/backtest/sections.tsx` ; `allocationTotal` et `FULL_PERCENT` par `src/features/backtest/schema.ts`, `new-backtest-form.tsx` (`FULL_PERCENT` aussi par `quick-backtest-form.tsx`).
+- **Source** : `src/features/backtest/allocation-field.tsx`.
 
 ### GeneralSection
 

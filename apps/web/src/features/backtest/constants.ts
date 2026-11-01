@@ -12,6 +12,9 @@ import type {
 // Devise des montants saisis : les cours ne sont pas convertis
 export const BACKTEST_CURRENCY = "EUR"
 
+// Total des poids d'une allocation, en pourcent entier (D2)
+export const FULL_PERCENT = 100
+
 // Une exécution dans ces statuts peut encore évoluer
 export const activeStatuses = ["PENDING", "RUNNING"] as const satisfies readonly ExecutionStatus[]
 

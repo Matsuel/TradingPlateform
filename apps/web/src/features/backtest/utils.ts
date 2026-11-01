@@ -1,7 +1,18 @@
 import type { ChartPoint } from "@/components/area-series-chart"
 import { formatDuration, formatPrice, formatRate } from "@/lib/format"
 import { activeStatuses, BACKTEST_CURRENCY } from "./constants"
-import type { Backtest, BacktestComparison, BacktestExecution, EquityPoint, ExecutionStatus } from "./types"
+import type {
+    AllocationInput,
+    Backtest,
+    BacktestComparison,
+    BacktestExecution,
+    EquityPoint,
+    ExecutionStatus,
+} from "./types"
+
+/** Somme des poids saisis, en pourcent ; un poids vidé (`NaN`) compte 0 (le schéma du formulaire le rejette à part). */
+export const allocationTotal = (rows: AllocationInput[]) =>
+    rows.reduce((sum, r) => sum + (Number.isNaN(r.weight) ? 0 : r.weight), 0)
 
 /** Dernière exécution d'un backtest (l'API les trie de la plus récente à la plus ancienne). */
 export const getExecution = (b: Backtest) => b.executions[0]

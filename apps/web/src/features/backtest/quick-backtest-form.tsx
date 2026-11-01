@@ -6,11 +6,11 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { type FieldPath, FormProvider, useForm, useWatch } from "react-hook-form"
 
-import { DateField, FieldRow, FULL_PERCENT, NumberField, SelectField } from "@/components/form"
+import { DateField, FieldRow, NumberField, SelectField } from "@/components/form"
 import { Button } from "@/components/ui/button"
 import { apiIssues } from "@/lib/api"
 import { routes } from "@/lib/routes"
-import { DEFAULT_REBALANCE_FREQUENCY, investmentModeOptions } from "./constants"
+import { DEFAULT_REBALANCE_FREQUENCY, FULL_PERCENT, investmentModeOptions } from "./constants"
 import { useCreateBacktest } from "./hook"
 import { type QuickBacktestValues, quickBacktestSchema } from "./schema"
 
