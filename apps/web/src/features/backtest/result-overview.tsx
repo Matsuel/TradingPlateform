@@ -74,7 +74,7 @@ export function ResultOverview({ result }: { result: BacktestResult }) {
                         <div className="flex flex-wrap items-center gap-4 text-small text-muted-foreground">
                             <LegendItem
                                 hint="equityCurve"
-                                swatch={cn("h-0.5", positive ? "bg-green-600" : "bg-destructive")}
+                                swatch={cn("h-0.5", positive ? "bg-success" : "bg-destructive")}
                             >
                                 Portefeuille
                             </LegendItem>

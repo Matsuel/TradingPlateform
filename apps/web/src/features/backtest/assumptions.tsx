@@ -1,5 +1,5 @@
 import type { ReactNode } from "react"
-import { Dash } from "@/components/dash"
+import { Dash, orDash } from "@/components/dash"
 import { InfoHint } from "@/components/info-hint"
 import type { GlossaryKey } from "@/constants/glossary"
 import { formatDate, formatDayRange, formatPercent } from "@/lib/format"
@@ -13,7 +13,7 @@ import {
     rebalanceFrequencyLabels,
 } from "./constants"
 import type { Backtest, BacktestResult } from "./types"
-import { fromDecimal, show } from "./utils"
+import { fromDecimal } from "./utils"
 
 // Préfixe de l'empreinte SHA-256, assez long pour distinguer deux jeux de données à l'œil
 const FINGERPRINT_PREVIEW_LENGTH = 12
@@ -51,7 +51,7 @@ export function BacktestAssumptions({ backtest, result }: { backtest: Backtest; 
                     {backtest.benchmarkSymbol ?? NO_BENCHMARK_LABEL}
                 </Assumption>
                 <Assumption label="Taux sans risque" hint="riskFreeRate">
-                    {show(fromDecimal(result.riskFreeRate), formatPercent)}
+                    {orDash(fromDecimal(result.riskFreeRate), formatPercent)}
                 </Assumption>
                 <Assumption label="Règle d’exécution" hint="executionRule">
                     {executionRule ? executionRuleLabels[executionRule] : <Dash />}

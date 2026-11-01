@@ -2,10 +2,10 @@
 
 import { useState } from "react"
 import { PriceAreaChart } from "@/components/chart"
+import { FilterTabs } from "@/components/filter-tabs"
 import { InfoHint } from "@/components/info-hint"
 import { ErrorState, LoadingState } from "@/components/query-status"
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { LOCALE } from "@/lib/format"
 import { cn } from "@/lib/utils"
 import { MARKET_CURRENCY, periodOptions } from "./constants"
@@ -29,14 +29,11 @@ const formatTooltipDate = (date: string, period: Period) =>
         ...(period === "1d" || period === "1w" ? { timeStyle: "short" } : {}),
     }).format(new Date(date))
 
+/** Carte « Prix » d'un symbole : onglets de période (1J à Max) et courbe ; garde la courbe précédente, atténuée, pendant un changement de période. */
 export function PriceChart({ symbol }: { symbol: string }) {
     const [period, setPeriod] = useState<Period>("1d")
     const { data, isPending, isError, error, refetch, isPlaceholderData } = useMarketDetails(symbol, period)
     const interval = periodOptions.find((p) => p.value === period)!.interval
-
-    const status = (content: React.ReactNode) => (
-        <div className="flex h-82.5 flex-col items-center justify-center gap-3 text-center">{content}</div>
-    )
 
     return (
         <Card className="gap-4">
@@ -48,15 +45,7 @@ export function PriceChart({ symbol }: { symbol: string }) {
                     {symbol} · points toutes les {interval}
                 </CardDescription>
                 <CardAction>
-                    <Tabs value={period} onValueChange={(v) => setPeriod(v as Period)}>
-                        <TabsList>
-                            {periodOptions.map((p) => (
-                                <TabsTrigger key={p.value} value={p.value}>
-                                    {p.label}
-                                </TabsTrigger>
-                            ))}
-                        </TabsList>
-                    </Tabs>
+                    <FilterTabs value={period} onChange={setPeriod} options={periodOptions} />
                 </CardAction>
             </CardHeader>
 
@@ -66,7 +55,9 @@ export function PriceChart({ symbol }: { symbol: string }) {
                 ) : isError ? (
                     <ErrorState message={error.message} onRetry={refetch} className="h-82.5" />
                 ) : data.length === 0 ? (
-                    status(<p className="text-sm text-muted-foreground">Aucune donnée pour cette période.</p>)
+                    <p className="flex h-82.5 items-center justify-center text-sm text-muted-foreground">
+                        Aucune donnée pour cette période.
+                    </p>
                 ) : (
                     <PriceAreaChart
                         data={data}

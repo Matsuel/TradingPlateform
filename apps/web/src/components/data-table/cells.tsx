@@ -35,6 +35,7 @@ type SymbolCellProps = VariantProps<typeof symbolVariants> & {
     className?: string
 }
 
+/** Logo (initiale à défaut), symbole et nom d'un actif ; `size` `md` en tableau, `lg` en en-tête de page. Nom tronqué s'il déborde. */
 export function SymbolCell({ symbol, name, logoUrl, size = "md", className }: SymbolCellProps) {
     const p = parts[size ?? "md"]
 
@@ -46,14 +47,15 @@ export function SymbolCell({ symbol, name, logoUrl, size = "md", className }: Sy
                     {symbol.slice(0, 1)}
                 </AvatarFallback>
             </Avatar>
-            <div className="flex flex-col">
+            <div className="flex min-w-0 flex-col">
                 <span className={p.symbol}>{symbol}</span>
-                {name && <span className={cn(p.name, "text-muted-foreground")}>{name}</span>}
+                {name && <span className={cn(p.name, "truncate text-muted-foreground")}>{name}</span>}
             </div>
         </div>
     )
 }
 
+/** Variation déjà en pourcent (`1.5` → « +1,50 % »), verte si ≥ 0, rouge sinon. */
 export function ChangeCell({ value }: { value: number }) {
-    return <span className={value >= 0 ? "text-green-600" : "text-destructive"}>{formatChange(value)} %</span>
+    return <span className={value >= 0 ? "text-success" : "text-destructive"}>{formatChange(value)} %</span>
 }

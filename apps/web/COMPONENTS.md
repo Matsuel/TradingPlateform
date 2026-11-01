@@ -41,7 +41,7 @@ Module de fonctions, hooks, constantes ou types (`lib/*.ts`, `features/<domaine>
 
 - [`components/ui`](#componentsui)
 - [Mise en page et navigation](#mise-en-page-et-navigation) : `PageLayout`, `PageHeader`, `AppHeader`, `AppSidebar`, `SidebarNav`, `NavUser`, `ThemeToggle`, `AppSheet`, `InfoHint`
-- [Données et tableaux](#données-et-tableaux) : `DataTable` (`Column`), `SymbolCell`, `ChangeCell`, `Dash`, `FilterTabs`, `StatCard`, `LoadingState`, `ErrorState`
+- [Données et tableaux](#données-et-tableaux) : `DataTable` (`Column`), `SymbolCell`, `ChangeCell`, `Dash` (`orDash`), `OptionSelect`, `FilterTabs`, `StatCard`, `LoadingState`, `ErrorState`
 - [Graphiques](#graphiques) : `PriceAreaChart` (`PricePoint`), `Sparkline`
 - [Symboles](#symboles) : `SymbolPicker`
 - [Formulaires (`components/form`)](#formulaires-componentsform) : `AppField`, `TextField`, `NumberField`, `TextareaField`, `SelectField`, `DateField`, `CheckboxField`, `SwitchField`, `SymbolsField`, `AllocationField`, `FormSection`, `FieldRow`
@@ -304,15 +304,37 @@ Primitives shadcn (base-ui), voir la doc shadcn. Ne les modifie qu'en cas de bes
 
 ### Dash
 
-- **Import** : `import { Dash } from "@/components/dash"`.
-- **Rôle** : tiret « — » atténué pour une valeur absente.
+- **Import** : `import { Dash, orDash } from "@/components/dash"`.
+- **Rôle** : tiret « — » atténué pour une valeur absente. `orDash(value, format)` rend `format(value)`, ou `<Dash />` si `value` est `null`/`undefined` (résultat antérieur au champ).
 - **Props** : aucune.
-- **Exemple** (tiré de `src/features/backtest/column.tsx`) :
+- **Exemple** (tiré de `src/features/backtest/stats.tsx`) :
   ```tsx
-  if (!e) return <Dash />
+  orDash(fromDecimal(result.cagr), formatRatio)
   ```
-- **Utilisé par** : `src/features/backtest/column.tsx`, `src/features/backtest/stats.tsx`, `src/features/backtest/assumptions.tsx`.
+- **Utilisé par** : `src/features/backtest/{column,stats,assumptions,comparison-blocks,result-overview,preview-summary}.tsx`, `src/features/market/column.tsx`.
 - **Source** : `src/components/dash.tsx`.
+
+### OptionSelect
+
+- **Import** : `import { OptionSelect, type SelectOption } from "@/components/option-select"`.
+- **Rôle** : liste déroulante d'options `{ value, label }` pleine largeur, hors formulaire (dans un formulaire : `SelectField`, qui l'utilise).
+- **Props** :
+
+  | Nom | Type | Requis | Défaut | Description |
+  | --- | --- | --- | --- | --- |
+  | `value` | `string` | oui | — | Valeur choisie ; `""` = aucune, `placeholder` affiché. |
+  | `options` | `SelectOption[]` | oui | — | Options proposées. |
+  | `onChange` | `(value: string) => void` | oui | — | `""` si la valeur est effacée. |
+  | `id` | `string` | non | — | Sur le déclencheur, pour un `<label htmlFor>`. |
+  | `placeholder` | `string` | non | `"Sélectionner…"` | Sans valeur. |
+  | `invalid` | `boolean` | non | — | `aria-invalid` du déclencheur. |
+
+- **Exemple** (tiré de `src/features/backtest/comparison-selection.tsx`) :
+  ```tsx
+  <OptionSelect id={id} value={value} options={options} onChange={onChange} />
+  ```
+- **Utilisé par** : `src/components/form/fields/select-field.tsx`, `src/features/backtest/comparison-selection.tsx`.
+- **Source** : `src/components/option-select.tsx`.
 
 ### FilterTabs
 
@@ -458,7 +480,7 @@ Primitives shadcn (base-ui), voir la doc shadcn. Ne les modifie qu'en cas de bes
 ### SymbolPicker
 
 - **Import** : `import { SymbolPicker } from "@/components/symbol-picker"`.
-- **Rôle** : dialogue de recherche de symbole (`useMarketSearch`, au moins `MIN_SEARCH_LENGTH` = 3 caractères, anti-rebond 500 ms) ; se ferme à la sélection.
+- **Rôle** : dialogue de recherche de symbole (`useMarketSearch`, au moins `MIN_SEARCH_LENGTH` = 3 caractères, anti-rebond 500 ms via `useDebouncedValue`) ; résultats rendus en `SymbolCell` ; se ferme à la sélection.
 - **Props** :
 
   | Nom | Type | Requis | Défaut | Description |
@@ -558,12 +580,12 @@ Props communes `BaseProps<T>` (exportées par `field.tsx`), répétées dans cha
 ### SelectField
 
 - **Import** : `import { SelectField } from "@/components/form"`.
-- **Rôle** : choix d'une valeur `string` parmi des options ; une valeur effacée devient `""`.
+- **Rôle** : choix d'une valeur `string` parmi des options, rendu par `OptionSelect` ; une valeur effacée devient `""`.
 - **Props** : `BaseProps<T>` +
 
   | Nom | Type | Requis | Défaut | Description |
   | --- | --- | --- | --- | --- |
-  | `options` | `{ value: string; label: string }[]` | oui | — | Options (ex. `investmentModeOptions`). |
+  | `options` | `SelectOption[]` (`{ value: string; label: string }`) | oui | — | Options (ex. `investmentModeOptions`). |
   | `placeholder` | `string` | non | `"Sélectionner…"` | Sans valeur. |
 
 - **Exemple** (tiré de `src/features/backtest/sections.tsx`) :
@@ -714,7 +736,7 @@ Props communes `BaseProps<T>` (exportées par `field.tsx`), répétées dans cha
 | `formatPrice` | `(v: number, currency: string) => string` | Montant dans la devise ISO **obligatoire** : `formatPrice(1234.5, "EUR")` → « 1 234,50 € ». | `components/chart.tsx`, `features/market/column.tsx`, `features/backtest/stats.tsx`, `features/backtest/column.tsx` |
 | `formatChange` | `(v: number) => string` | Nombre signé, 2 décimales, sans « % » : `1.5` → « +1,50 ». Pour un pourcentage déjà en %, ou un écart de Sharpe. | `components/data-table/cells.tsx`, `features/backtest/comparison-blocks.tsx`, `formatRatio` |
 | `formatRatio` | `(ratio: number) => string` | Ratio en **fraction** → variation signée en % : `0.342` → « +34,20 % ». Rendement, drawdown. | `features/backtest/stats.tsx`, `features/backtest/execution-history.tsx`, `features/backtest/comparison-blocks.tsx`, `features/backtest/comparison-overview.tsx` |
-| `formatRate` | `(ratio: number) => string` | Proportion en **fraction** → % non signé, arrondi à l'unité : `0.3846` → « 38 % ». Taux de réussite/échec, poids d'allocation, axe du drawdown. | `features/backtest/stats.tsx`, `features/backtest/utils.tsx`, `features/backtest/result-overview.tsx`, `features/backtest/comparison-overview.tsx`, `features/backtest/comparison-blocks.tsx` |
+| `formatRate` | `(ratio: number) => string` | Proportion en **fraction** → % non signé, arrondi à l'unité : `0.3846` → « 38 % ». Taux de réussite/échec, poids d'allocation, axe du drawdown. | `features/backtest/stats.tsx`, `features/backtest/utils.ts`, `features/backtest/result-overview.tsx`, `features/backtest/comparison-overview.tsx`, `features/backtest/comparison-blocks.tsx` |
 | `formatPercent` | `(ratio: number) => string` | Taux en **fraction** → % non signé, jusqu'à 2 décimales : `0.001` → « 0,1 % », `0.1532` → « 15,32 % ». Frais, volatilité, taux sans risque. | `features/backtest/assumptions.tsx`, `features/backtest/stats.tsx`, `features/backtest/comparison-blocks.tsx`, `features/backtest/backtest-compare.tsx` |
 | `formatSharpe` | `(v: number) => string` | Ratio de Sharpe, sans unité, 2 décimales : `1.25` → « 1,25 ». | `features/backtest/stats.tsx`, `features/backtest/comparison-blocks.tsx` |
 | `formatVolume` | `(v: number) => string` | Notation compacte : `41234567` → « 41,23 M ». | `features/market/column.tsx` |
@@ -1155,7 +1177,7 @@ Source : `src/features/auth/schema.ts`.
   <BacktestResultBlocks result={result} rebalanceFrequency={backtest.rebalanceFrequency} />
   ```
 - **Utilisé par** : `src/features/backtest/backtest-detail.tsx`.
-- **Source** : `src/features/backtest/stats.tsx`. Helpers d'affichage d'une métrique (`show`, `formatAmount`, `formatRecovery`) : [`features/backtest/utils.tsx`](#featuresbacktestutilstsx).
+- **Source** : `src/features/backtest/stats.tsx`. Helpers d'affichage d'une métrique (`orDash` de `components/dash`, `formatAmount`, `formatRecovery`) : [`features/backtest/utils.ts`](#featuresbacktestutilsts).
 
 ### BacktestCompare
 
@@ -1303,7 +1325,7 @@ Source : `src/features/backtest/schema.ts`.
 
 Source : `src/features/backtest/constants.ts`.
 
-### `features/backtest/utils.tsx`
+### `features/backtest/utils.ts`
 
 - **Import** : `import { getExecution } from "@/features/backtest/utils"`.
 
@@ -1316,13 +1338,12 @@ Source : `src/features/backtest/constants.ts`.
 | `fromDecimal` | `(value: string \| null \| undefined) => number \| null` | `Decimal` sérialisé → `number`, `null` ou absent → `null`. | `stats.tsx`, `result-overview.tsx`, `comparison-blocks.tsx` |
 | `formatAllocation` | `(allocations: Backtest["allocations"]) => string` | Allocation lisible : « AAPL 60 % · MSFT 40 % » (`formatRate` du poids). | `column.tsx`, `backtest-detail.tsx` |
 | `alignCurves` | `(a: EquityPoint[], b: EquityPoint[], value: (p: EquityPoint) => number \| undefined, benchmarkSide: "a" \| "b") => PricePoint[]` | Courbes de A et B sur l'union de leurs dates triées : `price` = A (`null` hors de sa période), `other` = B, `compare` = `benchmarkValue` du côté `benchmarkSide` ; `value` choisit la série (valeur, drawdown). | `comparison-overview.tsx` |
-| `show` | `(value: number \| null, format: (v: number) => string) => ReactNode` | Valeur formatée, `<Dash />` si `null`. | `stats.tsx`, `comparison-blocks.tsx` |
 | `formatAmount` | `(v: number) => string` | Montant en `BACKTEST_CURRENCY`. | `stats.tsx`, `comparison-blocks.tsx` |
-| `formatRecovery` | `(recoveryDays: number \| null \| undefined, maxDrawdown: number \| null, peakDated: boolean) => ReactNode` | Durée `formatDuration` ; si `recoveryDays` est null : « Aucune baisse » sans baisse, « Non récupéré » si `peakDated` (`maxDrawdownPeakDate` non null ; `true` pour un benchmark), sinon `<Dash />` (résultat antérieur, que l'API renvoie aussi à null). | `stats.tsx`, `comparison-blocks.tsx` |
+| `formatRecovery` | `(recoveryDays: number \| null \| undefined, maxDrawdown: number \| null, peakDated: boolean) => string \| null` | Durée `formatDuration` ; si `recoveryDays` est null : « Aucune baisse » sans baisse, « Non récupéré » si `peakDated` (`maxDrawdownPeakDate` non null ; `true` pour un benchmark), sinon `null`, affiché `<Dash />` par l'écran (résultat antérieur, que l'API renvoie aussi à null). | `stats.tsx`, `comparison-blocks.tsx` |
 | `comparisonLabel` | `(side: "A" \| "B", name: string) => string` | « A · 60/40 » : colonnes, légende et infobulles de la comparaison. | `comparison-overview.tsx`, `comparison-blocks.tsx` |
 | `getComparisonBenchmark` | `(c: BacktestComparison) => { side: "a" \| "b"; benchmark }` | Benchmark affiché : celui de A, sinon celui de B ; `benchmark` null si aucun. | `comparison-overview.tsx`, `comparison-blocks.tsx` |
 
-Source : `src/features/backtest/utils.tsx`.
+Source : `src/features/backtest/utils.ts`. Helpers purs : aucun JSX (`<Dash />` est ajouté par l'écran).
 
 ### `features/backtest/column.tsx`
 
@@ -1398,7 +1419,7 @@ Source : `src/features/backtest/types.ts`.
 ### PriceChart
 
 - **Import** : `import { PriceChart } from "@/features/market/price-chart"`.
-- **Rôle** : carte « Prix » d'un symbole avec onglets `periodOptions` (`1d` par défaut) ; charge via `useMarketDetails`, affiche en `MARKET_CURRENCY`.
+- **Rôle** : carte « Prix » d'un symbole avec onglets `FilterTabs` sur `periodOptions` (`1d` par défaut) ; charge via `useMarketDetails`, affiche en `MARKET_CURRENCY`.
 - **Props** :
 
   | Nom | Type | Requis | Défaut | Description |

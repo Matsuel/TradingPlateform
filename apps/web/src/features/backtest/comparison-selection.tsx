@@ -1,15 +1,11 @@
 "use client"
 
+import { OptionSelect, type SelectOption } from "@/components/option-select"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
 import { COMPARABLE_LIMIT, comparisonSideColors } from "./constants"
 import { useBacktests } from "./hook"
-
-const PLACEHOLDER = "Sélectionner…"
-
-type Option = { value: string; label: string }
 
 function BacktestSelect({
     id,
@@ -23,7 +19,7 @@ function BacktestSelect({
     label: string
     dotClassName: string
     value: string
-    options: Option[]
+    options: SelectOption[]
     onChange: (value: string) => void
 }) {
     return (
@@ -32,20 +28,7 @@ function BacktestSelect({
                 <span className={cn("size-2 rounded-full", dotClassName)} />
                 {label}
             </label>
-            <Select value={value || null} onValueChange={(v) => onChange(v ?? "")}>
-                <SelectTrigger id={id} className="w-full">
-                    <SelectValue placeholder={PLACEHOLDER}>
-                        {(v: string | null) => options.find((o) => o.value === v)?.label ?? PLACEHOLDER}
-                    </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                    {options.map((o) => (
-                        <SelectItem key={o.value} value={o.value}>
-                            {o.label}
-                        </SelectItem>
-                    ))}
-                </SelectContent>
-            </Select>
+            <OptionSelect id={id} value={value} options={options} onChange={onChange} />
         </div>
     )
 }

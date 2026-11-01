@@ -46,7 +46,7 @@ export function PriceAreaChart({
     currency,
     formatValue,
     positive = data.length < 2 || (data[data.length - 1].price ?? 0) >= (data[0].price ?? 0),
-    color = positive ? "#16a34a" : "var(--destructive)",
+    color = positive ? "var(--success)" : "var(--destructive)",
     compareLabel,
     otherLabel,
     otherColor = "var(--chart-2)",

@@ -12,7 +12,7 @@ type SparklineProps = {
 }
 
 export function Sparkline({ data, positive, className }: SparklineProps) {
-    const color = positive ? "#16a34a" : "var(--destructive)"
+    const color = positive ? "var(--success)" : "var(--destructive)"
 
     return (
         <ChartContainer config={config} className={className ?? "h-8 w-30"}>

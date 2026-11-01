@@ -1,12 +1,12 @@
 import type { ReactNode } from "react"
-import { Dash } from "@/components/dash"
+import { Dash, orDash } from "@/components/dash"
 import { InfoHint } from "@/components/info-hint"
 import { StatCard } from "@/components/stat-card"
 import { formatDay, formatPercent, formatRate, formatRatio, formatSharpe } from "@/lib/format"
 import { rebalanceFrequencyLabels } from "./constants"
 import { MetricBlock } from "./metric-block"
 import type { BacktestListStats, BacktestResult, RebalanceFrequency } from "./types"
-import { formatAmount, formatRecovery, fromDecimal, show } from "./utils"
+import { formatAmount, formatRecovery, fromDecimal } from "./utils"
 
 /** Compteurs et taux de la liste, calculés par le backend ; `stats` undefined pendant le chargement. */
 export function BacktestStats({ stats }: { stats: BacktestListStats | undefined }) {
@@ -77,15 +77,15 @@ export function BacktestResultBlocks({
                         label: "CAGR",
                         hint: "cagr",
                         values: values(
-                            show(fromDecimal(result.cagr), formatRatio),
-                            benchmark && show(benchmark.cagr, formatRatio),
+                            orDash(fromDecimal(result.cagr), formatRatio),
+                            benchmark && orDash(benchmark.cagr, formatRatio),
                         ),
                     },
                     {
                         label: "Rendement total",
                         hint: "totalReturn",
                         values: values(
-                            show(fromDecimal(result.totalReturn), formatRatio),
+                            orDash(fromDecimal(result.totalReturn), formatRatio),
                             benchmark && formatRatio(benchmark.totalReturn),
                         ),
                     },
@@ -93,7 +93,7 @@ export function BacktestResultBlocks({
                         label: "Valeur finale",
                         hint: "finalValue",
                         values: values(
-                            show(fromDecimal(result.finalValue), formatAmount),
+                            orDash(fromDecimal(result.finalValue), formatAmount),
                             benchmark && formatAmount(benchmark.finalValue),
                         ),
                     },
@@ -126,16 +126,16 @@ export function BacktestResultBlocks({
                         label: "Volatilité",
                         hint: "volatility",
                         values: values(
-                            show(fromDecimal(result.volatility), formatPercent),
-                            benchmark && show(benchmark.volatility, formatPercent),
+                            orDash(fromDecimal(result.volatility), formatPercent),
+                            benchmark && orDash(benchmark.volatility, formatPercent),
                         ),
                     },
                     {
                         label: "Sharpe",
                         hint: "sharpeRatio",
                         values: values(
-                            show(fromDecimal(result.sharpeRatio), formatSharpe),
-                            benchmark && show(benchmark.sharpeRatio, formatSharpe),
+                            orDash(fromDecimal(result.sharpeRatio), formatSharpe),
+                            benchmark && orDash(benchmark.sharpeRatio, formatSharpe),
                         ),
                     },
                     {
@@ -144,14 +144,18 @@ export function BacktestResultBlocks({
                         details: maxDrawdownDate
                             ? [{ label: "Creux atteint le", value: formatDay(maxDrawdownDate) }]
                             : [],
-                        values: values(show(maxDrawdown, formatRatio), benchmark && formatRatio(benchmark.maxDrawdown)),
+                        values: values(
+                            orDash(maxDrawdown, formatRatio),
+                            benchmark && formatRatio(benchmark.maxDrawdown),
+                        ),
                     },
                     {
                         label: "Récupération",
                         hint: "recovery",
                         values: values(
-                            formatRecovery(result.recoveryDays, maxDrawdown, maxDrawdownPeakDate != null),
-                            benchmark && formatRecovery(benchmark.recoveryDays, benchmark.maxDrawdown, true),
+                            formatRecovery(result.recoveryDays, maxDrawdown, maxDrawdownPeakDate != null) ?? <Dash />,
+                            benchmark &&
+                                (formatRecovery(benchmark.recoveryDays, benchmark.maxDrawdown, true) ?? <Dash />),
                         ),
                     },
                 ]}
@@ -165,7 +169,7 @@ export function BacktestResultBlocks({
                     {
                         label: "Frais payés",
                         hint: "totalFees",
-                        values: [show(fromDecimal(result.totalFees), formatAmount)],
+                        values: [orDash(fromDecimal(result.totalFees), formatAmount)],
                     },
                     { label: "Ordres", hint: "totalTrades", values: [result.totalTrades] },
                     { label: "Rebalancements", hint: "rebalanceCount", values: [result.rebalanceCount ?? <Dash />] },

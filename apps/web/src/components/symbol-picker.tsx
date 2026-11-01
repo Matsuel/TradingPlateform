@@ -1,9 +1,9 @@
 "use client"
 
 import { AlertCircle } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { SymbolCell } from "@/components/data-table/cells"
 import {
     Command,
     CommandDialog,
@@ -17,7 +17,15 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { MIN_SEARCH_LENGTH } from "@/features/market/constants"
 import { useMarketSearch } from "@/features/market/hook"
 import type { MarketData } from "@/features/market/types"
+import { useDebouncedValue } from "@/hooks/use-debounced-value"
 
+// Attente après la dernière frappe avant d'interroger la recherche
+const SEARCH_DEBOUNCE_MS = 500
+
+/**
+ * Dialogue de recherche de symbole (≥ `MIN_SEARCH_LENGTH` caractères, débouncée) : squelettes pendant la recherche,
+ * erreur, aucun résultat, puis résultats hors `exclude`. Choisir un résultat appelle `onSelect` et ferme le dialogue.
+ */
 export function SymbolPicker({
     open,
     onOpenChange,
@@ -33,16 +41,10 @@ export function SymbolPicker({
     title?: string
 }) {
     const [query, setQuery] = useState("")
-    const [debouncedQuery, setDebouncedQuery] = useState("")
-
-    useEffect(() => {
-        const timer = setTimeout(() => setDebouncedQuery(query.trim()), 500)
-        return () => clearTimeout(timer)
-    }, [query])
-
+    const trimmed = query.trim()
+    const debouncedQuery = useDebouncedValue(trimmed, SEARCH_DEBOUNCE_MS)
     const { data, error, isLoading } = useMarketSearch(debouncedQuery)
 
-    const trimmed = query.trim()
     const tooShort = trimmed.length < MIN_SEARCH_LENGTH
     // couvre aussi le délai du debounce, pour ne pas afficher "aucun résultat" trop tôt
     const isSearching = !tooShort && (trimmed !== debouncedQuery || isLoading)
@@ -105,14 +107,12 @@ export function SymbolPicker({
                                         setQuery("")
                                     }}
                                 >
-                                    <Avatar className="size-8">
-                                        <AvatarImage src={item.logoUrl} alt={item.symbol} />
-                                        <AvatarFallback className="text-xs">{item.symbol[0]}</AvatarFallback>
-                                    </Avatar>
-                                    <div className="min-w-0 flex-1">
-                                        <p className="text-sm font-medium">{item.symbol}</p>
-                                        <p className="truncate text-xs text-muted-foreground">{item.name}</p>
-                                    </div>
+                                    <SymbolCell
+                                        symbol={item.symbol}
+                                        name={item.name}
+                                        logoUrl={item.logoUrl}
+                                        className="min-w-0 flex-1"
+                                    />
                                     <span className="text-right text-xs text-muted-foreground">{item.exchange}</span>
                                 </CommandItem>
                             ))}

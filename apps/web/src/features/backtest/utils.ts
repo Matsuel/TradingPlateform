@@ -1,5 +1,4 @@
 import type { PricePoint } from "@/components/chart"
-import { Dash } from "@/components/dash"
 import { formatDuration, formatPrice, formatRate } from "@/lib/format"
 import { activeStatuses, BACKTEST_CURRENCY } from "./constants"
 import type { Backtest, BacktestComparison, BacktestExecution, EquityPoint, ExecutionStatus } from "./types"
@@ -31,25 +30,22 @@ export const formatAllocation = (allocations: Backtest["allocations"]) =>
 /** Decimal sérialisé en string par l'API → number ; null ou absent → null (champ absent des résultats antérieurs). */
 export const fromDecimal = (value: string | null | undefined) => (value == null ? null : Number(value))
 
-/** Valeur formatée, ou `<Dash />` si elle manque (résultat antérieur, moins de deux points). */
-export const show = (value: number | null, format: (v: number) => string) => (value == null ? <Dash /> : format(value))
-
 /** Montant en `BACKTEST_CURRENCY`. */
 export const formatAmount = (v: number) => formatPrice(v, BACKTEST_CURRENCY)
 
 /**
  * Durée de récupération ; `recoveryDays` null : « Aucune baisse » sans baisse, « Non récupéré » si la baisse a un plus haut
- * daté par le moteur (`peakDated`), `<Dash />` sinon : résultat antérieur au calcul, où l'API renvoie aussi null.
+ * daté par le moteur (`peakDated`), `null` sinon (l'écran affiche `<Dash />`) : résultat antérieur au calcul, où l'API renvoie aussi null.
  */
 export function formatRecovery(
     recoveryDays: number | null | undefined,
     maxDrawdown: number | null,
     peakDated: boolean,
-) {
+): string | null {
     if (recoveryDays != null) return formatDuration(recoveryDays)
-    if (maxDrawdown == null) return <Dash />
+    if (maxDrawdown == null) return null
     if (maxDrawdown === 0) return "Aucune baisse"
-    return peakDated ? "Non récupéré" : <Dash />
+    return peakDated ? "Non récupéré" : null
 }
 
 /** Libellé d'un côté de la comparaison : « A · 60/40 ». */

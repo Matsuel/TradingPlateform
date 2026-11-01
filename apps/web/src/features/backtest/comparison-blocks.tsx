@@ -1,5 +1,5 @@
 import type { ReactNode } from "react"
-import { Dash } from "@/components/dash"
+import { Dash, orDash } from "@/components/dash"
 import { Badge } from "@/components/ui/badge"
 import {
     formatChange,
@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils"
 import { comparedMetricHigherIsBetter, NO_BENCHMARK_LABEL, rebalanceFrequencyLabels, strategyLabels } from "./constants"
 import { MetricBlock } from "./metric-block"
 import type { BacktestComparison, ComparedBacktest, ComparedMetric, ComparisonParameter } from "./types"
-import { comparisonLabel, formatAmount, formatRecovery, fromDecimal, getComparisonBenchmark, show } from "./utils"
+import { comparisonLabel, formatAmount, formatRecovery, fromDecimal, getComparisonBenchmark } from "./utils"
 
 // Écart en points de ratio (0.044 → « +4,4 pts »)
 const formatPointChange = new Intl.NumberFormat(LOCALE, {
@@ -37,7 +37,7 @@ function Delta({
     if (value == null) return <Dash />
     const favorable = value === 0 ? null : value > 0 === comparedMetricHigherIsBetter[metric]
     return (
-        <span className={cn(favorable === true && "text-green-600", favorable === false && "text-destructive")}>
+        <span className={cn(favorable === true && "text-success", favorable === false && "text-destructive")}>
             {format(value)}
         </span>
     )
@@ -76,16 +76,16 @@ export function ComparisonMetrics({ comparison }: { comparison: BacktestComparis
                     label: "CAGR",
                     hint: "cagr",
                     values: values(
-                        (r) => show(fromDecimal(r.cagr), formatRatio),
+                        (r) => orDash(fromDecimal(r.cagr), formatRatio),
                         <Delta metric="cagr" value={deltas.cagr} format={formatPoints} />,
-                        benchmark && show(benchmark.cagr, formatRatio),
+                        benchmark && orDash(benchmark.cagr, formatRatio),
                     ),
                 },
                 {
                     label: "Rendement total",
                     hint: "totalReturn",
                     values: values(
-                        (r) => show(fromDecimal(r.totalReturn), formatRatio),
+                        (r) => orDash(fromDecimal(r.totalReturn), formatRatio),
                         <Delta metric="totalReturn" value={deltas.totalReturn} format={formatPoints} />,
                         benchmark && formatRatio(benchmark.totalReturn),
                     ),
@@ -94,25 +94,25 @@ export function ComparisonMetrics({ comparison }: { comparison: BacktestComparis
                     label: "Volatilité",
                     hint: "volatility",
                     values: values(
-                        (r) => show(fromDecimal(r.volatility), formatPercent),
+                        (r) => orDash(fromDecimal(r.volatility), formatPercent),
                         <Delta metric="volatility" value={deltas.volatility} format={formatPoints} />,
-                        benchmark && show(benchmark.volatility, formatPercent),
+                        benchmark && orDash(benchmark.volatility, formatPercent),
                     ),
                 },
                 {
                     label: "Sharpe",
                     hint: "sharpeRatio",
                     values: values(
-                        (r) => show(fromDecimal(r.sharpeRatio), formatSharpe),
+                        (r) => orDash(fromDecimal(r.sharpeRatio), formatSharpe),
                         <Delta metric="sharpeRatio" value={deltas.sharpeRatio} format={formatChange} />,
-                        benchmark && show(benchmark.sharpeRatio, formatSharpe),
+                        benchmark && orDash(benchmark.sharpeRatio, formatSharpe),
                     ),
                 },
                 {
                     label: "Max drawdown",
                     hint: "maxDrawdown",
                     values: values(
-                        (r) => show(fromDecimal(r.maxDrawdown), formatRatio),
+                        (r) => orDash(fromDecimal(r.maxDrawdown), formatRatio),
                         <Delta metric="maxDrawdown" value={deltas.maxDrawdown} format={formatPoints} />,
                         benchmark && formatRatio(benchmark.maxDrawdown),
                     ),
@@ -122,16 +122,20 @@ export function ComparisonMetrics({ comparison }: { comparison: BacktestComparis
                     hint: "recovery",
                     values: values(
                         (r) =>
-                            formatRecovery(r.recoveryDays, fromDecimal(r.maxDrawdown), r.maxDrawdownPeakDate != null),
+                            formatRecovery(
+                                r.recoveryDays,
+                                fromDecimal(r.maxDrawdown),
+                                r.maxDrawdownPeakDate != null,
+                            ) ?? <Dash />,
                         <Dash />,
-                        benchmark && formatRecovery(benchmark.recoveryDays, benchmark.maxDrawdown, true),
+                        benchmark && (formatRecovery(benchmark.recoveryDays, benchmark.maxDrawdown, true) ?? <Dash />),
                     ),
                 },
                 {
                     label: "Valeur finale",
                     hint: "finalValue",
                     values: values(
-                        (r) => show(fromDecimal(r.finalValue), formatAmount),
+                        (r) => orDash(fromDecimal(r.finalValue), formatAmount),
                         <Dash />,
                         benchmark && formatAmount(benchmark.finalValue),
                     ),

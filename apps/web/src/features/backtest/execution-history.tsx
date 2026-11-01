@@ -1,5 +1,3 @@
-"use client"
-
 import { Badge } from "@/components/ui/badge"
 import { formatDate, formatRatio } from "@/lib/format"
 import { cn } from "@/lib/utils"
@@ -46,7 +44,7 @@ function ExecutionRow({ execution: e }: { execution: BacktestExecution }) {
                 {isActive(e) && (
                     <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-muted">
                         {e.status === "RUNNING" && (
-                            <div className="h-full w-full animate-pulse rounded-full bg-green-600" />
+                            <div className="h-full w-full animate-pulse rounded-full bg-success" />
                         )}
                     </div>
                 )}
