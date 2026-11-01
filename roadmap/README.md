@@ -4,7 +4,30 @@ Trace de ce qui a été fait, comment, et de ce qui est prévu. Un dossier par f
 
 La vision et la roadmap annuelle restent dans le [`README.md`](../README.md) racine. Ce dossier en est le suivi d’exécution. Il est maintenu avec le skill `feature-roadmap` (`.claude/skills/feature-roadmap/`) : planification d’une nouvelle feature, rétro d’une feature livrée, clôture.
 
-- **Maquettes** : Figma `Trading`, clé `DmpvF0SdUJGCBfA6GsdErm`, page `0:1`.
+- **Maquettes** : Figma `Trading`, clé `DmpvF0SdUJGCBfA6GsdErm`, page `0:1`. Une section par feature ou par mois, écrans numérotés dans l’ordre des features.
+
+### Renumérotation des maquettes (2026-11-01)
+
+Les dossiers des features 02 à 08 citent les anciens numéros ; cette table les traduit. Les `node-id` n’ont pas changé.
+
+| Ancien | Nouveau | Ancien | Nouveau |
+| --- | --- | --- | --- |
+| 01 · Connexion | 01 | 19 v2 · Comparaison de backtests | 14 |
+| 02 · Inscription | 02 | 26 · Aide sur une donnée (sheet) | 15 |
+| 16 · Page 404 | 03 | — · Déclencheur de l’aide | 15.1 |
+| 17 · Page d’erreur | 04 | — (proposée) · Robustesse | 16 |
+| 03 · Dashboard (03.1 sombre) | 05 (05.1) | 20 · Risque (+ contraintes, proposée) | 17 (17.1) |
+| 10 · Paramètres / Profil | 06 | 21 · Projection Monte Carlo (+ paramètres, proposée) | 18 (18.1) |
+| 10.2 · Notifications, 10.3 · Apparence | 06.1, 06.2 | 22 · Explorateur d’allocations (+ nouvelle exploration, proposée) | 19 (19.1) |
+| 04 · Marché | 07 | 23 · Paper trading (+ nouvelle stratégie, proposée) | 20 (20.1) |
+| 04.1 · Recherche de symboles | 07.1 | — (proposée) · Rapports (liste) | 21 |
+| 05 · Détail d’un symbole | 08 | 24 · Rapport gestionnaire | 21.1 |
+| 14 · Monitoring | 09 | 25 · Notifications (25.1 toaster) | 22 (22.1) |
+| 18 · Utilisateurs | 10 | — (proposée) · Données de référence | 23 |
+| 11 · Liste des backtests | 11 | — (proposée) · Trace d’une exécution | 24 |
+| 12.1 · Nouveau backtest · Allocation | 12 | 06, 07, 08, 09 (bonus trading et alertes) | 25, 26, 27, 28 |
+| 06.1 · Test rapide (sheet) | 12.1 | 10.1 · Portefeuille virtuel, 10.4 · Réinitialiser | 29, 29.1 |
+| 13 v2 · A · Résultat d’un backtest | 13 | 12, 13 (v1), 13 v2 · B et C, 19 (v1) | archives |
 
 ## Features
 
@@ -18,7 +41,7 @@ La vision et la roadmap annuelle restent dans le [`README.md`](../README.md) rac
 | 06 | [Extraction de market-service](06-market-service/) | 2 | 2026-10-28 | #3 | Livrée | 8 ᵃ |
 | 07 | [Clôture du Strategy Lab](07-strategy-lab-cloture/) | 3 | 2026-10-29 → 2026-10-30 | #3 | Livrée | 24 ᵃ |
 | 08 | [Portfolio Management V1](08-portfolio-v1/) | 4 | 2026-10-30 → 2026-10-31 | — | Livrée | 104 |
-| 09 | [Aide contextuelle sur les données](09-aide-contextuelle/) | 4–5 ᵇ | à planifier | — | Planifiée | 21 |
+| 09 | [Aide contextuelle sur les données](09-aide-contextuelle/) | 4–5 ᵇ | à planifier | — | Planifiée | 22 |
 
 ᵃ estimés a posteriori d’après les diffs.
 ᵇ hors « Roadmap annuelle » : demande du 2026-10-30, après le lot 3 de la feature 08.

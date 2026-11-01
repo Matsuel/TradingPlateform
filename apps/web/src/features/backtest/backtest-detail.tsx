@@ -51,7 +51,7 @@ function NoResult({ backtest }: { backtest: BacktestDetails }) {
 }
 
 /**
- * Écran de détail d'un backtest (maquette 13 v2 · A) : en-tête et relance, valeur finale avec courbes de valeur et de drawdown,
+ * Écran de détail d'un backtest (maquette 13) : en-tête et relance, valeur finale avec courbes de valeur et de drawdown,
  * indicateurs groupés, derniers ordres (tous, paginés, à la demande), puis positions, hypothèses et historique repliés.
  * Rafraîchi tant qu'une exécution est active.
  */

@@ -9,7 +9,7 @@ import type { BacktestComparison } from "./types"
 import { alignCurves, comparisonLabel, getComparisonBenchmark } from "./utils"
 
 /**
- * Carte « Valeur des portefeuilles » de la comparaison (maquette 19 v2) : valeurs de A et B et, en pointillés, le benchmark
+ * Carte « Valeur des portefeuilles » de la comparaison (maquette 14) : valeurs de A et B et, en pointillés, le benchmark
  * de A (sinon de B), puis leurs drawdowns sur le même axe des dates. Drawdown masqué si aucun des deux résultats n'en porte (résultats antérieurs).
  */
 export function ComparisonOverview({ comparison }: { comparison: BacktestComparison }) {

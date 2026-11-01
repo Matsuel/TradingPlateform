@@ -44,7 +44,7 @@ function BacktestSelect({ id, label, dotClassName, value, options, onChange }: {
 }
 
 /**
- * Carte de sélection de la comparaison (maquette 19 v2) : backtests A et B parmi ceux de l'utilisateur qui ont un résultat
+ * Carte de sélection de la comparaison (maquette 14) : backtests A et B parmi ceux de l'utilisateur qui ont un résultat
  * terminé, même relancés depuis (les `COMPARABLE_LIMIT` plus récents), et « Échanger ». Un backtest choisi d'un côté n'est pas proposé de l'autre.
  * `a`, `b` : ids, `""` si non choisi ; `onChange` reçoit la nouvelle paire.
  */

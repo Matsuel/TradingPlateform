@@ -20,7 +20,7 @@ function Delta({ metric, value, format }: { metric: ComparedMetric; value: numbe
 }
 
 /**
- * Tableau « Métriques comparées » (maquette 19 v2) : A, B, écart A − B calculé par le backend (`deltas`) et, si A (sinon
+ * Tableau « Métriques comparées » (maquette 14) : A, B, écart A − B calculé par le backend (`deltas`) et, si A (sinon
  * B) a un benchmark, ses métriques. Récupération et valeur finale n'ont pas d'écart. `<Dash />` pour une valeur absente.
  */
 export function ComparisonMetrics({ comparison }: { comparison: BacktestComparison }) {
@@ -54,7 +54,7 @@ export function ComparisonMetrics({ comparison }: { comparison: BacktestComparis
 }
 
 /**
- * Tableau « Paramètres » (maquette 19 v2) : période, mode, allocation, rebalancement, frais et benchmark de A et B ;
+ * Tableau « Paramètres » (maquette 14) : période, mode, allocation, rebalancement, frais et benchmark de A et B ;
  * badge « diffère » sur les paramètres que le backend signale dans `differences`.
  */
 export function ComparisonParameters({ comparison }: { comparison: BacktestComparison }) {

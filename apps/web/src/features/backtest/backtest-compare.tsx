@@ -43,7 +43,7 @@ function HeterogeneityBanner({ comparison }: { comparison: BacktestComparison })
 }
 
 /**
- * Écran de comparaison de deux backtests terminés (maquette 19 v2) : sélection de A et B gardée dans l'URL (`?ids=a,b`),
+ * Écran de comparaison de deux backtests terminés (maquette 14) : sélection de A et B gardée dans l'URL (`?ids=a,b`),
  * bandeau si la comparaison n'est pas homogène, courbes de valeur et de drawdown, métriques comparées et paramètres.
  * Écarts et homogénéité viennent de `GET /api/backtest/compare` ; `ids` : valeur brute du paramètre de l'URL.
  */

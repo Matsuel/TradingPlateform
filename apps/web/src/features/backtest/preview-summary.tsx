@@ -23,7 +23,7 @@ function SummaryRow({ label, children }: { label: string; children: ReactNode })
 }
 
 /**
- * Carte « Récapitulatif » du formulaire « Nouveau backtest » (maquette 12.1), sous `FormProvider` d'un formulaire `BacktestValues` :
+ * Carte « Récapitulatif » du formulaire « Nouveau backtest » (maquette 12), sous `FormProvider` d'un formulaire `BacktestValues` :
  * étapes d'une exécution, puis rebalancements et versements prévus et source des données renvoyés par `POST /api/backtest/preview`
  * (estimations calendaires du backend, appel débouncé). `<Dash />` tant que le formulaire est invalide ou la réponse absente.
  */
