@@ -4,15 +4,20 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { differenceInCalendarDays, subYears } from "date-fns"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { FormProvider, useForm, useWatch } from "react-hook-form"
+import { type FieldPath, FormProvider, useForm, useWatch } from "react-hook-form"
 
 import { DateField, FieldRow, FULL_PERCENT, NumberField, SelectField } from "@/components/form"
 import { Button } from "@/components/ui/button"
+import { apiIssues } from "@/lib/api"
 import { routes } from "@/lib/routes"
 import { DEFAULT_REBALANCE_FREQUENCY, investmentModeOptions } from "./constants"
 import { useCreateBacktest } from "./hook"
 import { type QuickBacktestValues, quickBacktestSchema } from "./schema"
 
+/**
+ * Test rapide sur un seul symbole (maquette 12.1) : mode, période, capital et frais, allocation à 100 % sur `symbol` ajoutée
+ * à l'envoi ; redirige vers le détail créé.
+ */
 export function QuickBacktestForm({ symbol }: { symbol: string }) {
     const router = useRouter()
     const { mutateAsync, error } = useCreateBacktest()
@@ -30,13 +35,19 @@ export function QuickBacktestForm({ symbol }: { symbol: string }) {
     const days = start && end ? differenceInCalendarDays(end, start) : null
 
     const onSubmit = async (values: QuickBacktestValues) => {
-        const backtest = await mutateAsync({
-            ...values,
-            name: `Test rapide ${symbol}`,
-            allocations: [{ symbol, weight: FULL_PERCENT }],
-            rebalanceFrequency: DEFAULT_REBALANCE_FREQUENCY,
-        })
-        router.push(routes.backtest(backtest.id))
+        try {
+            const backtest = await mutateAsync({
+                ...values,
+                name: `Test rapide ${symbol}`,
+                allocations: [{ symbol, weight: FULL_PERCENT }],
+                rebalanceFrequency: DEFAULT_REBALANCE_FREQUENCY,
+            })
+            router.push(routes.backtest(backtest.id))
+        } catch (e) {
+            // 400 : issue zod du backend sous le champ de son chemin ; les autres erreurs s'affichent sous le formulaire
+            for (const { path, message } of apiIssues(e))
+                form.setError(path as FieldPath<QuickBacktestValues>, { message })
+        }
     }
 
     return (

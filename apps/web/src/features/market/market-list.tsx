@@ -3,13 +3,13 @@
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { DataTable } from "@/components/data-table/data-table"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { PAGE_SIZE } from "@/constants/pagination"
 import { routes } from "@/lib/routes"
 import { marketColumns } from "./column"
 import { useDefaultAssets } from "./hook"
 import { SymbolSearch } from "./symbol-search"
 
+/** Écran marché : recherche de symbole, puis actifs par défaut paginés côté serveur ; une ligne ouvre le détail du symbole. */
 export function MarketList() {
     const [page, setPage] = useState(1)
     const query = useDefaultAssets({ page, pageSize: PAGE_SIZE })
@@ -17,16 +17,7 @@ export function MarketList() {
 
     return (
         <>
-            <div className="w-full h-auto flex flex-row justify-between items-center">
-                <Tabs defaultValue="all">
-                    <TabsList>
-                        <TabsTrigger value="all">Tous</TabsTrigger>
-                        <TabsTrigger value="favorites">Favoris</TabsTrigger>
-                        <TabsTrigger value="cryptos">Cryptos</TabsTrigger>
-                        <TabsTrigger value="stablecoins">Stablecoins</TabsTrigger>
-                    </TabsList>
-                </Tabs>
-
+            <div className="flex justify-end">
                 <SymbolSearch />
             </div>
 

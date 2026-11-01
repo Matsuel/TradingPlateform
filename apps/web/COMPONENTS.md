@@ -757,7 +757,7 @@ Source : `src/lib/format.ts`.
 | --- | --- | --- | --- |
 | `apiFetch` | `<T>(path: string, init?: RequestInit) => Promise<T>` | Seul point d'appel HTTP : préfixe `path` par `env.NEXT_PUBLIC_API_URL`, envoie les cookies, ajoute `Accept: application/json`. Statut non 2xx → `ApiError` (message `"Erreur API : <status> <statusText>"`) ; `204` → `undefined`. Routes : `apps/core-backend/API.md`. | `features/backtest/api.ts`, `features/market/api.ts` |
 | `ApiError` | `class extends Error { status: number; body: unknown }` | Erreur levée par `apiFetch` : `body` = corps JSON d'erreur (`{ error, ...data }`), `null` s'il n'est pas du JSON. | `apiIssues` |
-| `apiIssues` | `(error: unknown) => { path: string; message: string }[]` | Issues zod d'un `400` (`{ error, issues }`), chemin joint par des points (`"allocations.0.weight"`) pour `form.setError` ; `[]` pour toute autre erreur, issues sans chemin ignorées. | `features/backtest/new-backtest-form.tsx` |
+| `apiIssues` | `(error: unknown) => { path: string; message: string }[]` | Issues zod d'un `400` (`{ error, issues }`), chemin joint par des points (`"allocations.0.weight"`) pour `form.setError` ; `[]` pour toute autre erreur, issues sans chemin ignorées. | `features/backtest/new-backtest-form.tsx`, `features/backtest/quick-backtest-form.tsx` |
 
 Source : `src/lib/api.ts`.
 
@@ -1014,7 +1014,7 @@ Source : `src/features/auth/schema.ts`.
 ### QuickBacktestForm
 
 - **Import** : `import { QuickBacktestForm } from "@/features/backtest/quick-backtest-form"`.
-- **Rôle** : test rapide sur un seul symbole (`quickBacktestSchema`, nom `Test rapide <symbol>`, allocation `[{ symbol, weight: 100 }]`, par défaut `LUMP_SUM`, 1 an jusqu'à aujourd'hui, `initialAmount` 10 000, `fee` 0,1 % ; « Versement mensuel (€) » affiché en `RECURRING`) ; redirige vers le détail créé.
+- **Rôle** : test rapide sur un seul symbole (`quickBacktestSchema`, nom `Test rapide <symbol>`, allocation `[{ symbol, weight: 100 }]`, par défaut `LUMP_SUM`, 1 an jusqu'à aujourd'hui, `initialAmount` 10 000, `fee` 0,1 % ; « Versement mensuel (€) » affiché en `RECURRING`) ; un `400` du backend place chaque issue sous le champ de son chemin (`apiIssues`) ; redirige vers le détail créé.
 - **Props** :
 
   | Nom | Type | Requis | Défaut | Description |
@@ -1387,7 +1387,7 @@ Source : `src/features/backtest/types.ts`.
 ### MarketList
 
 - **Import** : `import { MarketList } from "@/features/market/market-list"`.
-- **Rôle** : écran marché : onglets de catégorie, `SymbolSearch`, puis `DataTable` des actifs par défaut paginée côté serveur (`useDefaultAssets`, `PAGE_SIZE` par page, page dans l'état du composant) ; clic → `routes.symbol(symbol)`.
+- **Rôle** : écran marché : `SymbolSearch` à droite, puis `DataTable` des actifs par défaut paginée côté serveur (`useDefaultAssets`, `PAGE_SIZE` par page, page dans l'état du composant) ; clic → `routes.symbol(symbol)`.
 - **Props** : aucune.
 - **Exemple** (tiré de `src/app/app/market/page.tsx`) :
   ```tsx
@@ -1448,7 +1448,7 @@ Source : `src/features/backtest/types.ts`.
 ### SymbolSheet
 
 - **Import** : `import { SymbolSheet } from "@/features/market/symbol-sheet"`.
-- **Rôle** : bouton « Acheter » ouvrant un `AppSheet` à onglets « Trade » (vide) et « Test » (`QuickBacktestForm`).
+- **Rôle** : bouton « Tester » ouvrant un `AppSheet` « Test rapide · <symbole> » qui contient `QuickBacktestForm`.
 - **Props** :
 
   | Nom | Type | Requis | Défaut | Description |
