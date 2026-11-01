@@ -1,4 +1,4 @@
-import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { keepPreviousData, skipToken, useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import {
     compareBacktests,
     createBacktest,
@@ -28,8 +28,7 @@ export function useCreateBacktest() {
 export function useBacktestPreview(values: BacktestValues | null) {
     return useQuery({
         queryKey: ["backtest", "preview", values],
-        queryFn: () => previewBacktest(values!),
-        enabled: values !== null,
+        queryFn: values ? () => previewBacktest(values) : skipToken,
         placeholderData: keepPreviousData, // garde les nombres affichés pendant le recalcul
     })
 }
