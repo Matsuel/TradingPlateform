@@ -1,6 +1,6 @@
 "use client"
 
-import Dash from "@/components/custom/Dash"
+import { Dash } from "@/components/dash"
 import { PriceAreaChart } from "@/components/chart"
 import { InfoHint } from "@/components/info-hint"
 import { Badge } from "@/components/ui/badge"

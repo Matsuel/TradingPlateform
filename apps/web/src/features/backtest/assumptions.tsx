@@ -1,5 +1,5 @@
 import type { ReactNode } from "react"
-import Dash from "@/components/custom/Dash"
+import { Dash } from "@/components/dash"
 import { InfoHint } from "@/components/info-hint"
 import type { GlossaryKey } from "@/constants/glossary"
 import { formatDate, formatDayRange, formatPercent } from "@/lib/format"

@@ -1,7 +1,7 @@
 "use client"
 
 import type { MouseEvent, ReactNode } from "react"
-import AppSheet from "@/components/app-sheet/app-sheet"
+import { AppSheet } from "@/components/app-sheet"
 import { GLOSSARY, type GlossaryEntry, type GlossaryKey } from "@/constants/glossary"
 
 function HintSection({ title, children }: { title: string; children: ReactNode }) {

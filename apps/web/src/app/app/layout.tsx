@@ -1,29 +1,19 @@
-import { AppSidebar } from '@/components/app-sidebar';
-import Header from '@/components/Header';
-import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
-import { hasAdminRole, requireSession } from '@/lib/session';
-import type { Metadata } from 'next';
+import { AppHeader } from "@/components/app-header"
+import { AppSidebar } from "@/components/app-sidebar"
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
+import { hasAdminRole, requireSession } from "@/lib/session"
 
-export const metadata: Metadata = {
-    title: "Trading platform",
-    description: "Oui",
-};
-
-const AppLayout = async ({ children }: LayoutProps<"/">) => {
-    const session = await requireSession();
-    const admin = hasAdminRole(session.user.role);
+// Pages connectées : session exigée côté serveur, sidebar selon le rôle ; SidebarInset rend le <main>
+export default async function AppLayout({ children }: LayoutProps<"/app">) {
+    const session = await requireSession()
 
     return (
         <SidebarProvider>
-            <AppSidebar user={session.user} isAdmin={admin} />
-            <main className='w-full'>
-                <SidebarInset>
-                    <Header />
-                    {children}
-                </SidebarInset>
-            </main>
+            <AppSidebar user={session.user} isAdmin={hasAdminRole(session.user.role)} />
+            <SidebarInset>
+                <AppHeader />
+                {children}
+            </SidebarInset>
         </SidebarProvider>
     )
 }
-
-export default AppLayout; 

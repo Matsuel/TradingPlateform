@@ -1,6 +1,6 @@
 import type { Column } from "@/components/data-table/data-table"
 import { ChangeCell, SymbolCell } from "@/components/data-table/cells"
-import Dash from "@/components/custom/Dash"
+import { Dash } from "@/components/dash"
 import { InfoHint } from "@/components/info-hint"
 import { Sparkline } from "@/components/sparkline"
 import { formatPrice, formatVolume } from "@/lib/format"

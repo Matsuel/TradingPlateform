@@ -10,7 +10,7 @@ import { backtestColumns } from "./column"
 import { statusFilters, type StatusFilter } from "./constants"
 import { useBacktests, useBacktestStats } from "./hook"
 import { BacktestStats } from "./stats"
-import { prefix } from "@/lib/path"
+import { routes } from "@/lib/routes"
 
 const filterOptions = (Object.keys(statusFilters) as StatusFilter[]).map((value) => ({ value, label: statusFilters[value].label }))
 
@@ -34,7 +34,7 @@ export function BacktestList() {
                 query={{ ...query, data: query.data?.data }}
                 columns={backtestColumns}
                 rowKey={(b) => b.id}
-                onRowClick={(b) => router.push(`${prefix}/backtest/${b.id}`)}
+                onRowClick={(b) => router.push(routes.backtest(b.id))}
                 title="Tous les backtests"
                 description="Triés par date de lancement"
                 actions={<FilterTabs value={filter} onChange={changeFilter} options={filterOptions} />}

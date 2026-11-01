@@ -7,7 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 
 import { FormSection, TextField } from "@/components/form"
 import { Button } from "@/components/ui/button"
-import { authPaths, prefix } from "@/lib/path"
+import { routes } from "@/lib/routes"
 import { useRegister } from "./hook"
 import { registerSchema, type RegisterValues } from "./schema"
 
@@ -21,7 +21,7 @@ export function RegisterForm() {
 
     const onSubmit = async (values: RegisterValues) => {
         await mutateAsync(values)
-        router.push(prefix)
+        router.push(routes.dashboard)
         router.refresh() // relit la session côté serveur
     }
 
@@ -39,7 +39,7 @@ export function RegisterForm() {
                         Créer le compte
                     </Button>
                     <p className="text-center text-sm text-muted-foreground">
-                        Déjà un compte ? <Link href={authPaths.login} className="underline">Se connecter</Link>
+                        Déjà un compte ? <Link href={routes.login} className="underline">Se connecter</Link>
                     </p>
                 </FormSection>
             </form>

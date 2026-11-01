@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { DataTable } from "@/components/data-table/data-table"
-import PageHeader from "@/components/page-layout/header"
+import { PageHeader } from "@/components/page-layout"
 import { ErrorState, LoadingState } from "@/components/query-status"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"

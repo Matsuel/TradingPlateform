@@ -1,5 +1,5 @@
 import type { ReactNode } from "react"
-import Dash from "@/components/custom/Dash"
+import { Dash } from "@/components/dash"
 import { Badge } from "@/components/ui/badge"
 import { LOCALE, formatChange, formatDayRange, formatPercent, formatRate, formatRatio, formatSharpe } from "@/lib/format"
 import { cn } from "@/lib/utils"

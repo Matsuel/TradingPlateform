@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ArrowRight, ChartCandlestick, FlaskConical, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { prefix } from "@/lib/path";
+import { routes } from "@/lib/routes";
 
 export const metadata: Metadata = {
     title: "MarketFlow — Simulateur de marché",
@@ -28,7 +28,7 @@ const features = [
     },
 ];
 
-export default function Home() {
+export default function HomePage() {
     return (
         <main className="flex flex-1 flex-col items-center px-6 py-24 md:py-32">
             <section className="flex max-w-2xl flex-col items-center gap-6 text-center">
@@ -39,12 +39,15 @@ export default function Home() {
                     Une plateforme de marché financier simulée pour apprendre à investir sans risque :
                     explorez les cours, testez vos stratégies sur le passé et entraînez-vous avec un portefeuille virtuel.
                 </p>
-                <Link href={prefix}>
-                    <Button size={"lg"} className="h-11 px-5 text-base">
-                        Accéder à l’app
-                        <ArrowRight data-icon="inline-end" />
-                    </Button>
-                </Link>
+                <Button
+                    size="lg"
+                    className="h-11 px-5 text-base"
+                    nativeButton={false}
+                    render={<Link href={routes.dashboard} />}
+                >
+                    Accéder à l’app
+                    <ArrowRight data-icon="inline-end" />
+                </Button>
             </section>
 
             <section className="mt-20 grid w-full max-w-5xl gap-4 md:grid-cols-3">

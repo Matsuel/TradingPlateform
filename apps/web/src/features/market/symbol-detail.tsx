@@ -1,5 +1,5 @@
 import { SymbolCell } from "@/components/data-table/cells"
-import PageHeader from "@/components/page-layout/header"
+import { PageHeader } from "@/components/page-layout"
 import { PriceChart } from "./price-chart"
 import { SymbolSheet } from "./symbol-sheet"
 
@@ -7,7 +7,7 @@ export function SymbolDetail({ symbol }: { symbol: string }) {
     return (
         <>
             <PageHeader
-                leading={<SymbolCell symbol={symbol} name={"test"} logoUrl={undefined} size="lg" />}
+                leading={<SymbolCell symbol={symbol} size="lg" />}
                 actions={<SymbolSheet symbol={symbol} />}
             />
 

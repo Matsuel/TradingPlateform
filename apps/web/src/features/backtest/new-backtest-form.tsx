@@ -7,7 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { allocationTotal, FULL_PERCENT } from "@/components/form"
 import { Button } from "@/components/ui/button"
 import { apiIssues } from "@/lib/api"
-import { prefix } from "@/lib/path"
+import { routes } from "@/lib/routes"
 import { DEFAULT_BENCHMARK_SYMBOL, DEFAULT_REBALANCE_FREQUENCY } from "./constants"
 import { useCreateBacktest } from "./hook"
 import { BacktestPreviewSummary } from "./preview-summary"
@@ -26,7 +26,7 @@ export function NewBacktestForm() {
     const onSubmit = async (values: BacktestValues) => {
         try {
             const backtest = await mutateAsync(values)
-            router.push(`${prefix}/backtest/${backtest.id}`)
+            router.push(routes.backtest(backtest.id))
         } catch (e) {
             // 400 : chaque issue zod du backend s'affiche sous le champ de son chemin
             for (const { path, message } of apiIssues(e)) form.setError(path as FieldPath<BacktestValues>, { message })

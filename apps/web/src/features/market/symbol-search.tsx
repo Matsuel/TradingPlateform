@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation"
 import { Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { SymbolPicker } from "@/components/symbol-picker"
-import { prefix } from "@/lib/path"
+import { routes } from "@/lib/routes"
 
 export function SymbolSearch() {
     const [open, setOpen] = useState(false)
@@ -24,7 +24,7 @@ export function SymbolSearch() {
             <SymbolPicker
                 open={open}
                 onOpenChange={setOpen}
-                onSelect={(item) => router.push(`${prefix}/market/${encodeURIComponent(item.symbol)}`)}
+                onSelect={(item) => router.push(routes.symbol(item.symbol))}
             />
         </>
     )

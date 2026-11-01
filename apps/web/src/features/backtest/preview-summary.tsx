@@ -3,7 +3,7 @@
 import type { ReactNode } from "react"
 import { useFormContext, useWatch } from "react-hook-form"
 
-import Dash from "@/components/custom/Dash"
+import { Dash } from "@/components/dash"
 import { InfoHint } from "@/components/info-hint"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import type { GlossaryKey } from "@/constants/glossary"

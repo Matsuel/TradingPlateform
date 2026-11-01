@@ -1,4 +1,4 @@
-import AppSheet from "@/components/app-sheet/app-sheet"
+import { AppSheet } from "@/components/app-sheet"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { QuickBacktestForm } from "@/features/backtest/quick-backtest-form"

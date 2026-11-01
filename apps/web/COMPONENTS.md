@@ -40,13 +40,13 @@ Module de fonctions, hooks, constantes ou types (`lib/*.ts`, `features/<domaine>
 ## Sommaire
 
 - [`components/ui`](#componentsui)
-- [Mise en page et navigation](#mise-en-page-et-navigation) : `PageLayout`, `PageHeader`, `Header`, `AppSidebar`, `SidebarNav`, `NavUser`, `ThemeToggle`, `AppSheet`, `InfoHint`
+- [Mise en page et navigation](#mise-en-page-et-navigation) : `PageLayout`, `PageHeader`, `AppHeader`, `AppSidebar`, `SidebarNav`, `NavUser`, `ThemeToggle`, `AppSheet`, `InfoHint`
 - [Données et tableaux](#données-et-tableaux) : `DataTable` (`Column`), `SymbolCell`, `ChangeCell`, `Dash`, `FilterTabs`, `StatCard`, `LoadingState`, `ErrorState`
 - [Graphiques](#graphiques) : `PriceAreaChart` (`PricePoint`), `Sparkline`
 - [Symboles](#symboles) : `SymbolPicker`
 - [Formulaires (`components/form`)](#formulaires-componentsform) : `AppField`, `TextField`, `NumberField`, `TextareaField`, `SelectField`, `DateField`, `CheckboxField`, `SwitchField`, `SymbolsField`, `AllocationField`, `FormSection`, `FieldRow`
-- [`lib`](#lib) : `format.ts`, `api.ts`, `pagination.ts`, `path.ts`, `utils.ts`, `auth.ts`, `session.ts`
-- [`constants`](#constants) : `pagination.ts`, `glossary.ts`
+- [`lib`](#lib) : `format.ts`, `api.ts`, `pagination.ts`, `routes.ts`, `navigation.ts`, `env.ts`, `utils.ts`, `auth.ts`, `session.ts`
+- [`constants`](#constants) : `pagination.ts`, `sidebar.tsx`, `glossary.ts`
 - [`hooks`](#hooks) : `use-debounced-value.ts`
 - [`features/auth`](#featuresauth)
 - [`features/backtest`](#featuresbacktest)
@@ -62,7 +62,7 @@ Primitives shadcn (base-ui), voir la doc shadcn. Ne les modifie qu'en cas de bes
 
 ### PageLayout
 
-- **Import** : `import PageLayout from "@/components/page-layout"`.
+- **Import** : `import { PageLayout } from "@/components/page-layout"`.
 - **Rôle** : conteneur racine de chaque page de `app/app/` (colonne, `gap-6`, marges `px-8 py-6`).
 - **Props** :
 
@@ -77,120 +77,98 @@ Primitives shadcn (base-ui), voir la doc shadcn. Ne les modifie qu'en cas de bes
       <BacktestDetail id={id} />
   </PageLayout>
   ```
-- **Utilisé par** : toutes les pages de `src/app/app/` (`page.tsx`, `backtest/`, `backtest/new/`, `backtest/[id]/`, `market/`, `market/[symbol]/`, `settings/`, `(admin)/users/`, `(admin)/monitoring/`).
-- **Source** : `src/components/page-layout/index.tsx`.
+- **Utilisé par** : toutes les pages de `src/app/app/`.
+- **Source** : `src/components/page-layout.tsx`.
 
 ### PageHeader
 
-- **Import** : `import PageHeader from "@/components/page-layout/header"`.
-- **Rôle** : en-tête de page : titre, badge, description, élément de tête et actions à droite.
+- **Import** : `import { PageHeader } from "@/components/page-layout"`.
+- **Rôle** : en-tête de page : titre, badge, description, élément de tête et actions à droite. Une page pas encore construite n'affiche que lui (titre et description).
 - **Props** :
 
   | Nom | Type | Requis | Défaut | Description |
   | --- | --- | --- | --- | --- |
   | `title` | `string` | non | — | Titre `h2` ; sans titre, `badge` n'est pas affiché. |
-  | `badge` | `ReactNode` | non | — | À droite du titre (ex. statut). |
   | `description` | `string` | non | — | Sous le titre. |
+  | `badge` | `ReactNode` | non | — | À droite du titre (ex. statut). |
   | `leading` | `ReactNode` | non | — | Avant le bloc titre (ex. `SymbolCell size="lg"`). |
   | `actions` | `ReactNode` | non | — | Boutons à droite. |
-  | `className` | `string` | non | — | Sur le conteneur. Les autres attributs HTML du type sont acceptés mais ignorés. |
+  | `className` | `string` | non | — | Sur le conteneur. |
 
-- **Exemple** (tiré de `src/features/backtest/backtest-detail.tsx`) :
+- **Exemple** (tiré de `src/app/app/risk/page.tsx`) :
   ```tsx
-  <PageHeader
-      title={backtest.name}
-      badge={execution && <Badge variant={statusBadges[execution.status].variant}>{statusBadges[execution.status].label}</Badge>}
-      description={describe(backtest)}
-      actions={<Button onClick={() => rerun.mutate()} disabled={!canRerun}>Relancer</Button>}
-  />
+  <PageHeader title="Risque" description="Corrélations, concentration, VaR/CVaR et contribution au risque d’un portefeuille." />
   ```
-- **Utilisé par** : les pages de `src/app/app/` sauf `backtest/[id]` et `market/[symbol]` ; `src/features/backtest/backtest-detail.tsx`, `src/features/market/symbol-detail.tsx`.
-- **Source** : `src/components/page-layout/header.tsx`.
+- **Utilisé par** : les pages de `src/app/app/` sauf `backtest/[id]` et `market/[symbol]` ; `src/features/backtest/{backtest-detail,backtest-compare}.tsx`, `src/features/market/symbol-detail.tsx`.
+- **Source** : `src/components/page-layout.tsx`.
 
-### Header
+### AppHeader
 
-- **Import** : `import Header from "@/components/Header"`.
-- **Rôle** : barre du haut de l'espace `/app` : bouton de repli de la sidebar et fil d'Ariane calculé par `getActive(usePathname())`.
+- **Import** : `import { AppHeader } from "@/components/app-header"`.
+- **Rôle** : barre du haut de l'espace `/app` : bouton de repli de la sidebar et fil d'Ariane « section › onglet » (`findActiveTab`). Sur une sous-page, l'onglet est un lien vers sa liste ; hors du menu (paramètres), pas de fil.
 - **Props** : aucune.
-- **Exemple** (tiré de `src/app/app/layout.tsx`) :
-  ```tsx
-  <SidebarInset>
-      <Header />
-      {children}
-  </SidebarInset>
-  ```
 - **Utilisé par** : `src/app/app/layout.tsx`.
-- **Source** : `src/components/Header.tsx`.
+- **Source** : `src/components/app-header.tsx`.
 
 ### AppSidebar
 
 - **Import** : `import { AppSidebar } from "@/components/app-sidebar"`.
-- **Rôle** : sidebar de l'espace `/app` : sections de `constants/sidebar.tsx` (les sections `adminOnly` seulement si `isAdmin`), menu utilisateur et choix du thème en pied.
+- **Rôle** : sidebar repliable de l'espace `/app` : marque (lien vers le dashboard), sections de `constants/sidebar.tsx` (les sections `adminOnly` seulement si `isAdmin`), menu utilisateur et choix du thème en pied.
 - **Props** :
 
   | Nom | Type | Requis | Défaut | Description |
   | --- | --- | --- | --- | --- |
   | `user` | `User` (better-auth) | oui | — | Utilisateur de la session, passé à `NavUser`. |
-  | `isAdmin` | `boolean` | oui | — | Affiche les sections `adminOnly`. |
-  | `...props` | `React.ComponentProps<typeof Sidebar>` | non | — | Transmises à `Sidebar` (`collapsible="icon"` fixé). |
+  | `isAdmin` | `boolean` | oui | — | Affiche les sections `adminOnly` ; l'accès reste vérifié par le layout `(admin)`. |
 
 - **Exemple** (tiré de `src/app/app/layout.tsx`) :
   ```tsx
-  <AppSidebar user={session.user} isAdmin={admin} />
+  <AppSidebar user={session.user} isAdmin={hasAdminRole(session.user.role)} />
   ```
 - **Utilisé par** : `src/app/app/layout.tsx`.
 - **Source** : `src/components/app-sidebar.tsx`.
 
 ### SidebarNav
 
-- **Import** : `import SidebarNav from "@/components/SidebarNav"`.
-- **Rôle** : un groupe d'onglets de la sidebar ; l'onglet actif est déterminé par `findActive(usePathname())`.
+- **Import** : `import { SidebarNav } from "@/components/sidebar-nav"`.
+- **Rôle** : une section du menu : titre, puis un `Link` par onglet (navigation client, sans rechargement). Onglet actif : `findActiveTab(usePathname())`. Sidebar repliée : icône seule, nom en infobulle.
 - **Props** :
 
   | Nom | Type | Requis | Défaut | Description |
   | --- | --- | --- | --- | --- |
-  | `name` | `string` | oui | — | Libellé du groupe. |
-  | `tabs` | `{ name: string; url: string; icon: React.ReactNode }[]` | oui | — | Onglets du groupe. |
+  | `section` | `SidebarSection` (`constants/sidebar.tsx`) | oui | — | Nom et onglets de la section. |
 
 - **Exemple** (tiré de `src/components/app-sidebar.tsx`) :
   ```tsx
-  <SidebarNav tabs={parts.tabs} name={parts.name} key={parts.name} />
+  <SidebarNav key={section.name} section={section} />
   ```
 - **Utilisé par** : `src/components/app-sidebar.tsx`.
-- **Source** : `src/components/SidebarNav.tsx`.
+- **Source** : `src/components/sidebar-nav.tsx`.
 
 ### NavUser
 
 - **Import** : `import { NavUser } from "@/components/nav-user"`.
-- **Rôle** : menu utilisateur en pied de sidebar : avatar, lien `/app/settings`, déconnexion (`signOut` puis `/login`).
+- **Rôle** : menu utilisateur en pied de sidebar : avatar, nom, email, lien « Compte » (`routes.settings`), « Se déconnecter » (`signOut`, retour à `routes.login`, `router.refresh`).
 - **Props** :
 
   | Nom | Type | Requis | Défaut | Description |
   | --- | --- | --- | --- | --- |
   | `user` | `User` (better-auth) | oui | — | Nom, email, image affichés. |
 
-- **Exemple** (tiré de `src/components/app-sidebar.tsx`) :
-  ```tsx
-  <NavUser user={user} />
-  ```
 - **Utilisé par** : `src/components/app-sidebar.tsx`.
 - **Source** : `src/components/nav-user.tsx`.
 
 ### ThemeToggle
 
-- **Import** : `import ThemeToggle from "@/components/themeToggle"`.
-- **Rôle** : bouton icône soleil/lune ouvrant un menu Light / Dark / System (`setTheme` de next-themes). Requiert `ThemeProvider` (`provider/theme.tsx`, monté dans `app/layout.tsx`).
+- **Import** : `import { ThemeToggle } from "@/components/theme-toggle"`.
+- **Rôle** : bouton icône soleil/lune ouvrant un menu Clair / Sombre / Système (`setTheme` de next-themes). Requiert le `ThemeProvider` de next-themes monté dans `app/layout.tsx`.
 - **Props** : aucune.
-- **Exemple** (tiré de `src/components/app-sidebar.tsx`) :
-  ```tsx
-  <ThemeToggle />
-  ```
 - **Utilisé par** : `src/components/app-sidebar.tsx`.
-- **Source** : `src/components/themeToggle.tsx`.
+- **Source** : `src/components/theme-toggle.tsx`.
 
 ### AppSheet
 
-- **Import** : `import AppSheet from "@/components/app-sheet/app-sheet"`.
+- **Import** : `import { AppSheet } from "@/components/app-sheet"`.
 - **Rôle** : panneau latéral droit ouvert par un déclencheur, avec titre et description.
 - **Props** :
 
@@ -206,12 +184,10 @@ Primitives shadcn (base-ui), voir la doc shadcn. Ne les modifie qu'en cas de bes
 
 - **Exemple** (tiré de `src/features/market/symbol-sheet.tsx`) :
   ```tsx
-  <AppSheet title={symbol} trigger={<Button size="lg">Acheter</Button>}>
-      <Tabs defaultValue="trade" className="flex-1 px-4 pb-4">…</Tabs>
-  </AppSheet>
+  <AppSheet title={symbol} trigger={<Button size="lg">Tester</Button>}>…</AppSheet>
   ```
 - **Utilisé par** : `src/features/market/symbol-sheet.tsx`, `src/components/info-hint.tsx`.
-- **Source** : `src/components/app-sheet/app-sheet.tsx`.
+- **Source** : `src/components/app-sheet.tsx`.
 
 ### InfoHint
 
@@ -265,7 +241,7 @@ Primitives shadcn (base-ui), voir la doc shadcn. Ne les modifie qu'en cas de bes
       query={{ ...query, data: query.data?.data }}
       columns={backtestColumns}
       rowKey={(b) => b.id}
-      onRowClick={(b) => router.push(`${prefix}/backtest/${b.id}`)}
+      onRowClick={(b) => router.push(routes.backtest(b.id))}
       title="Tous les backtests"
       description="Triés par date de lancement"
       actions={<FilterTabs value={filter} onChange={changeFilter} options={filterOptions} />}
@@ -328,7 +304,7 @@ Primitives shadcn (base-ui), voir la doc shadcn. Ne les modifie qu'en cas de bes
 
 ### Dash
 
-- **Import** : `import Dash from "@/components/custom/Dash"`.
+- **Import** : `import { Dash } from "@/components/dash"`.
 - **Rôle** : tiret « — » atténué pour une valeur absente.
 - **Props** : aucune.
 - **Exemple** (tiré de `src/features/backtest/column.tsx`) :
@@ -336,7 +312,7 @@ Primitives shadcn (base-ui), voir la doc shadcn. Ne les modifie qu'en cas de bes
   if (!e) return <Dash />
   ```
 - **Utilisé par** : `src/features/backtest/column.tsx`, `src/features/backtest/stats.tsx`, `src/features/backtest/assumptions.tsx`.
-- **Source** : `src/components/custom/Dash.tsx`.
+- **Source** : `src/components/dash.tsx`.
 
 ### FilterTabs
 
@@ -757,7 +733,7 @@ Source : `src/lib/format.ts`.
 
 | Export | Signature | Rôle | Utilisé par |
 | --- | --- | --- | --- |
-| `apiFetch` | `<T>(path: string, init?: RequestInit) => Promise<T>` | Seul point d'appel HTTP : préfixe `path` par `NEXT_PUBLIC_API_URL` (`http://localhost:8000/api`), envoie les cookies, ajoute `Accept: application/json`. Statut non 2xx → `ApiError` (message `"Erreur API : <status> <statusText>"`). Routes : `apps/core-backend/API.md`. | `features/backtest/api.ts`, `features/market/api.ts` |
+| `apiFetch` | `<T>(path: string, init?: RequestInit) => Promise<T>` | Seul point d'appel HTTP : préfixe `path` par `env.NEXT_PUBLIC_API_URL`, envoie les cookies, ajoute `Accept: application/json`. Statut non 2xx → `ApiError` (message `"Erreur API : <status> <statusText>"`) ; `204` → `undefined`. Routes : `apps/core-backend/API.md`. | `features/backtest/api.ts`, `features/market/api.ts` |
 | `ApiError` | `class extends Error { status: number; body: unknown }` | Erreur levée par `apiFetch` : `body` = corps JSON d'erreur (`{ error, ...data }`), `null` s'il n'est pas du JSON. | `apiIssues` |
 | `apiIssues` | `(error: unknown) => { path: string; message: string }[]` | Issues zod d'un `400` (`{ error, issues }`), chemin joint par des points (`"allocations.0.weight"`) pour `form.setError` ; `[]` pour toute autre erreur, issues sans chemin ignorées. | `features/backtest/new-backtest-form.tsx` |
 
@@ -775,18 +751,38 @@ Source : `src/lib/api.ts`.
 
 Source : `src/lib/pagination.ts`.
 
-### `lib/path.ts`
+### `lib/routes.ts`
 
-- **Import** : `import { prefix, authPaths, getActive } from "@/lib/path"`.
+- **Import** : `import { routes, safeRedirect } from "@/lib/routes"`.
+- Seule source des chemins : liens, redirections, sidebar. Jamais d'URL écrite à la main (`` `/app/backtest/${id}` ``) ailleurs. Exception : le `matcher` de `proxy.ts`, que Next lit à la compilation.
 
 | Export | Signature / valeur | Rôle | Utilisé par |
 | --- | --- | --- | --- |
-| `prefix` | `"/app"` (défini dans `constants/sidebar.tsx`, ré-exporté ici) | Préfixe des routes de l'espace connecté : `` `${prefix}/backtest/${id}` ``. Importer depuis `@/lib/path`. | `app/not-found.tsx`, `app/app/backtest/page.tsx`, `app/app/(admin)/layout.tsx`, `components/nav-user.tsx`, `features/auth/*`, `features/backtest/backtest-list.tsx`, `new-backtest-form.tsx`, `quick-backtest-form.tsx`, `features/market/market-list.tsx`, `symbol-search.tsx` |
-| `authPaths` | `{ login: "/login", register: "/register" }` | Pages publiques d'authentification. `proxy.ts` garde ses littéraux (son `matcher` doit être statique). | `features/auth/*`, `components/nav-user.tsx`, `lib/session.ts` |
-| `findActive` | `(pathname: string) => { name, url, icon, group } \| undefined` | Onglet de `constants/sidebar.tsx` le plus spécifique qui correspond au chemin. | `components/SidebarNav.tsx` |
-| `getActive` | `(pathname: string) => { parent: string \| null; name: string \| null; url: string \| null }` | Groupe, nom et URL de l'onglet actif (fil d'Ariane). | `components/Header.tsx` |
+| `prefix` | `"/app"` | Préfixe des pages connectées. | `lib/navigation.ts`, `safeRedirect` |
+| `routes` | objet `{ home, login, register, dashboard, market, symbol(symbol), backtests, newBacktest, backtest(id), compare, compareIds(a, b), notifications, paperTrading, risk, projection, optimization, reports, monitoring, users, referenceData, settings }` | URL de chaque page ; `symbol` encode le symbole (`^GSPC`). | `constants/sidebar.tsx`, pages, layouts, `proxy.ts`, `components/nav-user.tsx`, `features/*` |
+| `safeRedirect` | `(redirect: string \| undefined) => string` | Destination après connexion : `redirect` s'il commence par `prefix` (et pas `//`), sinon le dashboard. | `app/(auth)/login/page.tsx` |
 
-Source : `src/lib/path.ts`.
+Source : `src/lib/routes.ts`.
+
+### `lib/navigation.ts`
+
+- **Import** : `import { findActiveTab } from "@/lib/navigation"`.
+
+| Export | Signature | Rôle | Utilisé par |
+| --- | --- | --- | --- |
+| `findActiveTab` | `(pathname: string) => ActiveTab \| undefined` (`SidebarTab & { section }`) | Onglet de `constants/sidebar.tsx` qui correspond au chemin, le plus long préfixe gagnant ; le dashboard ne matche qu'exactement. `undefined` hors du menu. | `components/sidebar-nav.tsx`, `components/app-header.tsx` |
+
+Source : `src/lib/navigation.ts`.
+
+### `lib/env.ts`
+
+- **Import** : `import { env } from "@/lib/env"`.
+
+| Export | Valeur | Rôle | Utilisé par |
+| --- | --- | --- | --- |
+| `env` | `{ NEXT_PUBLIC_API_URL: string }` | Variables d'environnement validées par zod au chargement (erreur explicite si absente ou invalide). `NEXT_PUBLIC_API_URL` : base de core-backend, `http://localhost:8000/api`. Seul lecteur de `process.env`. | `lib/api.ts`, `lib/auth.ts` |
+
+Source : `src/lib/env.ts`.
 
 ### `lib/utils.ts`
 
@@ -804,7 +800,7 @@ Source : `src/lib/utils.ts`.
 
 | Export | Signature / valeur | Rôle | Utilisé par |
 | --- | --- | --- | --- |
-| `authClient` | client better-auth/react (`baseURL: "http://localhost:8000"`, plugin `adminClient`) | Session côté serveur. | `lib/session.ts` |
+| `authClient` | client better-auth/react (`baseURL: ${env.NEXT_PUBLIC_API_URL}/auth`, plugin `adminClient`) | Session côté serveur. | `lib/session.ts` |
 | `signIn`, `signUp`, `signOut`, `useSession` | méthodes déstructurées de `authClient` | `signIn`/`signUp` ne s'appellent que via `features/auth/api.ts` ; `useSession` n'est pas utilisé. | `features/auth/api.ts` (`signIn`, `signUp`), `components/nav-user.tsx` (`signOut`) |
 
 Source : `src/lib/auth.ts`.
@@ -815,8 +811,8 @@ Source : `src/lib/auth.ts`.
 
 | Export | Signature | Rôle | Utilisé par |
 | --- | --- | --- | --- |
-| `getSession` | `() => Promise<{ session, user } \| null>` (mis en cache par requête) | Session courante lue depuis le cookie entrant. | `requireSession`, `isAdmin` |
-| `requireSession` | `() => Promise<{ session, user }>` | Session ou redirection vers `authPaths.login`. | `app/app/layout.tsx`, `app/app/(admin)/layout.tsx` |
+| `getSession` | `() => Promise<{ session, user } \| null>` (mis en cache par requête) | Session courante lue depuis le cookie entrant. | `requireSession`, `isAdmin`, `app/(auth)/layout.tsx` (redirige un utilisateur connecté vers le dashboard) |
+| `requireSession` | `() => Promise<{ session, user }>` | Session ou redirection vers `routes.login`. | `app/app/layout.tsx`, `app/app/(admin)/layout.tsx` |
 | `isAdmin` | `() => Promise<boolean>` | La session a le rôle `admin`. | `app/app/(admin)/layout.tsx` |
 | `hasAdminRole` | `(role?: string \| null) => boolean` | `role` (liste séparée par des virgules) contient `admin`. | `app/app/layout.tsx`, `isAdmin` |
 
@@ -833,6 +829,18 @@ Source : `src/lib/session.ts`.
 | `PAGE_SIZE` | `20` | Lignes par page des tableaux (`pageSize` envoyé au backend, découpage client). | `features/backtest/backtest-list.tsx`, `features/backtest/backtest-detail.tsx`, `features/market/market-list.tsx` |
 
 Source : `src/constants/pagination.ts`.
+
+### `constants/sidebar.tsx`
+
+- **Import** : `import { sidebarSections, type SidebarSection, type SidebarTab } from "@/constants/sidebar"`.
+
+| Export | Signature / valeur | Rôle | Utilisé par |
+| --- | --- | --- | --- |
+| `SidebarTab` | `{ name: string; url: string; icon: ReactNode }` | Un onglet ; `url` vient de `routes`. | `lib/navigation.ts` |
+| `SidebarSection` | `{ name: string; adminOnly: boolean; tabs: SidebarTab[] }` | Une section du menu. | `components/sidebar-nav.tsx` |
+| `sidebarSections` | `SidebarSection[]` | Menu, dans l'ordre de la roadmap : Vue d'ensemble (Dashboard, Notifications), Marché, Strategy Lab (Backtests, Nouveau backtest, Comparaison, Paper trading), Analyse (Risque, Projection, Optimisation, Rapports), Administration (`adminOnly` : Monitoring, Utilisateurs, Données de référence). Une page ajoutée = sa route dans `routes` puis son onglet ici. | `components/app-sidebar.tsx`, `lib/navigation.ts` |
+
+Source : `src/constants/sidebar.tsx`.
 
 ### `constants/glossary.ts`
 
@@ -867,7 +875,7 @@ Source : `src/hooks/use-debounced-value.ts`.
 ### LoginForm
 
 - **Import** : `import { LoginForm } from "@/features/auth/login-form"`.
-- **Rôle** : formulaire de connexion (email + mot de passe) dans une `FormSection` ; valide avec `loginSchema`, appelle `useLogin`, puis redirige vers `prefix` et rafraîchit la session serveur. L'erreur better-auth s'affiche sous les champs ; lien vers `authPaths.register`.
+- **Rôle** : formulaire de connexion (email + mot de passe) dans une `FormSection` ; valide avec `loginSchema`, appelle `useLogin`, puis redirige vers `redirectTo` (prop requise, calculée par `safeRedirect` dans la page) et rafraîchit la session serveur. L’erreur better-auth s’affiche sous les champs ; lien vers `routes.register`.
 - **Props** : aucune.
 - **Exemple** (tiré de `src/app/(auth)/login/page.tsx`) :
   ```tsx
@@ -881,7 +889,7 @@ Source : `src/hooks/use-debounced-value.ts`.
 ### RegisterForm
 
 - **Import** : `import { RegisterForm } from "@/features/auth/register-form"`.
-- **Rôle** : formulaire d'inscription (nom + email + mot de passe) dans une `FormSection` ; valide avec `registerSchema`, appelle `useRegister`, puis redirige vers `prefix`. Lien vers `authPaths.login`.
+- **Rôle** : formulaire d'inscription (nom + email + mot de passe) dans une `FormSection` ; valide avec `registerSchema`, appelle `useRegister`, puis redirige vers `routes.dashboard`. Lien vers `routes.login`.
 - **Props** : aucune.
 - **Exemple** (tiré de `src/app/(auth)/register/page.tsx`) :
   ```tsx
@@ -1358,7 +1366,7 @@ Source : `src/features/backtest/types.ts`.
 ### MarketList
 
 - **Import** : `import { MarketList } from "@/features/market/market-list"`.
-- **Rôle** : écran marché : onglets de catégorie, `SymbolSearch`, puis `DataTable` des actifs par défaut paginée côté serveur (`useDefaultAssets`, `PAGE_SIZE` par page, page dans l'état du composant) ; clic → `${prefix}/market/<symbol>`.
+- **Rôle** : écran marché : onglets de catégorie, `SymbolSearch`, puis `DataTable` des actifs par défaut paginée côté serveur (`useDefaultAssets`, `PAGE_SIZE` par page, page dans l'état du composant) ; clic → `routes.symbol(symbol)`.
 - **Props** : aucune.
 - **Exemple** (tiré de `src/app/app/market/page.tsx`) :
   ```tsx
@@ -1407,7 +1415,7 @@ Source : `src/features/backtest/types.ts`.
 ### SymbolSearch
 
 - **Import** : `import { SymbolSearch } from "@/features/market/symbol-search"`.
-- **Rôle** : bouton « Rechercher un symbole… » qui ouvre `SymbolPicker` et navigue vers `${prefix}/market/<symbol>`.
+- **Rôle** : bouton « Rechercher un symbole… » qui ouvre `SymbolPicker` et navigue vers `routes.symbol(symbol)`.
 - **Props** : aucune.
 - **Exemple** (tiré de `src/features/market/market-list.tsx`) :
   ```tsx

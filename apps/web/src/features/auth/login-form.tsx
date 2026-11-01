@@ -7,11 +7,12 @@ import { zodResolver } from "@hookform/resolvers/zod"
 
 import { FormSection, TextField } from "@/components/form"
 import { Button } from "@/components/ui/button"
-import { authPaths, prefix } from "@/lib/path"
+import { routes } from "@/lib/routes"
 import { useLogin } from "./hook"
 import { loginSchema, type LoginValues } from "./schema"
 
-export function LoginForm() {
+/** Formulaire de connexion ; `redirectTo` : page ouverte après succès, déjà validée par `safeRedirect`. */
+export function LoginForm({ redirectTo }: { redirectTo: string }) {
     const router = useRouter()
     const { mutateAsync, error } = useLogin()
     const form = useForm<LoginValues>({
@@ -21,7 +22,7 @@ export function LoginForm() {
 
     const onSubmit = async (values: LoginValues) => {
         await mutateAsync(values)
-        router.push(prefix)
+        router.push(redirectTo)
         router.refresh() // relit la session côté serveur
     }
 
@@ -38,7 +39,7 @@ export function LoginForm() {
                         Se connecter
                     </Button>
                     <p className="text-center text-sm text-muted-foreground">
-                        Pas encore de compte ? <Link href={authPaths.register} className="underline">Créer un compte</Link>
+                        Pas encore de compte ? <Link href={routes.register} className="underline">Créer un compte</Link>
                     </p>
                 </FormSection>
             </form>

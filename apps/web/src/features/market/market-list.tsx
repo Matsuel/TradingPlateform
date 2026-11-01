@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { DataTable } from "@/components/data-table/data-table"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { PAGE_SIZE } from "@/constants/pagination"
-import { prefix } from "@/lib/path"
+import { routes } from "@/lib/routes"
 import { marketColumns } from "./column"
 import { useDefaultAssets } from "./hook"
 import { SymbolSearch } from "./symbol-search"
@@ -35,7 +35,7 @@ export function MarketList() {
                 query={{ ...query, data: query.data?.data }}
                 columns={marketColumns}
                 rowKey={(a) => a.symbol}
-                onRowClick={(a) => router.push(`${prefix}/market/${a.symbol}`)}
+                onRowClick={(a) => router.push(routes.symbol(a.symbol))}
                 pagination={{ page, pageSize: PAGE_SIZE, count: query.data?.count ?? 0, onPageChange: setPage }}
             />
         </>

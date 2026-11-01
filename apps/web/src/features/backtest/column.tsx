@@ -6,7 +6,7 @@ import { formatDay, formatDayRange, formatPrice, LOCALE } from "@/lib/format"
 import { BACKTEST_CURRENCY, statusBadges, strategyLabels, tradeSideBadges } from "./constants"
 import type { Backtest, Holding, Trade } from "./types"
 import { formatAllocation, getExecution, getExecutionDuration } from "./utils"
-import Dash from "@/components/custom/Dash"
+import { Dash } from "@/components/dash"
 
 // Cours de l'ordre sans devise : « 268,50 »
 const formatTradePrice = new Intl.NumberFormat(LOCALE, { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format

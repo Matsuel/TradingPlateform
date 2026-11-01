@@ -1,10 +1,5 @@
 import { z } from "zod";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
-
-if (!API_URL) {
-    throw new Error("NEXT_PUBLIC_API_URL n'est pas configurée");
-}
+import { env } from "./env";
 
 /** Réponse non 2xx de core-backend : `body` = corps d'erreur `{ error, ...data }`, `null` s'il n'est pas du JSON. */
 export class ApiError extends Error {
@@ -39,12 +34,16 @@ export function apiIssues(error: unknown): { path: string; message: string }[] {
         .map((issue) => ({ path: issue.path.join("."), message: issue.message }));
 }
 
+/**
+ * Appel JSON à core-backend avec les cookies de session ; `path` relatif à `NEXT_PUBLIC_API_URL` (`"/backtest"`).
+ * Lève `ApiError` sur une réponse non 2xx ; une réponse 204 renvoie `undefined`.
+ */
 export async function apiFetch<T>(
     path: string,
     init?: RequestInit,
 ): Promise<T> {
     const response = await fetch(
-        `${API_URL}${path}`,
+        `${env.NEXT_PUBLIC_API_URL}${path}`,
         {
             ...init,
             headers: {
@@ -63,5 +62,6 @@ export async function apiFetch<T>(
         );
     }
 
+    if (response.status === 204) return undefined as T;
     return response.json() as Promise<T>;
 }

@@ -1,4 +1,4 @@
-import Dash from "@/components/custom/Dash"
+import { Dash } from "@/components/dash"
 import type { PricePoint } from "@/components/chart"
 import { formatDuration, formatPrice, formatRate } from "@/lib/format"
 import { activeStatuses, BACKTEST_CURRENCY } from "./constants"

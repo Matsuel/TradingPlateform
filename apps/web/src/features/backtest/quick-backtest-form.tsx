@@ -8,7 +8,7 @@ import { differenceInCalendarDays, subYears } from "date-fns"
 
 import { DateField, FieldRow, FULL_PERCENT, NumberField, SelectField } from "@/components/form"
 import { Button } from "@/components/ui/button"
-import { prefix } from "@/lib/path"
+import { routes } from "@/lib/routes"
 import { DEFAULT_REBALANCE_FREQUENCY, investmentModeOptions } from "./constants"
 import { useCreateBacktest } from "./hook"
 import { quickBacktestSchema, type QuickBacktestValues } from "./schema"
@@ -25,7 +25,7 @@ export function QuickBacktestForm({ symbol }: { symbol: string }) {
 
     const onSubmit = async (values: QuickBacktestValues) => {
         const backtest = await mutateAsync({ ...values, name: `Test rapide ${symbol}`, allocations: [{ symbol, weight: FULL_PERCENT }], rebalanceFrequency: DEFAULT_REBALANCE_FREQUENCY })
-        router.push(`${prefix}/backtest/${backtest.id}`)
+        router.push(routes.backtest(backtest.id))
     }
 
     return (
@@ -64,7 +64,7 @@ export function QuickBacktestForm({ symbol }: { symbol: string }) {
                         variant="outline"
                         className="flex-1"
                         nativeButton={false}
-                        render={<Link href={`${prefix}/backtest/new`} />}
+                        render={<Link href={routes.newBacktest} />}
                     >
                         Configuration avancée
                     </Button>

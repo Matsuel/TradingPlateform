@@ -3,12 +3,12 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { TriangleAlert } from "lucide-react"
-import PageHeader from "@/components/page-layout/header"
+import { PageHeader } from "@/components/page-layout"
 import { ErrorState, LoadingState } from "@/components/query-status"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { formatDayRange, formatPercent } from "@/lib/format"
-import { prefix } from "@/lib/path"
+import { routes } from "@/lib/routes"
 import { comparisonParameterLabels, NO_BENCHMARK_LABEL } from "./constants"
 import { ComparisonMetrics, ComparisonParameters } from "./comparison-blocks"
 import { ComparisonOverview } from "./comparison-overview"
@@ -58,7 +58,7 @@ export function BacktestCompare({ ids }: { ids: string | string[] | undefined })
 
     const select = (nextA: string, nextB: string) => {
         setCopied(false)
-        router.replace(`${prefix}/backtest/compare?ids=${nextA},${nextB}`, { scroll: false })
+        router.replace(routes.compareIds(nextA, nextB), { scroll: false })
     }
     const copyLink = () => navigator.clipboard.writeText(window.location.href).then(() => setCopied(true))
 
