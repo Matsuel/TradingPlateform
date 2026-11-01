@@ -44,7 +44,7 @@ export function AppField<T extends FieldValues>({
                 const invalid = fieldState.invalid
                 const input = children({ field, invalid })
                 const labelEl = label && (
-                    <FieldLabel htmlFor={field.name}>{hint ? <InfoHint entry={hint}>{label}</InfoHint> : label}</FieldLabel>
+                    <FieldLabel htmlFor={field.name}><InfoHint entry={hint}>{label}</InfoHint></FieldLabel>
                 )
                 const descEl = description && <FieldDescription>{description}</FieldDescription>
                 const errorEl = invalid && <FieldError errors={[fieldState.error]} />

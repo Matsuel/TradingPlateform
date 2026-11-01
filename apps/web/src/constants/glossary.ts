@@ -9,13 +9,16 @@ export type GlossaryEntry = {
     formula?: string // texte Unicode, affiché en font-mono (D5)
     unit: string
     readingTip?: string // « Comment le lire »
-    source: string // `<app>/<fichier> · <symbole>`
+    source: string // `<chemin depuis la racine du dépôt> · <symbole>`
 }
 
-const ENGINE = "backtest-engine/engine/backtest.engine.ts"
-const ENGINE_UTILS = "backtest-engine/engine/backtest.utils.ts"
-const BACKTEST_SERVICE = "core-backend/services/backtest.service.ts"
-const MARKET_REPOSITORY = "market-service/repositories/market.repository.ts"
+const ENGINE = "apps/backtest-engine/engine/backtest.engine.ts"
+const ENGINE_UTILS = "apps/backtest-engine/engine/backtest.utils.ts"
+const BACKTEST_SERVICE = "apps/core-backend/services/backtest.service.ts"
+const MARKET_REPOSITORY = "apps/market-service/repositories/market.repository.ts"
+
+// Le moteur ne convertit aucun cours : un montant est exprimé dans la devise de cotation des actifs, affichée en euros
+const MONEY_UNIT = "Montant affiché en euros. Les cours ne sont pas convertis : pour un actif coté en dollars, le montant est en réalité en dollars."
 
 // Rendement d'une journée hors versements : base commune du CAGR, de la volatilité, du Sharpe et du drawdown
 const TWR_SENTENCE =
@@ -28,7 +31,7 @@ export const GLOSSARY = {
         purpose: "Ce que vaut le portefeuille au dernier jour de la période : le montant que tu aurais en le liquidant ce jour-là, avant frais de vente.",
         computation: "Somme, pour chaque actif, de la quantité détenue multipliée par son dernier cours de clôture connu. Les frais déjà payés sont déduits, puisqu’ils ont réduit les quantités achetées.",
         formula: "valeur finale = Σ quantité(actif) × cours(actif, dernier jour)",
-        unit: "Montant en euros.",
+        unit: MONEY_UNIT,
         readingTip: "À comparer au montant investi : l’écart entre les deux est la plus-value.",
         source: `${ENGINE} · simulate (finalValue)`,
     },
@@ -37,14 +40,14 @@ export const GLOSSARY = {
         purpose: "Le gain (ou la perte) en euros, une fois retiré tout ce que tu as versé.",
         computation: "Valeur finale moins montant total investi.",
         formula: "plus-value = valeur finale − montant investi",
-        unit: "Montant en euros, négatif en cas de perte.",
+        unit: `${MONEY_UNIT} Négatif en cas de perte.`,
         source: `${ENGINE} · simulate (profit)`,
     },
     totalInvested: {
         title: "Montant investi",
         purpose: "Tout l’argent sorti de ta poche : capital initial et, en DCA, chaque versement.",
         computation: "Somme des versements, frais compris : un ordre de 6 000 € coûte 6 000 €, dont les frais. Le rebalancement s’autofinance et ne l’augmente pas.",
-        unit: "Montant en euros.",
+        unit: MONEY_UNIT,
         source: `${ENGINE} · simulate (totalInvested)`,
     },
     totalReturn: {
@@ -102,10 +105,18 @@ export const GLOSSARY = {
     recovery: {
         title: "Récupération",
         purpose: "Le temps qu’il a fallu pour effacer la pire baisse (max drawdown).",
-        computation: "Nombre de jours calendaires entre le plus-haut qui précède la pire baisse et le premier jour où le portefeuille retrouve ce niveau. Sans retour au plus-haut avant la fin de la période, la baisse n’est pas récupérée.",
+        computation: `${TWR_SENTENCE} La récupération compte les jours calendaires entre le plus-haut de cet indice qui précède la pire baisse et le premier jour où l’indice retrouve ce niveau. En DCA, la valeur du portefeuille peut remonter plus tôt grâce aux versements : elle n’entre pas en compte. Sans retour au plus-haut avant la fin de la période, la baisse n’est pas récupérée.`,
         unit: "Durée en jours calendaires, affichée en jours, mois ou années.",
         readingTip: "4 mois : il a fallu 4 mois pour revenir au niveau d’avant la baisse. « Non récupéré » : le plus-haut n’a pas été retrouvé.",
         source: `${ENGINE_UTILS} · createDrawdownTracker (recoveryDays)`,
+    },
+    equityCurve: {
+        title: "Courbe de valeur",
+        purpose: "Suivre la valeur du portefeuille jour après jour sur la période, versements compris.",
+        computation: "Chaque jour de cotation, valeur des positions au cours de clôture, après le versement et le rebalancement éventuels du jour. Un cours manquant est reporté du dernier jour connu.",
+        unit: `${MONEY_UNIT} Un point par jour de cotation.`,
+        readingTip: "En DCA, la courbe monte aussi à chaque versement : pour juger la performance, lis le CAGR ou le drawdown, qui ignorent les versements.",
+        source: `${ENGINE} · simulate (equityCurve)`,
     },
     drawdownCurve: {
         title: "Courbe de drawdown",
@@ -129,7 +140,7 @@ export const GLOSSARY = {
         purpose: "Répondre à « valait-il mieux tout investir le premier jour ? » pour une stratégie en versements mensuels (DCA).",
         computation: "Le moteur rejoue le même total versé en un seul achat le premier jour : même capital, même période, mêmes frais, seule la répartition dans le temps change. L’écart est la valeur finale du DCA moins celle de l’investissement unique.",
         formula: "écart = valeur finale (DCA) − valeur finale (investissement unique)",
-        unit: "Montant en euros.",
+        unit: MONEY_UNIT,
         readingTip: "Un écart positif signifie que le DCA a fait mieux. Sans benchmark, l’investissement unique est la courbe en pointillés.",
         source: `${ENGINE} · runBacktest (lumpSumComparison, dcaAdvantage)`,
     },
@@ -138,20 +149,20 @@ export const GLOSSARY = {
         purpose: "Le coût total des ordres passés pendant la simulation, achats et ventes de rebalancement compris.",
         computation: "Somme, sur chaque ordre, du montant de l’ordre multiplié par le taux de frais. Les frais sont déjà déduits de la valeur finale.",
         formula: "frais = Σ montant(ordre) × taux de frais",
-        unit: "Montant en euros.",
+        unit: MONEY_UNIT,
         source: `${ENGINE} · simulate (totalFees)`,
     },
     totalTrades: {
         title: "Ordres",
         purpose: "Le nombre d’ordres d’achat et de vente passés : un indicateur de l’activité et donc des frais.",
-        computation: "Un ordre par actif à chaque versement (réparti selon les poids), plus un ordre par actif ajusté à chaque rebalancement.",
+        computation: "Un achat par actif à chaque versement (réparti selon les poids). À chaque rebalancement, une vente par actif au-dessus de sa cible et un achat par actif en dessous, si l’écart atteint au moins 0,01.",
         unit: "Nombre d’ordres.",
         source: `${ENGINE} · simulate (trades)`,
     },
     rebalanceCount: {
         title: "Rebalancements",
         purpose: "Le nombre de fois où le portefeuille a été ramené à ses poids cibles.",
-        computation: "Au premier jour de cotation de chaque période (mois, trimestre, année), hors premier jour, le moteur vend les lignes au-dessus de leur poids cible et rachète celles en dessous, sans apport d’argent.",
+        computation: "Au premier jour de cotation de chaque période (mois, trimestre, année), hors premier jour, le moteur vend les lignes au-dessus de leur poids cible et rachète celles en dessous, sans apport d’argent. Le jour n’est compté que si au moins une ligne dépasse sa cible et une autre est en dessous, d’un écart d’au moins 0,01.",
         unit: "Nombre de rebalancements.",
         source: `${ENGINE} · simulate (rebalanceCount)`,
     },
@@ -167,7 +178,7 @@ export const GLOSSARY = {
         purpose: "Ce que pèse chaque actif dans la valeur finale.",
         computation: "Quantité détenue multipliée par le dernier cours de clôture connu de l’actif.",
         formula: "valeur = quantité × cours (dernier jour)",
-        unit: "Montant en euros.",
+        unit: MONEY_UNIT,
         source: `${ENGINE} · simulate (holdings)`,
     },
     tradeSide: {
@@ -181,7 +192,7 @@ export const GLOSSARY = {
         title: "Prix d’exécution",
         purpose: "Le cours auquel l’ordre a été exécuté.",
         computation: "Cours de clôture, ajusté des divisions d’actions, du jour du versement ou du rebalancement.",
-        unit: "Cours de l’actif, dans sa devise de cotation.",
+        unit: "Cours de l’actif dans sa devise de cotation, sans conversion.",
         source: `${ENGINE} · simulate (trades)`,
     },
     tradeQuantity: {
@@ -195,7 +206,7 @@ export const GLOSSARY = {
         title: "Montant de l’ordre",
         purpose: "L’argent engagé ou encaissé par l’ordre.",
         computation: "Achat : montant payé, frais compris (part du versement selon le poids de l’actif). Vente : produit brut, quantité × prix, avant frais.",
-        unit: "Montant en euros.",
+        unit: MONEY_UNIT,
         source: `${ENGINE} · simulate (trades)`,
     },
     tradeFee: {
@@ -203,7 +214,7 @@ export const GLOSSARY = {
         purpose: "Ce que l’ordre a coûté en frais.",
         computation: "Montant de l’ordre multiplié par le taux de frais. Payé sur l’achat, retenu sur le produit de la vente.",
         formula: "frais = montant × taux de frais",
-        unit: "Montant en euros.",
+        unit: MONEY_UNIT,
         source: `${ENGINE} · simulate (trades)`,
     },
 
@@ -231,6 +242,22 @@ export const GLOSSARY = {
         source: `${ENGINE_UTILS} · fingerprintPrices`,
     },
 
+    // Récapitulatif du formulaire « Nouveau backtest »
+    plannedContributions: {
+        title: "Versements prévus",
+        purpose: "Savoir combien de fois de l’argent entrera dans le portefeuille avant de lancer le backtest.",
+        computation: "Estimation sur les jours ouvrés de la période (lundi à vendredi) : 1 en investissement unique ; en DCA, un versement par mois, le premier jour recevant aussi le capital initial. Les jours fériés sont inconnus avant le chargement des cours.",
+        unit: "Nombre de jours de versement.",
+        source: `${BACKTEST_SERVICE} · preview (contributionCount)`,
+    },
+    plannedRebalances: {
+        title: "Rebalancements prévus",
+        purpose: "Estimer combien de fois le portefeuille sera ramené à ses poids cibles.",
+        computation: "Nombre de périodes de rebalancement (mois, trimestre, année) sur les jours ouvrés de la période, moins la première. Estimation haute : à l’exécution, un rebalancement sans écart suffisant n’est pas compté.",
+        unit: "Nombre de rebalancements.",
+        source: `${BACKTEST_SERVICE} · preview (rebalanceCount)`,
+    },
+
     // Liste des backtests
     completedRate: {
         title: "Taux de réussite",
@@ -253,7 +280,7 @@ export const GLOSSARY = {
         purpose: "Le temps de calcul de la dernière exécution, de son démarrage par le moteur à son résultat.",
         computation: "Écart entre l’heure de fin et l’heure de démarrage de l’exécution (ou de sa création si elle n’a pas d’heure de démarrage). Absente tant que l’exécution n’est pas finie.",
         unit: "Durée en minutes et secondes.",
-        source: "web/features/backtest/utils.tsx · getExecutionDuration (format des timestamps de l’API)",
+        source: "apps/web/src/features/backtest/utils.tsx · getExecutionDuration (durée entre deux timestamps de l’API)",
     },
 
     // Comparaison
@@ -271,10 +298,10 @@ export const GLOSSARY = {
     investmentMode: {
         title: "Mode d’investissement",
         purpose: "Choisir comment l’argent entre dans le portefeuille : tout le premier jour, ou par versements réguliers (DCA).",
-        computation: "Investissement unique : le capital initial est investi le premier jour. Versements mensuels (DCA) : le capital initial le premier jour, puis le versement mensuel au premier jour de cotation de chaque mois.",
+        computation: "Investissement unique : le capital initial est investi le premier jour. Versements mensuels (DCA) : le premier jour reçoit le capital initial et le premier versement mensuel, puis un versement au premier jour de cotation de chaque mois suivant.",
         unit: "Mode.",
         readingTip: "En DCA, le résultat montre aussi ce qu’aurait donné le même total investi en une fois.",
-        source: `${ENGINE} · simulate (versements)`,
+        source: `${ENGINE} · simulate (initialAmount, recurringAmount)`,
     },
     allocation: {
         title: "Actifs et poids",

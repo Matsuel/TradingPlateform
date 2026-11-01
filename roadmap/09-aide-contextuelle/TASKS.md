@@ -58,7 +58,7 @@ flowchart LR
 - **Fichiers** : `apps/web/src/constants/glossary.ts`, `apps/web/COMPONENTS.md`
 
 Critères d’acceptation :
-- [ ] Type `GlossaryEntry` (`title`, `purpose`, `computation`, `formula?`, `unit`, `readingTip?`, `source`) et objet `GLOSSARY` typé `satisfies Record<GlossaryKey, GlossaryEntry>` (D1, D3).
+- [ ] Type `GlossaryEntry` (`title`, `purpose`, `computation`, `formula?`, `unit`, `readingTip?`, `source`) et objet `GLOSSARY` `satisfies Record<string, GlossaryEntry>`, `GlossaryKey` dérivé de ses clés (D1, D3).
 - [ ] Entrées du résultat : valeur finale, plus-value, montant investi, rendement total, CAGR, volatilité, ratio de Sharpe, taux sans risque, max drawdown (date), durée de récupération, courbe de valeur, courbe de drawdown, benchmark, frais payés, ordres, versements, rebalancements, investissement unique et écart du DCA, positions finales (quantité, valeur), ordres (côté, prix, quantité, montant, frais).
 - [ ] Entrées des hypothèses : règle d’exécution, source des données, empreinte des données.
 - [ ] Entrées de la liste : taux de réussite, taux d’échec, durée d’exécution.
@@ -74,7 +74,7 @@ Critères d’acceptation :
 
 Critères d’acceptation :
 - [ ] Props : `entry: GlossaryKey`, `value?: ReactNode` (valeur déjà formatée, D4), `children` (le libellé affiché).
-- [ ] Rend le libellé dans un `<button type="button">` souligné en pointillés, `cursor-help`, sans changer la typographie du parent (D7, maquette 15.1).
+- [ ] Rend le libellé dans un `<button type="button">` souligné en pointillés, `cursor-pointer` (retouche du 01/11/2026, au lieu de `cursor-help`), sans changer la typographie du parent (D7, maquette 15.1).
 - [ ] Ouvre `AppSheet` : titre, « À quoi ça sert », « Comment c’est calculé », formule en `font-mono` (D5), « Unité », « Comment le lire », « Valeur affichée », source (maquette 15).
 - [ ] Clavier : focusable, `Entrée` ouvre, `Échap` ferme, focus rendu au libellé ; `aria-haspopup="dialog"`.
 - [ ] Le clic ne déclenche pas l’action du parent (ligne de tableau cliquable, soumission de formulaire).
@@ -86,7 +86,7 @@ Critères d’acceptation :
 - **Fichiers** : `apps/web/src/features/backtest/metric-block.tsx`, `apps/web/src/components/stat-card.tsx`, `apps/web/COMPONENTS.md`
 
 Critères d’acceptation :
-- [ ] `MetricRow.label` et `StatCard.label` acceptent un `ReactNode` (rétrocompatible) pour recevoir `<InfoHint>` ; la clé React des lignes ne dépend plus d’un libellé texte.
+- [ ] `MetricRow` reçoit `hint` (et `details`) et `MetricBlock` rend lui-même l’`InfoHint` du libellé, panneau rempli avec la valeur de chaque colonne ; `columnHints` pour un en-tête (« Écart »). `StatCard` inchangé : l’aide des taux va sur `caption`, déjà `ReactNode` (écart du 01/11/2026, voir `README.md`).
 - [ ] Rendu inchangé pour les appelants actuels.
 - [ ] Entrées `COMPONENTS.md` mises à jour.
 

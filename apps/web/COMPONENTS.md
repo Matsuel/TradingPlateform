@@ -216,20 +216,21 @@ Primitives shadcn (base-ui), voir la doc shadcn. Ne les modifie qu'en cas de bes
 ### InfoHint
 
 - **Import** : `import { InfoHint } from "@/components/info-hint"`.
-- **Rôle** : libellé d'une donnée calculée, souligné en pointillés (`cursor-help`, `<button>` focusable, maquette 15.1), qui ouvre dans un `AppSheet` son entrée de `constants/glossary.ts` : « À quoi ça sert », « Comment c’est calculé », formule en `font-mono`, « Unité », « Comment le lire », valeur affichée, source (maquette 15). Le clic, y compris dans le panneau, n'atteint pas le parent (ligne de `DataTable` cliquable, libellé de champ). Garde la typographie du parent.
+- **Rôle** : libellé d'une donnée calculée, souligné en pointillés (`cursor-pointer`, `<button>` focusable, maquette 15.1), qui ouvre dans un `AppSheet` son entrée de `constants/glossary.ts` : « À quoi ça sert », « Comment c’est calculé », formule en `font-mono`, « Unité », « Comment le lire », valeur affichée, source (maquette 15). Le clic, y compris dans le panneau, n'atteint pas le parent (ligne de `DataTable` cliquable, libellé de champ). Garde la typographie du parent.
 - **Props** :
 
   | Nom | Type | Requis | Défaut | Description |
   | --- | --- | --- | --- | --- |
-  | `entry` | `GlossaryKey` | oui | — | Clé de `GLOSSARY`. |
-  | `value` | `ReactNode` | non | — | Valeur déjà formatée par l'écran, rappelée dans le panneau ; jamais recalculée. Bloc masqué si absente. |
+  | `entry` | `GlossaryKey` | non | — | Clé de `GLOSSARY` ; absente, `children` est rendu seul (libellé sans aide), ce qui évite un test chez l'appelant. |
+  | `value` | `ReactNode` | non | — | Valeur déjà formatée par l'écran, rappelée dans le panneau sous « Valeur affichée » ; jamais recalculée. |
+  | `details` | `HintDetail[]` = `{ label: string; value: ReactNode }[]` | non | `[]` | Lignes ajoutées au bloc de valeurs (ex. « Creux atteint le », une colonne d'un tableau). Bloc masqué sans `value` ni `details`. |
   | `children` | `ReactNode` | oui | — | Libellé affiché. |
 
 - **Exemple** (tiré de `src/features/backtest/stats.tsx`) :
   ```tsx
-  label: <InfoHint entry="cagr" value={value}>CAGR</InfoHint>
+  <InfoHint entry="completedRate" value={completedRate}>Taux de réussite</InfoHint>
   ```
-- **Utilisé par** : `src/features/backtest/{stats,result-overview,assumptions,column,comparison-blocks}.tsx`, `src/features/market/{column,price-chart}.tsx`, `src/components/form/field.tsx` (prop `hint`).
+- **Utilisé par** : `src/features/backtest/{stats,result-overview,assumptions,column,metric-block,preview-summary}.tsx`, `src/features/market/{column,price-chart}.tsx`, `src/components/form/field.tsx` (prop `hint`).
 - **Source** : `src/components/info-hint.tsx`.
 
 ## Données et tableaux
@@ -840,8 +841,8 @@ Source : `src/constants/pagination.ts`.
 | Export | Signature / valeur | Rôle | Utilisé par |
 | --- | --- | --- | --- |
 | `GlossaryEntry` | `{ title; purpose; computation; formula?; unit; readingTip?; source }` | Explication d'une donnée (D3, feature 09) ; `source` = fichier et symbole qui la calculent. | `components/info-hint.tsx` |
-| `GLOSSARY` | `Record<GlossaryKey, GlossaryEntry>` | Une entrée par donnée calculée affichée : résultat (`finalValue`, `cagr`, `maxDrawdown`, `lumpSum`, ordres, positions…), hypothèses, liste, comparaison (`comparisonDelta`), paramètres du formulaire, marché. | `components/info-hint.tsx` |
-| `GlossaryKey` | `keyof typeof GLOSSARY` | Clé passée à `InfoHint` (`entry`) ou à un champ (`hint`). | `info-hint.tsx`, `form/field.tsx`, `features/backtest/stats.tsx`, `comparison-blocks.tsx` |
+| `GLOSSARY` | objet littéral `satisfies Record<string, GlossaryEntry>` (typé `Record<GlossaryKey, …>` serait circulaire : `GlossaryKey` en dérive) | Une entrée par donnée calculée affichée : résultat (`finalValue`, `cagr`, `maxDrawdown`, `lumpSum`, `equityCurve`, ordres, positions…), hypothèses, récapitulatif du formulaire (`plannedContributions`, `plannedRebalances`), liste, comparaison (`comparisonDelta`), paramètres du formulaire, marché. | `components/info-hint.tsx` |
+| `GlossaryKey` | `keyof typeof GLOSSARY` | Clé passée à `InfoHint` (`entry`), à un champ, une ligne de `MetricBlock` ou une hypothèse (`hint`). | `info-hint.tsx`, `form/field.tsx`, `features/backtest/{metric-block,assumptions,preview-summary,result-overview}.tsx` |
 
 Ajouter une donnée calculée à l'écran = ajouter son entrée ici dans le même diff (`AGENTS.md`). Relire le texte contre le symbole cité en `source` quand ce calcul change.
 
@@ -971,7 +972,7 @@ Source : `src/features/auth/schema.ts`.
 ### BacktestPreviewSummary
 
 - **Import** : `import { BacktestPreviewSummary } from "@/features/backtest/preview-summary"`.
-- **Rôle** : carte « Récapitulatif » du formulaire « Nouveau backtest » (maquette 12.1), sous `FormProvider` d'un formulaire `BacktestValues` : étapes Données / Simulation / Métriques (`previewSteps`), puis « Rebalancements prévus », « Versements prévus » et « Source des données » (`dataProviderLabels` · `priceTypeLabels`) renvoyés par `useBacktestPreview` (estimations calendaires du backend, aucun calcul côté web) et mention « Estimation calendaire ». Valeurs validées par `backtestSchema.safeParse` dans `useWatch({ compute })`, appel débouncé de 500 ms (`useDebouncedValue`) ; `<Dash />` tant que le formulaire est invalide ou la réponse absente.
+- **Rôle** : carte « Récapitulatif » du formulaire « Nouveau backtest » (maquette 12.1), sous `FormProvider` d'un formulaire `BacktestValues` : étapes Données / Simulation / Métriques (`previewSteps`), puis « Rebalancements prévus », « Versements prévus » et « Source des données » (`dataProviderLabels` · `priceTypeLabels`) renvoyés par `useBacktestPreview` (estimations calendaires du backend, aucun calcul côté web) et mention « Estimation calendaire ». Valeurs validées par `backtestSchema.safeParse` dans `useWatch({ compute })`, appel débouncé de 500 ms (`useDebouncedValue`) ; `<Dash />` tant que le formulaire est invalide ou la réponse absente. Les trois libellés sont des `InfoHint` (`plannedRebalances`, `plannedContributions`, `dataSource`).
 - **Props** : aucune.
 - **Exemple** (tiré de `src/features/backtest/new-backtest-form.tsx`) :
   ```tsx
@@ -1022,7 +1023,7 @@ Source : `src/features/auth/schema.ts`.
 ### ResultOverview
 
 - **Import** : `import { ResultOverview } from "@/features/backtest/result-overview"`.
-- **Rôle** : carte principale d'un résultat : « Valeur finale » (`text-h1`), badge du rendement total, plus-value sur le montant investi (et rendement du benchmark s'il existe), puis courbe de valeur (`PriceAreaChart`, axe des dates masqué) et, dessous sur le même axe, courbe de drawdown. Série en pointillés : benchmark (`benchmarkValue`) s'il existe, sinon investissement unique (`lumpSumValue`, DCA). Drawdown masqué si aucun point ne porte `drawdown` (résultat antérieur).
+- **Rôle** : carte principale d'un résultat : « Valeur finale » (`text-h1`), badge du rendement total, plus-value sur le montant investi (et rendement du benchmark s'il existe), légende des séries (Portefeuille, benchmark ou investissement unique, Drawdown ; libellés `InfoHint`, maquette 15.1), puis courbe de valeur (`PriceAreaChart`, axe des dates masqué) et, dessous sur le même axe, courbe de drawdown. Série en pointillés : benchmark (`benchmarkValue`) s'il existe, sinon investissement unique (`lumpSumValue`, DCA). Drawdown masqué si aucun point ne porte `drawdown` (résultat antérieur).
 - **Props** :
 
   | Nom | Type | Requis | Défaut | Description |
@@ -1046,8 +1047,9 @@ Source : `src/features/auth/schema.ts`.
   | --- | --- | --- | --- | --- |
   | `title` | `string` | oui | — | Titre de la carte. |
   | `description` | `string` | non | — | Sous le titre. |
-  | `columns` | `ReactNode[]` | oui | — | En-tête de chaque colonne de valeurs (ex. `<InfoHint>`), ordre fixe. |
-  | `rows` | `MetricRow[]` = `{ label: ReactNode; badge?: ReactNode; values: ReactNode[] }[]` | oui | — | `values` dans l'ordre de `columns` ; `label` souvent un `<InfoHint>` ; `badge` après le libellé (ex. « diffère »). Lignes fixes (clé = index). |
+  | `columns` | `string[]` | oui | — | En-tête de chaque colonne de valeurs. |
+  | `columnHints` | `Partial<Record<string, GlossaryKey>>` | non | `{}` | Entrée du glossaire d'un en-tête, par libellé (ex. `{ Écart: "comparisonDelta" }`). |
+  | `rows` | `MetricRow[]` = `{ label: string; hint?: GlossaryKey; details?: HintDetail[]; badge?: ReactNode; values: ReactNode[] }[]` | oui | — | `values` dans l'ordre de `columns` ; avec `hint`, le libellé est un `InfoHint` dont le panneau rappelle la valeur de chaque colonne puis `details` ; `badge` après le libellé (ex. « diffère »). |
   | `strong` | `number` | non | `1` | Nombre de premières colonnes en gras ; `0` = toutes en retrait. |
   | `rowHeader` | `string` | non | « Indicateur » pour lecteurs d'écran | En-tête visible de la colonne des libellés. |
   | `note` | `ReactNode` | non | — | Texte sous la liste. |
@@ -1055,7 +1057,7 @@ Source : `src/features/auth/schema.ts`.
 
 - **Exemple** (tiré de `src/features/backtest/stats.tsx`) :
   ```tsx
-  <MetricBlock title="Coûts et activité" columns={["Total"]} rows={[{ label: "Ordres", values: [result.totalTrades] }]} />
+  <MetricBlock title="Coûts et activité" columns={["Total"]} rows={[{ label: "Ordres", hint: "totalTrades", values: [result.totalTrades] }]} />
   ```
 - **Utilisé par** : `src/features/backtest/stats.tsx`, `src/features/backtest/comparison-blocks.tsx`.
 - **Source** : `src/features/backtest/metric-block.tsx`.
@@ -1080,7 +1082,7 @@ Source : `src/features/auth/schema.ts`.
 ### BacktestAssumptions
 
 - **Import** : `import { BacktestAssumptions } from "@/features/backtest/assumptions"`.
-- **Rôle** : liste « Hypothèses » d'un résultat, sans carte, en deux colonnes à partir de `sm` : période, devise (`BACKTEST_CURRENCY`), frais par ordre (achat et vente, D8), rebalancement (`rebalanceFrequencyLabels`), benchmark (`backtest.benchmarkSymbol`, `NO_BENCHMARK_LABEL` si null), taux sans risque du Sharpe (`result.riskFreeRate`, publié par l'engine), règle d'exécution, source et type de cours, date de récupération et empreinte des données (12 premiers caractères, valeur complète en `title`), puis `BACKTEST_DISCLAIMER`. `<Dash />` si `riskFreeRate`, `executionRule` ou `dataSource` est `null` (résultat antérieur).
+- **Rôle** : liste « Hypothèses » d'un résultat, sans carte, en deux colonnes à partir de `sm` : période, devise (`BACKTEST_CURRENCY`), frais par ordre (achat et vente, D8), rebalancement (`rebalanceFrequencyLabels`), benchmark (`backtest.benchmarkSymbol`, `NO_BENCHMARK_LABEL` si null), taux sans risque du Sharpe (`result.riskFreeRate`, publié par l'engine), règle d'exécution, source et type de cours, date de récupération et empreinte des données (12 premiers caractères, valeur complète en `title`), puis `BACKTEST_DISCLAIMER`. `<Dash />` si `riskFreeRate`, `executionRule` ou `dataSource` est `null` (résultat antérieur). Libellés des données calculées ou des paramètres qui changent le calcul (frais, rebalancement, benchmark, taux sans risque, règle d’exécution, source, empreinte) en `InfoHint`.
 - **Props** :
 
   | Nom | Type | Requis | Défaut | Description |

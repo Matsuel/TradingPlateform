@@ -17,12 +17,24 @@ function HintSection({ title, children }: { title: string; children: ReactNode }
 // déclencherait l'action du parent (ligne de tableau cliquable, libellé de champ)
 const stopPropagation = (e: MouseEvent) => e.stopPropagation()
 
+// Ligne du bloc de valeurs du panneau (ex. « Creux atteint le », ou une colonne d'un tableau : « Portefeuille »)
+export type HintDetail = { label: string; value: ReactNode }
+
+interface InfoHintProps {
+    entry?: GlossaryKey // absent : libellé rendu tel quel, sans aide
+    value?: ReactNode
+    details?: HintDetail[]
+    children: ReactNode
+}
+
 /**
  * Libellé souligné en pointillés qui ouvre l'explication d'une donnée du glossaire dans un panneau à droite (maquettes 15 et 15.1).
- * `value` : valeur déjà formatée par l'écran, rappelée dans le panneau, jamais recalculée.
- * Le clic n'atteint pas le parent (ligne cliquable, formulaire).
+ * `value` (« Valeur affichée ») puis `details` : valeurs déjà formatées par l'écran, rappelées dans le panneau, jamais recalculées.
+ * Le clic n'atteint pas le parent (ligne cliquable, formulaire). Sans `entry`, rend `children` seul.
  */
-export function InfoHint({ entry, value, children }: { entry: GlossaryKey; value?: ReactNode; children: ReactNode }) {
+export function InfoHint({ entry, value, details = [], children }: InfoHintProps) {
+    if (!entry) return children
+    const shown = value == null ? details : [{ label: "Valeur affichée", value }, ...details]
     const { title, purpose, computation, formula, unit, readingTip, source }: GlossaryEntry = GLOSSARY[entry]
 
     return (
@@ -34,18 +46,22 @@ export function InfoHint({ entry, value, children }: { entry: GlossaryKey; value
                     <button
                         type="button"
                         aria-haspopup="dialog"
-                        className="cursor-help text-left underline decoration-muted-foreground decoration-dotted underline-offset-4 focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-ring"
+                        className="cursor-pointer text-left underline decoration-muted-foreground decoration-dotted underline-offset-4 focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-ring"
                     >
                         {children}
                     </button>
                 }
             >
                 <div className="flex flex-col gap-6 overflow-y-auto px-4 pb-6 text-body text-muted-foreground">
-                    {value != null && (
-                        <div className="flex items-center justify-between gap-4 rounded-lg bg-muted px-4 py-3">
-                            <span>Valeur affichée</span>
-                            <span className="text-body-semibold text-foreground">{value}</span>
-                        </div>
+                    {shown.length > 0 && (
+                        <dl className="flex flex-col gap-2 rounded-lg bg-muted px-4 py-3">
+                            {shown.map((d) => (
+                                <div key={d.label} className="flex items-start justify-between gap-4">
+                                    <dt>{d.label}</dt>
+                                    <dd className="text-right text-body-semibold text-foreground">{d.value}</dd>
+                                </div>
+                            ))}
+                        </dl>
                     )}
                     <HintSection title="À quoi ça sert">
                         <p>{purpose}</p>
