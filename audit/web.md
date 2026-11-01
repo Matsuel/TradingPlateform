@@ -61,16 +61,37 @@ Mesure hors `components/ui/` et `constants/glossary.ts` : 5 148 lignes. Les plus
 | C8 | `apps/web/COMPONENTS.md` (1 500 l.) | Les colonnes « Utilisé par » sont à retoucher à chaque refacto (constaté sur chaque lot de ce chantier). Les tableaux de props recopient les types. | Retirer « Utilisé par » (un `grep` le donne) et garder rôle, exemple et props non évidentes. Environ −40 %. |
 | C9 | Règle manquante | Aucun seuil de taille n'est écrit. | Ajouter dans `apps/web/AGENTS.md` : fichier ≤ 150 lignes, composant ≤ 60 lignes, ≤ 8 props. Ajouter dans `verify` un avertissement sur un `.tsx` de plus de 150 lignes. |
 
-### Ordre conseillé
+## 3. Taille et complexité : corrections appliquées
 
-Un commit par point :
+Tous les points C1 à C9 sont appliqués. Après chaque commit : `tsc`, `lint` et `format:check` passent (`verify`). `next build` passe à la fin.
 
-1. C1 et C2 : le plus gros gain, et des doublons réels.
-2. C4, C5 et C6.
-3. C3, C7, C8 et C9.
+| Commit | Points | Contenu |
+| --- | --- | --- |
+| `9765337` | C1 | `features/backtest/metrics.tsx` : libellé, aide et format de chaque métrique, définis une fois. `ResultMetrics` (`result-metrics.tsx`) découpé en `PerformanceBlock`, `RiskBlock` et `CostsBlock`. `stats.tsx` ne garde que les `StatCard`. |
+| `e173b07` | C2, C3 | `AreaSeriesChart`, piloté par une liste de séries, remplace `PriceAreaChart` (15 props, trois `Area` écrites à la main). `ValueDrawdownCharts` est partagé par le détail et la comparaison. `ResultOverview` est découpé en `ResultHeadline` et `ProfitLine`. |
+| `f446f81` | C4 | `AllocationField` déplacé dans `features/backtest` (seul domaine utilisateur), avec `AllocationRow`. `FULL_PERCENT`, `allocationTotal` et `AllocationInput` rejoignent `constants`, `utils` et `types`. |
+| `24ab3bb` | C5 | `SymbolPicker` s'affiche depuis un état unique (`searchState`). |
+| `5d44229` | C6 | `TradesTable` extrait de `BacktestDetail`. `StatusBadge` remplace trois badges de statut écrits à la main. |
+| `ab9f65c` | C7 | `TablePagination` dans `data-table/table-pagination.tsx`. |
+| `a07b133` | C8 | `COMPONENTS.md` : colonnes et lignes « Utilisé par » supprimées, ainsi que la colonne « Signature » des tableaux de modules. Résultat : 100 761 → 81 297 caractères (−19 %, et non −40 % comme estimé). Les tableaux de props et les exemples sont gardés. |
+| `d7007d7` | C9 | Seuils écrits dans `apps/web/AGENTS.md` (« Taille et complexité »). `verify` avertit sur un fichier web de plus de 150 lignes. `comparison-blocks.tsx` (164 l.) scindé en `comparison-metrics.tsx` et `comparison-parameters.tsx`. |
 
-### Décisions ouvertes
+### Résultat
 
-- Appliquer tout (C1 à C9), ou seulement le code (C1 à C6) ?
-- C3 : renommer `PriceAreaChart` ?
-- C8 : alléger `COMPONENTS.md` ?
+- Plus gros fichier : 142 lignes (`components/symbol-picker.tsx`), contre 203 avant. Aucun fichier ne dépasse 150 lignes.
+- Total : 5 179 lignes, stable. Le gain est dans la forme : plus de doublons de métriques ni de graphiques, des composants plus courts.
+- Écart à la maquette : aucun voulu. La mise en page du détail (plus-value et légende sur une ligne) est conservée. **Non comparé au Figma** : l'app n'a pas été lancée avec un backend.
+
+### Reste au-delà de 60 lignes
+
+Ces composants dépassent encore le seuil du composant (mesure approximative, JSDoc compris) :
+
+| Composant | Lignes | Piste |
+| --- | --- | --- |
+| `QuickBacktestForm` | 81 | Sortir le bloc « Symbole / Données analysées » dans un sous-composant. |
+| `DataTable` | 80 | Sortir l'en-tête (titre, description, actions) et les lignes d'état. |
+| `MetricBlock` | 79 | Sortir la ligne (`MetricBlockRow`). |
+| `AreaSeriesChart` | 74 | Surtout de la configuration recharts, à garder tel quel. |
+| `SymbolPicker` | 70 | Sortir la liste des résultats. |
+| `AllocationField` | 66 | Proche du seuil. |
+| `AppField` | 65 | Proche du seuil. |
