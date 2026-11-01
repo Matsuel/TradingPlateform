@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { DataTable } from "@/components/data-table/data-table"
+import { TableCard } from "@/components/data-table/table-card"
 import { PAGE_SIZE } from "@/constants/pagination"
 import { routes } from "@/lib/routes"
 import { marketColumns } from "./column"
@@ -21,13 +22,15 @@ export function MarketList() {
                 <SymbolSearch />
             </div>
 
-            <DataTable
-                query={{ ...query, data: query.data?.data }}
-                columns={marketColumns}
-                rowKey={(a) => a.symbol}
-                onRowClick={(a) => router.push(routes.symbol(a.symbol))}
-                pagination={{ page, pageSize: PAGE_SIZE, count: query.data?.count ?? 0, onPageChange: setPage }}
-            />
+            <TableCard>
+                <DataTable
+                    query={{ ...query, data: query.data?.data }}
+                    columns={marketColumns}
+                    rowKey={(a) => a.symbol}
+                    onRowClick={(a) => router.push(routes.symbol(a.symbol))}
+                    pagination={{ page, pageSize: PAGE_SIZE, count: query.data?.count ?? 0, onPageChange: setPage }}
+                />
+            </TableCard>
         </>
     )
 }

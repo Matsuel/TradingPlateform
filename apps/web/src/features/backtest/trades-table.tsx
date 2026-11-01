@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { DataTable } from "@/components/data-table/data-table"
+import { TableCard } from "@/components/data-table/table-card"
 import { Button } from "@/components/ui/button"
 import { PAGE_SIZE } from "@/constants/pagination"
 import { paginate } from "@/lib/pagination"
@@ -21,10 +22,7 @@ export function TradesTable({ trades }: { trades: Trade[] }) {
     const newestFirst = trades.toReversed()
 
     return (
-        <DataTable
-            rows={showAll ? paginate(newestFirst, page, PAGE_SIZE) : newestFirst.slice(0, RECENT_TRADES)}
-            columns={tradeColumns}
-            rowKey={(t) => `${t.date}-${t.symbol}-${t.side}-${t.amount}`}
+        <TableCard
             title="Ordres"
             description={
                 showAll
@@ -38,10 +36,16 @@ export function TradesTable({ trades }: { trades: Trade[] }) {
                     </Button>
                 )
             }
-            emptyMessage="Aucun ordre."
-            pagination={
-                showAll ? { page, pageSize: PAGE_SIZE, count: trades.length, onPageChange: setPage } : undefined
-            }
-        />
+        >
+            <DataTable
+                rows={showAll ? paginate(newestFirst, page, PAGE_SIZE) : newestFirst.slice(0, RECENT_TRADES)}
+                columns={tradeColumns}
+                rowKey={(t) => `${t.date}-${t.symbol}-${t.side}-${t.amount}`}
+                emptyMessage="Aucun ordre."
+                pagination={
+                    showAll ? { page, pageSize: PAGE_SIZE, count: trades.length, onPageChange: setPage } : undefined
+                }
+            />
+        </TableCard>
     )
 }

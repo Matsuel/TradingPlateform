@@ -40,7 +40,7 @@ Module de fonctions, hooks, constantes ou types (`lib/*.ts`, `features/<domaine>
 
 - [`components/ui`](#componentsui)
 - [Mise en page et navigation](#mise-en-page-et-navigation) : `PageLayout`, `PageHeader`, `AppHeader`, `AppSidebar`, `SidebarNav`, `NavUser`, `ThemeToggle`, `AppSheet`, `InfoHint`
-- [Données et tableaux](#données-et-tableaux) : `DataTable` (`Column`), `SymbolCell`, `ChangeCell`, `Dash` (`orDash`), `OptionSelect`, `FilterTabs`, `StatCard`, `LoadingState`, `ErrorState`
+- [Données et tableaux](#données-et-tableaux) : `DataTable` (`Column`), `TableCard`, `SymbolCell`, `ChangeCell`, `Dash` (`orDash`), `OptionSelect`, `FilterTabs`, `StatCard`, `LoadingState`, `ErrorState`
 - [Graphiques](#graphiques) : `AreaSeriesChart` (`ChartPoint`, `ChartSeries`, `trendColor`, `referenceSeries`), `ChartLegend`, `Sparkline`
 - [Symboles](#symboles) : `SymbolPicker`
 - [Formulaires (`components/form`)](#formulaires-componentsform) : `AppField`, `TextField`, `NumberField`, `TextareaField`, `SelectField`, `DateField`, `CheckboxField`, `SwitchField`, `SymbolsField`, `FormSection`, `FieldRow`
@@ -204,7 +204,7 @@ Primitives shadcn (base-ui), voir la doc shadcn. Ne les modifie qu'en cas de bes
 ### DataTable
 
 - **Import** : `import { DataTable, type Column } from "@/components/data-table/data-table"`.
-- **Rôle** : tableau branché sur une requête TanStack Query (`query`) ou sur des lignes déjà chargées (`rows`) : gère chargement, erreur (`ErrorState`), vide, clic de ligne et pagination optionnelle. Colonnes déclarées dans `features/<domaine>/column.tsx`.
+- **Rôle** : tableau branché sur une requête TanStack Query (`query`) ou sur des lignes déjà chargées (`rows`) : gère chargement, erreur (`ErrorState`), vide, clic de ligne et pagination optionnelle. Colonnes déclarées dans `features/<domaine>/column.tsx`. Sans cadre : l'entourer de `TableCard` pour la bordure et le titre.
 - **Props** :
 
   | Nom | Type | Requis | Défaut | Description |
@@ -215,43 +215,31 @@ Primitives shadcn (base-ui), voir la doc shadcn. Ne les modifie qu'en cas de bes
   | `rowKey` | `(row: T) => string` | oui | — | Clé React de ligne. |
   | `onRowClick` | `(row: T) => void` | non | — | Rend les lignes cliquables. |
   | `emptyMessage` | `ReactNode` | non | `"Aucune donnée."` | Affiché si `data` est vide. |
-  | `loader` | `ReactNode` | non | `<LoadingState />` | Affiché si `isPending`. |
-  | `title` | `ReactNode` | non | — | Titre au-dessus du tableau. |
-  | `description` | `ReactNode` | non | — | Sous le titre. |
-  | `actions` | `ReactNode` | non | — | À droite du titre (ex. `FilterTabs`). |
-  | `className` | `string` | non | — | Sur l'élément `Table` (pas le cadre). |
-  | `frameless` | `boolean` | non | `false` | Sans cadre ni marge intérieure, pour un tableau dans un conteneur qui en a déjà un (ex. section repliable). |
-  | `pagination` | `{ page: number; pageSize: number; count: number; onPageChange: (page: number) => void }` | non | — | Pied de tableau `ui/pagination` : libellé « 21–40 sur 57 », précédent / numéros (ellipses au-delà de 7 pages, `getPageItems`) / suivant, désactivés aux bornes. Masqué s'il n'y a qu'une page. `page` commence à 1 ; `count` = total toutes pages confondues. `data` ne contient que la page affichée : page serveur (`Paginated<T>.data`) ou découpage client (`paginate`). |
+  | `pagination` | `{ page; pageSize; count; onPageChange }` | non | — | Pied de tableau (`TablePagination`) : « 21–40 sur 57 », précédent / numéros (ellipses au-delà de 7 pages) / suivant ; masqué sur une seule page. `page` commence à 1, `count` = total toutes pages confondues ; `data` ne contient que la page affichée (page serveur ou `paginate`). |
 
   `Column<T>` : `{ header: ReactNode; cell: (row: T) => ReactNode; className?: string }` (`className` appliquée à l'en-tête et aux cellules).
 
 - **Exemple** (tiré de `src/features/backtest/backtest-list.tsx`) :
   ```tsx
-  <DataTable
-      query={{ ...query, data: query.data?.data }}
-      columns={backtestColumns}
-      rowKey={(b) => b.id}
-      onRowClick={(b) => router.push(routes.backtest(b.id))}
-      title="Tous les backtests"
-      description="Triés par date de lancement"
-      actions={<FilterTabs value={filter} onChange={changeFilter} options={filterOptions} />}
-      emptyMessage="Aucun backtest."
-      pagination={{ page, pageSize: PAGE_SIZE, count: query.data?.count ?? 0, onPageChange: setPage }}
-  />
+  <TableCard title="Tous les backtests" description="Triés par date de lancement" actions={<FilterTabs … />}>
+      <DataTable
+          query={{ ...query, data: query.data?.data }}
+          columns={backtestColumns}
+          rowKey={(b) => b.id}
+          onRowClick={(b) => router.push(routes.backtest(b.id))}
+          emptyMessage="Aucun backtest."
+          pagination={{ page, pageSize: PAGE_SIZE, count: query.data?.count ?? 0, onPageChange: setPage }}
+      />
+  </TableCard>
   ```
-  Pagination client (tiré de `src/features/backtest/backtest-detail.tsx`) :
-  ```tsx
-  <DataTable
-      query={{ ...query, data: paginate(result.trades.toReversed(), tradePage, PAGE_SIZE) }}
-      columns={tradeColumns}
-      rowKey={(t) => `${t.date}-${t.symbol}`}
-      title="Ordres"
-      description="Achats exécutés, du plus récent au plus ancien"
-      emptyMessage="Aucun ordre."
-      pagination={{ page: tradePage, pageSize: PAGE_SIZE, count: result.trades.length, onPageChange: setTradePage }}
-  />
-  ```
-- **Source** : `src/components/data-table/data-table.tsx`.
+- **Source** : `src/components/data-table/data-table.tsx` (`StatusRow`, `DataRows` internes), `src/components/data-table/table-pagination.tsx`.
+
+### TableCard
+
+- **Import** : `import { TableCard } from "@/components/data-table/table-card"`.
+- **Rôle** : cadre d'un tableau (bordure, marges) avec, s'il y en a, titre, description et actions au-dessus. Un tableau déjà dans un conteneur (section repliable) s'en passe.
+- **Props** : `title?`, `description?`, `actions?` (`ReactNode`, ex. `FilterTabs`), `children` (le `DataTable`).
+- **Source** : `src/components/data-table/table-card.tsx`.
 
 ### SymbolCell
 
@@ -460,7 +448,7 @@ Primitives shadcn (base-ui), voir la doc shadcn. Ne les modifie qu'en cas de bes
 ### SymbolPicker
 
 - **Import** : `import { SymbolPicker } from "@/components/symbol-picker"`.
-- **Rôle** : dialogue de recherche de symbole (`useMarketSearch`, au moins `MIN_SEARCH_LENGTH` = 3 caractères, anti-rebond 500 ms via `useDebouncedValue`) ; résultats rendus en `SymbolCell` ; se ferme à la sélection.
+- **Rôle** : dialogue de recherche de symbole (`useMarketSearch`, au moins `MIN_SEARCH_LENGTH` = 3 caractères, anti-rebond 500 ms via `useDebouncedValue`) ; résultats rendus en `SymbolCell` ; se ferme à la sélection. État de la recherche (`searchState`) et contenu de la liste (`SearchResults`, un `switch` par état) dans `symbol-search-results.tsx`.
 - **Props** :
 
   | Nom | Type | Requis | Défaut | Description |
@@ -500,7 +488,7 @@ Props communes `BaseProps<T>` (exportées par `field.tsx`), répétées dans cha
 ### AppField
 
 - **Import** : `import { AppField, type BaseProps, type RenderCtx } from "@/components/form/field"`.
-- **Rôle** : base de tous les champs : relie un contrôle à react-hook-form et gère libellé/description/erreur. À utiliser pour créer un nouveau type de champ dans `fields/`.
+- **Rôle** : base de tous les champs : relie un contrôle à react-hook-form et gère libellé/description/erreur (mise en page empilée ou en ligne par `FieldLayout`, interne). À utiliser pour créer un nouveau type de champ dans `fields/`.
 - **Props** : `BaseProps<T>` +
 
   | Nom | Type | Requis | Défaut | Description |
@@ -1078,7 +1066,7 @@ Source : `src/features/auth/schema.ts`.
 ### ResultDetails
 
 - **Import** : `import { ResultDetails } from "@/features/backtest/result-details"`.
-- **Rôle** : carte de sections repliables (`ui/collapsible`) en bas du détail : « Positions finales » (`DataTable` `frameless`, `holdingColumns`) et « Hypothèses » (`BacktestAssumptions`) avec un résultat, puis « Historique d'exécution » (`ExecutionList`), déplié quand il n'y a pas de résultat. Chaque en-tête montre un résumé et « Afficher » / « Masquer ».
+- **Rôle** : carte de sections repliables (`ui/collapsible`) en bas du détail : « Positions finales » (`DataTable` sans `TableCard`, `holdingColumns`) et « Hypothèses » (`BacktestAssumptions`) avec un résultat, puis « Historique d'exécution » (`ExecutionList`), déplié quand il n'y a pas de résultat. Chaque en-tête montre un résumé et « Afficher » / « Masquer ».
 - **Props** :
 
   | Nom | Type | Requis | Défaut | Description |

@@ -67,6 +67,21 @@ function AllocationRow({ row, inputId, error, onWeightChange, onRemove, onBlur }
     )
 }
 
+// Bouton d'ajout et total saisi, vert à 100 %, rouge sinon (la validation reste au schéma)
+function AllocationFooter({ total, addLabel, onAdd }: { total: number; addLabel: string; onAdd: () => void }) {
+    return (
+        <div className="flex items-center justify-between gap-2">
+            <Button type="button" variant="outline" onClick={onAdd}>
+                <Plus />
+                {addLabel}
+            </Button>
+            <Badge variant={total === FULL_PERCENT ? "success" : "destructive"} aria-live="polite">
+                Total : {total} %
+            </Badge>
+        </div>
+    )
+}
+
 /**
  * Champ de formulaire : allocation (`AllocationInput[]`), une `AllocationRow` par actif.
  * Le badge « Total » additionne la saisie pour l'affichage ; la validation (somme = 100) reste au schéma.
@@ -114,15 +129,7 @@ export function AllocationField<T extends FieldValues>({
                                     />
                                 )
                             })}
-                            <div className="flex items-center justify-between gap-2">
-                                <Button type="button" variant="outline" onClick={() => setOpen(true)}>
-                                    <Plus />
-                                    {addLabel}
-                                </Button>
-                                <Badge variant={total === FULL_PERCENT ? "success" : "destructive"} aria-live="polite">
-                                    Total : {total} %
-                                </Badge>
-                            </div>
+                            <AllocationFooter total={total} addLabel={addLabel} onAdd={() => setOpen(true)} />
                         </div>
                         <SymbolPicker
                             open={open}

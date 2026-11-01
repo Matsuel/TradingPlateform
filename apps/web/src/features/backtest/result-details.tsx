@@ -64,7 +64,6 @@ export function ResultDetails({ backtest }: { backtest: BacktestDetails }) {
                                 columns={holdingColumns}
                                 rowKey={(h) => h.symbol}
                                 emptyMessage="Positions non disponibles pour ce résultat."
-                                frameless
                             />
                         </DetailSection>
                         <DetailSection title="Hypothèses" summary="Conditions de la simulation">

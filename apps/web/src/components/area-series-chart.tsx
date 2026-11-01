@@ -42,6 +42,29 @@ interface AreaSeriesChartProps {
     className?: string
 }
 
+// Infobulle : la date, puis la valeur de chaque série présente ce jour-là, préfixée de son nom s'il y en a plusieurs
+function tooltipContent(
+    series: ChartSeries[],
+    formatTooltipDate: (date: string) => string,
+    formatValue: (value: number) => string,
+) {
+    const labels = new Map(series.map((s) => [s.key, s.label]))
+    return (
+        <ChartTooltipContent
+            hideIndicator
+            labelFormatter={(_, payload) => (payload?.[0] ? formatTooltipDate(payload[0].payload.date) : "")}
+            formatter={(value, name) =>
+                value == null ? null : (
+                    <span className="text-body-medium">
+                        {series.length > 1 && `${labels.get(String(name))} : `}
+                        {formatValue(Number(value))}
+                    </span>
+                )
+            }
+        />
+    )
+}
+
 /** Courbes datées sur un axe commun : une `Area` par série de `series`, infobulle formatée par `formatValue`. */
 export function AreaSeriesChart({
     data,
@@ -56,7 +79,6 @@ export function AreaSeriesChart({
     const config = Object.fromEntries(
         series.map((s) => [s.key, { label: s.label, color: s.color }]),
     ) satisfies ChartConfig
-    const labels = new Map(series.map((s) => [s.key, s.label]))
 
     return (
         <ChartContainer config={config} className={cn("aspect-auto h-82.5 w-full", className)}>
@@ -79,25 +101,7 @@ export function AreaSeriesChart({
                     domain={["auto", "auto"]}
                     tickFormatter={formatAxis}
                 />
-                <ChartTooltip
-                    cursor={false}
-                    content={
-                        <ChartTooltipContent
-                            hideIndicator
-                            labelFormatter={(_, payload) =>
-                                payload?.[0] ? formatTooltipDate(payload[0].payload.date) : ""
-                            }
-                            formatter={(value, name) =>
-                                value == null ? null : (
-                                    <span className="text-body-medium">
-                                        {series.length > 1 && `${labels.get(String(name))} : `}
-                                        {formatValue(Number(value))}
-                                    </span>
-                                )
-                            }
-                        />
-                    }
-                />
+                <ChartTooltip cursor={false} content={tooltipContent(series, formatTooltipDate, formatValue)} />
                 {series.map((s) => (
                     <Area
                         key={s.key}
