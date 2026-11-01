@@ -45,11 +45,11 @@ Validées le 01/11/2026.
 **En tant qu’** utilisateur, **je veux** cliquer sur le libellé d’une donnée **afin de** lire à quoi elle sert et comment elle est calculée, sans quitter l’écran.
 
 Critères d’acceptation :
-- [ ] Le libellé de chaque donnée calculée du résultat d’un backtest, de la liste des backtests, de la comparaison et du marché est souligné en pointillés (D6, D7).
-- [ ] Le clic (ou `Entrée` au clavier) ouvre un panneau à droite : titre, « À quoi ça sert », « Comment c’est calculé », formule éventuelle, unité, « Comment le lire » éventuel, valeur affichée à l’écran (D4), source.
-- [ ] Le panneau se ferme par `Échap`, la croix ou un clic hors du panneau ; le focus revient sur le libellé.
-- [ ] Chaque explication est cohérente avec le code qui calcule la donnée (relecture contre le symbole cité en `source`).
-- [ ] Le web ne calcule rien de nouveau : seuls des textes et un composant d’affichage sont ajoutés.
+- [x] Le libellé de chaque donnée calculée du résultat d’un backtest, de la liste des backtests, de la comparaison et du marché est souligné en pointillés (D6, D7).
+- [x] Le clic (ou `Entrée` au clavier) ouvre un panneau à droite : titre, « À quoi ça sert », « Comment c’est calculé », formule éventuelle, unité, « Comment le lire » éventuel, valeur affichée à l’écran (D4), source.
+- [ ] Le panneau se ferme par `Échap`, la croix ou un clic hors du panneau ; le focus revient sur le libellé. — *Non coché : vérifié à la lecture du code, pas dans un navigateur.*
+- [x] Chaque explication est cohérente avec le code qui calcule la donnée (relecture contre le symbole cité en `source`).
+- [x] Le web ne calcule rien de nouveau : seuls des textes et un composant d’affichage sont ajoutés.
 
 Tâches : T-01, T-02, T-03, T-04, T-05, T-06, T-07.
 
@@ -60,7 +60,7 @@ Tâches : T-01, T-02, T-03, T-04, T-05, T-06, T-07.
 **En tant qu’** utilisateur, **je veux** la même aide sur les champs du formulaire « Nouveau backtest » **afin de** choisir le mode d’investissement, les frais et le rebalancement en connaissant leur effet.
 
 Critères d’acceptation :
-- [ ] Libellé cliquable sur « Mode d’investissement », « Actifs et poids », « Frais par ordre (%) », « Rebalancement » et « Benchmark ».
+- [x] Libellé cliquable sur « Mode d’investissement », « Actifs et poids », « Frais par ordre (%) », « Rebalancement » et « Benchmark ».
 
 Tâches : T-08.
 
@@ -71,8 +71,8 @@ Tâches : T-08.
 **En tant qu’** utilisateur, **je veux** que chaque nouvelle métrique ait son aide dès son apparition **afin de** ne jamais lire un chiffre inexpliqué.
 
 Critères d’acceptation :
-- [ ] Les métriques de la feature 08 (CAGR, volatilité, Sharpe, récupération, benchmark, rebalancements) ont leur entrée de glossaire (T-01) et leur libellé cliquable.
-- [ ] La règle « toute donnée calculée affichée a son entrée de glossaire » est écrite dans `apps/web/AGENTS.md`.
+- [x] Les métriques de la feature 08 (CAGR, volatilité, Sharpe, récupération, benchmark, rebalancements) ont leur entrée de glossaire (T-01) et leur libellé cliquable.
+- [x] La règle « toute donnée calculée affichée a son entrée de glossaire » est écrite dans `apps/web/AGENTS.md`.
 
 Tâches : T-01, T-09.
 

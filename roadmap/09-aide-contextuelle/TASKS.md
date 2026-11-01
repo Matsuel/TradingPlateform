@@ -4,19 +4,21 @@
 
 ## Synthèse
 
-| Tâche | Titre | US | Couche | Priorité | Points | Dépend de |
-| --- | --- | --- | --- | --- | --- | --- |
-| T-01 | Catalogue `glossary.ts` | US-01, US-03 | web | MUST | 5 | — |
-| T-02 | Composant `InfoHint` | US-01 | web | MUST | 3 | — |
-| T-03 | Libellé `ReactNode` dans `MetricBlock` et `StatCard` | US-01 | web | MUST | 2 | — |
-| T-04 | Aide sur le résultat d’un backtest | US-01 | web | MUST | 3 | T-01, T-02, T-03 |
-| T-05 | Aide sur la liste des backtests | US-01 | web | MUST | 2 | T-01, T-02, T-03 |
-| T-06 | Aide sur le marché | US-01 | web | MUST | 2 | T-01, T-02 |
-| T-07 | Aide sur la comparaison | US-01 | web | MUST | 2 | T-01, T-02, T-03 |
-| T-08 | Aide sur le formulaire « Nouveau backtest » | US-02 | web | SHOULD | 2 | T-01, T-02 |
-| T-09 | Règle de maintenance dans `AGENTS.md` | US-03 | docs | MUST | 1 | T-02 |
+| Tâche | Titre | US | Couche | Priorité | Points | Dépend de | Réalisé | Commits |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| T-01 | Catalogue `glossary.ts` | US-01, US-03 | web | MUST | 5 | — | 8 | `e4a1757`, `29882d7`, `fb9e49c` |
+| T-02 | Composant `InfoHint` | US-01 | web | MUST | 3 | — | 3 | `e4a1757`, `29882d7` |
+| T-03 | Libellé `ReactNode` dans `MetricBlock` et `StatCard` | US-01 | web | MUST | 2 | — | 3 | `e4a1757`, `29882d7` |
+| T-04 | Aide sur le résultat d’un backtest | US-01 | web | MUST | 3 | T-01, T-02, T-03 | 5 | `e4a1757`, `29882d7` |
+| T-05 | Aide sur la liste des backtests | US-01 | web | MUST | 2 | T-01, T-02, T-03 | 2 | `e4a1757` |
+| T-06 | Aide sur le marché | US-01 | web | MUST | 2 | T-01, T-02 | 2 | `e4a1757` |
+| T-07 | Aide sur la comparaison | US-01 | web | MUST | 2 | T-01, T-02, T-03 | 2 | `e4a1757`, `29882d7` |
+| T-08 | Aide sur le formulaire « Nouveau backtest » | US-02 | web | SHOULD | 2 | T-01, T-02 | 2 | `e4a1757`, `29882d7` |
+| T-09 | Règle de maintenance dans `AGENTS.md` | US-03 | docs | MUST | 1 | T-02 | 1 | `e4a1757` |
 
-**Total** : 22 points — MUST 20, SHOULD 2.
+**Total** : 22 points prévus — MUST 20, SHOULD 2 ; 28 réalisés.
+
+Écarts réalisés (un cran de l’échelle chacun) : T-01 5 → 8, trois relectures du glossaire contre le code (premier versement du DCA, devises non converties, récupération sur l’indice, seuils de rebalancement) ; T-03 2 → 3, `hint`, `details` et `columnHints` dans `MetricBlock` au lieu d’un libellé `ReactNode` ; T-04 3 → 5, légende du graphique ajoutée (absente du code, maquette 15.1).
 
 | Lot | Tâches | Points |
 | --- | --- | --- |
@@ -58,14 +60,14 @@ flowchart LR
 - **Fichiers** : `apps/web/src/constants/glossary.ts`, `apps/web/COMPONENTS.md`
 
 Critères d’acceptation :
-- [ ] Type `GlossaryEntry` (`title`, `purpose`, `computation`, `formula?`, `unit`, `readingTip?`, `source`) et objet `GLOSSARY` `satisfies Record<string, GlossaryEntry>`, `GlossaryKey` dérivé de ses clés (D1, D3).
-- [ ] Entrées du résultat : valeur finale, plus-value, montant investi, rendement total, CAGR, volatilité, ratio de Sharpe, taux sans risque, max drawdown (date), durée de récupération, courbe de valeur, courbe de drawdown, benchmark, frais payés, ordres, versements, rebalancements, investissement unique et écart du DCA, positions finales (quantité, valeur), ordres (côté, prix, quantité, montant, frais).
-- [ ] Entrées des hypothèses : règle d’exécution, source des données, empreinte des données.
-- [ ] Entrées de la liste : taux de réussite, taux d’échec, durée d’exécution.
-- [ ] Entrée de la comparaison : écart A − B.
-- [ ] Entrées du marché : prix, variation 24 h, volume 24 h, tendance.
-- [ ] Chaque `source` cite un fichier et un symbole réels ; chaque texte est relu contre ce code (`annualizedReturn`, `annualizedVolatility`, `sharpeRatio`, `createDrawdownTracker`, frais inclus dans le montant investi, signe de l’écart du DCA…).
-- [ ] Entrée `COMPONENTS.md` : usage du glossaire.
+- [x] Type `GlossaryEntry` (`title`, `purpose`, `computation`, `formula?`, `unit`, `readingTip?`, `source`) et objet `GLOSSARY` `satisfies Record<string, GlossaryEntry>`, `GlossaryKey` dérivé de ses clés (D1, D3).
+- [x] Entrées du résultat : valeur finale, plus-value, montant investi, rendement total, CAGR, volatilité, ratio de Sharpe, taux sans risque, max drawdown (date), durée de récupération, courbe de valeur, courbe de drawdown, benchmark, frais payés, ordres, versements, rebalancements, investissement unique et écart du DCA, positions finales (quantité, valeur), ordres (côté, prix, quantité, montant, frais).
+- [x] Entrées des hypothèses : règle d’exécution, source des données, empreinte des données.
+- [x] Entrées de la liste : taux de réussite, taux d’échec, durée d’exécution.
+- [x] Entrée de la comparaison : écart A − B.
+- [x] Entrées du marché : prix, variation 24 h, volume 24 h, tendance.
+- [x] Chaque `source` cite un fichier et un symbole réels ; chaque texte est relu contre ce code (`annualizedReturn`, `annualizedVolatility`, `sharpeRatio`, `createDrawdownTracker`, frais inclus dans le montant investi, signe de l’écart du DCA…).
+- [x] Entrée `COMPONENTS.md` : usage du glossaire.
 
 ### T-02 · Composant `InfoHint`
 
@@ -73,12 +75,12 @@ Critères d’acceptation :
 - **Fichiers** : `apps/web/src/components/info-hint.tsx`, `apps/web/COMPONENTS.md`
 
 Critères d’acceptation :
-- [ ] Props : `entry: GlossaryKey`, `value?: ReactNode` (valeur déjà formatée, D4), `children` (le libellé affiché).
-- [ ] Rend le libellé dans un `<button type="button">` souligné en pointillés, `cursor-pointer` (retouche du 01/11/2026, au lieu de `cursor-help`), sans changer la typographie du parent (D7, maquette 15.1).
-- [ ] Ouvre `AppSheet` : titre, « À quoi ça sert », « Comment c’est calculé », formule en `font-mono` (D5), « Unité », « Comment le lire », « Valeur affichée », source (maquette 15).
-- [ ] Clavier : focusable, `Entrée` ouvre, `Échap` ferme, focus rendu au libellé ; `aria-haspopup="dialog"`.
-- [ ] Le clic ne déclenche pas l’action du parent (ligne de tableau cliquable, soumission de formulaire).
-- [ ] Entrée `COMPONENTS.md` (props, usage).
+- [x] Props : `entry?: GlossaryKey` (absente : libellé seul), `value?: ReactNode` (valeur déjà formatée, D4), `details?: HintDetail[]` (lignes du bloc de valeurs, maquette 15), `children` (le libellé affiché).
+- [x] Rend le libellé dans un `<button type="button">` souligné en pointillés, `cursor-pointer` (retouche du 01/11/2026, au lieu de `cursor-help`), sans changer la typographie du parent (D7, maquette 15.1).
+- [x] Ouvre `AppSheet` : titre, « À quoi ça sert », « Comment c’est calculé », formule en `font-mono` (D5), « Unité », « Comment le lire », « Valeur affichée », source (maquette 15).
+- [ ] Clavier : focusable, `Entrée` ouvre, `Échap` ferme, focus rendu au libellé ; `aria-haspopup="dialog"`. — *Non coché : vérifié à la lecture du code, pas dans un navigateur.*
+- [ ] Le clic ne déclenche pas l’action du parent (ligne de tableau cliquable, soumission de formulaire). — *Non coché : vérifié à la lecture du code, pas dans un navigateur.*
+- [x] Entrée `COMPONENTS.md` (props, usage).
 
 ### T-03 · Libellé `ReactNode` dans `MetricBlock` et `StatCard`
 
@@ -86,9 +88,9 @@ Critères d’acceptation :
 - **Fichiers** : `apps/web/src/features/backtest/metric-block.tsx`, `apps/web/src/components/stat-card.tsx`, `apps/web/COMPONENTS.md`
 
 Critères d’acceptation :
-- [ ] `MetricRow` reçoit `hint` (et `details`) et `MetricBlock` rend lui-même l’`InfoHint` du libellé, panneau rempli avec la valeur de chaque colonne ; `columnHints` pour un en-tête (« Écart »). `StatCard` inchangé : l’aide des taux va sur `caption`, déjà `ReactNode` (écart du 01/11/2026, voir `README.md`).
-- [ ] Rendu inchangé pour les appelants actuels.
-- [ ] Entrées `COMPONENTS.md` mises à jour.
+- [x] `MetricRow` reçoit `hint` (et `details`) et `MetricBlock` rend lui-même l’`InfoHint` du libellé, panneau rempli avec la valeur de chaque colonne ; `columnHints` pour un en-tête (« Écart »). `StatCard` inchangé : l’aide des taux va sur `caption`, déjà `ReactNode` (écart du 01/11/2026, voir `README.md`).
+- [x] Rendu inchangé pour les appelants actuels.
+- [x] Entrées `COMPONENTS.md` mises à jour.
 
 ### T-04 · Aide sur le résultat d’un backtest
 
@@ -96,12 +98,12 @@ Critères d’acceptation :
 - **Fichiers** : `features/backtest/result-overview.tsx`, `stats.tsx`, `assumptions.tsx`, `column.tsx`
 
 Critères d’acceptation :
-- [ ] « Valeur finale » et légendes « Drawdown », « Benchmark » de `ResultOverview`.
-- [ ] Lignes de `BacktestResultBlocks` (Performance, Risque, Coûts et activité), avec la valeur affichée.
-- [ ] « Taux sans risque », « Règle d’exécution », « Source des données » et « Empreinte des données » de `BacktestAssumptions`.
-- [ ] En-têtes des colonnes calculées de `tradeColumns` et `holdingColumns`.
-- [ ] Aucun libellé souligné sur les champs bruts (D6).
-- [ ] Comparé aux maquettes 15 et 15.1 (skill `verify`, étape 5).
+- [ ] « Valeur finale » et légendes « Drawdown », « Benchmark » de `ResultOverview`. — *Non coché : « Valeur finale » et panneaux vérifiés en capture ; légende du graphique non vue (cachée par le panneau ouvert).*
+- [x] Lignes de `BacktestResultBlocks` (Performance, Risque, Coûts et activité), avec la valeur affichée.
+- [x] « Taux sans risque », « Règle d’exécution », « Source des données » et « Empreinte des données » de `BacktestAssumptions`.
+- [x] En-têtes des colonnes calculées de `tradeColumns` et `holdingColumns`.
+- [x] Aucun libellé souligné sur les champs bruts (D6).
+- [ ] Comparé aux maquettes 15 et 15.1 (skill `verify`, étape 5). — *Non coché : légende du graphique non vue en capture (cachée par le panneau ouvert) ; panneau, blocs, hypothèses, liste, comparaison, marché et formulaire comparés aux maquettes 15 et 15.1 le 01/11/2026.*
 
 ### T-05 · Aide sur la liste des backtests
 
@@ -109,8 +111,8 @@ Critères d’acceptation :
 - **Fichiers** : `features/backtest/stats.tsx`, `features/backtest/column.tsx`
 
 Critères d’acceptation :
-- [ ] Cartes « Terminés » et « Échoués » (taux) de `BacktestStats`.
-- [ ] En-têtes « Rendement », « CAGR » et « Durée » de `backtestColumns` ; le clic ne navigue pas vers le détail.
+- [x] Cartes « Terminés » et « Échoués » (taux) de `BacktestStats`.
+- [x] En-têtes « Rendement », « CAGR » et « Durée » de `backtestColumns` ; le clic ne navigue pas vers le détail.
 
 ### T-06 · Aide sur le marché
 
@@ -118,8 +120,8 @@ Critères d’acceptation :
 - **Fichiers** : `features/market/column.tsx`, `features/market/price-chart.tsx`
 
 Critères d’acceptation :
-- [ ] En-têtes « Prix », « Variation 24 h », « Volume 24 h », « Tendance ».
-- [ ] Titre du graphique de prix (source, intervalle des points).
+- [x] En-têtes « Prix », « Variation 24 h », « Volume 24 h », « Tendance ».
+- [x] Titre du graphique de prix (source, intervalle des points).
 
 ### T-07 · Aide sur la comparaison
 
@@ -127,8 +129,8 @@ Critères d’acceptation :
 - **Fichiers** : `features/backtest/comparison-blocks.tsx`
 
 Critères d’acceptation :
-- [ ] Lignes de « Métriques comparées », en réutilisant les entrées du résultat, et en-tête « Écart ».
-- [ ] « Frais », « Rebalancement » et « Benchmark » de « Paramètres ».
+- [x] Lignes de « Métriques comparées », en réutilisant les entrées du résultat, et en-tête « Écart ».
+- [x] « Frais », « Rebalancement » et « Benchmark » de « Paramètres ».
 
 ## Lot 2 — Formulaire
 
@@ -138,8 +140,8 @@ Critères d’acceptation :
 - **Fichiers** : `features/backtest/new-backtest-form.tsx`, `components/form/fields` (libellé `ReactNode` si absent), `constants/glossary.ts`
 
 Critères d’acceptation :
-- [ ] Entrées et libellés cliquables : « Mode d’investissement », « Actifs et poids », « Frais par ordre (%) », « Rebalancement », « Benchmark ».
-- [ ] Le clic sur un libellé ne soumet pas le formulaire et ne donne pas le focus au champ.
+- [x] Entrées et libellés cliquables : « Mode d’investissement », « Actifs et poids », « Frais par ordre (%) », « Rebalancement », « Benchmark ».
+- [ ] Le clic sur un libellé ne soumet pas le formulaire et ne donne pas le focus au champ. — *Non coché : vérifié à la lecture du code, pas dans un navigateur.*
 
 ## Lot 3 — Suivi
 
@@ -149,4 +151,4 @@ Critères d’acceptation :
 - **Fichiers** : `apps/web/AGENTS.md`
 
 Critères d’acceptation :
-- [ ] Règle : « une donnée calculée affichée a son entrée dans `constants/glossary.ts` et son `InfoHint` dans le même diff ».
+- [x] Règle : « une donnée calculée affichée a son entrée dans `constants/glossary.ts` et son `InfoHint` dans le même diff ».

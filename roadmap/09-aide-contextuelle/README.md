@@ -1,8 +1,8 @@
 # 09 · Aide contextuelle sur les données
 
-- **Statut** : En cours
+- **Statut** : Livrée
 - **Roadmap** : hors « Roadmap annuelle », demande du 2026-10-30 ; à mener après la feature 08, avant le mois 5. Sert l’objectif pédagogique n° 1 (« implémenter et expliquer »).
-- **Période** : 2026-11-01 →
+- **Période** : 2026-11-01
 - **Branche / PR** : `feat/aide-contextuelle` / à créer
 - **Points** : 22 (MUST 20, SHOULD 2) — prévus
 - **Maquettes** : `15 · Aide sur une donnée (sheet)` (`341:6986`) et `15.1 · Déclencheur de l’aide · libellés soulignés` (`391:9918`), validées le 01/11/2026
@@ -27,7 +27,18 @@ D1 à D7 validées le 01/11/2026 : `US.md`, section « Décisions ». D7 change 
 
 ## Bilan
 
-À remplir à la clôture (skill `feature-roadmap`, mode clôture).
+**Livré** : glossaire `apps/web/src/constants/glossary.ts` (42 entrées, chacune avec sa `source` relue contre le code de l’engine, de core-backend ou de market-service) et composant `InfoHint` : libellé souligné en pointillés qui ouvre un panneau à droite (valeur affichée et détails, à quoi ça sert, calcul, formule, unité, lecture, source). Branché sur le résultat (valeur finale, plus-value, montant investi, légende du graphique, trois blocs de métriques, note de l’investissement unique, hypothèses, colonnes des ordres et des positions), la liste (taux, rendement, CAGR, durée), la comparaison (métriques, écart, paramètres), le marché (colonnes, graphique) et le formulaire (champs et récapitulatif). Règle de maintenance dans `apps/web/AGENTS.md`. Le web n’ajoute aucun calcul.
+
+**Écarts** : voir « Écarts au plan » ci-dessus (`hint` au lieu d’un libellé `ReactNode`, `StatCard` inchangé, légende ajoutée, « Versements » seulement dans le récapitulatif, curseur `pointer`).
+
+**Dette** :
+- Devises : l’engine et le marché affichent des cours non convertis (euros pour le backtest, dollars pour le marché). Les textes le disent ; la conversion de change reste à faire côté backend (limite déjà connue de la feature 08).
+- Légende du graphique de résultat non vue en capture (cachée par le panneau ouvert).
+- Non vérifiés dans un navigateur : clavier (`Entrée`, `Échap`, retour du focus) et clic sans effet sur le parent (ligne de tableau, champ de formulaire) ; seule la lecture du code les garantit.
+- Points de revue laissés ouverts (jugement) : paires libellé + clé répétées entre `stats.tsx` et `comparison-blocks.tsx`, `columnHints` indexé par le texte de l’en-tête, « Capital initial » et « Versement mensuel » sans aide, devise et seuil de 0,01 écrits en toutes lettres dans le glossaire.
+- Colonne « Tendance » du marché vide le 01/11/2026 (dimanche, historique horaire vide probable), hors périmètre.
+
+**Points** : 28 réalisés pour 22 prévus (+6), surtout les trois relectures du glossaire (T-01) et la légende du graphique (T-04). Durée réelle : une journée.
 
 ## Fichiers
 
