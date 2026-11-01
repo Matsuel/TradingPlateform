@@ -1,20 +1,11 @@
 "use client"
 
 import type { UseQueryResult } from "@tanstack/react-query"
-import type { MouseEvent, ReactNode } from "react"
+import type { ReactNode } from "react"
 import { ErrorState, LoadingState } from "@/components/query-status"
-import {
-    Pagination,
-    PaginationContent,
-    PaginationEllipsis,
-    PaginationItem,
-    PaginationLink,
-    PaginationNext,
-    PaginationPrevious,
-} from "@/components/ui/pagination"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { getPageItems } from "@/lib/pagination"
 import { cn } from "@/lib/utils"
+import { TablePagination, type TablePaginationProps } from "./table-pagination"
 
 export type Column<T> = {
     header: ReactNode
@@ -41,69 +32,6 @@ type DataTableProps<T> = DataTableSource<T> & {
     className?: string
     frameless?: boolean // sans cadre ni marge, dans un conteneur qui en a déjà un
     pagination?: TablePaginationProps // page courante (à partir de 1) et count total, toutes pages confondues
-}
-
-type TablePaginationProps = {
-    page: number
-    pageSize: number
-    count: number
-    onPageChange: (page: number) => void
-}
-
-function TablePagination({ page, pageSize, count, onPageChange }: TablePaginationProps) {
-    const pageCount = Math.ceil(count / pageSize)
-    if (pageCount <= 1) return null
-
-    const select = (target: number) => (e: MouseEvent<HTMLAnchorElement>) => {
-        e.preventDefault()
-        onPageChange(target)
-    }
-    const bound = (disabled: boolean) => ({
-        "aria-disabled": disabled,
-        tabIndex: disabled ? -1 : undefined,
-        className: cn(disabled && "pointer-events-none opacity-50"),
-    })
-
-    return (
-        <div className="flex items-center justify-between gap-4">
-            <span className="text-small text-muted-foreground">
-                {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, count)} sur {count}
-            </span>
-            <Pagination className="mx-0 w-auto">
-                <PaginationContent>
-                    <PaginationItem>
-                        <PaginationPrevious
-                            href="#"
-                            text="Précédent"
-                            aria-label="Page précédente"
-                            onClick={select(page - 1)}
-                            {...bound(page <= 1)}
-                        />
-                    </PaginationItem>
-                    {getPageItems(page, pageCount).map((item, i) => (
-                        <PaginationItem key={item === "ellipsis" ? `ellipsis-${i}` : item}>
-                            {item === "ellipsis" ? (
-                                <PaginationEllipsis />
-                            ) : (
-                                <PaginationLink href="#" isActive={item === page} onClick={select(item)}>
-                                    {item}
-                                </PaginationLink>
-                            )}
-                        </PaginationItem>
-                    ))}
-                    <PaginationItem>
-                        <PaginationNext
-                            href="#"
-                            text="Suivant"
-                            aria-label="Page suivante"
-                            onClick={select(page + 1)}
-                            {...bound(page >= pageCount)}
-                        />
-                    </PaginationItem>
-                </PaginationContent>
-            </Pagination>
-        </div>
-    )
 }
 
 /**
