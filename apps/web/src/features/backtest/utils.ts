@@ -59,6 +59,9 @@ export function formatRecovery(
     return peakDated ? "Non récupéré" : null
 }
 
+/** Nom de la série du benchmark dans un graphique : « Benchmark URTH ». */
+export const benchmarkLabel = (symbol: string) => `Benchmark ${symbol}`
+
 /** Libellé d'un côté de la comparaison : « A · 60/40 ». */
 export const comparisonLabel = (side: "A" | "B", name: string) => `${side} · ${name}`
 

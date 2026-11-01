@@ -2,6 +2,7 @@
 
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts"
 import { type ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
+import type { GlossaryKey } from "@/constants/glossary"
 import { LOCALE } from "@/lib/format"
 import { cn } from "@/lib/utils"
 
@@ -15,7 +16,15 @@ export type ChartSeries = {
     color: string // couleur CSS, ex. "var(--chart-1)" ou `trendColor(…)`
     fill?: boolean // aire remplie jusqu'à zéro (une seule série remplie, sinon elles se masquent)
     dashed?: boolean // trait en pointillés, plus fin (série de référence : benchmark)
+    hint?: GlossaryKey // aide ouverte par le libellé dans `ChartLegend`
 }
+
+/** Série de référence (benchmark, investissement unique) : grise, en pointillés. */
+export const referenceSeries = (series: Pick<ChartSeries, "key" | "label" | "hint">): ChartSeries => ({
+    ...series,
+    color: "var(--muted-foreground)",
+    dashed: true,
+})
 
 /** Vert pour une hausse, rouge pour une baisse. */
 export const trendColor = (positive: boolean) => (positive ? "var(--success)" : "var(--destructive)")

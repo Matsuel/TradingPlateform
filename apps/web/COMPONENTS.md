@@ -41,7 +41,7 @@ Module de fonctions, hooks, constantes ou types (`lib/*.ts`, `features/<domaine>
 - [`components/ui`](#componentsui)
 - [Mise en page et navigation](#mise-en-page-et-navigation) : `PageLayout`, `PageHeader`, `AppHeader`, `AppSidebar`, `SidebarNav`, `NavUser`, `ThemeToggle`, `AppSheet`, `InfoHint`
 - [Données et tableaux](#données-et-tableaux) : `DataTable` (`Column`), `SymbolCell`, `ChangeCell`, `Dash` (`orDash`), `OptionSelect`, `FilterTabs`, `StatCard`, `LoadingState`, `ErrorState`
-- [Graphiques](#graphiques) : `AreaSeriesChart` (`ChartPoint`, `ChartSeries`, `trendColor`), `Sparkline`
+- [Graphiques](#graphiques) : `AreaSeriesChart` (`ChartPoint`, `ChartSeries`, `trendColor`, `referenceSeries`), `ChartLegend`, `Sparkline`
 - [Symboles](#symboles) : `SymbolPicker`
 - [Formulaires (`components/form`)](#formulaires-componentsform) : `AppField`, `TextField`, `NumberField`, `TextareaField`, `SelectField`, `DateField`, `CheckboxField`, `SwitchField`, `SymbolsField`, `FormSection`, `FieldRow`
 - [`lib`](#lib) : `format.ts`, `api.ts`, `pagination.ts`, `routes.ts`, `navigation.ts`, `env.ts`, `utils.ts`, `auth.ts`, `session.ts`
@@ -399,14 +399,14 @@ Primitives shadcn (base-ui), voir la doc shadcn. Ne les modifie qu'en cas de bes
 
 ### AreaSeriesChart
 
-- **Import** : `import { AreaSeriesChart, trendColor, type ChartPoint, type ChartSeries } from "@/components/area-series-chart"`.
-- **Rôle** : courbes datées sur un axe commun, une `Area` par série. L'appelant fournit les séries, les formats de date et de valeur. `trendColor(positive)` donne le vert ou le rouge d'une tendance.
+- **Import** : `import { AreaSeriesChart, referenceSeries, trendColor, type ChartPoint, type ChartSeries } from "@/components/area-series-chart"`.
+- **Rôle** : courbes datées sur un axe commun, une `Area` par série. L'appelant fournit les séries, les formats de date et de valeur. `trendColor(positive)` donne le vert ou le rouge d'une tendance ; `referenceSeries({ key, label, hint? })` une série de référence grise en pointillés (benchmark, investissement unique).
 - **Props** :
 
   | Nom | Type | Requis | Défaut | Description |
   | --- | --- | --- | --- | --- |
   | `data` | `ChartPoint[]` = `{ date: string; [série]: number \| null \| undefined }[]` | oui | — | Points ; une série absente un jour n'a pas de point (périodes différentes). |
-  | `series` | `ChartSeries[]` = `{ key; label; color; fill?; dashed? }[]` | oui | — | `fill` : aire remplie jusqu'à zéro (une seule série) ; `dashed` : série de référence en pointillés. Le nom de la série préfixe l'infobulle quand il y en a plusieurs. |
+  | `series` | `ChartSeries[]` = `{ key; label; color; fill?; dashed?; hint? }[]` | oui | — | `fill` : aire remplie jusqu'à zéro (une seule série) ; `dashed` : série de référence en pointillés. Le nom de la série préfixe l'infobulle quand il y en a plusieurs. |
   | `formatTick` | `(date: string) => string` | oui | — | Graduations de l'axe des dates. |
   | `formatTooltipDate` | `(date: string) => string` | oui | — | Date de l'infobulle. |
   | `formatValue` | `(value: number) => string` | oui | — | Valeurs de l'infobulle (montant, ratio). |
@@ -425,6 +425,17 @@ Primitives shadcn (base-ui), voir la doc shadcn. Ne les modifie qu'en cas de bes
   />
   ```
 - **Source** : `src/components/area-series-chart.tsx`.
+
+### ChartLegend
+
+- **Import** : `import { ChartLegend } from "@/components/chart-legend"`.
+- **Rôle** : légende d'un graphique (maquette 15.1), tirée de ses `ChartSeries` : trait de la couleur de chaque série (pointillé si `dashed`) et libellé, en `InfoHint` si la série a un `hint`.
+- **Props** : `series: ChartSeries[]`.
+- **Exemple** (tiré de `src/features/backtest/comparison-overview.tsx`) :
+  ```tsx
+  <ChartLegend series={valueSeries} />
+  ```
+- **Source** : `src/components/chart-legend.tsx`.
 
 ### Sparkline
 
@@ -1311,6 +1322,7 @@ Source : `src/features/backtest/constants.ts`.
 | `alignCurves` | Courbes de A et B sur l'union de leurs dates triées : séries `a` et `b` (absentes hors de leur période) et, avec `benchmarkSide`, `benchmark` = `benchmarkValue` de ce côté ; `value` choisit la série (valeur, drawdown). |
 | `formatAmount` | Montant en `BACKTEST_CURRENCY`. |
 | `formatRecovery` | Durée `formatDuration` ; si `recoveryDays` est null : « Aucune baisse » sans baisse, « Non récupéré » si `peakDated` (`maxDrawdownPeakDate` non null ; `true` pour un benchmark), sinon `null`, affiché `<Dash />` par l'écran (résultat antérieur, que l'API renvoie aussi à null). |
+| `benchmarkLabel` | Nom de la série du benchmark : `benchmarkLabel("URTH")` → « Benchmark URTH ». |
 | `comparisonLabel` | « A · 60/40 » : colonnes, légende et infobulles de la comparaison. |
 | `getComparisonBenchmark` | Benchmark affiché : celui de A, sinon celui de B ; `benchmark` null si aucun. |
 
