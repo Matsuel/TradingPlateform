@@ -24,6 +24,8 @@ Composant :
 - **Source** : `src/components/....tsx`.
 ````
 
+Composant d'une feature (`features/<domaine>/`, écran ou section) : même gabarit, mais props en liste (`- \`nom\` (optionnel) : rôle`) et sans exemple, car la page qui le compose en tient lieu.
+
 Module de fonctions, hooks, constantes ou types (`lib/*.ts`, `features/<domaine>/api.ts`, `hook.ts`, `constants.ts`…). La signature se lit dans le code (types et JSDoc) : le tableau dit à quoi sert l'export et ses unités.
 
 ````markdown
@@ -163,21 +165,13 @@ Primitives shadcn (base-ui), voir la doc shadcn. Ne les modifie qu'en cas de bes
 - **Import** : `import { AppSheet } from "@/components/app-sheet"`.
 - **Rôle** : panneau latéral droit ouvert par un déclencheur, avec titre et description.
 - **Props** :
-
-  | Nom | Type | Requis | Défaut | Description |
-  | --- | --- | --- | --- | --- |
-  | `trigger` | `ReactElement` | oui | — | Élément rendu comme déclencheur (`SheetTrigger render`). |
-  | `title` | `ReactNode` | oui | — | Titre du panneau. |
-  | `description` | `ReactNode` | non | — | Sous le titre. |
-  | `children` | `ReactNode` | non | — | Contenu. |
-  | `className` | `string` | non | — | Sur `SheetContent`. |
-  | `open` | `boolean` | non | — | Mode contrôlé. |
-  | `onOpenChange` | `(open: boolean) => void` | non | — | Mode contrôlé. |
-
-- **Exemple** (tiré de `src/features/market/symbol-sheet.tsx`) :
-  ```tsx
-  <AppSheet title={symbol} trigger={<Button size="lg">Tester</Button>}>…</AppSheet>
-  ```
+  - `trigger` : Élément rendu comme déclencheur (`SheetTrigger render`).
+  - `title` : Titre du panneau.
+  - `description` (optionnel) : Sous le titre.
+  - `children` (optionnel) : Contenu.
+  - `className` (optionnel) : Sur `SheetContent`.
+  - `open` (optionnel) : Mode contrôlé.
+  - `onOpenChange` (optionnel) : Mode contrôlé.
 - **Source** : `src/components/app-sheet.tsx`.
 
 ### InfoHint
@@ -185,18 +179,10 @@ Primitives shadcn (base-ui), voir la doc shadcn. Ne les modifie qu'en cas de bes
 - **Import** : `import { InfoHint } from "@/components/info-hint"`.
 - **Rôle** : libellé d'une donnée calculée, souligné en pointillés (`cursor-pointer`, `<button>` focusable, maquette 15.1), qui ouvre dans un `AppSheet` son entrée de `constants/glossary.ts` : « À quoi ça sert », « Comment c’est calculé », formule en `font-mono`, « Unité », « Comment le lire », valeur affichée, source (maquette 15). Le clic, y compris dans le panneau, n'atteint pas le parent (ligne de `DataTable` cliquable, libellé de champ). Garde la typographie du parent.
 - **Props** :
-
-  | Nom | Type | Requis | Défaut | Description |
-  | --- | --- | --- | --- | --- |
-  | `entry` | `GlossaryKey` | non | — | Clé de `GLOSSARY` ; absente, `children` est rendu seul (libellé sans aide), ce qui évite un test chez l'appelant. |
-  | `value` | `ReactNode` | non | — | Valeur déjà formatée par l'écran, rappelée dans le panneau sous « Valeur affichée » ; jamais recalculée. |
-  | `details` | `HintDetail[]` = `{ label: string; value: ReactNode }[]` | non | `[]` | Lignes ajoutées au bloc de valeurs (ex. « Creux atteint le », une colonne d'un tableau). Bloc masqué sans `value` ni `details`. |
-  | `children` | `ReactNode` | oui | — | Libellé affiché. |
-
-- **Exemple** (tiré de `src/features/backtest/stats.tsx`) :
-  ```tsx
-  <InfoHint entry="completedRate" value={completedRate}>Taux de réussite</InfoHint>
-  ```
+  - `entry` (optionnel) : Clé de `GLOSSARY` ; absente, `children` est rendu seul (libellé sans aide), ce qui évite un test chez l'appelant.
+  - `value` (optionnel) : Valeur déjà formatée par l'écran, rappelée dans le panneau sous « Valeur affichée » ; jamais recalculée.
+  - `details` (optionnel) : Lignes ajoutées au bloc de valeurs (ex. « Creux atteint le », une colonne d'un tableau). Bloc masqué sans `value` ni `details`.
+  - `children` : Libellé affiché.
 - **Source** : `src/components/info-hint.tsx`.
 
 ## Données et tableaux
@@ -206,32 +192,15 @@ Primitives shadcn (base-ui), voir la doc shadcn. Ne les modifie qu'en cas de bes
 - **Import** : `import { DataTable, type Column } from "@/components/data-table/data-table"`.
 - **Rôle** : tableau branché sur une requête TanStack Query (`query`) ou sur des lignes déjà chargées (`rows`) : gère chargement, erreur (`ErrorState`), vide, clic de ligne et pagination optionnelle. Colonnes déclarées dans `features/<domaine>/column.tsx`. Sans cadre : l'entourer de `TableCard` pour la bordure et le titre.
 - **Props** :
-
-  | Nom | Type | Requis | Défaut | Description |
-  | --- | --- | --- | --- | --- |
-  | `query` | `Pick<UseQueryResult<T[], Error>, "data" \| "isPending" \| "isError" \| "error"> & { refetch: () => unknown }` | `query` ou `rows` | — | Résultat de hook ; pour filtrer, passer `{ ...query, data }`. |
-  | `rows` | `T[]` | `query` ou `rows` | — | Lignes déjà en mémoire (ex. `result.trades` d'un détail déjà chargé) : pas d'état chargement / erreur. |
-  | `columns` | `Column<T>[]` | oui | — | Colonnes. |
-  | `rowKey` | `(row: T) => string` | oui | — | Clé React de ligne. |
-  | `onRowClick` | `(row: T) => void` | non | — | Rend les lignes cliquables. |
-  | `emptyMessage` | `ReactNode` | non | `"Aucune donnée."` | Affiché si `data` est vide. |
-  | `pagination` | `{ page; pageSize; count; onPageChange }` | non | — | Pied de tableau (`TablePagination`) : « 21–40 sur 57 », précédent / numéros (ellipses au-delà de 7 pages) / suivant ; masqué sur une seule page. `page` commence à 1, `count` = total toutes pages confondues ; `data` ne contient que la page affichée (page serveur ou `paginate`). |
-
+  - `query` (optionnel) : Résultat de hook ; pour filtrer, passer `{ ...query, data }`.
+  - `rows` (optionnel) : Lignes déjà en mémoire (ex. `result.trades` d'un détail déjà chargé) : pas d'état chargement / erreur.
+  - `columns` : Colonnes.
+  - `rowKey` : Clé React de ligne.
+  - `onRowClick` (optionnel) : Rend les lignes cliquables.
+  - `emptyMessage` (optionnel) : Affiché si `data` est vide.
+  - `pagination` (optionnel) : Pied de tableau (`TablePagination`) : « 21–40 sur 57 », précédent / numéros (ellipses au-delà de 7 pages) / suivant ; masqué sur une seule page. `page` commence à 1, `count` = total toutes pages confondues ; `data` ne contient que la page affichée (page serveur ou `paginate`).
   `Column<T>` : `{ header: ReactNode; cell: (row: T) => ReactNode; className?: string }` (`className` appliquée à l'en-tête et aux cellules).
 
-- **Exemple** (tiré de `src/features/backtest/backtest-list.tsx`) :
-  ```tsx
-  <TableCard title="Tous les backtests" description="Triés par date de lancement" actions={<FilterTabs … />}>
-      <DataTable
-          query={{ ...query, data: query.data?.data }}
-          columns={backtestColumns}
-          rowKey={(b) => b.id}
-          onRowClick={(b) => router.push(routes.backtest(b.id))}
-          emptyMessage="Aucun backtest."
-          pagination={{ page, pageSize: PAGE_SIZE, count: query.data?.count ?? 0, onPageChange: setPage }}
-      />
-  </TableCard>
-  ```
 - **Source** : `src/components/data-table/data-table.tsx` (`StatusRow`, `DataRows` internes), `src/components/data-table/table-pagination.tsx`.
 
 ### TableCard
@@ -246,19 +215,11 @@ Primitives shadcn (base-ui), voir la doc shadcn. Ne les modifie qu'en cas de bes
 - **Import** : `import { SymbolCell } from "@/components/data-table/cells"`.
 - **Rôle** : logo (ou initiale) + symbole + nom, en cellule de tableau (`md`) ou en tête de page (`lg`).
 - **Props** :
-
-  | Nom | Type | Requis | Défaut | Description |
-  | --- | --- | --- | --- | --- |
-  | `symbol` | `string` | oui | — | Ticker affiché ; sa 1re lettre sert de repli au logo. |
-  | `name` | `string` | non | — | Nom sous le symbole. |
-  | `logoUrl` | `string` | non | — | Image de l'avatar. |
-  | `size` | `"md" \| "lg"` | non | `"md"` | `md` : avatar 32 px ; `lg` : 48 px, symbole en `text-h2`. |
-  | `className` | `string` | non | — | Sur le conteneur. |
-
-- **Exemple** (tiré de `src/features/market/column.tsx`) :
-  ```tsx
-  { header: "Symbole", cell: (a) => <SymbolCell symbol={a.symbol} name={a.name} logoUrl={a.logoUrl} /> }
-  ```
+  - `symbol` : Ticker affiché ; sa 1re lettre sert de repli au logo.
+  - `name` (optionnel) : Nom sous le symbole.
+  - `logoUrl` (optionnel) : Image de l'avatar.
+  - `size` (optionnel) : `md` : avatar 32 px ; `lg` : 48 px, symbole en `text-h2`.
+  - `className` (optionnel) : Sur le conteneur.
 - **Source** : `src/components/data-table/cells.tsx`.
 
 ### ChangeCell
@@ -266,15 +227,7 @@ Primitives shadcn (base-ui), voir la doc shadcn. Ne les modifie qu'en cas de bes
 - **Import** : `import { ChangeCell } from "@/components/data-table/cells"`.
 - **Rôle** : variation signée suivie de « % », verte si ≥ 0, rouge sinon.
 - **Props** :
-
-  | Nom | Type | Requis | Défaut | Description |
-  | --- | --- | --- | --- | --- |
-  | `value` | `number` | oui | — | **Pourcentage** (`1.5` → « +1,50 % ») ; un ratio doit être multiplié par 100 avant (ou utiliser `formatRatio` hors tableau). |
-
-- **Exemple** (tiré de `src/features/backtest/column.tsx`) :
-  ```tsx
-  return value == null ? <Dash /> : <ChangeCell value={Number(value) * 100} />
-  ```
+  - `value` : **Pourcentage** (`1.5` → « +1,50 % ») ; un ratio doit être multiplié par 100 avant (ou utiliser `formatRatio` hors tableau).
 - **Source** : `src/components/data-table/cells.tsx`.
 
 ### Dash
@@ -282,10 +235,6 @@ Primitives shadcn (base-ui), voir la doc shadcn. Ne les modifie qu'en cas de bes
 - **Import** : `import { Dash, orDash } from "@/components/dash"`.
 - **Rôle** : tiret « — » atténué pour une valeur absente. `orDash(value, format)` rend `format(value)`, ou `<Dash />` si `value` est `null`/`undefined` (résultat antérieur au champ).
 - **Props** : aucune.
-- **Exemple** (tiré de `src/features/backtest/stats.tsx`) :
-  ```tsx
-  orDash(fromDecimal(result.cagr), formatRatio)
-  ```
 - **Source** : `src/components/dash.tsx`.
 
 ### OptionSelect
@@ -293,20 +242,12 @@ Primitives shadcn (base-ui), voir la doc shadcn. Ne les modifie qu'en cas de bes
 - **Import** : `import { OptionSelect, type SelectOption } from "@/components/option-select"`.
 - **Rôle** : liste déroulante d'options `{ value, label }` pleine largeur, hors formulaire (dans un formulaire : `SelectField`, qui l'utilise).
 - **Props** :
-
-  | Nom | Type | Requis | Défaut | Description |
-  | --- | --- | --- | --- | --- |
-  | `value` | `string` | oui | — | Valeur choisie ; `""` = aucune, `placeholder` affiché. |
-  | `options` | `SelectOption[]` | oui | — | Options proposées. |
-  | `onChange` | `(value: string) => void` | oui | — | `""` si la valeur est effacée. |
-  | `id` | `string` | non | — | Sur le déclencheur, pour un `<label htmlFor>`. |
-  | `placeholder` | `string` | non | `"Sélectionner…"` | Sans valeur. |
-  | `invalid` | `boolean` | non | — | `aria-invalid` du déclencheur. |
-
-- **Exemple** (tiré de `src/features/backtest/comparison-selection.tsx`) :
-  ```tsx
-  <OptionSelect id={id} value={value} options={options} onChange={onChange} />
-  ```
+  - `value` : Valeur choisie ; `""` = aucune, `placeholder` affiché.
+  - `options` : Options proposées.
+  - `onChange` : `""` si la valeur est effacée.
+  - `id` (optionnel) : Sur le déclencheur, pour un `<label htmlFor>`.
+  - `placeholder` (optionnel) : Sans valeur.
+  - `invalid` (optionnel) : `aria-invalid` du déclencheur.
 - **Source** : `src/components/option-select.tsx`.
 
 ### FilterTabs
@@ -314,18 +255,10 @@ Primitives shadcn (base-ui), voir la doc shadcn. Ne les modifie qu'en cas de bes
 - **Import** : `import { FilterTabs } from "@/components/filter-tabs"`.
 - **Rôle** : onglets de filtre contrôlés, typés par l'union des valeurs.
 - **Props** :
-
-  | Nom | Type | Requis | Défaut | Description |
-  | --- | --- | --- | --- | --- |
-  | `value` | `T extends string` | oui | — | Onglet actif. |
-  | `onChange` | `(value: T) => void` | oui | — | Changement d'onglet. |
-  | `options` | `{ value: T; label: string }[]` | oui | — | Onglets. |
-  | `className` | `string` | non | — | Sur `Tabs`. |
-
-- **Exemple** (tiré de `src/features/backtest/backtest-list.tsx`) :
-  ```tsx
-  <FilterTabs value={filter} onChange={changeFilter} options={filterOptions} />
-  ```
+  - `value` : Onglet actif.
+  - `onChange` : Changement d'onglet.
+  - `options` : Onglets.
+  - `className` (optionnel) : Sur `Tabs`.
 - **Source** : `src/components/filter-tabs.tsx`.
 
 ### StatCard
@@ -333,20 +266,12 @@ Primitives shadcn (base-ui), voir la doc shadcn. Ne les modifie qu'en cas de bes
 - **Import** : `import { StatCard } from "@/components/stat-card"`.
 - **Rôle** : carte de métrique : libellé, valeur, badge de tendance optionnel et légende. Groupes de cartes dans `features/<domaine>/stats.tsx`.
 - **Props** :
-
-  | Nom | Type | Requis | Défaut | Description |
-  | --- | --- | --- | --- | --- |
-  | `label` | `string` | oui | — | Libellé. |
-  | `value` | `ReactNode` | oui | — | Valeur déjà formatée. |
-  | `caption` | `ReactNode` | non | — | Légende ; masquée si falsy. |
-  | `delta` | `ReactNode` | non | — | Contenu du badge ; badge masqué si `null`/`undefined`. |
-  | `trend` | `"up" \| "down" \| "neutral"` | non | `"neutral"` | Style et icône du badge (`up` vert, `down` rouge). |
-  | `className` | `string` | non | — | Sur la carte. |
-
-- **Exemple** (tiré de `src/features/backtest/stats.tsx`) :
-  ```tsx
-  <StatCard label="En cours" value={stats?.active ?? <Dash />} caption="Backtests actifs" />
-  ```
+  - `label` : Libellé.
+  - `value` : Valeur déjà formatée.
+  - `caption` (optionnel) : Légende ; masquée si falsy.
+  - `delta` (optionnel) : Contenu du badge ; badge masqué si `null`/`undefined`.
+  - `trend` (optionnel) : Style et icône du badge (`up` vert, `down` rouge).
+  - `className` (optionnel) : Sur la carte.
 - **Source** : `src/components/stat-card.tsx`.
 
 ### LoadingState
@@ -354,15 +279,7 @@ Primitives shadcn (base-ui), voir la doc shadcn. Ne les modifie qu'en cas de bes
 - **Import** : `import { LoadingState } from "@/components/query-status"`.
 - **Rôle** : spinner `Loader2` centré, pendant le chargement d'une requête (`isPending`). La hauteur de la zone se passe par `className`.
 - **Props** :
-
-  | Nom | Type | Requis | Défaut | Description |
-  | --- | --- | --- | --- | --- |
-  | `className` | `string` | non | — | Sur le conteneur (ex. `h-64`). |
-
-- **Exemple** (tiré de `src/features/backtest/backtest-detail.tsx`) :
-  ```tsx
-  if (isPending) return <LoadingState className="h-64" />
-  ```
+  - `className` (optionnel) : Sur le conteneur (ex. `h-64`).
 - **Source** : `src/components/query-status.tsx`.
 
 ### ErrorState
@@ -370,17 +287,9 @@ Primitives shadcn (base-ui), voir la doc shadcn. Ne les modifie qu'en cas de bes
 - **Import** : `import { ErrorState } from "@/components/query-status"`.
 - **Rôle** : message d'erreur d'une requête et bouton « Réessayer », centrés (`isError`).
 - **Props** :
-
-  | Nom | Type | Requis | Défaut | Description |
-  | --- | --- | --- | --- | --- |
-  | `message` | `string` | non | — | Texte affiché, en général `error.message`. |
-  | `onRetry` | `() => unknown` | oui | — | Appelé au clic sur « Réessayer » (ex. `refetch`). |
-  | `className` | `string` | non | — | Sur le conteneur (ex. `h-64`). |
-
-- **Exemple** (tiré de `src/features/backtest/backtest-detail.tsx`) :
-  ```tsx
-  if (isError) return <ErrorState message={error.message} onRetry={refetch} className="h-64" />
-  ```
+  - `message` (optionnel) : Texte affiché, en général `error.message`.
+  - `onRetry` : Appelé au clic sur « Réessayer » (ex. `refetch`).
+  - `className` (optionnel) : Sur le conteneur (ex. `h-64`).
 - **Source** : `src/components/query-status.tsx`.
 
 ## Graphiques
@@ -390,28 +299,14 @@ Primitives shadcn (base-ui), voir la doc shadcn. Ne les modifie qu'en cas de bes
 - **Import** : `import { AreaSeriesChart, referenceSeries, trendColor, type ChartPoint, type ChartSeries } from "@/components/area-series-chart"`.
 - **Rôle** : courbes datées sur un axe commun, une `Area` par série. L'appelant fournit les séries, les formats de date et de valeur. `trendColor(positive)` donne le vert ou le rouge d'une tendance ; `referenceSeries({ key, label, hint? })` une série de référence grise en pointillés (benchmark, investissement unique).
 - **Props** :
-
-  | Nom | Type | Requis | Défaut | Description |
-  | --- | --- | --- | --- | --- |
-  | `data` | `ChartPoint[]` = `{ date: string; [série]: number \| null \| undefined }[]` | oui | — | Points ; une série absente un jour n'a pas de point (périodes différentes). |
-  | `series` | `ChartSeries[]` = `{ key; label; color; fill?; dashed?; hint? }[]` | oui | — | `fill` : aire remplie jusqu'à zéro (une seule série) ; `dashed` : série de référence en pointillés. Le nom de la série préfixe l'infobulle quand il y en a plusieurs. |
-  | `formatTick` | `(date: string) => string` | oui | — | Graduations de l'axe des dates. |
-  | `formatTooltipDate` | `(date: string) => string` | oui | — | Date de l'infobulle. |
-  | `formatValue` | `(value: number) => string` | oui | — | Valeurs de l'infobulle (montant, ratio). |
-  | `formatAxis` | `(value: number) => string` | non | nombre sans unité | Axe Y. |
-  | `hideXAxis` | `boolean` | non | `false` | Graphique empilé au-dessus d'un autre qui porte l'axe des dates. |
-  | `className` | `string` | non | `h-82.5` | Hauteur. |
-
-- **Exemple** (tiré de `src/features/market/price-chart.tsx`) :
-  ```tsx
-  <AreaSeriesChart
-      data={data}
-      series={[{ key: "price", label: "Prix", color: trendColor(isRising(data)), fill: true }]}
-      formatTick={(d) => formatTick(d, period)}
-      formatTooltipDate={(d) => formatTooltipDate(d, period)}
-      formatValue={(v) => formatPrice(v, MARKET_CURRENCY)}
-  />
-  ```
+  - `data` : Points ; une série absente un jour n'a pas de point (périodes différentes).
+  - `series` : `fill` : aire remplie jusqu'à zéro (une seule série) ; `dashed` : série de référence en pointillés. Le nom de la série préfixe l'infobulle quand il y en a plusieurs.
+  - `formatTick` : Graduations de l'axe des dates.
+  - `formatTooltipDate` : Date de l'infobulle.
+  - `formatValue` : Valeurs de l'infobulle (montant, ratio).
+  - `formatAxis` (optionnel) : Axe Y.
+  - `hideXAxis` (optionnel) : Graphique empilé au-dessus d'un autre qui porte l'axe des dates.
+  - `className` (optionnel) : Hauteur.
 - **Source** : `src/components/area-series-chart.tsx`.
 
 ### ChartLegend
@@ -419,10 +314,6 @@ Primitives shadcn (base-ui), voir la doc shadcn. Ne les modifie qu'en cas de bes
 - **Import** : `import { ChartLegend } from "@/components/chart-legend"`.
 - **Rôle** : légende d'un graphique (maquette 15.1), tirée de ses `ChartSeries` : trait de la couleur de chaque série (pointillé si `dashed`) et libellé, en `InfoHint` si la série a un `hint`.
 - **Props** : `series: ChartSeries[]`.
-- **Exemple** (tiré de `src/features/backtest/comparison-overview.tsx`) :
-  ```tsx
-  <ChartLegend series={valueSeries} />
-  ```
 - **Source** : `src/components/chart-legend.tsx`.
 
 ### Sparkline
@@ -430,17 +321,9 @@ Primitives shadcn (base-ui), voir la doc shadcn. Ne les modifie qu'en cas de bes
 - **Import** : `import { Sparkline } from "@/components/sparkline"`.
 - **Rôle** : mini-courbe sans axe pour une colonne « Tendance ».
 - **Props** :
-
-  | Nom | Type | Requis | Défaut | Description |
-  | --- | --- | --- | --- | --- |
-  | `data` | `ChartPoint[]` (`@/components/area-series-chart`) | oui | — | Points `{ date, price }`. |
-  | `positive` | `boolean` | oui | — | Vert si vrai, rouge sinon. |
-  | `className` | `string` | non | `"h-8 w-30"` | Remplace la taille par défaut. |
-
-- **Exemple** (tiré de `src/features/market/column.tsx`) :
-  ```tsx
-  { header: "Tendance", cell: (a) => <Sparkline data={a.history} positive={a.change24h >= 0} /> }
-  ```
+  - `data` : Points `{ date, price }`.
+  - `positive` : Vert si vrai, rouge sinon.
+  - `className` (optionnel) : Remplace la taille par défaut.
 - **Source** : `src/components/sparkline.tsx`.
 
 ## Symboles
@@ -512,10 +395,6 @@ Props communes `BaseProps<T>` (exportées par `field.tsx`), répétées dans cha
 - **Import** : `import { TextField } from "@/components/form"`.
 - **Rôle** : saisie texte d'une valeur `string`.
 - **Props** : `BaseProps<T>` + `type` (`"text" | "email" | "password"`, non requis, défaut `"text"`), `placeholder` (`string`, non requis).
-- **Exemple** (tiré de `src/features/backtest/sections.tsx`) :
-  ```tsx
-  <TextField name="name" label="Nom du backtest" />
-  ```
 - **Source** : `src/components/form/fields/text-field.tsx`.
 
 ### NumberField
@@ -523,10 +402,6 @@ Props communes `BaseProps<T>` (exportées par `field.tsx`), répétées dans cha
 - **Import** : `import { NumberField } from "@/components/form"`.
 - **Rôle** : saisie d'un `number` ; un champ vide vaut `undefined` (le schéma zod signale « Requis »).
 - **Props** : `BaseProps<T>` + `placeholder` (`string`, non requis). L'unité se met dans `label`.
-- **Exemple** (tiré de `src/features/backtest/sections.tsx`) :
-  ```tsx
-  <NumberField name="fee" label="Frais par ordre (%)" />
-  ```
 - **Source** : `src/components/form/fields/number-field.tsx`.
 
 ### TextareaField
@@ -551,10 +426,6 @@ Props communes `BaseProps<T>` (exportées par `field.tsx`), répétées dans cha
   | `options` | `SelectOption[]` (`{ value: string; label: string }`) | oui | — | Options (ex. `investmentModeOptions`). |
   | `placeholder` | `string` | non | `"Sélectionner…"` | Sans valeur. |
 
-- **Exemple** (tiré de `src/features/backtest/sections.tsx`) :
-  ```tsx
-  <SelectField name="investmentMode" label="Mode d’investissement" options={investmentModeOptions} />
-  ```
 - **Source** : `src/components/form/fields/select-field.tsx`.
 
 ### DateField
@@ -568,13 +439,6 @@ Props communes `BaseProps<T>` (exportées par `field.tsx`), répétées dans cha
   | `placeholder` | `string` | non | `"jj/mm/aaaa"` | Sans valeur. |
   | `disabled` | `(d: Date) => boolean` | non | — | Jours non sélectionnables. |
 
-- **Exemple** (tiré de `src/features/backtest/sections.tsx`) :
-  ```tsx
-  <FieldRow>
-      <DateField name="start" label="Début" />
-      <DateField name="end" label="Fin" />
-  </FieldRow>
-  ```
 - **Source** : `src/components/form/fields/date-field.tsx`.
 
 ### CheckboxField
@@ -621,21 +485,10 @@ Props communes `BaseProps<T>` (exportées par `field.tsx`), répétées dans cha
 - **Import** : `import { FormSection } from "@/components/form"`.
 - **Rôle** : carte titrée qui regroupe des champs (grille `gap-4`).
 - **Props** :
-
-  | Nom | Type | Requis | Défaut | Description |
-  | --- | --- | --- | --- | --- |
-  | `title` | `string` | oui | — | Titre de la carte. |
-  | `description` | `string` | non | — | Sous le titre. |
-  | `className` | `string` | non | — | Sur la carte. |
-  | `children` | `React.ReactNode` | oui | — | Champs. |
-
-- **Exemple** (tiré de `src/features/backtest/sections.tsx`) :
-  ```tsx
-  <FormSection title="Général" description="Nom et mode d’investissement">
-      <TextField name="name" label="Nom du backtest" />
-      <SelectField name="investmentMode" label="Mode d’investissement" options={investmentModeOptions} />
-  </FormSection>
-  ```
+  - `title` : Titre de la carte.
+  - `description` (optionnel) : Sous le titre.
+  - `className` (optionnel) : Sur la carte.
+  - `children` : Champs.
 - **Source** : `src/components/form/layout.tsx`.
 
 ### FieldRow
@@ -643,19 +496,8 @@ Props communes `BaseProps<T>` (exportées par `field.tsx`), répétées dans cha
 - **Import** : `import { FieldRow } from "@/components/form"`.
 - **Rôle** : place des champs côte à côte (2 colonnes à partir de `sm`).
 - **Props** :
-
-  | Nom | Type | Requis | Défaut | Description |
-  | --- | --- | --- | --- | --- |
-  | `children` | `React.ReactNode` | oui | — | Champs. |
-  | `className` | `string` | non | — | Sur la grille. |
-
-- **Exemple** (tiré de `src/features/backtest/quick-backtest-form.tsx`) :
-  ```tsx
-  <FieldRow>
-      <NumberField name="initialAmount" label="Capital initial (€)" />
-      <NumberField name="fee" label="Frais par ordre (%)" />
-  </FieldRow>
-  ```
+  - `children` : Champs.
+  - `className` (optionnel) : Sur la grille.
 - **Source** : `src/components/form/layout.tsx`.
 
 ## `lib`
@@ -835,12 +677,6 @@ Source : `src/hooks/use-debounced-value.ts`.
 - **Import** : `import { LoginForm } from "@/features/auth/login-form"`.
 - **Rôle** : formulaire de connexion (email + mot de passe) dans une `FormSection` ; valide avec `loginSchema`, appelle `useLogin`, puis redirige vers `redirectTo` (prop requise, calculée par `safeRedirect` dans la page) et rafraîchit la session serveur. L’erreur better-auth s’affiche sous les champs ; lien vers `routes.register`.
 - **Props** : aucune.
-- **Exemple** (tiré de `src/app/(auth)/login/page.tsx`) :
-  ```tsx
-  <div className="flex flex-col gap-6">
-      <LoginForm />
-  </div>
-  ```
 - **Source** : `src/features/auth/login-form.tsx`.
 
 ### RegisterForm
@@ -848,10 +684,6 @@ Source : `src/hooks/use-debounced-value.ts`.
 - **Import** : `import { RegisterForm } from "@/features/auth/register-form"`.
 - **Rôle** : formulaire d'inscription (nom + email + mot de passe) dans une `FormSection` ; valide avec `registerSchema`, appelle `useRegister`, puis redirige vers `routes.dashboard`. Lien vers `routes.login`.
 - **Props** : aucune.
-- **Exemple** (tiré de `src/app/(auth)/register/page.tsx`) :
-  ```tsx
-  <RegisterForm />
-  ```
 - **Source** : `src/features/auth/register-form.tsx`.
 
 ### `features/auth/api.ts`
@@ -897,10 +729,6 @@ Source : `src/features/auth/schema.ts`.
 - **Import** : `import { BacktestList } from "@/features/backtest/backtest-list"`.
 - **Rôle** : écran liste : `BacktestStats` (`useBacktestStats`) puis `DataTable` des backtests paginée côté serveur (`useBacktests`, `PAGE_SIZE` par page) et filtrable par statut (filtre envoyé au backend ; changer de filtre revient à la page 1) ; clic → détail. Page et filtre vivent dans l'état du composant.
 - **Props** : aucune.
-- **Exemple** (tiré de `src/app/app/backtest/page.tsx`) :
-  ```tsx
-  <BacktestList />
-  ```
 - **Source** : `src/features/backtest/backtest-list.tsx`.
 
 ### BacktestDetail
@@ -908,15 +736,7 @@ Source : `src/features/auth/schema.ts`.
 - **Import** : `import { BacktestDetail } from "@/features/backtest/backtest-detail"`.
 - **Rôle** : écran détail (maquette 13 v2 · A) : en-tête avec statut, allocation, rebalancement, benchmark et relance ; `ResultOverview` (valeur finale, courbes de valeur et de drawdown) ; `ResultMetrics` (indicateurs groupés) ; `TradesTable` (ordres) ; `ResultDetails` (positions, hypothèses, historique repliés). Instancie `useBacktest` et `useRerunBacktest`.
 - **Props** :
-
-  | Nom | Type | Requis | Défaut | Description |
-  | --- | --- | --- | --- | --- |
-  | `id` | `string` | oui | — | Id du backtest. |
-
-- **Exemple** (tiré de `src/app/app/backtest/[id]/page.tsx`) :
-  ```tsx
-  <BacktestDetail id={id} />
-  ```
+  - `id` : Id du backtest.
 - **Source** : `src/features/backtest/backtest-detail.tsx`.
 
 ### TradesTable
@@ -938,10 +758,6 @@ Source : `src/features/auth/schema.ts`.
 - **Import** : `import { NewBacktestForm } from "@/features/backtest/new-backtest-form"`.
 - **Rôle** : formulaire « Nouveau backtest » (maquette 12.1, `backtestSchema`, sections `GeneralSection` + `AllocationSection`, benchmark proposé `DEFAULT_BENCHMARK_SYMBOL`, `BacktestPreviewSummary` à droite à partir de `lg`, empilé dessous sinon) ; « Lancer le backtest » désactivé tant que `allocationTotal` ≠ 100 ; un `400` du backend place chaque issue sous le champ de son chemin (`setFormIssues`) ; redirige vers le détail créé.
 - **Props** : aucune.
-- **Exemple** (tiré de `src/app/app/backtest/new/page.tsx`) :
-  ```tsx
-  <NewBacktestForm />
-  ```
 - **Source** : `src/features/backtest/new-backtest-form.tsx`.
 
 ### BacktestPreviewSummary
@@ -949,10 +765,6 @@ Source : `src/features/auth/schema.ts`.
 - **Import** : `import { BacktestPreviewSummary } from "@/features/backtest/preview-summary"`.
 - **Rôle** : carte « Récapitulatif » du formulaire « Nouveau backtest » (maquette 12.1), sous `FormProvider` d'un formulaire `BacktestValues` : étapes Données / Simulation / Métriques (`previewSteps`), puis « Rebalancements prévus », « Versements prévus » et « Source des données » (`dataProviderLabels` · `priceTypeLabels`) renvoyés par `useBacktestPreview` (estimations calendaires du backend, aucun calcul côté web) et mention « Estimation calendaire ». Valeurs validées par `backtestSchema.safeParse` dans `useWatch({ compute })`, appel débouncé de 500 ms (`useDebouncedValue`) ; `<Dash />` tant que le formulaire est invalide ou la réponse absente. Les trois libellés sont des `InfoHint` (`plannedRebalances`, `plannedContributions`, `dataSource`).
 - **Props** : aucune.
-- **Exemple** (tiré de `src/features/backtest/new-backtest-form.tsx`) :
-  ```tsx
-  <BacktestPreviewSummary />
-  ```
 - **Source** : `src/features/backtest/preview-summary.tsx`.
 
 ### QuickBacktestForm
@@ -960,15 +772,7 @@ Source : `src/features/auth/schema.ts`.
 - **Import** : `import { QuickBacktestForm } from "@/features/backtest/quick-backtest-form"`.
 - **Rôle** : test rapide sur un seul symbole (`quickBacktestSchema`, nom `Test rapide <symbol>`, allocation `[{ symbol, weight: 100 }]`, défauts `DEFAULT_INVESTMENT_MODE`, `DEFAULT_INITIAL_AMOUNT`, `DEFAULT_FEE_PERCENT`, 1 an jusqu'à aujourd'hui ; champs `InvestmentModeFields` et `PeriodAndCapitalFields` partagés avec le formulaire complet ; récapitulatif `QuickTestSummary` et boutons `QuickTestActions` internes) ; un `400` du backend place chaque issue sous le champ de son chemin (`setFormIssues`) ; redirige vers le détail créé.
 - **Props** :
-
-  | Nom | Type | Requis | Défaut | Description |
-  | --- | --- | --- | --- | --- |
-  | `symbol` | `string` | oui | — | Symbole testé. |
-
-- **Exemple** (tiré de `src/features/market/symbol-sheet.tsx`) :
-  ```tsx
-  <QuickBacktestForm symbol={symbol} />
-  ```
+  - `symbol` : Symbole testé.
 - **Source** : `src/features/backtest/quick-backtest-form.tsx`.
 
 ### AllocationField
@@ -985,10 +789,6 @@ Source : `src/features/auth/schema.ts`.
 - **Erreurs** : une erreur sur toute l'allocation (`path: [<name>]` : vide, total ≠ 100, symbole en double) s'affiche sous le champ ; une erreur sur un poids (`<name>.<index>.weight` : vide, non entier, hors bornes) s'affiche sous sa ligne.
 - **Helpers** : `FULL_PERCENT` (`100`, `constants.ts`), `allocationTotal(rows) => number` (`utils.ts`, somme des poids saisis en pourcent, `NaN` compte 0), `AllocationInput` (`types.ts`) ; utilisés par le badge, le schéma du formulaire et pour désactiver l'envoi. Rendu interne : une `AllocationRow` par actif.
 - **Accessibilité** : le symbole et le nom de chaque ligne sont le `label` de son champ `%` (`id` = `<name>.<index>.weight`, qui reçoit `aria-invalid` si l'erreur zod porte sur ce poids) ; bouton de retrait `aria-label="Retirer <symbole>"` ; badge « Total » en `aria-live="polite"`.
-- **Exemple** (tiré de `src/features/backtest/sections.tsx`) :
-  ```tsx
-  <AllocationField name="allocations" label="Actifs et poids" />
-  ```
 - **Source** : `src/features/backtest/allocation-field.tsx`.
 
 ### GeneralSection
@@ -996,11 +796,6 @@ Source : `src/features/auth/schema.ts`.
 - **Import** : `import { GeneralSection } from "@/features/backtest/sections"`.
 - **Rôle** : section « Général » (`name`, puis `InvestmentModeFields`) d'un formulaire `BacktestValues`, sous `FormProvider`.
 - **Props** : aucune.
-- **Exemple** (tiré de `src/features/backtest/new-backtest-form.tsx`) :
-  ```tsx
-  <GeneralSection />
-  <AllocationSection />
-  ```
 - **Source** : `src/features/backtest/sections.tsx`.
 
 ### AllocationSection
@@ -1008,7 +803,6 @@ Source : `src/features/auth/schema.ts`.
 - **Import** : `import { AllocationSection } from "@/features/backtest/sections"`.
 - **Rôle** : section « Allocation et période » (`allocations` via `AllocationField`, `PeriodAndCapitalFields`, `rebalanceFrequency` via `SelectField` « Rebalancement », aide « Ramène les poids à la cible », `benchmarkSymbols` via `SymbolsField` « Benchmark » à un symbole au plus, retirable pour simuler sans benchmark) d'un formulaire `BacktestValues`.
 - **Props** : aucune.
-- **Exemple** : voir `GeneralSection`.
 - **Source** : `src/features/backtest/sections.tsx`.
 
 ### InvestmentModeFields, PeriodAndCapitalFields
@@ -1023,15 +817,7 @@ Source : `src/features/auth/schema.ts`.
 - **Import** : `import { ResultOverview } from "@/features/backtest/result-overview"`.
 - **Rôle** : carte principale d'un résultat : « Valeur finale » (`text-h1`), badge du rendement total, plus-value sur le montant investi (et rendement du benchmark s'il existe), légende des séries (Portefeuille, benchmark ou investissement unique, Drawdown ; libellés `InfoHint`, maquette 15.1), puis `ValueDrawdownCharts` (courbe de valeur, et drawdown dessous sur le même axe). En-tête interne : `ResultHeadline` (valeur finale, badge) et `ProfitLine`. Série en pointillés : benchmark (`benchmarkValue`) s'il existe, sinon investissement unique (`lumpSumValue`, DCA). Drawdown masqué si aucun point ne porte `drawdown` (résultat antérieur).
 - **Props** :
-
-  | Nom | Type | Requis | Défaut | Description |
-  | --- | --- | --- | --- | --- |
-  | `result` | `BacktestResult` | oui | — | Résultat complet. |
-
-- **Exemple** (tiré de `src/features/backtest/backtest-detail.tsx`) :
-  ```tsx
-  <ResultOverview result={result} />
-  ```
+  - `result` : Résultat complet.
 - **Source** : `src/features/backtest/result-overview.tsx`.
 
 ### ValueDrawdownCharts
@@ -1046,21 +832,13 @@ Source : `src/features/auth/schema.ts`.
 - **Import** : `import { MetricBlock, type MetricColumn, type MetricRow } from "@/features/backtest/metric-block"`.
 - **Rôle** : carte d'indicateurs en liste : titre, description, une ligne par métrique (badge optionnel après le libellé), une colonne de valeurs par série (ex. portefeuille puis benchmark) ; `boldColumns` premières colonnes en gras, suivantes en retrait ; note optionnelle sous la liste. Valeurs déjà formatées.
 - **Props** :
-
-  | Nom | Type | Requis | Défaut | Description |
-  | --- | --- | --- | --- | --- |
-  | `title` | `string` | oui | — | Titre de la carte. |
-  | `description` | `string` | non | — | Sous le titre. |
-  | `columns` | `MetricColumn[]` = `{ label: string; hint?: GlossaryKey }[]` | oui | — | En-tête de chaque colonne de valeurs ; `hint` ouvre l'aide de l'en-tête (ex. « Écart »). |
-  | `rows` | `MetricRow[]` = `{ label; hint?; details?: HintDetail[]; badge?: ReactNode; values: ReactNode[] }[]` | oui | — | `values` dans l'ordre de `columns` ; avec `hint`, le libellé est un `InfoHint` dont le panneau rappelle la valeur de chaque colonne puis `details` ; `badge` après le libellé (ex. « diffère »). |
-  | `boldColumns` | `number` | non | `1` | Nombre de premières colonnes en gras ; `0` = toutes en retrait. |
-  | `rowHeader` | `string` | non | « Indicateur » pour lecteurs d'écran | En-tête visible de la colonne des libellés. |
-  | `note` | `ReactNode` | non | — | Texte sous la liste. |
-
-- **Exemple** (tiré de `src/features/backtest/result-metrics.tsx`) :
-  ```tsx
-  <MetricBlock title="Coûts et activité" columns={[{ label: "Total" }]} rows={[{ label: "Ordres", hint: "totalTrades", values: [result.totalTrades] }]} />
-  ```
+  - `title` : Titre de la carte.
+  - `description` (optionnel) : Sous le titre.
+  - `columns` : En-tête de chaque colonne de valeurs ; `hint` ouvre l'aide de l'en-tête (ex. « Écart »).
+  - `rows` : `values` dans l'ordre de `columns` ; avec `hint`, le libellé est un `InfoHint` dont le panneau rappelle la valeur de chaque colonne puis `details` ; `badge` après le libellé (ex. « diffère »).
+  - `boldColumns` (optionnel) : Nombre de premières colonnes en gras ; `0` = toutes en retrait.
+  - `rowHeader` (optionnel) : En-tête visible de la colonne des libellés.
+  - `note` (optionnel) : Texte sous la liste.
 - **Source** : `src/features/backtest/metric-block.tsx` (ligne rendue par `MetricBlockRow`, interne).
 
 ### ResultDetails
@@ -1068,15 +846,7 @@ Source : `src/features/auth/schema.ts`.
 - **Import** : `import { ResultDetails } from "@/features/backtest/result-details"`.
 - **Rôle** : carte de sections repliables (`ui/collapsible`) en bas du détail : « Positions finales » (`DataTable` sans `TableCard`, `holdingColumns`) et « Hypothèses » (`BacktestAssumptions`) avec un résultat, puis « Historique d'exécution » (`ExecutionList`), déplié quand il n'y a pas de résultat. Chaque en-tête montre un résumé et « Afficher » / « Masquer ».
 - **Props** :
-
-  | Nom | Type | Requis | Défaut | Description |
-  | --- | --- | --- | --- | --- |
-  | `backtest` | `BacktestDetails` | oui | — | `result` (peut être null) et `executions`. |
-
-- **Exemple** (tiré de `src/features/backtest/backtest-detail.tsx`) :
-  ```tsx
-  <ResultDetails backtest={backtest} />
-  ```
+  - `backtest` : `result` (peut être null) et `executions`.
 - **Source** : `src/features/backtest/result-details.tsx`.
 
 ### BacktestAssumptions
@@ -1084,16 +854,8 @@ Source : `src/features/auth/schema.ts`.
 - **Import** : `import { BacktestAssumptions } from "@/features/backtest/assumptions"`.
 - **Rôle** : liste « Hypothèses » d'un résultat, sans carte, en deux colonnes à partir de `sm` : période, devise (`BACKTEST_CURRENCY`), frais par ordre (achat et vente, D8), rebalancement (`rebalanceFrequencyLabels`), benchmark (`backtest.benchmarkSymbol`, `NO_BENCHMARK_LABEL` si null), taux sans risque du Sharpe (`result.riskFreeRate`, publié par l'engine), règle d'exécution, source et type de cours, date de récupération et empreinte des données (12 premiers caractères, valeur complète en `title`), puis `BACKTEST_DISCLAIMER`. `<Dash />` si `riskFreeRate`, `executionRule` ou `dataSource` est `null` (résultat antérieur). Libellés des données calculées ou des paramètres qui changent le calcul (frais, rebalancement, benchmark, taux sans risque, règle d’exécution, source, empreinte) en `InfoHint`.
 - **Props** :
-
-  | Nom | Type | Requis | Défaut | Description |
-  | --- | --- | --- | --- | --- |
-  | `backtest` | `Backtest` | oui | — | `startDate`, `endDate`, `feeRate` (fraction par ordre), `rebalanceFrequency` affichés. |
-  | `result` | `BacktestResult` | oui | — | `executionRule` et `dataSource` affichés. |
-
-- **Exemple** (tiré de `src/features/backtest/result-details.tsx`) :
-  ```tsx
-  <BacktestAssumptions backtest={backtest} result={result} />
-  ```
+  - `backtest` : `startDate`, `endDate`, `feeRate` (fraction par ordre), `rebalanceFrequency` affichés.
+  - `result` : `executionRule` et `dataSource` affichés.
 - **Source** : `src/features/backtest/assumptions.tsx`.
 
 ### ExecutionList
@@ -1101,15 +863,7 @@ Source : `src/features/auth/schema.ts`.
 - **Import** : `import { ExecutionList } from "@/features/backtest/execution-history"`.
 - **Rôle** : lignes d'exécution, sans carte : tentative, statut, date, résumé ou cause d'échec, durée ; barre de progression pour une exécution active.
 - **Props** :
-
-  | Nom | Type | Requis | Défaut | Description |
-  | --- | --- | --- | --- | --- |
-  | `executions` | `BacktestExecution[]` | oui | — | Plus récente d'abord. |
-
-- **Exemple** (tiré de `src/features/backtest/result-details.tsx`) :
-  ```tsx
-  <ExecutionList executions={executions} />
-  ```
+  - `executions` : Plus récente d'abord.
 - **Source** : `src/features/backtest/execution-history.tsx`.
 
 ### BacktestStats
@@ -1117,15 +871,7 @@ Source : `src/features/auth/schema.ts`.
 - **Import** : `import { BacktestStats } from "@/features/backtest/stats"`.
 - **Rôle** : 4 `StatCard` de la liste : total, en cours, terminés et échoués (avec taux `formatRate`), valeurs de `GET /api/backtest/stats` affichées telles quelles ; `Dash` pendant le chargement.
 - **Props** :
-
-  | Nom | Type | Requis | Défaut | Description |
-  | --- | --- | --- | --- | --- |
-  | `stats` | `BacktestListStats \| undefined` | oui | — | `useBacktestStats().data` ; `undefined` pendant le chargement. |
-
-- **Exemple** (tiré de `src/features/backtest/backtest-list.tsx`) :
-  ```tsx
-  <BacktestStats stats={stats.data} />
-  ```
+  - `stats` : `useBacktestStats().data` ; `undefined` pendant le chargement.
 - **Source** : `src/features/backtest/stats.tsx`.
 
 ### ResultMetrics
@@ -1133,16 +879,8 @@ Source : `src/features/auth/schema.ts`.
 - **Import** : `import { ResultMetrics } from "@/features/backtest/result-metrics"`.
 - **Rôle** : 3 `MetricBlock` d'un résultat, sur 2 colonnes à partir de `md` et 3 à partir de `xl` : « Performance » (CAGR, rendement total, valeur finale ; note : investissement unique et écart `dcaAdvantage` en DCA), « Risque » (volatilité, Sharpe avec `result.riskFreeRate` en description, max drawdown, récupération `formatRecovery` ; note : date du plus haut), « Coûts et activité » (frais payés, déduits de la valeur sur achats et ventes, ordres, rebalancements `rebalanceCount`). Avec `result.benchmark`, une colonne au symbole du benchmark affiche ses métriques. Tout est calculé par le moteur ; `<Dash />` si un champ manque (résultat antérieur).
 - **Props** :
-
-  | Nom | Type | Requis | Défaut | Description |
-  | --- | --- | --- | --- | --- |
-  | `result` | `BacktestResult` | oui | — | Résultat complet (ratios en fraction, montants en string). |
-  | `rebalanceFrequency` | `RebalanceFrequency` | oui | — | Description du bloc « Coûts et activité ». |
-
-- **Exemple** (tiré de `src/features/backtest/backtest-detail.tsx`) :
-  ```tsx
-  <ResultMetrics result={result} rebalanceFrequency={backtest.rebalanceFrequency} />
-  ```
+  - `result` : Résultat complet (ratios en fraction, montants en string).
+  - `rebalanceFrequency` : Description du bloc « Coûts et activité ».
 - **Source** : `src/features/backtest/result-metrics.tsx` (`PerformanceBlock`, `RiskBlock`, `CostsBlock` internes). Valeurs des lignes : [`features/backtest/metrics.tsx`](#featuresbacktestmetricstsx).
 
 ### `features/backtest/metrics.tsx`
@@ -1166,15 +904,7 @@ Source : `src/features/backtest/metrics.tsx`.
 - **Import** : `import { BacktestCompare } from "@/features/backtest/backtest-compare"`.
 - **Rôle** : écran comparaison (maquette 19 v2) : en-tête et « Copier le lien », `ComparisonSelection`, puis, avec deux backtests choisis, bandeau « Comparaison non homogène » si `homogeneous` est faux (une phrase par élément de `differences`), `ComparisonOverview`, `ComparisonMetrics` et `ComparisonParameters` (côte à côte à partir de `xl`). La sélection vit dans l'URL : `?ids=a,b` (`router.replace`), lien partageable ; un lien modifié à la main (`?ids=x,x`, plus de deux ids) est traité comme sans sélection, avec un message. Instancie `useBacktestComparison`.
 - **Props** :
-
-  | Nom | Type | Requis | Défaut | Description |
-  | --- | --- | --- | --- | --- |
-  | `ids` | `string \| string[] \| undefined` | oui | — | Valeur brute du paramètre `ids` de l'URL : ids de A et B séparés par une virgule, un côté vide si non choisi. |
-
-- **Exemple** (tiré de `src/app/app/backtest/compare/page.tsx`) :
-  ```tsx
-  <BacktestCompare ids={ids} />
-  ```
+  - `ids` : Valeur brute du paramètre `ids` de l'URL : ids de A et B séparés par une virgule, un côté vide si non choisi.
 - **Source** : `src/features/backtest/backtest-compare.tsx`.
 
 ### ComparisonSelection
@@ -1182,17 +912,9 @@ Source : `src/features/backtest/metrics.tsx`.
 - **Import** : `import { ComparisonSelection } from "@/features/backtest/comparison-selection"`.
 - **Rôle** : carte de choix des backtests A et B parmi les `COMPARABLE_LIMIT` plus récents qui ont un résultat terminé, même relancés depuis (`useBacktests` avec `hasResult`), bouton « Échanger ». Un backtest choisi d'un côté n'est pas proposé de l'autre.
 - **Props** :
-
-  | Nom | Type | Requis | Défaut | Description |
-  | --- | --- | --- | --- | --- |
-  | `a` | `string` | oui | — | Id de A, `""` si non choisi. |
-  | `b` | `string` | oui | — | Id de B, `""` si non choisi. |
-  | `onChange` | `(a: string, b: string) => void` | oui | — | Nouvelle paire (choix ou échange). |
-
-- **Exemple** (tiré de `src/features/backtest/backtest-compare.tsx`) :
-  ```tsx
-  <ComparisonSelection a={a} b={b} onChange={select} />
-  ```
+  - `a` : Id de A, `""` si non choisi.
+  - `b` : Id de B, `""` si non choisi.
+  - `onChange` : Nouvelle paire (choix ou échange).
 - **Source** : `src/features/backtest/comparison-selection.tsx`.
 
 ### ComparisonOverview
@@ -1200,15 +922,7 @@ Source : `src/features/backtest/metrics.tsx`.
 - **Import** : `import { ComparisonOverview } from "@/features/backtest/comparison-overview"`.
 - **Rôle** : carte « Valeur des portefeuilles » : légende, valeurs de A et B (`comparisonSideColors`) et benchmark de A, sinon de B (`getComparisonBenchmark`), en pointillés (courbes alignées par `alignCurves`), puis drawdowns de A et B sur le même axe, via `ValueDrawdownCharts` ; drawdown masqué si aucun point n'en porte.
 - **Props** :
-
-  | Nom | Type | Requis | Défaut | Description |
-  | --- | --- | --- | --- | --- |
-  | `comparison` | `BacktestComparison` | oui | — | Réponse de `GET /api/backtest/compare`. |
-
-- **Exemple** (tiré de `src/features/backtest/backtest-compare.tsx`) :
-  ```tsx
-  <ComparisonOverview comparison={comparison} />
-  ```
+  - `comparison` : Réponse de `GET /api/backtest/compare`.
 - **Source** : `src/features/backtest/comparison-overview.tsx`.
 
 ### ComparisonMetrics, ComparisonParameters
@@ -1221,10 +935,6 @@ Source : `src/features/backtest/metrics.tsx`.
   | --- | --- | --- | --- | --- |
   | `comparison` | `BacktestComparison` | oui | — | Réponse de `GET /api/backtest/compare`. |
 
-- **Exemple** (tiré de `src/features/backtest/backtest-compare.tsx`) :
-  ```tsx
-  <ComparisonMetrics comparison={comparison} />
-  ```
 - **Source** : `src/features/backtest/comparison-metrics.tsx` (lignes construites depuis `metricDefinitions`, écart coloré par `Delta`), `src/features/backtest/comparison-parameters.tsx`.
 
 ### `features/backtest/api.ts`
@@ -1339,41 +1049,17 @@ Source : `src/features/backtest/column.tsx`.
 
 ### `features/backtest/types.ts`
 
-- **Import** : `import type { Backtest } from "@/features/backtest/types"`. `Decimal` → `string`, dates → `string` ISO. Les données du moteur (`EquityPoint`, `Trade`, `Holding`, `LumpSumComparison`, `ExecutionRule`, `DataSource`, `InvestmentMode`) sont **dérivées de `@trading-plateform/contracts`** (import de types uniquement) : unités dans `packages/contracts/src/backtest.ts`.
-
-| Export | Forme |
-| --- | --- |
-| `ExecutionStatus` | contrat `BacktestStatus` : `"DRAFT" \| "PENDING" \| "RUNNING" \| "COMPLETED" \| "FAILED" \| "CANCELLED"` (`BACKTEST_STATUSES`, égal à l'enum Prisma) |
-| `InvestmentMode` | `BacktestRequestedPayload["investmentMode"]` = `"LUMP_SUM" \| "RECURRING"` |
-| `RebalanceFrequency` | `BacktestRequestedPayload["rebalanceFrequency"]` = `"NONE" \| "MONTHLY" \| "QUARTERLY" \| "YEARLY"` |
-| `BacktestExecution` | `{ id, status, attempt, createdAt, startedAt, finishedAt, error, result?: { totalReturn: string \| null (fraction); totalTrades: number; cagr?: string \| null (fraction annuelle, absent ou null pour les résultats antérieurs) } \| null }` |
-| `EquityPoint` | contrat, `drawdown` rendu optionnel : `{ date: "YYYY-MM-DD"; value; invested; lumpSumValue?: number; drawdown?: number }` (devise, `invested` frais compris, `lumpSumValue` en DCA, `drawdown` ratio ≤ 0 absent des résultats antérieurs) |
-| `Trade` | contrat, `quantity`, `amount`, `fee` optionnels (absents des résultats antérieurs) |
-| `Holding` | contrat : `{ symbol; quantity; value }` (position finale au dernier cours) |
-| `LumpSumComparison` | contrat : `{ finalValue; totalReturn; maxDrawdown; dcaAdvantage }` (ratios en fraction) |
-| `ExecutionRule` | contrat : `"CLOSE_ON_SCHEDULED_DAY"` (achat planifié exécuté à la clôture du jour de cotation de l'échéance) |
-| `DataSource` | contrat : `{ provider: "yahoo-finance2"; priceType: "CLOSE_SPLIT_ADJUSTED"; fetchedAt: string (ISO); fingerprint: string (SHA-256 hex) }` |
-| `BacktestResult` | `{ finalValue, totalInvested, totalFees, profit, totalReturn, maxDrawdown: string \| null; totalTrades; maxDrawdownDate: string \| null; equityCurve; trades; holdings; lumpSumComparison: LumpSumComparison \| null; benchmark?: Benchmark \| null (contrat, absent ou null pour les résultats antérieurs, null sans benchmark); executionRule: ExecutionRule \| null; dataSource: DataSource \| null }` (ratios en fraction ; hypothèses `null` pour les résultats antérieurs) |
-| `Backtest` | `{ id, name, allocations: { symbol, weight: string (Decimal, ratio) }[], startDate, endDate, investmentMode, rebalanceFrequency: RebalanceFrequency ("NONE" pour les backtests antérieurs), feeRate: string (Decimal, fraction par ordre, achat ou vente), benchmarkSymbol: string \| null (null sans benchmark et pour les backtests antérieurs), createdAt, executions: BacktestExecution[] }` (plus récente d'abord) |
-| `BacktestPreview` | contrat : `{ contributionCount: number; rebalanceCount: number; dataSource: { provider; priceType } }` (estimations calendaires de `POST /api/backtest/preview`) |
-| `BacktestListStats` | contrat `BacktestStats` : `{ total, active, completed, failed: number; completedRate, failedRate: number (fraction) }`, d'après le statut de la dernière exécution ; renommé pour ne pas masquer le composant `BacktestStats` |
-| `BacktestDetails` | `Backtest & { executions (toutes); result: BacktestResult \| null }` |
-| `BacktestComparison`, `ComparedBacktest`, `ComparedMetric`, `ComparisonParameter` | contrat : réponse de `GET /api/backtest/compare` (`a`, `b` avec paramètres, allocation et dernier résultat réduit ; `deltas` A − B en points de ratio ; `homogeneous` ; `differences`) |
+- **Import** : `import type { Backtest, BacktestDetails, BacktestResult } from "@/features/backtest/types"`.
+- Réponses de core-backend : `Decimal` → `string` (ratios en fraction), dates → `string` ISO. Les données du moteur et des contrats (`EquityPoint`, `Trade`, `Holding`, `Benchmark`, `LumpSumComparison`, `ExecutionRule`, `DataSource`, `BacktestPreview`, `BacktestComparison`…) sont **dérivées de `@trading-plateform/contracts`** (`import type`), unités dans `packages/contracts/src/backtest.ts`. Champs absents des résultats antérieurs : optionnels ou `null`, affichés `<Dash />`. Le détail de chaque type et de ses unités est en commentaire dans le fichier.
+- Types propres au web : `Backtest` (liste), `BacktestDetails` (détail, `result` = dernier résultat terminé), `BacktestExecution`, `BacktestResult`, `AllocationInput` (saisie, poids en pourcent entier), `ExecutionStatus`, `InvestmentMode`, `RebalanceFrequency`, `BacktestListStats`.
 
 Source : `src/features/backtest/types.ts`.
-
-## `features/market`
 
 ### MarketList
 
 - **Import** : `import { MarketList } from "@/features/market/market-list"`.
 - **Rôle** : écran marché : `SymbolSearch` à droite, puis `DataTable` des actifs par défaut paginée côté serveur (`useDefaultAssets`, `PAGE_SIZE` par page, page dans l'état du composant) ; clic → `routes.symbol(symbol)`.
 - **Props** : aucune.
-- **Exemple** (tiré de `src/app/app/market/page.tsx`) :
-  ```tsx
-  <PageHeader title="Marché" description="Prix en temps réel via Yahoo Finance" />
-  <MarketList />
-  ```
 - **Source** : `src/features/market/market-list.tsx`.
 
 ### SymbolDetail
@@ -1381,17 +1067,7 @@ Source : `src/features/backtest/types.ts`.
 - **Import** : `import { SymbolDetail } from "@/features/market/symbol-detail"`.
 - **Rôle** : écran d'un symbole : `PageHeader` (avec `SymbolCell size="lg"` et `SymbolSheet`) puis `PriceChart`.
 - **Props** :
-
-  | Nom | Type | Requis | Défaut | Description |
-  | --- | --- | --- | --- | --- |
-  | `symbol` | `string` | oui | — | Symbole yahoo de l'URL. |
-
-- **Exemple** (tiré de `src/app/app/market/[symbol]/page.tsx`) :
-  ```tsx
-  <PageLayout>
-      <SymbolDetail symbol={symbol} />
-  </PageLayout>
-  ```
+  - `symbol` : Symbole yahoo de l'URL.
 - **Source** : `src/features/market/symbol-detail.tsx`.
 
 ### PriceChart
@@ -1399,15 +1075,7 @@ Source : `src/features/backtest/types.ts`.
 - **Import** : `import { PriceChart } from "@/features/market/price-chart"`.
 - **Rôle** : carte « Prix » d'un symbole avec onglets `FilterTabs` sur `periodOptions` (`1d` par défaut) ; charge via `useMarketDetails`, affiche en `MARKET_CURRENCY`.
 - **Props** :
-
-  | Nom | Type | Requis | Défaut | Description |
-  | --- | --- | --- | --- | --- |
-  | `symbol` | `string` | oui | — | Symbole yahoo. |
-
-- **Exemple** (tiré de `src/features/market/symbol-detail.tsx`) :
-  ```tsx
-  <PriceChart symbol={symbol} />
-  ```
+  - `symbol` : Symbole yahoo.
 - **Source** : `src/features/market/price-chart.tsx`.
 
 ### SymbolSearch
@@ -1415,10 +1083,6 @@ Source : `src/features/backtest/types.ts`.
 - **Import** : `import { SymbolSearch } from "@/features/market/symbol-search"`.
 - **Rôle** : bouton « Rechercher un symbole… » qui ouvre `SymbolPicker` et navigue vers `routes.symbol(symbol)`.
 - **Props** : aucune.
-- **Exemple** (tiré de `src/features/market/market-list.tsx`) :
-  ```tsx
-  <SymbolSearch />
-  ```
 - **Source** : `src/features/market/symbol-search.tsx`.
 
 ### SymbolSheet
@@ -1426,18 +1090,7 @@ Source : `src/features/backtest/types.ts`.
 - **Import** : `import { SymbolSheet } from "@/features/market/symbol-sheet"`.
 - **Rôle** : bouton « Tester » ouvrant un `AppSheet` « Test rapide · <symbole> » qui contient `QuickBacktestForm`.
 - **Props** :
-
-  | Nom | Type | Requis | Défaut | Description |
-  | --- | --- | --- | --- | --- |
-  | `symbol` | `string` | oui | — | Symbole de la page. |
-
-- **Exemple** (tiré de `src/features/market/symbol-detail.tsx`) :
-  ```tsx
-  <PageHeader
-      leading={<SymbolCell symbol={symbol} name={"test"} logoUrl={undefined} size="lg" />}
-      actions={<SymbolSheet symbol={symbol} />}
-  />
-  ```
+  - `symbol` : Symbole de la page.
 - **Source** : `src/features/market/symbol-sheet.tsx`.
 
 ### `features/market/api.ts`
