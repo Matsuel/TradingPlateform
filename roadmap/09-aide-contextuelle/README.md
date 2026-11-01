@@ -23,7 +23,7 @@ D1 à D7 validées le 01/11/2026 : `US.md`, section « Décisions ». D7 change 
 
 - 01/11/2026 : plan réécrit sur le code issu de la feature 08 (`BacktestResultBlocks`, `MetricBlock`, `ResultOverview` remplacent les cartes KPI) ; les entrées des métriques de la feature 08 rejoignent T-01 ; ajout de la page Comparaison (T-07).
 - 01/11/2026, revue de code : `MetricRow` porte `hint` au lieu d’un libellé `ReactNode` (une seule mise en forme de l’aide, panneau rempli avec chaque colonne) ; `StatCard` reste `label: string`, l’aide des taux est sur la légende ; les champs de formulaire prennent `hint` (`AllocationField` réutilise son libellé texte en `aria-label`). La légende du graphique de résultat (maquette 15.1), absente du code, est ajoutée pour porter l’aide de la courbe de valeur, du benchmark ou de l’investissement unique et du drawdown. « Versements » n’existe pas dans le résultat (seulement `contributionCount` de la prévisualisation) : aide posée sur « Versements prévus » du récapitulatif ; l’ajouter au résultat demanderait un changement engine → contrat → base. Curseur `pointer` au lieu de `help` à la demande de l’utilisateur.
-- 01/11/2026, constat hors périmètre : l’engine ne convertit aucun cours, un montant « en euros » est en réalité dans la devise de cotation des actifs. Les textes du glossaire le disent ; la correction (conversion de change) relève du backend.
+- 01/11/2026, constat hors périmètre : l’engine ne convertit aucun cours, un montant « en euros » est en réalité dans la devise de cotation des actifs. Même constat sur le marché, affiché en dollars (`MARKET_CURRENCY`) quelle que soit la devise de cotation. Les textes du glossaire le disent ; la correction (conversion de change) relève du backend.
 
 ## Bilan
 

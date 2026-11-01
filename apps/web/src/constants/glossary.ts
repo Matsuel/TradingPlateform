@@ -17,6 +17,9 @@ const ENGINE_UTILS = "apps/backtest-engine/engine/backtest.utils.ts"
 const BACKTEST_SERVICE = "apps/core-backend/services/backtest.service.ts"
 const MARKET_REPOSITORY = "apps/market-service/repositories/market.repository.ts"
 
+// Le marché affiche tous les cours en dollars (MARKET_CURRENCY), sans conversion de la devise de cotation
+const MARKET_MONEY_UNIT = "Montant affiché en dollars. Les cours ne sont pas convertis : pour un actif coté dans une autre devise (ex. en euros sur Euronext), la valeur est en réalité dans sa devise de cotation."
+
 // Le moteur ne convertit aucun cours : un montant est exprimé dans la devise de cotation des actifs, affichée en euros
 const MONEY_UNIT = "Montant affiché en euros. Les cours ne sont pas convertis : pour un actif coté en dollars, le montant est en réalité en dollars."
 
@@ -96,7 +99,7 @@ export const GLOSSARY = {
     maxDrawdown: {
         title: "Max drawdown",
         purpose: "La pire perte subie en cours de route : la plus forte baisse du portefeuille depuis son plus-haut précédent. C’est le « pire moment » qu’il aurait fallu encaisser sans vendre.",
-        computation: `${TWR_SENTENCE} Chaque jour, le moteur compare cet indice à son plus-haut atteint jusque-là ; le max drawdown est la baisse la plus profonde. La note du bloc donne la date de ce plus-haut.`,
+        computation: `${TWR_SENTENCE} Chaque jour, le moteur compare cet indice à son plus-haut atteint jusque-là ; le max drawdown est la baisse la plus profonde. Sur le résultat, la note du bloc Risque donne la date de ce plus-haut et le panneau celle du creux.`,
         formula: "drawdown(t) = indice(t) / max indice(s ≤ t) − 1\nmax drawdown = min drawdown(t)",
         unit: "Ratio affiché en pourcentage, toujours ≤ 0 %. 0 % signifie aucune baisse.",
         readingTip: "−12,99 % : à son pire moment, le portefeuille valait 12,99 % de moins que son meilleur niveau précédent. Plus le chiffre est proche de 0, plus le parcours a été régulier.",
@@ -155,14 +158,14 @@ export const GLOSSARY = {
     totalTrades: {
         title: "Ordres",
         purpose: "Le nombre d’ordres d’achat et de vente passés : un indicateur de l’activité et donc des frais.",
-        computation: "Un achat par actif à chaque versement (réparti selon les poids). À chaque rebalancement, une vente par actif au-dessus de sa cible et un achat par actif en dessous, si l’écart atteint au moins 0,01.",
+        computation: "Un achat par actif à chaque versement (réparti selon les poids). À chaque rebalancement, une vente par actif au-dessus de sa cible et un achat par actif en dessous, si l’écart à la cible atteint au moins 0,01 dans la devise du backtest (un centime).",
         unit: "Nombre d’ordres.",
         source: `${ENGINE} · simulate (trades)`,
     },
     rebalanceCount: {
         title: "Rebalancements",
         purpose: "Le nombre de fois où le portefeuille a été ramené à ses poids cibles.",
-        computation: "Au premier jour de cotation de chaque période (mois, trimestre, année), hors premier jour, le moteur vend les lignes au-dessus de leur poids cible et rachète celles en dessous, sans apport d’argent. Le jour n’est compté que si au moins une ligne dépasse sa cible et une autre est en dessous, d’un écart d’au moins 0,01.",
+        computation: "Au premier jour de cotation de chaque période (mois, trimestre, année), hors premier jour, le moteur vend les lignes au-dessus de leur poids cible et rachète celles en dessous, sans apport d’argent. Le jour n’est compté que si au moins une ligne dépasse sa cible et une autre est en dessous, d’un écart d’au moins 0,01 dans la devise du backtest (un centime).",
         unit: "Nombre de rebalancements.",
         source: `${ENGINE} · simulate (rebalanceCount)`,
     },
@@ -191,7 +194,7 @@ export const GLOSSARY = {
     tradePrice: {
         title: "Prix d’exécution",
         purpose: "Le cours auquel l’ordre a été exécuté.",
-        computation: "Cours de clôture, ajusté des divisions d’actions, du jour du versement ou du rebalancement.",
+        computation: "Cours de clôture, ajusté des divisions d’actions, du jour du versement ou du rebalancement. Si l’actif n’a pas coté ce jour-là, son dernier cours connu est reporté.",
         unit: "Cours de l’actif dans sa devise de cotation, sans conversion.",
         source: `${ENGINE} · simulate (trades)`,
     },
@@ -205,7 +208,7 @@ export const GLOSSARY = {
     tradeAmount: {
         title: "Montant de l’ordre",
         purpose: "L’argent engagé ou encaissé par l’ordre.",
-        computation: "Achat : montant payé, frais compris (part du versement selon le poids de l’actif). Vente : produit brut, quantité × prix, avant frais.",
+        computation: "Achat lors d’un versement : part du versement selon le poids de l’actif, frais compris. Achat lors d’un rebalancement : part du produit net des ventes du jour, au prorata de l’écart de l’actif à sa cible, frais compris. Vente : produit brut, quantité × prix, avant frais.",
         unit: MONEY_UNIT,
         source: `${ENGINE} · simulate (trades)`,
     },
@@ -287,7 +290,7 @@ export const GLOSSARY = {
     comparisonDelta: {
         title: "Écart A − B",
         purpose: "Mesurer d’un coup d’œil de combien A fait mieux ou moins bien que B sur chaque métrique.",
-        computation: "Métrique de A moins la même métrique de B. Vert si l’écart est favorable à A (plus de rendement, moins de volatilité, un drawdown moins profond), rouge sinon.",
+        computation: "Métrique de A moins la même métrique de B. Vert si l’écart est favorable à A (plus de rendement, moins de volatilité, un drawdown moins profond), rouge s’il est défavorable, neutre s’il est nul.",
         formula: "écart = métrique(A) − métrique(B)",
         unit: "Points de pourcentage pour les ratios (pts), sans unité pour le Sharpe.",
         readingTip: "+4,4 pts de CAGR : A rapporte 4,4 % de plus par an que B.",
@@ -331,7 +334,7 @@ export const GLOSSARY = {
         title: "Prix",
         purpose: "Le dernier cours connu de l’actif.",
         computation: "Cours de marché de la séance en cours, ou de clôture si le marché est fermé, fourni par Yahoo Finance.",
-        unit: "Montant dans la devise affichée.",
+        unit: MARKET_MONEY_UNIT,
         source: `${MARKET_REPOSITORY} · getAssets (regularMarketPrice)`,
     },
     change24h: {
@@ -352,7 +355,7 @@ export const GLOSSARY = {
     trend: {
         title: "Tendance",
         purpose: "Voir d’un coup d’œil l’évolution du cours sur les dernières 24 heures.",
-        computation: "Cours de clôture horaires des dernières 24 heures ; vert si la variation est positive, rouge sinon.",
+        computation: "Cours de clôture horaires des dernières 24 heures ; vert si la variation est positive ou nulle, rouge si elle est négative.",
         unit: "Mini-courbe sans axe.",
         source: `${MARKET_REPOSITORY} · getAssets (history)`,
     },
@@ -360,7 +363,7 @@ export const GLOSSARY = {
         title: "Graphique de prix",
         purpose: "Suivre le cours de l’actif sur la période choisie.",
         computation: "Cours de clôture fournis par Yahoo Finance, un point par intervalle (5 min sur 1 jour, 1 h sur 1 semaine, 1 jour sur 1 mois, 1 semaine sur 1 an, 1 mois au-delà). Un intervalle sans clôture (marché fermé) est omis.",
-        unit: "Montant dans la devise affichée.",
+        unit: MARKET_MONEY_UNIT,
         source: `${MARKET_REPOSITORY} · getDetails`,
     },
 } satisfies Record<string, GlossaryEntry>
