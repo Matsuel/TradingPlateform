@@ -42,7 +42,7 @@ Module de fonctions, hooks, constantes ou types (`lib/*.ts`, `features/<domaine>
 - [`components/ui`](#componentsui)
 - [Mise en page et navigation](#mise-en-page-et-navigation) : `PageLayout`, `PageHeader`, `AppHeader`, `AppSidebar`, `SidebarNav`, `NavUser`, `ThemeToggle`, `AppSheet`, `InfoHint`
 - [Données et tableaux](#données-et-tableaux) : `DataTable` (`Column`), `SymbolCell`, `ChangeCell`, `Dash` (`orDash`), `OptionSelect`, `FilterTabs`, `StatCard`, `LoadingState`, `ErrorState`
-- [Graphiques](#graphiques) : `PriceAreaChart` (`PricePoint`), `Sparkline`
+- [Graphiques](#graphiques) : `AreaSeriesChart` (`ChartPoint`, `ChartSeries`, `trendColor`), `Sparkline`
 - [Symboles](#symboles) : `SymbolPicker`
 - [Formulaires (`components/form`)](#formulaires-componentsform) : `AppField`, `TextField`, `NumberField`, `TextareaField`, `SelectField`, `DateField`, `CheckboxField`, `SwitchField`, `SymbolsField`, `AllocationField`, `FormSection`, `FieldRow`
 - [`lib`](#lib) : `format.ts`, `api.ts`, `pagination.ts`, `routes.ts`, `navigation.ts`, `env.ts`, `utils.ts`, `auth.ts`, `session.ts`
@@ -416,45 +416,34 @@ Primitives shadcn (base-ui), voir la doc shadcn. Ne les modifie qu'en cas de bes
 
 ## Graphiques
 
-### PriceAreaChart
+### AreaSeriesChart
 
-- **Import** : `import { PriceAreaChart, type PricePoint } from "@/components/chart"`.
-- **Rôle** : courbe d'aire d'une série `PricePoint`, verte ou rouge (ou `color`), remplie jusqu'à zéro (une série négative donne une aire sous zéro) ; série `compare` optionnelle en pointillés ; seconde série pleine `other` optionnelle (les deux séries pleines sont alors sans remplissage) ; l'appelant fournit la devise (ou `formatValue`) et les formats de date.
+- **Import** : `import { AreaSeriesChart, trendColor, type ChartPoint, type ChartSeries } from "@/components/area-series-chart"`.
+- **Rôle** : courbes datées sur un axe commun, une `Area` par série. L'appelant fournit les séries, les formats de date et de valeur. `trendColor(positive)` donne le vert ou le rouge d'une tendance.
 - **Props** :
 
   | Nom | Type | Requis | Défaut | Description |
   | --- | --- | --- | --- | --- |
-  | `data` | `PricePoint[]` = `{ date: string; price: number \| null; compare?: number; other?: number }[]` | oui | — | Points, `date` ISO ou `YYYY-MM-DD` ; `price` null = pas de point ce jour (périodes différentes) ; `compare` = valeur de la série de référence ; `other` = valeur de la seconde série pleine. |
-  | `formatTick` | `(date: string) => string` | oui | — | Libellés de l'axe X. |
+  | `data` | `ChartPoint[]` = `{ date: string; [série]: number \| null \| undefined }[]` | oui | — | Points ; une série absente un jour n'a pas de point (périodes différentes). |
+  | `series` | `ChartSeries[]` = `{ key; label; color; fill?; dashed? }[]` | oui | — | `fill` : aire remplie jusqu'à zéro (une seule série) ; `dashed` : série de référence en pointillés. Le nom de la série préfixe l'infobulle quand il y en a plusieurs. |
+  | `formatTick` | `(date: string) => string` | oui | — | Graduations de l'axe des dates. |
   | `formatTooltipDate` | `(date: string) => string` | oui | — | Date de l'infobulle. |
-  | `currency` | `string` | oui, sauf avec `formatValue` | — | Code ISO passé à `formatPrice` dans l'infobulle (`BACKTEST_CURRENCY`, `MARKET_CURRENCY`). Exclusif avec `formatValue`. |
-  | `formatValue` | `(value: number) => string` | non | `formatPrice` en `currency` | Valeurs de l'infobulle hors devise (ex. `formatRatio` pour un ratio). Exclusif avec `currency`. |
-  | `formatAxis` | `(value: number) => string` | non | nombre sans devise | Libellés de l'axe Y (ex. `formatRate`). |
-  | `label` | `string` | non | `"Prix"` | Nom de la série. |
-  | `positive` | `boolean` | non | dernier point ≥ premier | Couleur verte si vrai. |
-  | `color` | `string` | non | vert/rouge selon `positive` | Couleur CSS de la série `price` (ex. `"var(--chart-1)"`). |
-  | `compareLabel` | `string` | non | — | Nom de la série `compare` ; absent = pas de courbe en pointillés. Préfixe chaque valeur de l'infobulle par son nom. |
-  | `otherLabel` | `string` | non | — | Nom de la série `other` ; absent = pas de seconde courbe pleine. Préfixe chaque valeur de l'infobulle par son nom. |
-  | `otherColor` | `string` | non | `"var(--chart-2)"` | Couleur CSS de la série `other`. |
-  | `hideXAxis` | `boolean` | non | `false` | Masque l'axe des dates, pour un graphique empilé au-dessus d'un autre qui le porte (valeur au-dessus du drawdown). |
-  | `className` | `string` | non | — | Sur `ChartContainer` (hauteur par défaut `h-82.5`). |
+  | `formatValue` | `(value: number) => string` | oui | — | Valeurs de l'infobulle (montant, ratio). |
+  | `formatAxis` | `(value: number) => string` | non | nombre sans unité | Axe Y. |
+  | `hideXAxis` | `boolean` | non | `false` | Graphique empilé au-dessus d'un autre qui porte l'axe des dates. |
+  | `className` | `string` | non | `h-82.5` | Hauteur. |
 
-- **Exemple** (tiré de `src/features/backtest/result-overview.tsx`) :
+- **Exemple** (tiré de `src/features/market/price-chart.tsx`) :
   ```tsx
-  <PriceAreaChart
-      data={equityCurve.map((p) => ({ date: p.date, price: p.value, compare: benchmark ? p.benchmarkValue : p.lumpSumValue }))}
-      formatTick={formatMonthTick}
-      formatTooltipDate={formatMediumDate}
-      label="Portefeuille"
-      currency={BACKTEST_CURRENCY}
-      positive={positive}
-      compareLabel={compareLabel}
-      hideXAxis={drawdown.length > 0}
-      className="h-56"
+  <AreaSeriesChart
+      data={data}
+      series={[{ key: "price", label: "Prix", color: trendColor(isRising(data)), fill: true }]}
+      formatTick={(d) => formatTick(d, period)}
+      formatTooltipDate={(d) => formatTooltipDate(d, period)}
+      formatValue={(v) => formatPrice(v, MARKET_CURRENCY)}
   />
   ```
-- **Utilisé par** : `src/features/backtest/result-overview.tsx`, `src/features/backtest/comparison-overview.tsx`, `src/features/market/price-chart.tsx` ; `PricePoint` par `src/components/sparkline.tsx`, `src/features/backtest/utils.tsx`.
-- **Source** : `src/components/chart.tsx`.
+- **Source** : `src/components/area-series-chart.tsx`.
 
 ### Sparkline
 
@@ -464,7 +453,7 @@ Primitives shadcn (base-ui), voir la doc shadcn. Ne les modifie qu'en cas de bes
 
   | Nom | Type | Requis | Défaut | Description |
   | --- | --- | --- | --- | --- |
-  | `data` | `PricePoint[]` (`@/components/chart`) | oui | — | Points `{ date, price }`. |
+  | `data` | `ChartPoint[]` (`@/components/area-series-chart`) | oui | — | Points `{ date, price }`. |
   | `positive` | `boolean` | oui | — | Vert si vrai, rouge sinon. |
   | `className` | `string` | non | `"h-8 w-30"` | Remplace la taille par défaut. |
 
@@ -1053,7 +1042,7 @@ Source : `src/features/auth/schema.ts`.
 ### ResultOverview
 
 - **Import** : `import { ResultOverview } from "@/features/backtest/result-overview"`.
-- **Rôle** : carte principale d'un résultat : « Valeur finale » (`text-h1`), badge du rendement total, plus-value sur le montant investi (et rendement du benchmark s'il existe), légende des séries (Portefeuille, benchmark ou investissement unique, Drawdown ; libellés `InfoHint`, maquette 15.1), puis courbe de valeur (`PriceAreaChart`, axe des dates masqué) et, dessous sur le même axe, courbe de drawdown. Série en pointillés : benchmark (`benchmarkValue`) s'il existe, sinon investissement unique (`lumpSumValue`, DCA). Drawdown masqué si aucun point ne porte `drawdown` (résultat antérieur).
+- **Rôle** : carte principale d'un résultat : « Valeur finale » (`text-h1`), badge du rendement total, plus-value sur le montant investi (et rendement du benchmark s'il existe), légende des séries (Portefeuille, benchmark ou investissement unique, Drawdown ; libellés `InfoHint`, maquette 15.1), puis `ValueDrawdownCharts` (courbe de valeur, et drawdown dessous sur le même axe). En-tête interne : `ResultHeadline` (valeur finale, badge) et `ProfitLine`. Série en pointillés : benchmark (`benchmarkValue`) s'il existe, sinon investissement unique (`lumpSumValue`, DCA). Drawdown masqué si aucun point ne porte `drawdown` (résultat antérieur).
 - **Props** :
 
   | Nom | Type | Requis | Défaut | Description |
@@ -1066,6 +1055,13 @@ Source : `src/features/auth/schema.ts`.
   ```
 - **Utilisé par** : `src/features/backtest/backtest-detail.tsx`.
 - **Source** : `src/features/backtest/result-overview.tsx`.
+
+### ValueDrawdownCharts
+
+- **Import** : `import { ValueDrawdownCharts } from "@/features/backtest/value-drawdown-charts"`.
+- **Rôle** : courbe de valeur (montants `formatAmount`, `h-56`) puis, dessous et sur le même axe des dates, drawdown (`formatRate` en axe, `formatRatio` en infobulle, `h-24`). `drawdown.data` vide (résultat antérieur) : seule la valeur s'affiche, avec son axe.
+- **Props** : `value` et `drawdown`, chacun `{ data: ChartPoint[]; series: ChartSeries[] }` (voir `AreaSeriesChart`).
+- **Source** : `src/features/backtest/value-drawdown-charts.tsx`.
 
 ### MetricBlock
 
@@ -1233,7 +1229,7 @@ Source : `src/features/backtest/metrics.tsx`.
 ### ComparisonOverview
 
 - **Import** : `import { ComparisonOverview } from "@/features/backtest/comparison-overview"`.
-- **Rôle** : carte « Valeur des portefeuilles » : légende, valeurs de A et B (`comparisonSideColors`) et benchmark de A, sinon de B (`getComparisonBenchmark`), en pointillés (`PriceAreaChart`, courbes alignées par `alignCurves`), puis drawdowns de A et B sur le même axe ; drawdown masqué si aucun point n'en porte.
+- **Rôle** : carte « Valeur des portefeuilles » : légende, valeurs de A et B (`comparisonSideColors`) et benchmark de A, sinon de B (`getComparisonBenchmark`), en pointillés (courbes alignées par `alignCurves`), puis drawdowns de A et B sur le même axe, via `ValueDrawdownCharts` ; drawdown masqué si aucun point n'en porte.
 - **Props** :
 
   | Nom | Type | Requis | Défaut | Description |
@@ -1352,7 +1348,7 @@ Source : `src/features/backtest/constants.ts`.
 | `getExecutionDuration` | `(e: BacktestExecution) => string \| null` | Durée `finishedAt − (startedAt ?? createdAt)`, « 2 min 5 s » ou « 12 s » (minimum 1 s) ; `null` si non terminée. | `column.tsx`, `backtest-detail.tsx`, `execution-history.tsx` |
 | `fromDecimal` | `(value: string \| null \| undefined) => number \| null` | `Decimal` sérialisé → `number`, `null` ou absent → `null`. | `stats.tsx`, `result-overview.tsx`, `comparison-blocks.tsx` |
 | `formatAllocation` | `(allocations: Backtest["allocations"]) => string` | Allocation lisible : « AAPL 60 % · MSFT 40 % » (`formatRate` du poids). | `column.tsx`, `backtest-detail.tsx` |
-| `alignCurves` | `(a: EquityPoint[], b: EquityPoint[], value: (p: EquityPoint) => number \| undefined, benchmarkSide: "a" \| "b") => PricePoint[]` | Courbes de A et B sur l'union de leurs dates triées : `price` = A (`null` hors de sa période), `other` = B, `compare` = `benchmarkValue` du côté `benchmarkSide` ; `value` choisit la série (valeur, drawdown). | `comparison-overview.tsx` |
+| `alignCurves` | `(a: EquityPoint[], b: EquityPoint[], value: (p: EquityPoint) => number \| undefined, benchmarkSide?: "a" \| "b") => ChartPoint[]` | Courbes de A et B sur l'union de leurs dates triées : séries `a` et `b` (absentes hors de leur période) et, avec `benchmarkSide`, `benchmark` = `benchmarkValue` de ce côté ; `value` choisit la série (valeur, drawdown). | `comparison-overview.tsx` |
 | `formatAmount` | `(v: number) => string` | Montant en `BACKTEST_CURRENCY`. | `stats.tsx`, `comparison-blocks.tsx` |
 | `formatRecovery` | `(recoveryDays: number \| null \| undefined, maxDrawdown: number \| null, peakDated: boolean) => string \| null` | Durée `formatDuration` ; si `recoveryDays` est null : « Aucune baisse » sans baisse, « Non récupéré » si `peakDated` (`maxDrawdownPeakDate` non null ; `true` pour un benchmark), sinon `null`, affiché `<Dash />` par l'écran (résultat antérieur, que l'API renvoie aussi à null). | `stats.tsx`, `comparison-blocks.tsx` |
 | `comparisonLabel` | `(side: "A" \| "B", name: string) => string` | « A · 60/40 » : colonnes, légende et infobulles de la comparaison. | `comparison-overview.tsx`, `comparison-blocks.tsx` |

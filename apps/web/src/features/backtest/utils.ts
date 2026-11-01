@@ -1,4 +1,4 @@
-import type { PricePoint } from "@/components/chart"
+import type { ChartPoint } from "@/components/area-series-chart"
 import { formatDuration, formatPrice, formatRate } from "@/lib/format"
 import { activeStatuses, BACKTEST_CURRENCY } from "./constants"
 import type { Backtest, BacktestComparison, BacktestExecution, EquityPoint, ExecutionStatus } from "./types"
@@ -58,29 +58,28 @@ export function getComparisonBenchmark({ a, b }: BacktestComparison) {
 }
 
 /**
- * Aligne les courbes de A et B sur l'union de leurs dates, triées, pour un même graphique : `price` = série de A (null
- * les jours hors de sa période), `other` = série de B, `compare` = benchmark du côté `benchmarkSide` (`getComparisonBenchmark`).
- * `value` choisit la série (valeur, drawdown).
+ * Aligne les courbes de A et B sur l'union de leurs dates, triées, pour un même graphique : séries `a` et `b` (absentes
+ * les jours hors de la période d'un côté) et, avec `benchmarkSide`, `benchmark` = benchmark de ce côté
+ * (`getComparisonBenchmark`). `value` choisit la série (valeur, drawdown).
  */
 export function alignCurves(
     a: EquityPoint[],
     b: EquityPoint[],
     value: (p: EquityPoint) => number | undefined,
-    benchmarkSide: "a" | "b",
-): PricePoint[] {
-    const points = new Map<string, PricePoint>()
-    const at = (date: string): PricePoint => points.get(date) ?? { date, price: null }
-    for (const p of a)
-        points.set(p.date, {
-            ...at(p.date),
-            price: value(p) ?? null,
-            ...(benchmarkSide === "a" && { compare: p.benchmarkValue }),
-        })
-    for (const p of b)
-        points.set(p.date, {
-            ...at(p.date),
-            other: value(p),
-            ...(benchmarkSide === "b" && { compare: p.benchmarkValue }),
-        })
+    benchmarkSide?: "a" | "b",
+): ChartPoint[] {
+    const points = new Map<string, ChartPoint>()
+    const add = (side: "a" | "b", curve: EquityPoint[]) => {
+        for (const p of curve) {
+            const point = points.get(p.date) ?? { date: p.date }
+            points.set(p.date, {
+                ...point,
+                [side]: value(p),
+                ...(benchmarkSide === side && { benchmark: p.benchmarkValue }),
+            })
+        }
+    }
+    add("a", a)
+    add("b", b)
     return [...points.values()].sort((x, y) => x.date.localeCompare(y.date))
 }
