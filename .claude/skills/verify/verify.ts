@@ -66,6 +66,7 @@ for (const ws of workspaces.filter((ws) => toCheck.has(ws.name))) {
 }
 if (toCheck.has("backtest-engine")) await run("bun test apps/backtest-engine", "apps/backtest-engine", ["bun", "test"]);
 if (touched(/^apps\/web\//)) await run("lint apps/web", "apps/web", ["bun", "run", "lint"]);
+if (touched(/^apps\/web\//)) await run("format apps/web", "apps/web", ["bun", "run", "format:check"]);
 
 // --- Lignes ajoutées par le diff (fichiers non suivis : tout leur contenu)
 

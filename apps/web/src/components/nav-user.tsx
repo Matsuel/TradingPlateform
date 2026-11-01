@@ -53,7 +53,12 @@ export function NavUser({ user }: { user: User }) {
                         <UserIdentity user={user} />
                         <ChevronsUpDownIcon className="ml-auto size-4" />
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-fit" side={isMobile ? "bottom" : "right"} align="end" sideOffset={4}>
+                    <DropdownMenuContent
+                        className="w-fit"
+                        side={isMobile ? "bottom" : "right"}
+                        align="end"
+                        sideOffset={4}
+                    >
                         <DropdownMenuGroup>
                             <DropdownMenuLabel className="flex items-center gap-2 px-1 py-1.5 font-normal">
                                 <UserIdentity user={user} />

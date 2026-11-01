@@ -6,7 +6,10 @@ export const metadata: Metadata = { title: "Paper trading" }
 export default function PaperTradingPage() {
     return (
         <PageLayout>
-            <PageHeader title="Paper trading" description="Stratégies suivies à partir d’aujourd’hui sur un portefeuille virtuel." />
+            <PageHeader
+                title="Paper trading"
+                description="Stratégies suivies à partir d’aujourd’hui sur un portefeuille virtuel."
+            />
         </PageLayout>
     )
 }

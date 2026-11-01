@@ -1,12 +1,18 @@
 import type { ReactNode } from "react"
-import { InfoHint, type HintDetail } from "@/components/info-hint"
+import { type HintDetail, InfoHint } from "@/components/info-hint"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import type { GlossaryKey } from "@/constants/glossary"
 import { cn } from "@/lib/utils"
 
 // hint : entrée du glossaire ouverte par le libellé ; details : lignes ajoutées au panneau après les valeurs des colonnes ;
 // badge : signal affiché après le libellé (ex. « diffère »)
-export type MetricRow = { label: string; hint?: GlossaryKey; details?: HintDetail[]; badge?: ReactNode; values: ReactNode[] }
+export type MetricRow = {
+    label: string
+    hint?: GlossaryKey
+    details?: HintDetail[]
+    badge?: ReactNode
+    values: ReactNode[]
+}
 
 interface MetricBlockProps {
     title: string
@@ -25,7 +31,17 @@ interface MetricBlockProps {
  * Les `strong` premières colonnes (une par défaut) sont en gras, les suivantes en retrait. Les valeurs arrivent déjà formatées.
  * Une ligne à `hint` a un libellé `InfoHint` dont le panneau rappelle la valeur de chaque colonne puis ses `details`.
  */
-export function MetricBlock({ title, description, columns, columnHints = {}, rows, strong = 1, rowHeader, note, className }: MetricBlockProps) {
+export function MetricBlock({
+    title,
+    description,
+    columns,
+    columnHints = {},
+    rows,
+    strong = 1,
+    rowHeader,
+    note,
+    className,
+}: MetricBlockProps) {
     return (
         <Card className={cn("gap-4", className)}>
             <CardHeader>
@@ -40,7 +56,10 @@ export function MetricBlock({ title, description, columns, columnHints = {}, row
                                 {rowHeader ?? <span className="sr-only">Indicateur</span>}
                             </th>
                             {columns.map((c) => (
-                                <th key={c} className="pb-2.5 pl-2 text-right text-small font-medium text-muted-foreground">
+                                <th
+                                    key={c}
+                                    className="pb-2.5 pl-2 text-right text-small font-medium text-muted-foreground"
+                                >
                                     <InfoHint entry={columnHints[c]}>{c}</InfoHint>
                                 </th>
                             ))}
@@ -50,17 +69,33 @@ export function MetricBlock({ title, description, columns, columnHints = {}, row
                         {rows.map(({ label, hint, details = [], badge, values }) => {
                             // Panneau d'aide : la valeur de chaque colonne, puis les détails propres à la ligne
                             const hinted = (
-                                <InfoHint entry={hint} details={[...columns.map((c, i) => ({ label: c, value: values[i] })), ...details]}>
+                                <InfoHint
+                                    entry={hint}
+                                    details={[...columns.map((c, i) => ({ label: c, value: values[i] })), ...details]}
+                                >
                                     {label}
                                 </InfoHint>
                             )
                             return (
                                 <tr key={label}>
                                     <th scope="row" className="py-2.5 text-left font-normal">
-                                        {badge ? <span className="flex items-center gap-2">{hinted}{badge}</span> : hinted}
+                                        {badge ? (
+                                            <span className="flex items-center gap-2">
+                                                {hinted}
+                                                {badge}
+                                            </span>
+                                        ) : (
+                                            hinted
+                                        )}
                                     </th>
                                     {values.map((v, i) => (
-                                        <td key={columns[i]} className={cn("py-2.5 pl-2 text-right whitespace-nowrap", i < strong ? "font-semibold" : "text-muted-foreground")}>
+                                        <td
+                                            key={columns[i]}
+                                            className={cn(
+                                                "py-2.5 pl-2 text-right whitespace-nowrap",
+                                                i < strong ? "font-semibold" : "text-muted-foreground",
+                                            )}
+                                        >
                                             {v}
                                         </td>
                                     ))}

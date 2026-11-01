@@ -14,7 +14,9 @@ export function FilterTabs<T extends string>({ value, onChange, options, classNa
         <Tabs value={value} onValueChange={(v) => onChange(v as T)} className={className}>
             <TabsList>
                 {options.map((o) => (
-                    <TabsTrigger key={o.value} value={o.value}>{o.label}</TabsTrigger>
+                    <TabsTrigger key={o.value} value={o.value}>
+                        {o.label}
+                    </TabsTrigger>
                 ))}
             </TabsList>
         </Tabs>

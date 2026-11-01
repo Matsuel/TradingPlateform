@@ -1,26 +1,29 @@
 "use client"
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
 import { TriangleAlert } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { useState } from "react"
 import { PageHeader } from "@/components/page-layout"
 import { ErrorState, LoadingState } from "@/components/query-status"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { formatDayRange, formatPercent } from "@/lib/format"
 import { routes } from "@/lib/routes"
-import { comparisonParameterLabels, NO_BENCHMARK_LABEL } from "./constants"
 import { ComparisonMetrics, ComparisonParameters } from "./comparison-blocks"
 import { ComparisonOverview } from "./comparison-overview"
 import { ComparisonSelection } from "./comparison-selection"
+import { comparisonParameterLabels, NO_BENCHMARK_LABEL } from "./constants"
 import { useBacktestComparison } from "./hook"
 import type { BacktestComparison, ComparisonParameter } from "./types"
 
 // Une phrase par paramètre qui diffère, valeurs de A puis de B
 const differenceDetails: Record<ComparisonParameter, (c: BacktestComparison) => string> = {
-    period: ({ a, b }) => `A couvre ${formatDayRange(a.startDate, a.endDate)}, B ${formatDayRange(b.startDate, b.endDate)}.`,
-    feeRate: ({ a, b }) => `A paie ${formatPercent(Number(a.feeRate))} par ordre, B ${formatPercent(Number(b.feeRate))}.`,
-    benchmarkSymbol: ({ a, b }) => `Benchmark de A : ${a.benchmarkSymbol ?? NO_BENCHMARK_LABEL}, de B : ${b.benchmarkSymbol ?? NO_BENCHMARK_LABEL}.`,
+    period: ({ a, b }) =>
+        `A couvre ${formatDayRange(a.startDate, a.endDate)}, B ${formatDayRange(b.startDate, b.endDate)}.`,
+    feeRate: ({ a, b }) =>
+        `A paie ${formatPercent(Number(a.feeRate))} par ordre, B ${formatPercent(Number(b.feeRate))}.`,
+    benchmarkSymbol: ({ a, b }) =>
+        `Benchmark de A : ${a.benchmarkSymbol ?? NO_BENCHMARK_LABEL}, de B : ${b.benchmarkSymbol ?? NO_BENCHMARK_LABEL}.`,
 }
 
 // Bandeau affiché quand le backend signale une comparaison non homogène
@@ -34,8 +37,8 @@ function HeterogeneityBanner({ comparison }: { comparison: BacktestComparison })
                     Comparaison non homogène : {differences.map((d) => comparisonParameterLabels[d]).join(", ")}
                 </p>
                 <p className="text-small text-muted-foreground">
-                    {differences.map((d) => differenceDetails[d](comparison)).join(" ")} Les écarts restent calculés, mais ne mesurent
-                    plus seulement l’effet de l’allocation.
+                    {differences.map((d) => differenceDetails[d](comparison)).join(" ")} Les écarts restent calculés,
+                    mais ne mesurent plus seulement l’effet de l’allocation.
                 </p>
             </div>
         </div>
@@ -67,7 +70,9 @@ export function BacktestCompare({ ids }: { ids: string | string[] | undefined })
         content = (
             <Card>
                 <CardContent className="flex h-40 items-center justify-center text-sm text-muted-foreground">
-                    {invalidLink ? "Ce lien ne désigne pas deux backtests différents : choisissez-en deux." : "Choisissez deux backtests terminés à comparer."}
+                    {invalidLink
+                        ? "Ce lien ne désigne pas deux backtests différents : choisissez-en deux."
+                        : "Choisissez deux backtests terminés à comparer."}
                 </CardContent>
             </Card>
         )
@@ -93,7 +98,11 @@ export function BacktestCompare({ ids }: { ids: string | string[] | undefined })
             <PageHeader
                 title="Comparaison"
                 description="Deux backtests terminés, mêmes métriques côte à côte"
-                actions={<Button variant="outline" onClick={copyLink} disabled={!comparison}>{copied ? "Lien copié" : "Copier le lien"}</Button>}
+                actions={
+                    <Button variant="outline" onClick={copyLink} disabled={!comparison}>
+                        {copied ? "Lien copié" : "Copier le lien"}
+                    </Button>
+                }
             />
             <ComparisonSelection a={a} b={b} onChange={select} />
             {content}

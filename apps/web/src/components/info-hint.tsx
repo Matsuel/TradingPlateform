@@ -69,7 +69,9 @@ export function InfoHint({ entry, value, details = [], children }: InfoHintProps
                     <HintSection title="Comment c’est calculé">
                         <p>{computation}</p>
                         {formula && (
-                            <pre className="rounded-lg bg-muted px-4 py-3 font-mono text-small whitespace-pre-wrap text-foreground">{formula}</pre>
+                            <pre className="rounded-lg bg-muted px-4 py-3 font-mono text-small whitespace-pre-wrap text-foreground">
+                                {formula}
+                            </pre>
                         )}
                     </HintSection>
                     <HintSection title="Unité">

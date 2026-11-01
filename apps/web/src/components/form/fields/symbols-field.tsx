@@ -1,12 +1,11 @@
 "use client"
 
-import { useState } from "react"
 import { X } from "lucide-react"
+import { useState } from "react"
 import type { FieldValues } from "react-hook-form"
-
+import { SymbolPicker } from "@/components/symbol-picker"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { SymbolPicker } from "@/components/symbol-picker"
 import { AppField, type BaseProps } from "../field"
 
 /** Champ de formulaire : liste de symboles (string[]) affichés en chips, ajout via recherche. */

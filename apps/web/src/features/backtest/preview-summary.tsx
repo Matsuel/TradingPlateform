@@ -10,7 +10,7 @@ import type { GlossaryKey } from "@/constants/glossary"
 import { useDebouncedValue } from "@/hooks/use-debounced-value"
 import { dataProviderLabels, previewSteps, priceTypeLabels } from "./constants"
 import { useBacktestPreview } from "./hook"
-import { backtestSchema, type BacktestValues } from "./schema"
+import { type BacktestValues, backtestSchema } from "./schema"
 
 // Attente après la dernière saisie avant de redemander la prévisualisation
 const PREVIEW_DEBOUNCE_MS = 500
@@ -18,7 +18,9 @@ const PREVIEW_DEBOUNCE_MS = 500
 function SummaryRow({ label, hint, children }: { label: string; hint: GlossaryKey; children: ReactNode }) {
     return (
         <div className="flex items-start gap-4">
-            <dt className="flex-1 text-muted-foreground"><InfoHint entry={hint}>{label}</InfoHint></dt>
+            <dt className="flex-1 text-muted-foreground">
+                <InfoHint entry={hint}>{label}</InfoHint>
+            </dt>
             <dd className="text-right font-medium">{children}</dd>
         </div>
     )
@@ -63,18 +65,25 @@ export function BacktestPreviewSummary() {
                     ))}
                 </ol>
                 <dl className="grid gap-2 border-t pt-4 text-sm">
-                    <SummaryRow label="Rebalancements prévus" hint="plannedRebalances">{preview ? preview.rebalanceCount : <Dash />}</SummaryRow>
-                    <SummaryRow label="Versements prévus" hint="plannedContributions">{preview ? preview.contributionCount : <Dash />}</SummaryRow>
+                    <SummaryRow label="Rebalancements prévus" hint="plannedRebalances">
+                        {preview ? preview.rebalanceCount : <Dash />}
+                    </SummaryRow>
+                    <SummaryRow label="Versements prévus" hint="plannedContributions">
+                        {preview ? preview.contributionCount : <Dash />}
+                    </SummaryRow>
                     <SummaryRow label="Source des données" hint="dataSource">
-                        {preview
-                            ? `${dataProviderLabels[preview.dataSource.provider]} · ${priceTypeLabels[preview.dataSource.priceType]}`
-                            : <Dash />}
+                        {preview ? (
+                            `${dataProviderLabels[preview.dataSource.provider]} · ${priceTypeLabels[preview.dataSource.priceType]}`
+                        ) : (
+                            <Dash />
+                        )}
                     </SummaryRow>
                 </dl>
             </CardContent>
             <CardFooter>
                 <p className="text-xs text-muted-foreground">
-                    Estimation calendaire : jours ouvrés du lundi au vendredi, jours fériés inconnus avant le chargement des cours.
+                    Estimation calendaire : jours ouvrés du lundi au vendredi, jours fériés inconnus avant le chargement
+                    des cours.
                 </p>
             </CardFooter>
         </Card>

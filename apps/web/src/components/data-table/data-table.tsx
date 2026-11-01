@@ -1,7 +1,7 @@
 "use client"
 
-import type { MouseEvent, ReactNode } from "react"
 import type { UseQueryResult } from "@tanstack/react-query"
+import type { MouseEvent, ReactNode } from "react"
 import { ErrorState, LoadingState } from "@/components/query-status"
 import {
     Pagination,
@@ -22,7 +22,9 @@ export type Column<T> = {
     className?: string
 }
 
-type QueryState<T> = Pick<UseQueryResult<T[], Error>, "data" | "isPending" | "isError" | "error"> & { refetch: () => unknown }
+type QueryState<T> = Pick<UseQueryResult<T[], Error>, "data" | "isPending" | "isError" | "error"> & {
+    refetch: () => unknown
+}
 
 // Lignes issues d'une requête (états chargement / erreur affichés) ou déjà chargées (rows)
 type DataTableSource<T> = { query: QueryState<T>; rows?: never } | { rows: T[]; query?: never }
@@ -123,7 +125,13 @@ export function DataTable<T>({
     frameless = false,
     pagination,
 }: DataTableProps<T>) {
-    const { data, isPending, isError, error, refetch } = query ?? { data: rows, isPending: false, isError: false, error: null, refetch: () => undefined }
+    const { data, isPending, isError, error, refetch } = query ?? {
+        data: rows,
+        isPending: false,
+        isError: false,
+        error: null,
+        refetch: () => undefined,
+    }
 
     const status = (content: ReactNode) => (
         <TableRow className="hover:bg-transparent">
@@ -155,27 +163,26 @@ export function DataTable<T>({
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {isPending ? (
-                        status(loader)
-                    ) : isError ? (
-                        status(<ErrorState message={error?.message} onRetry={refetch} />)
-                    ) : data && data.length === 0 ? (
-                        status(<span className="text-sm text-muted-foreground">{emptyMessage}</span>)
-                    ) : (
-                        data && data.map((row) => (
-                            <TableRow
-                                key={rowKey(row)}
-                                onClick={onRowClick ? () => onRowClick(row) : undefined}
-                                className={cn(onRowClick && "cursor-pointer")}
-                            >
-                                {columns.map((col, i) => (
-                                    <TableCell key={i} className={col.className}>
-                                        {col.cell(row)}
-                                    </TableCell>
-                                ))}
-                            </TableRow>
-                        ))
-                    )}
+                    {isPending
+                        ? status(loader)
+                        : isError
+                          ? status(<ErrorState message={error?.message} onRetry={refetch} />)
+                          : data && data.length === 0
+                            ? status(<span className="text-sm text-muted-foreground">{emptyMessage}</span>)
+                            : data &&
+                              data.map((row) => (
+                                  <TableRow
+                                      key={rowKey(row)}
+                                      onClick={onRowClick ? () => onRowClick(row) : undefined}
+                                      className={cn(onRowClick && "cursor-pointer")}
+                                  >
+                                      {columns.map((col, i) => (
+                                          <TableCell key={i} className={col.className}>
+                                              {col.cell(row)}
+                                          </TableCell>
+                                      ))}
+                                  </TableRow>
+                              ))}
                 </TableBody>
             </Table>
             {pagination && <TablePagination {...pagination} />}

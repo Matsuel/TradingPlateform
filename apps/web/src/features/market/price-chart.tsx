@@ -51,7 +51,9 @@ export function PriceChart({ symbol }: { symbol: string }) {
                     <Tabs value={period} onValueChange={(v) => setPeriod(v as Period)}>
                         <TabsList>
                             {periodOptions.map((p) => (
-                                <TabsTrigger key={p.value} value={p.value}>{p.label}</TabsTrigger>
+                                <TabsTrigger key={p.value} value={p.value}>
+                                    {p.label}
+                                </TabsTrigger>
                             ))}
                         </TabsList>
                     </Tabs>

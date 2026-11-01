@@ -1,15 +1,14 @@
 "use client"
 
-import { Fragment, useState } from "react"
-import { Plus, X } from "lucide-react"
-import { useFormContext, type FieldValues } from "react-hook-form"
 import type { Allocation } from "@trading-plateform/contracts"
-
-import { Badge } from "@/components/ui/badge"
-import { FieldError } from "@/components/ui/field"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { Plus, X } from "lucide-react"
+import { Fragment, useState } from "react"
+import { type FieldValues, useFormContext } from "react-hook-form"
 import { SymbolPicker } from "@/components/symbol-picker"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { FieldError } from "@/components/ui/field"
+import { Input } from "@/components/ui/input"
 import { AppField, type BaseProps } from "../field"
 
 // Poids saisi en pourcent entier (60 = 60 %, D2), converti en ratio par le schéma d'entrée du backend ; NaN = champ vidé
@@ -51,18 +50,30 @@ export function AllocationField<T extends FieldValues>({
                             {rows.map((row, i) => {
                                 const inputId = `${field.name}.${i}.weight`
                                 // Erreur propre au poids (vide, non entier, hors bornes) : affichée sous sa ligne, le message global ne la porte pas
-                                const rowError = invalid ? getFieldState(inputId as typeof field.name, formState).error : undefined
-                                const width = Number.isNaN(row.weight) ? 0 : Math.min(Math.max(row.weight, 0), FULL_PERCENT)
+                                const rowError = invalid
+                                    ? getFieldState(inputId as typeof field.name, formState).error
+                                    : undefined
+                                const width = Number.isNaN(row.weight)
+                                    ? 0
+                                    : Math.min(Math.max(row.weight, 0), FULL_PERCENT)
 
                                 return (
                                     <Fragment key={row.symbol}>
                                         <div className="flex items-center gap-3">
                                             <label htmlFor={inputId} className="w-40 min-w-0">
                                                 <p className="text-sm font-medium">{row.symbol}</p>
-                                                {row.name && <p className="truncate text-xs text-muted-foreground">{row.name}</p>}
+                                                {row.name && (
+                                                    <p className="truncate text-xs text-muted-foreground">{row.name}</p>
+                                                )}
                                             </label>
-                                            <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted" aria-hidden>
-                                                <div className="h-full rounded-full bg-primary" style={{ width: `${width}%` }} />
+                                            <div
+                                                className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted"
+                                                aria-hidden
+                                            >
+                                                <div
+                                                    className="h-full rounded-full bg-primary"
+                                                    style={{ width: `${width}%` }}
+                                                />
                                             </div>
                                             <div className="flex items-center gap-1.5">
                                                 <Input
@@ -85,7 +96,9 @@ export function AllocationField<T extends FieldValues>({
                                                 variant="ghost"
                                                 size="icon"
                                                 aria-label={`Retirer ${row.symbol}`}
-                                                onClick={() => field.onChange(rows.filter((r) => r.symbol !== row.symbol))}
+                                                onClick={() =>
+                                                    field.onChange(rows.filter((r) => r.symbol !== row.symbol))
+                                                }
                                             >
                                                 <X />
                                             </Button>
@@ -111,7 +124,10 @@ export function AllocationField<T extends FieldValues>({
                             title="Ajouter un actif"
                             onSelect={(item) => {
                                 if (symbols.includes(item.symbol)) return
-                                field.onChange([...rows, { symbol: item.symbol, name: item.name, weight: rest > 0 ? rest : NaN }])
+                                field.onChange([
+                                    ...rows,
+                                    { symbol: item.symbol, name: item.name, weight: rest > 0 ? rest : NaN },
+                                ])
                             }}
                         />
                     </>

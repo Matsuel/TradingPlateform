@@ -45,7 +45,9 @@ function ExecutionRow({ execution: e }: { execution: BacktestExecution }) {
                 </span>
                 {isActive(e) && (
                     <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-muted">
-                        {e.status === "RUNNING" && <div className="h-full w-full animate-pulse rounded-full bg-green-600" />}
+                        {e.status === "RUNNING" && (
+                            <div className="h-full w-full animate-pulse rounded-full bg-green-600" />
+                        )}
                     </div>
                 )}
             </div>
@@ -58,7 +60,9 @@ function ExecutionRow({ execution: e }: { execution: BacktestExecution }) {
 export function ExecutionList({ executions }: { executions: BacktestExecution[] }) {
     return (
         <div className="flex flex-col">
-            {executions.map((e) => <ExecutionRow key={e.id} execution={e} />)}
+            {executions.map((e) => (
+                <ExecutionRow key={e.id} execution={e} />
+            ))}
         </div>
     )
 }

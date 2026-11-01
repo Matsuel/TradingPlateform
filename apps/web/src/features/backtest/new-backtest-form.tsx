@@ -1,8 +1,8 @@
 "use client"
 
-import { useRouter } from "next/navigation"
-import { FormProvider, useForm, useWatch, type FieldPath } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { useRouter } from "next/navigation"
+import { type FieldPath, FormProvider, useForm, useWatch } from "react-hook-form"
 
 import { allocationTotal, FULL_PERCENT } from "@/components/form"
 import { Button } from "@/components/ui/button"
@@ -11,7 +11,7 @@ import { routes } from "@/lib/routes"
 import { DEFAULT_BENCHMARK_SYMBOL, DEFAULT_REBALANCE_FREQUENCY } from "./constants"
 import { useCreateBacktest } from "./hook"
 import { BacktestPreviewSummary } from "./preview-summary"
-import { backtestSchema, type BacktestValues } from "./schema"
+import { type BacktestValues, backtestSchema } from "./schema"
 import { AllocationSection, GeneralSection } from "./sections"
 
 export function NewBacktestForm() {
@@ -19,7 +19,15 @@ export function NewBacktestForm() {
     const { mutateAsync, error } = useCreateBacktest()
     const form = useForm<BacktestValues>({
         resolver: zodResolver(backtestSchema),
-        defaultValues: { name: "", investmentMode: "LUMP_SUM", allocations: [], initialAmount: 10_000, rebalanceFrequency: DEFAULT_REBALANCE_FREQUENCY, fee: 0.1, benchmarkSymbols: [DEFAULT_BENCHMARK_SYMBOL] },
+        defaultValues: {
+            name: "",
+            investmentMode: "LUMP_SUM",
+            allocations: [],
+            initialAmount: 10_000,
+            rebalanceFrequency: DEFAULT_REBALANCE_FREQUENCY,
+            fee: 0.1,
+            benchmarkSymbols: [DEFAULT_BENCHMARK_SYMBOL],
+        },
     })
     const allocations = useWatch({ control: form.control, name: "allocations" })
 

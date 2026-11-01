@@ -1,12 +1,11 @@
 "use client"
 
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts"
-import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart"
-import { cn } from "@/lib/utils"
+import { type ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { formatPrice, LOCALE } from "@/lib/format"
+import { cn } from "@/lib/utils"
 
-const formatAxisPrice = (v: number) =>
-    v.toLocaleString(LOCALE, { maximumFractionDigits: v < 10 ? 2 : 0 })
+const formatAxisPrice = (v: number) => v.toLocaleString(LOCALE, { maximumFractionDigits: v < 10 ? 2 : 0 })
 
 // compare : série de référence optionnelle, tracée en pointillés quand compareLabel est fourni ;
 // other : seconde série pleine, tracée quand otherLabel est fourni ; price null : pas de point à cette date (périodes différentes)
@@ -93,12 +92,14 @@ export function PriceAreaChart({
                                 payload?.[0] ? formatTooltipDate(payload[0].payload.date) : ""
                             }
                             // Point absent d'une série (price null) : rien dans l'infobulle plutôt que 0
-                            formatter={(value, name) => value == null ? null : (
-                                <span className="text-body-medium">
-                                    {(compareLabel || otherLabel) && `${names[String(name)]} : `}
-                                    {format(Number(value))}
-                                </span>
-                            )}
+                            formatter={(value, name) =>
+                                value == null ? null : (
+                                    <span className="text-body-medium">
+                                        {(compareLabel || otherLabel) && `${names[String(name)]} : `}
+                                        {format(Number(value))}
+                                    </span>
+                                )
+                            }
                         />
                     }
                 />

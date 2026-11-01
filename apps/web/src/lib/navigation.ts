@@ -3,7 +3,9 @@ import { prefix } from "@/lib/routes"
 
 export type ActiveTab = SidebarTab & { section: string }
 
-const tabs: ActiveTab[] = sidebarSections.flatMap((section) => section.tabs.map((tab) => ({ ...tab, section: section.name })))
+const tabs: ActiveTab[] = sidebarSections.flatMap((section) =>
+    section.tabs.map((tab) => ({ ...tab, section: section.name })),
+)
 
 // Le dashboard (racine) ne matche qu'exactement ; un autre onglet matche aussi ses sous-pages (détail d'un backtest)
 const matches = (pathname: string, url: string) =>

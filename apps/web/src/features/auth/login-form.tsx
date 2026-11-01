@@ -1,15 +1,15 @@
 "use client"
 
+import { zodResolver } from "@hookform/resolvers/zod"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { FormProvider, useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
 
 import { FormSection, TextField } from "@/components/form"
 import { Button } from "@/components/ui/button"
 import { routes } from "@/lib/routes"
 import { useLogin } from "./hook"
-import { loginSchema, type LoginValues } from "./schema"
+import { type LoginValues, loginSchema } from "./schema"
 
 /** Formulaire de connexion ; `redirectTo` : page ouverte après succès, déjà validée par `safeRedirect`. */
 export function LoginForm({ redirectTo }: { redirectTo: string }) {
@@ -39,7 +39,10 @@ export function LoginForm({ redirectTo }: { redirectTo: string }) {
                         Se connecter
                     </Button>
                     <p className="text-center text-sm text-muted-foreground">
-                        Pas encore de compte ? <Link href={routes.register} className="underline">Créer un compte</Link>
+                        Pas encore de compte ?{" "}
+                        <Link href={routes.register} className="underline">
+                            Créer un compte
+                        </Link>
                     </p>
                 </FormSection>
             </form>

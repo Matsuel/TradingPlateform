@@ -1,5 +1,5 @@
-import type { ReactNode } from "react"
 import { TrendingDown, TrendingUp } from "lucide-react"
+import type { ReactNode } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
@@ -8,7 +8,11 @@ type Trend = "up" | "down" | "neutral"
 
 const trends = {
     up: { variant: "success", icon: <TrendingUp data-icon="inline-start" /> },
-    down: { variant: "outline", className: "border-destructive/30 text-destructive", icon: <TrendingDown data-icon="inline-start" /> },
+    down: {
+        variant: "outline",
+        className: "border-destructive/30 text-destructive",
+        icon: <TrendingDown data-icon="inline-start" />,
+    },
     neutral: { variant: "outline", className: "text-muted-foreground" },
 } as const satisfies Record<Trend, { variant: "success" | "outline"; className?: string; icon?: ReactNode }>
 

@@ -1,5 +1,5 @@
-import { Dash } from "@/components/dash"
 import type { PricePoint } from "@/components/chart"
+import { Dash } from "@/components/dash"
 import { formatDuration, formatPrice, formatRate } from "@/lib/format"
 import { activeStatuses, BACKTEST_CURRENCY } from "./constants"
 import type { Backtest, BacktestComparison, BacktestExecution, EquityPoint, ExecutionStatus } from "./types"
@@ -41,7 +41,11 @@ export const formatAmount = (v: number) => formatPrice(v, BACKTEST_CURRENCY)
  * Durée de récupération ; `recoveryDays` null : « Aucune baisse » sans baisse, « Non récupéré » si la baisse a un plus haut
  * daté par le moteur (`peakDated`), `<Dash />` sinon : résultat antérieur au calcul, où l'API renvoie aussi null.
  */
-export function formatRecovery(recoveryDays: number | null | undefined, maxDrawdown: number | null, peakDated: boolean) {
+export function formatRecovery(
+    recoveryDays: number | null | undefined,
+    maxDrawdown: number | null,
+    peakDated: boolean,
+) {
     if (recoveryDays != null) return formatDuration(recoveryDays)
     if (maxDrawdown == null) return <Dash />
     if (maxDrawdown === 0) return "Aucune baisse"
@@ -62,10 +66,25 @@ export function getComparisonBenchmark({ a, b }: BacktestComparison) {
  * les jours hors de sa période), `other` = série de B, `compare` = benchmark du côté `benchmarkSide` (`getComparisonBenchmark`).
  * `value` choisit la série (valeur, drawdown).
  */
-export function alignCurves(a: EquityPoint[], b: EquityPoint[], value: (p: EquityPoint) => number | undefined, benchmarkSide: "a" | "b"): PricePoint[] {
+export function alignCurves(
+    a: EquityPoint[],
+    b: EquityPoint[],
+    value: (p: EquityPoint) => number | undefined,
+    benchmarkSide: "a" | "b",
+): PricePoint[] {
     const points = new Map<string, PricePoint>()
     const at = (date: string): PricePoint => points.get(date) ?? { date, price: null }
-    for (const p of a) points.set(p.date, { ...at(p.date), price: value(p) ?? null, ...(benchmarkSide === "a" && { compare: p.benchmarkValue }) })
-    for (const p of b) points.set(p.date, { ...at(p.date), other: value(p), ...(benchmarkSide === "b" && { compare: p.benchmarkValue }) })
+    for (const p of a)
+        points.set(p.date, {
+            ...at(p.date),
+            price: value(p) ?? null,
+            ...(benchmarkSide === "a" && { compare: p.benchmarkValue }),
+        })
+    for (const p of b)
+        points.set(p.date, {
+            ...at(p.date),
+            other: value(p),
+            ...(benchmarkSide === "b" && { compare: p.benchmarkValue }),
+        })
     return [...points.values()].sort((x, y) => x.date.localeCompare(y.date))
 }

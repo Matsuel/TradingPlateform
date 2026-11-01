@@ -6,10 +6,7 @@ import { SymbolSheet } from "./symbol-sheet"
 export function SymbolDetail({ symbol }: { symbol: string }) {
     return (
         <>
-            <PageHeader
-                leading={<SymbolCell symbol={symbol} size="lg" />}
-                actions={<SymbolSheet symbol={symbol} />}
-            />
+            <PageHeader leading={<SymbolCell symbol={symbol} size="lg" />} actions={<SymbolSheet symbol={symbol} />} />
 
             <PriceChart symbol={symbol} />
         </>

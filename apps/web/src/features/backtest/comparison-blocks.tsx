@@ -1,7 +1,15 @@
 import type { ReactNode } from "react"
 import { Dash } from "@/components/dash"
 import { Badge } from "@/components/ui/badge"
-import { LOCALE, formatChange, formatDayRange, formatPercent, formatRate, formatRatio, formatSharpe } from "@/lib/format"
+import {
+    formatChange,
+    formatDayRange,
+    formatPercent,
+    formatRate,
+    formatRatio,
+    formatSharpe,
+    LOCALE,
+} from "@/lib/format"
 import { cn } from "@/lib/utils"
 import { comparedMetricHigherIsBetter, NO_BENCHMARK_LABEL, rebalanceFrequencyLabels, strategyLabels } from "./constants"
 import { MetricBlock } from "./metric-block"
@@ -9,14 +17,30 @@ import type { BacktestComparison, ComparedBacktest, ComparedMetric, ComparisonPa
 import { comparisonLabel, formatAmount, formatRecovery, fromDecimal, getComparisonBenchmark, show } from "./utils"
 
 // Écart en points de ratio (0.044 → « +4,4 pts »)
-const formatPointChange = new Intl.NumberFormat(LOCALE, { minimumFractionDigits: 1, maximumFractionDigits: 1, signDisplay: "always" }).format
+const formatPointChange = new Intl.NumberFormat(LOCALE, {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+    signDisplay: "always",
+}).format
 const formatPoints = (ratio: number) => `${formatPointChange(ratio * 100)} pts`
 
 // Écart A − B de l'API, vert s'il est favorable à A, rouge sinon
-function Delta({ metric, value, format }: { metric: ComparedMetric; value: number | null; format: (v: number) => string }) {
+function Delta({
+    metric,
+    value,
+    format,
+}: {
+    metric: ComparedMetric
+    value: number | null
+    format: (v: number) => string
+}) {
     if (value == null) return <Dash />
     const favorable = value === 0 ? null : value > 0 === comparedMetricHigherIsBetter[metric]
-    return <span className={cn(favorable === true && "text-green-600", favorable === false && "text-destructive")}>{format(value)}</span>
+    return (
+        <span className={cn(favorable === true && "text-green-600", favorable === false && "text-destructive")}>
+            {format(value)}
+        </span>
+    )
 }
 
 /**
@@ -26,10 +50,18 @@ function Delta({ metric, value, format }: { metric: ComparedMetric; value: numbe
 export function ComparisonMetrics({ comparison }: { comparison: BacktestComparison }) {
     const { a, b, deltas } = comparison
     const { benchmark } = getComparisonBenchmark(comparison)
-    const columns = [comparisonLabel("A", a.name), comparisonLabel("B", b.name), "Écart", ...(benchmark ? [benchmark.symbol] : [])]
+    const columns = [
+        comparisonLabel("A", a.name),
+        comparisonLabel("B", b.name),
+        "Écart",
+        ...(benchmark ? [benchmark.symbol] : []),
+    ]
     // Valeur de A, de B, écart puis, avec un benchmark, la sienne
-    const values = (value: (r: ComparedBacktest["result"]) => ReactNode, delta: ReactNode, benchmarkValue: ReactNode) =>
-        [value(a.result), value(b.result), delta, ...(benchmark ? [benchmarkValue] : [])]
+    const values = (
+        value: (r: ComparedBacktest["result"]) => ReactNode,
+        delta: ReactNode,
+        benchmarkValue: ReactNode,
+    ) => [value(a.result), value(b.result), delta, ...(benchmark ? [benchmarkValue] : [])]
 
     return (
         <MetricBlock
@@ -40,13 +72,70 @@ export function ComparisonMetrics({ comparison }: { comparison: BacktestComparis
             columnHints={{ Écart: "comparisonDelta" }}
             strong={2}
             rows={[
-                { label: "CAGR", hint: "cagr", values: values((r) => show(fromDecimal(r.cagr), formatRatio), <Delta metric="cagr" value={deltas.cagr} format={formatPoints} />, benchmark && show(benchmark.cagr, formatRatio)) },
-                { label: "Rendement total", hint: "totalReturn", values: values((r) => show(fromDecimal(r.totalReturn), formatRatio), <Delta metric="totalReturn" value={deltas.totalReturn} format={formatPoints} />, benchmark && formatRatio(benchmark.totalReturn)) },
-                { label: "Volatilité", hint: "volatility", values: values((r) => show(fromDecimal(r.volatility), formatPercent), <Delta metric="volatility" value={deltas.volatility} format={formatPoints} />, benchmark && show(benchmark.volatility, formatPercent)) },
-                { label: "Sharpe", hint: "sharpeRatio", values: values((r) => show(fromDecimal(r.sharpeRatio), formatSharpe), <Delta metric="sharpeRatio" value={deltas.sharpeRatio} format={formatChange} />, benchmark && show(benchmark.sharpeRatio, formatSharpe)) },
-                { label: "Max drawdown", hint: "maxDrawdown", values: values((r) => show(fromDecimal(r.maxDrawdown), formatRatio), <Delta metric="maxDrawdown" value={deltas.maxDrawdown} format={formatPoints} />, benchmark && formatRatio(benchmark.maxDrawdown)) },
-                { label: "Récupération", hint: "recovery", values: values((r) => formatRecovery(r.recoveryDays, fromDecimal(r.maxDrawdown), r.maxDrawdownPeakDate != null), <Dash />, benchmark && formatRecovery(benchmark.recoveryDays, benchmark.maxDrawdown, true)) },
-                { label: "Valeur finale", hint: "finalValue", values: values((r) => show(fromDecimal(r.finalValue), formatAmount), <Dash />, benchmark && formatAmount(benchmark.finalValue)) },
+                {
+                    label: "CAGR",
+                    hint: "cagr",
+                    values: values(
+                        (r) => show(fromDecimal(r.cagr), formatRatio),
+                        <Delta metric="cagr" value={deltas.cagr} format={formatPoints} />,
+                        benchmark && show(benchmark.cagr, formatRatio),
+                    ),
+                },
+                {
+                    label: "Rendement total",
+                    hint: "totalReturn",
+                    values: values(
+                        (r) => show(fromDecimal(r.totalReturn), formatRatio),
+                        <Delta metric="totalReturn" value={deltas.totalReturn} format={formatPoints} />,
+                        benchmark && formatRatio(benchmark.totalReturn),
+                    ),
+                },
+                {
+                    label: "Volatilité",
+                    hint: "volatility",
+                    values: values(
+                        (r) => show(fromDecimal(r.volatility), formatPercent),
+                        <Delta metric="volatility" value={deltas.volatility} format={formatPoints} />,
+                        benchmark && show(benchmark.volatility, formatPercent),
+                    ),
+                },
+                {
+                    label: "Sharpe",
+                    hint: "sharpeRatio",
+                    values: values(
+                        (r) => show(fromDecimal(r.sharpeRatio), formatSharpe),
+                        <Delta metric="sharpeRatio" value={deltas.sharpeRatio} format={formatChange} />,
+                        benchmark && show(benchmark.sharpeRatio, formatSharpe),
+                    ),
+                },
+                {
+                    label: "Max drawdown",
+                    hint: "maxDrawdown",
+                    values: values(
+                        (r) => show(fromDecimal(r.maxDrawdown), formatRatio),
+                        <Delta metric="maxDrawdown" value={deltas.maxDrawdown} format={formatPoints} />,
+                        benchmark && formatRatio(benchmark.maxDrawdown),
+                    ),
+                },
+                {
+                    label: "Récupération",
+                    hint: "recovery",
+                    values: values(
+                        (r) =>
+                            formatRecovery(r.recoveryDays, fromDecimal(r.maxDrawdown), r.maxDrawdownPeakDate != null),
+                        <Dash />,
+                        benchmark && formatRecovery(benchmark.recoveryDays, benchmark.maxDrawdown, true),
+                    ),
+                },
+                {
+                    label: "Valeur finale",
+                    hint: "finalValue",
+                    values: values(
+                        (r) => show(fromDecimal(r.finalValue), formatAmount),
+                        <Dash />,
+                        benchmark && formatAmount(benchmark.finalValue),
+                    ),
+                },
             ]}
         />
     )
@@ -59,7 +148,8 @@ export function ComparisonMetrics({ comparison }: { comparison: BacktestComparis
 export function ComparisonParameters({ comparison }: { comparison: BacktestComparison }) {
     const { a, b, differences } = comparison
     const values = (value: (backtest: ComparedBacktest) => ReactNode) => [value(a), value(b)]
-    const differs = (parameter: ComparisonParameter) => differences.includes(parameter) && <Badge variant="outline">diffère</Badge>
+    const differs = (parameter: ComparisonParameter) =>
+        differences.includes(parameter) && <Badge variant="outline">diffère</Badge>
 
     return (
         <MetricBlock
@@ -69,12 +159,40 @@ export function ComparisonParameters({ comparison }: { comparison: BacktestCompa
             columns={["A", "B"]}
             strong={0}
             rows={[
-                { label: "Période", badge: differs("period"), values: values((t) => formatDayRange(t.startDate, t.endDate)) },
+                {
+                    label: "Période",
+                    badge: differs("period"),
+                    values: values((t) => formatDayRange(t.startDate, t.endDate)),
+                },
                 { label: "Mode", hint: "investmentMode", values: values((t) => strategyLabels[t.investmentMode]) },
-                { label: "Allocation", hint: "allocation", values: values((t) => t.allocations.map(({ symbol, weight }) => <div key={symbol}>{symbol} {formatRate(Number(weight))}</div>)) },
-                { label: "Rebalancement", hint: "rebalanceFrequency", values: values((t) => rebalanceFrequencyLabels[t.rebalanceFrequency]) },
-                { label: "Frais", hint: "feeRate", badge: differs("feeRate"), values: values((t) => formatPercent(Number(t.feeRate))) },
-                { label: "Benchmark", hint: "benchmark", badge: differs("benchmarkSymbol"), values: values((t) => t.benchmarkSymbol ?? NO_BENCHMARK_LABEL) },
+                {
+                    label: "Allocation",
+                    hint: "allocation",
+                    values: values((t) =>
+                        t.allocations.map(({ symbol, weight }) => (
+                            <div key={symbol}>
+                                {symbol} {formatRate(Number(weight))}
+                            </div>
+                        )),
+                    ),
+                },
+                {
+                    label: "Rebalancement",
+                    hint: "rebalanceFrequency",
+                    values: values((t) => rebalanceFrequencyLabels[t.rebalanceFrequency]),
+                },
+                {
+                    label: "Frais",
+                    hint: "feeRate",
+                    badge: differs("feeRate"),
+                    values: values((t) => formatPercent(Number(t.feeRate))),
+                },
+                {
+                    label: "Benchmark",
+                    hint: "benchmark",
+                    badge: differs("benchmarkSymbol"),
+                    values: values((t) => t.benchmarkSymbol ?? NO_BENCHMARK_LABEL),
+                },
             ]}
         />
     )

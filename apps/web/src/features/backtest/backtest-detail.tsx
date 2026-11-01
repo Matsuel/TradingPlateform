@@ -28,18 +28,22 @@ function describe(backtest: BacktestDetails) {
     return [
         strategyLabels[backtest.investmentMode],
         formatAllocation(backtest.allocations),
-        backtest.rebalanceFrequency !== "NONE" && `rebalancement ${rebalanceFrequencyLabels[backtest.rebalanceFrequency].toLowerCase()}`,
+        backtest.rebalanceFrequency !== "NONE" &&
+            `rebalancement ${rebalanceFrequencyLabels[backtest.rebalanceFrequency].toLowerCase()}`,
         backtest.benchmarkSymbol && `benchmark ${backtest.benchmarkSymbol}`,
         formatDayRange(backtest.startDate, backtest.endDate),
         duration && `exécuté en ${duration}`,
-    ].filter(Boolean).join(" · ")
+    ]
+        .filter(Boolean)
+        .join(" · ")
 }
 
 function NoResult({ backtest }: { backtest: BacktestDetails }) {
     const e = getExecution(backtest)
-    const message = e?.status === "FAILED"
-        ? `Le backtest a échoué : ${e.error ?? "erreur inconnue"}`
-        : "Les résultats s’afficheront à la fin du calcul."
+    const message =
+        e?.status === "FAILED"
+            ? `Le backtest a échoué : ${e.error ?? "erreur inconnue"}`
+            : "Les résultats s’afficheront à la fin du calcul."
 
     return (
         <Card>
@@ -75,9 +79,19 @@ export function BacktestDetail({ id }: { id: string }) {
         <>
             <PageHeader
                 title={backtest.name}
-                badge={execution && <Badge variant={statusBadges[execution.status].variant}>{statusBadges[execution.status].label}</Badge>}
+                badge={
+                    execution && (
+                        <Badge variant={statusBadges[execution.status].variant}>
+                            {statusBadges[execution.status].label}
+                        </Badge>
+                    )
+                }
                 description={describe(backtest)}
-                actions={<Button onClick={() => rerun.mutate()} disabled={!canRerun}>Relancer</Button>}
+                actions={
+                    <Button onClick={() => rerun.mutate()} disabled={!canRerun}>
+                        Relancer
+                    </Button>
+                }
             />
 
             {result ? (
@@ -85,24 +99,39 @@ export function BacktestDetail({ id }: { id: string }) {
                     <ResultOverview result={result} />
                     <BacktestResultBlocks result={result} rebalanceFrequency={backtest.rebalanceFrequency} />
                     <DataTable
-                        rows={allTrades
-                            ? paginate(result.trades.toReversed(), tradePage, PAGE_SIZE)
-                            : result.trades.slice(-RECENT_TRADES).toReversed()}
+                        rows={
+                            allTrades
+                                ? paginate(result.trades.toReversed(), tradePage, PAGE_SIZE)
+                                : result.trades.slice(-RECENT_TRADES).toReversed()
+                        }
                         columns={tradeColumns}
                         rowKey={(t) => `${t.date}-${t.symbol}-${t.side}-${t.amount}`}
                         title="Ordres"
-                        description={allTrades
-                            ? "Achats et ventes, du plus récent au plus ancien"
-                            : `${Math.min(RECENT_TRADES, result.trades.length)} plus récents sur ${result.trades.length}`}
-                        actions={result.trades.length > RECENT_TRADES && (
-                            <Button variant="outline" size="sm" onClick={() => setAllTrades(!allTrades)}>
-                                {allTrades ? "Afficher les plus récents" : `Voir les ${result.trades.length} ordres`}
-                            </Button>
-                        )}
+                        description={
+                            allTrades
+                                ? "Achats et ventes, du plus récent au plus ancien"
+                                : `${Math.min(RECENT_TRADES, result.trades.length)} plus récents sur ${result.trades.length}`
+                        }
+                        actions={
+                            result.trades.length > RECENT_TRADES && (
+                                <Button variant="outline" size="sm" onClick={() => setAllTrades(!allTrades)}>
+                                    {allTrades
+                                        ? "Afficher les plus récents"
+                                        : `Voir les ${result.trades.length} ordres`}
+                                </Button>
+                            )
+                        }
                         emptyMessage="Aucun ordre."
-                        pagination={allTrades
-                            ? { page: tradePage, pageSize: PAGE_SIZE, count: result.trades.length, onPageChange: setTradePage }
-                            : undefined}
+                        pagination={
+                            allTrades
+                                ? {
+                                      page: tradePage,
+                                      pageSize: PAGE_SIZE,
+                                      count: result.trades.length,
+                                      onPageChange: setTradePage,
+                                  }
+                                : undefined
+                        }
                     />
                 </>
             ) : (

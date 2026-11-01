@@ -8,7 +8,9 @@ export default function NotFoundPage() {
             <div className="flex flex-col items-center gap-2">
                 <h1 className="text-[112px] font-bold text-border">404</h1>
                 <h2 className="text-h2">Page introuvable</h2>
-                <p className="text-body text-muted-foreground">La page que vous cherchez n’existe pas ou a été déplacée.</p>
+                <p className="text-body text-muted-foreground">
+                    La page que vous cherchez n’existe pas ou a été déplacée.
+                </p>
                 <div className="flex flex-row gap-3">
                     <Button size="lg" nativeButton={false} render={<Link href={routes.dashboard} />}>
                         Retour au dashboard

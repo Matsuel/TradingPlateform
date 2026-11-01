@@ -1,7 +1,7 @@
 "use client"
 
-import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { useState } from "react"
 import { DataTable } from "@/components/data-table/data-table"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { PAGE_SIZE } from "@/constants/pagination"
@@ -18,7 +18,6 @@ export function MarketList() {
     return (
         <>
             <div className="w-full h-auto flex flex-row justify-between items-center">
-
                 <Tabs defaultValue="all">
                     <TabsList>
                         <TabsTrigger value="all">Tous</TabsTrigger>

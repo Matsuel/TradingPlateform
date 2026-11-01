@@ -4,11 +4,10 @@ import { format } from "date-fns"
 import { fr } from "date-fns/locale"
 import { CalendarIcon } from "lucide-react"
 import type { FieldValues } from "react-hook-form"
-
-import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { cn } from "@/lib/utils"
 import { AppField, type BaseProps } from "../field"
 
 export function DateField<T extends FieldValues>({
@@ -27,7 +26,10 @@ export function DateField<T extends FieldValues>({
                                 type="button"
                                 variant="outline"
                                 aria-invalid={invalid}
-                                className={cn("w-full justify-between font-normal", !field.value && "text-muted-foreground")}
+                                className={cn(
+                                    "w-full justify-between font-normal",
+                                    !field.value && "text-muted-foreground",
+                                )}
                             />
                         }
                     >

@@ -59,7 +59,12 @@ export function ComparisonOverview({ comparison }: { comparison: BacktestCompari
                     <>
                         <span className="text-small font-medium text-muted-foreground">Drawdown</span>
                         <PriceAreaChart
-                            data={alignCurves(a.result.equityCurve, b.result.equityCurve, (p) => p.drawdown, benchmarkSide)}
+                            data={alignCurves(
+                                a.result.equityCurve,
+                                b.result.equityCurve,
+                                (p) => p.drawdown,
+                                benchmarkSide,
+                            )}
                             formatTick={formatMonthTick}
                             formatTooltipDate={formatMediumDate}
                             formatAxis={formatRate}

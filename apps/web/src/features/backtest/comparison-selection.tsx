@@ -11,7 +11,14 @@ const PLACEHOLDER = "Sélectionner…"
 
 type Option = { value: string; label: string }
 
-function BacktestSelect({ id, label, dotClassName, value, options, onChange }: {
+function BacktestSelect({
+    id,
+    label,
+    dotClassName,
+    value,
+    options,
+    onChange,
+}: {
     id: string
     label: string
     dotClassName: string
@@ -48,7 +55,15 @@ function BacktestSelect({ id, label, dotClassName, value, options, onChange }: {
  * terminé, même relancés depuis (les `COMPARABLE_LIMIT` plus récents), et « Échanger ». Un backtest choisi d'un côté n'est pas proposé de l'autre.
  * `a`, `b` : ids, `""` si non choisi ; `onChange` reçoit la nouvelle paire.
  */
-export function ComparisonSelection({ a, b, onChange }: { a: string; b: string; onChange: (a: string, b: string) => void }) {
+export function ComparisonSelection({
+    a,
+    b,
+    onChange,
+}: {
+    a: string
+    b: string
+    onChange: (a: string, b: string) => void
+}) {
     const { data } = useBacktests({ page: 1, pageSize: COMPARABLE_LIMIT, status: [], hasResult: true })
     const options = (data?.data ?? []).map((t) => ({
         value: t.id,
@@ -67,7 +82,9 @@ export function ComparisonSelection({ a, b, onChange }: { a: string; b: string; 
                         options={options.filter((o) => o.value !== b)}
                         onChange={(v) => onChange(v, b)}
                     />
-                    <Button variant="ghost" onClick={() => onChange(b, a)} disabled={!a && !b}>Échanger</Button>
+                    <Button variant="ghost" onClick={() => onChange(b, a)} disabled={!a && !b}>
+                        Échanger
+                    </Button>
                     <BacktestSelect
                         id="backtest-b"
                         label="Backtest B"

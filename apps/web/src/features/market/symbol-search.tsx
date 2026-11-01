@@ -1,9 +1,9 @@
 "use client"
-import { useState } from "react"
-import { useRouter } from "next/navigation"
 import { Search } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { useRouter } from "next/navigation"
+import { useState } from "react"
 import { SymbolPicker } from "@/components/symbol-picker"
+import { Button } from "@/components/ui/button"
 import { routes } from "@/lib/routes"
 
 export function SymbolSearch() {

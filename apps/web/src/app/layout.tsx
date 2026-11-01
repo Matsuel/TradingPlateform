@@ -16,7 +16,11 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
     return (
-        <html lang="fr" suppressHydrationWarning className={cn("h-full font-sans antialiased", geistSans.variable, geistMono.variable)}>
+        <html
+            lang="fr"
+            suppressHydrationWarning
+            className={cn("h-full font-sans antialiased", geistSans.variable, geistMono.variable)}
+        >
             <body className="flex min-h-full flex-col">
                 <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
                     <QueryProvider>{children}</QueryProvider>

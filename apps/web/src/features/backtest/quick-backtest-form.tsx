@@ -1,30 +1,41 @@
 "use client"
 
+import { zodResolver } from "@hookform/resolvers/zod"
+import { differenceInCalendarDays, subYears } from "date-fns"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { FormProvider, useForm, useWatch } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { differenceInCalendarDays, subYears } from "date-fns"
 
 import { DateField, FieldRow, FULL_PERCENT, NumberField, SelectField } from "@/components/form"
 import { Button } from "@/components/ui/button"
 import { routes } from "@/lib/routes"
 import { DEFAULT_REBALANCE_FREQUENCY, investmentModeOptions } from "./constants"
 import { useCreateBacktest } from "./hook"
-import { quickBacktestSchema, type QuickBacktestValues } from "./schema"
+import { type QuickBacktestValues, quickBacktestSchema } from "./schema"
 
 export function QuickBacktestForm({ symbol }: { symbol: string }) {
     const router = useRouter()
     const { mutateAsync, error } = useCreateBacktest()
     const form = useForm<QuickBacktestValues>({
         resolver: zodResolver(quickBacktestSchema),
-        defaultValues: { investmentMode: "LUMP_SUM", start: subYears(new Date(), 1), end: new Date(), initialAmount: 10_000, fee: 0.1 },
+        defaultValues: {
+            investmentMode: "LUMP_SUM",
+            start: subYears(new Date(), 1),
+            end: new Date(),
+            initialAmount: 10_000,
+            fee: 0.1,
+        },
     })
     const [investmentMode, start, end] = useWatch({ control: form.control, name: ["investmentMode", "start", "end"] })
     const days = start && end ? differenceInCalendarDays(end, start) : null
 
     const onSubmit = async (values: QuickBacktestValues) => {
-        const backtest = await mutateAsync({ ...values, name: `Test rapide ${symbol}`, allocations: [{ symbol, weight: FULL_PERCENT }], rebalanceFrequency: DEFAULT_REBALANCE_FREQUENCY })
+        const backtest = await mutateAsync({
+            ...values,
+            name: `Test rapide ${symbol}`,
+            allocations: [{ symbol, weight: FULL_PERCENT }],
+            rebalanceFrequency: DEFAULT_REBALANCE_FREQUENCY,
+        })
         router.push(routes.backtest(backtest.id))
     }
 

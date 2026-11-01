@@ -2,10 +2,10 @@
 
 import {
     Controller,
-    useFormContext,
     type ControllerRenderProps,
     type FieldPath,
     type FieldValues,
+    useFormContext,
 } from "react-hook-form"
 
 import { InfoHint } from "@/components/info-hint"
@@ -32,7 +32,14 @@ type Props<T extends FieldValues> = BaseProps<T> & {
 }
 
 export function AppField<T extends FieldValues>({
-    name, label, hint, description, className, inline, reverse, children,
+    name,
+    label,
+    hint,
+    description,
+    className,
+    inline,
+    reverse,
+    children,
 }: Props<T>) {
     const { control } = useFormContext<T>()
 
@@ -44,7 +51,9 @@ export function AppField<T extends FieldValues>({
                 const invalid = fieldState.invalid
                 const input = children({ field, invalid })
                 const labelEl = label && (
-                    <FieldLabel htmlFor={field.name}><InfoHint entry={hint}>{label}</InfoHint></FieldLabel>
+                    <FieldLabel htmlFor={field.name}>
+                        <InfoHint entry={hint}>{label}</InfoHint>
+                    </FieldLabel>
                 )
                 const descEl = description && <FieldDescription>{description}</FieldDescription>
                 const errorEl = invalid && <FieldError errors={[fieldState.error]} />
@@ -59,7 +68,17 @@ export function AppField<T extends FieldValues>({
                     )
                     return (
                         <Field orientation="horizontal" data-invalid={invalid} className={className}>
-                            {reverse ? <>{text}{input}</> : <>{input}{text}</>}
+                            {reverse ? (
+                                <>
+                                    {text}
+                                    {input}
+                                </>
+                            ) : (
+                                <>
+                                    {input}
+                                    {text}
+                                </>
+                            )}
                         </Field>
                     )
                 }

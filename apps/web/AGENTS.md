@@ -39,9 +39,19 @@ Restent hors règle, sans nouveau cadre : composant non visuel, correctif de bug
 | --- | --- |
 | `app/` | Routes (groupes `(auth)`, `(base)`, `app/`). Pages fines : `await params`, puis composent un composant de `features/`. Aucun appel API ni logique. |
 | `features/<domaine>/` | Code d'un domaine (voir ci-dessous). |
-| `components/` | Composants réutilisés par ≥ 2 domaines (`ui/` = shadcn, `form/`, `data-table/`, `page-layout/`, `app-sheet/`, `chart.tsx`, `stat-card.tsx`). |
-| `lib/` | Transverse : `api.ts` (`apiFetch`), `format.ts` (tous les formatters réutilisés), `path.ts`, `auth.ts`, `session.ts`, `utils.ts` (`cn`). |
-| `hooks/`, `provider/`, `constants/` | Hooks génériques, providers, constantes globales (sidebar). |
+| `components/` | Composants réutilisés par ≥ 2 domaines (`ui/` = shadcn, `form/`, `data-table/`, `page-layout.tsx`, `app-sheet.tsx`, `chart.tsx`, `stat-card.tsx`). Exception documentée : `symbol-picker.tsx` dépend de `features/market` (recherche), car les champs de `form/` l'utilisent. |
+| `lib/` | Transverse : `api.ts` (`apiFetch`), `format.ts` (tous les formatters réutilisés), `routes.ts` (toutes les URL), `navigation.ts` (onglet actif), `env.ts` (env validé), `auth.ts`, `session.ts`, `utils.ts` (`cn`). |
+| `hooks/`, `provider/`, `constants/` | Hooks génériques, providers, constantes globales (sidebar, glossaire, pagination). |
+| `proxy.ts` | Dans `src/`, au niveau de `app/` (sinon Next l'ignore). Redirection optimiste sur le cookie ; la session réelle se vérifie dans les layouts (`requireSession`). |
+
+## Forme du code
+
+- **Formatage : Biome** (`biome.json`), lancé par `bun run format` (formate et trie les imports) ; `bun run format:check` échoue sur un fichier non formaté. 4 espaces, guillemets doubles, sans point-virgule, 120 colonnes. `components/ui/` (shadcn) et le Markdown sont exclus. ESLint (`bun run lint`) garde les règles Next et React.
+- **Fichiers** en kebab-case (`app-header.tsx`), un composant exporté **nommé** (`export function AppHeader`) ; `export default` seulement là où Next l'exige (`page.tsx`, `layout.tsx`, `error.tsx`, `not-found.tsx`). Pas de dossier pour un seul fichier.
+- **Pages** : `export default function XPage()`, typées par les helpers globaux `PageProps<"/route">` / `LayoutProps<"/route">` ; `export const metadata = { title }` (le gabarit « %s · MarketFlow » est dans le layout racine), `generateMetadata` pour une page dynamique.
+- **Navigation** : toute URL vient de `routes` (`lib/routes.ts`) ; un lien interne est un `next/link`, jamais un `<a href>` (rechargement complet, cache TanStack perdu). Un bouton-lien : `<Button nativeButton={false} render={<Link href={…} />}>`, jamais `<Link><Button>` (HTML invalide).
+- **Nouvelle page** : sa route dans `routes`, son onglet dans `constants/sidebar.tsx`, puis `app/app/<route>/page.tsx`. Une page pas encore construite n'affiche que `PageHeader` (titre et description).
+- `process.env` ne se lit que dans `lib/env.ts` (validé par zod).
 
 ## Rangement dans `features/<domaine>/`
 
@@ -78,4 +88,4 @@ Règles :
 2. `types.ts`, `api.ts`, `hook.ts`, puis `constants.ts`/`utils.ts` si besoin.
 3. `schema.ts` si formulaire ; `column.tsx` si table ; `stats.tsx` si cartes.
 4. Composants `<sujet>.tsx` codés depuis le cadre validé (« Maquette d'abord »), composés de `components/` (catalogue `COMPONENTS.md`) ; nouvelle entrée dans `COMPONENTS.md` pour chaque composant partagé ou export de feature créé.
-5. Page `app/app/<domaine>/page.tsx` fine ; entrée sidebar dans `constants/sidebar.tsx`.
+5. Route dans `lib/routes.ts`, page `app/app/<domaine>/page.tsx` fine, entrée sidebar dans `constants/sidebar.tsx`.

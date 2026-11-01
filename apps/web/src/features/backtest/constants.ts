@@ -1,4 +1,13 @@
-import type { ComparedMetric, ComparisonParameter, DataSource, ExecutionRule, ExecutionStatus, InvestmentMode, RebalanceFrequency, TradeSide } from "./types"
+import type {
+    ComparedMetric,
+    ComparisonParameter,
+    DataSource,
+    ExecutionRule,
+    ExecutionStatus,
+    InvestmentMode,
+    RebalanceFrequency,
+    TradeSide,
+} from "./types"
 
 // Devise des montants saisis : les cours ne sont pas convertis
 export const BACKTEST_CURRENCY = "EUR"
@@ -21,7 +30,10 @@ export const rebalanceFrequencyLabels: Record<RebalanceFrequency, string> = {
 // Valeur par défaut du formulaire et du test rapide, comme le défaut de createBacktestSchema
 export const DEFAULT_REBALANCE_FREQUENCY = "NONE" satisfies RebalanceFrequency
 
-export const rebalanceFrequencyOptions = Object.entries(rebalanceFrequencyLabels).map(([value, label]) => ({ value, label }))
+export const rebalanceFrequencyOptions = Object.entries(rebalanceFrequencyLabels).map(([value, label]) => ({
+    value,
+    label,
+}))
 
 // Benchmark proposé par le formulaire (D9) : ETF iShares MSCI World
 export const DEFAULT_BENCHMARK_SYMBOL = "URTH"
@@ -55,7 +67,10 @@ export const previewSteps = [
 export const BACKTEST_DISCLAIMER =
     "Les performances passées ne préjugent pas des performances futures. Simulation pédagogique, pas un conseil en investissement."
 
-export const statusBadges: Record<ExecutionStatus, { label: string; variant: "outline" | "destructive" | "secondary" | "success" }> = {
+export const statusBadges: Record<
+    ExecutionStatus,
+    { label: string; variant: "outline" | "destructive" | "secondary" | "success" }
+> = {
     DRAFT: { label: "Brouillon", variant: "secondary" },
     PENDING: { label: "En attente", variant: "outline" },
     RUNNING: { label: "En cours", variant: "outline" },

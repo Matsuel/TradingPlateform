@@ -1,5 +1,5 @@
-import { cn } from "@/lib/utils"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { cn } from "@/lib/utils"
 
 interface FormSectionProps {
     title: string
@@ -8,12 +8,7 @@ interface FormSectionProps {
     children: React.ReactNode
 }
 
-export function FormSection({
-    title,
-    description,
-    className,
-    children,
-}: FormSectionProps) {
+export function FormSection({ title, description, className, children }: FormSectionProps) {
     return (
         <Card className={className}>
             <CardHeader>
