@@ -1,6 +1,6 @@
 # Catalogue web (apps/web)
 
-Catalogue de ce que le web expose pour être réutilisé : composants partagés de `src/components/`, champs de formulaire, formatters et helpers de `src/lib/`, exports publics de chaque `src/features/<domaine>/`. Lis-le avant d'utiliser ou de créer un composant. Toute création, modification ou suppression d'un élément catalogué met à jour son entrée **dans le même diff que le code**, selon les gabarits ci-dessous. En cas d'écart, le code fait foi : corrige l'entrée.
+Catalogue de ce que le web expose pour être réutilisé : composants partagés de `src/components/`, champs de formulaire, formatters et helpers de `src/lib/`, exports publics de chaque `src/features/<domaine>/`. Lis-le avant d'utiliser ou de créer un composant. Toute création, modification ou suppression d'un élément catalogué met à jour son entrée **dans le même diff que le code**, selon les gabarits ci-dessous. En cas d'écart, le code fait foi : corrige l'entrée. Les appelants ne sont pas listés : `grep` le nom de l'export.
 
 ## Gabarits
 
@@ -9,7 +9,7 @@ Composant :
 ````markdown
 ### NomDuComposant
 
-- **Import** : `import { NomDuComposant } from "@/components/..."` (ou `default`).
+- **Import** : `import { NomDuComposant } from "@/components/..."` (export nommé).
 - **Rôle** : une phrase, quand l'utiliser.
 - **Props** :
 
@@ -21,20 +21,19 @@ Composant :
   ```tsx
   <NomDuComposant prop="…" />
   ```
-- **Utilisé par** : `chemin/a.tsx`, `chemin/b.tsx` | aucun.
 - **Source** : `src/components/....tsx`.
 ````
 
-Module de fonctions, hooks, constantes ou types (`lib/*.ts`, `features/<domaine>/api.ts`, `hook.ts`, `constants.ts`…) :
+Module de fonctions, hooks, constantes ou types (`lib/*.ts`, `features/<domaine>/api.ts`, `hook.ts`, `constants.ts`…). La signature se lit dans le code (types et JSDoc) : le tableau dit à quoi sert l'export et ses unités.
 
 ````markdown
 ### `chemin/fichier.ts`
 
 - **Import** : `import { a, b } from "@/…/fichier"`.
 
-| Export | Signature / valeur | Rôle (et unité) | Utilisé par |
-| --- | --- | --- | --- |
-| `a` | `(v: number) => string` | … | `chemin/x.tsx` |
+| Export | Rôle (et unité) |
+| --- | --- |
+| `a` | … |
 ````
 
 ## Sommaire
@@ -77,7 +76,6 @@ Primitives shadcn (base-ui), voir la doc shadcn. Ne les modifie qu'en cas de bes
       <BacktestDetail id={id} />
   </PageLayout>
   ```
-- **Utilisé par** : toutes les pages de `src/app/app/`.
 - **Source** : `src/components/page-layout.tsx`.
 
 ### PageHeader
@@ -99,7 +97,6 @@ Primitives shadcn (base-ui), voir la doc shadcn. Ne les modifie qu'en cas de bes
   ```tsx
   <PageHeader title="Risque" description="Corrélations, concentration, VaR/CVaR et contribution au risque d’un portefeuille." />
   ```
-- **Utilisé par** : les pages de `src/app/app/` sauf `backtest/[id]` et `market/[symbol]` ; `src/features/backtest/{backtest-detail,backtest-compare}.tsx`, `src/features/market/symbol-detail.tsx`.
 - **Source** : `src/components/page-layout.tsx`.
 
 ### AppHeader
@@ -107,7 +104,6 @@ Primitives shadcn (base-ui), voir la doc shadcn. Ne les modifie qu'en cas de bes
 - **Import** : `import { AppHeader } from "@/components/app-header"`.
 - **Rôle** : barre du haut de l'espace `/app` : bouton de repli de la sidebar et fil d'Ariane « section › onglet » (`findActiveTab`). Sur une sous-page, l'onglet est un lien vers sa liste ; hors du menu (paramètres), pas de fil.
 - **Props** : aucune.
-- **Utilisé par** : `src/app/app/layout.tsx`.
 - **Source** : `src/components/app-header.tsx`.
 
 ### AppSidebar
@@ -125,7 +121,6 @@ Primitives shadcn (base-ui), voir la doc shadcn. Ne les modifie qu'en cas de bes
   ```tsx
   <AppSidebar user={session.user} isAdmin={hasAdminRole(session.user.role)} />
   ```
-- **Utilisé par** : `src/app/app/layout.tsx`.
 - **Source** : `src/components/app-sidebar.tsx`.
 
 ### SidebarNav
@@ -142,7 +137,6 @@ Primitives shadcn (base-ui), voir la doc shadcn. Ne les modifie qu'en cas de bes
   ```tsx
   <SidebarNav key={section.name} section={section} />
   ```
-- **Utilisé par** : `src/components/app-sidebar.tsx`.
 - **Source** : `src/components/sidebar-nav.tsx`.
 
 ### NavUser
@@ -155,7 +149,6 @@ Primitives shadcn (base-ui), voir la doc shadcn. Ne les modifie qu'en cas de bes
   | --- | --- | --- | --- | --- |
   | `user` | `User` (better-auth) | oui | — | Nom, email, image affichés. |
 
-- **Utilisé par** : `src/components/app-sidebar.tsx`.
 - **Source** : `src/components/nav-user.tsx`.
 
 ### ThemeToggle
@@ -163,7 +156,6 @@ Primitives shadcn (base-ui), voir la doc shadcn. Ne les modifie qu'en cas de bes
 - **Import** : `import { ThemeToggle } from "@/components/theme-toggle"`.
 - **Rôle** : bouton icône soleil/lune ouvrant un menu Clair / Sombre / Système (`setTheme` de next-themes). Requiert le `ThemeProvider` de next-themes monté dans `app/layout.tsx`.
 - **Props** : aucune.
-- **Utilisé par** : `src/components/app-sidebar.tsx`.
 - **Source** : `src/components/theme-toggle.tsx`.
 
 ### AppSheet
@@ -186,7 +178,6 @@ Primitives shadcn (base-ui), voir la doc shadcn. Ne les modifie qu'en cas de bes
   ```tsx
   <AppSheet title={symbol} trigger={<Button size="lg">Tester</Button>}>…</AppSheet>
   ```
-- **Utilisé par** : `src/features/market/symbol-sheet.tsx`, `src/components/info-hint.tsx`.
 - **Source** : `src/components/app-sheet.tsx`.
 
 ### InfoHint
@@ -206,7 +197,6 @@ Primitives shadcn (base-ui), voir la doc shadcn. Ne les modifie qu'en cas de bes
   ```tsx
   <InfoHint entry="completedRate" value={completedRate}>Taux de réussite</InfoHint>
   ```
-- **Utilisé par** : `src/features/backtest/{stats,result-overview,assumptions,column,metric-block,preview-summary}.tsx`, `src/features/market/{column,price-chart}.tsx`, `src/components/form/field.tsx` (prop `hint`).
 - **Source** : `src/components/info-hint.tsx`.
 
 ## Données et tableaux
@@ -261,7 +251,6 @@ Primitives shadcn (base-ui), voir la doc shadcn. Ne les modifie qu'en cas de bes
       pagination={{ page: tradePage, pageSize: PAGE_SIZE, count: result.trades.length, onPageChange: setTradePage }}
   />
   ```
-- **Utilisé par** : `src/features/market/market-list.tsx`, `src/features/backtest/backtest-list.tsx`, `src/features/backtest/backtest-detail.tsx` ; `Column` par `src/features/backtest/column.tsx`, `src/features/market/column.tsx`.
 - **Source** : `src/components/data-table/data-table.tsx`.
 
 ### SymbolCell
@@ -282,7 +271,6 @@ Primitives shadcn (base-ui), voir la doc shadcn. Ne les modifie qu'en cas de bes
   ```tsx
   { header: "Symbole", cell: (a) => <SymbolCell symbol={a.symbol} name={a.name} logoUrl={a.logoUrl} /> }
   ```
-- **Utilisé par** : `src/features/market/column.tsx`, `src/features/backtest/column.tsx`, `src/features/market/symbol-detail.tsx`.
 - **Source** : `src/components/data-table/cells.tsx`.
 
 ### ChangeCell
@@ -299,7 +287,6 @@ Primitives shadcn (base-ui), voir la doc shadcn. Ne les modifie qu'en cas de bes
   ```tsx
   return value == null ? <Dash /> : <ChangeCell value={Number(value) * 100} />
   ```
-- **Utilisé par** : `src/features/backtest/column.tsx`, `src/features/market/column.tsx`.
 - **Source** : `src/components/data-table/cells.tsx`.
 
 ### Dash
@@ -311,7 +298,6 @@ Primitives shadcn (base-ui), voir la doc shadcn. Ne les modifie qu'en cas de bes
   ```tsx
   orDash(fromDecimal(result.cagr), formatRatio)
   ```
-- **Utilisé par** : `src/features/backtest/{column,stats,assumptions,comparison-blocks,result-overview,preview-summary}.tsx`, `src/features/market/column.tsx`.
 - **Source** : `src/components/dash.tsx`.
 
 ### OptionSelect
@@ -333,7 +319,6 @@ Primitives shadcn (base-ui), voir la doc shadcn. Ne les modifie qu'en cas de bes
   ```tsx
   <OptionSelect id={id} value={value} options={options} onChange={onChange} />
   ```
-- **Utilisé par** : `src/components/form/fields/select-field.tsx`, `src/features/backtest/comparison-selection.tsx`.
 - **Source** : `src/components/option-select.tsx`.
 
 ### FilterTabs
@@ -353,7 +338,6 @@ Primitives shadcn (base-ui), voir la doc shadcn. Ne les modifie qu'en cas de bes
   ```tsx
   <FilterTabs value={filter} onChange={changeFilter} options={filterOptions} />
   ```
-- **Utilisé par** : `src/features/backtest/backtest-list.tsx`.
 - **Source** : `src/components/filter-tabs.tsx`.
 
 ### StatCard
@@ -375,7 +359,6 @@ Primitives shadcn (base-ui), voir la doc shadcn. Ne les modifie qu'en cas de bes
   ```tsx
   <StatCard label="En cours" value={stats?.active ?? <Dash />} caption="Backtests actifs" />
   ```
-- **Utilisé par** : `src/features/backtest/stats.tsx`.
 - **Source** : `src/components/stat-card.tsx`.
 
 ### LoadingState
@@ -392,7 +375,6 @@ Primitives shadcn (base-ui), voir la doc shadcn. Ne les modifie qu'en cas de bes
   ```tsx
   if (isPending) return <LoadingState className="h-64" />
   ```
-- **Utilisé par** : `src/features/backtest/backtest-detail.tsx`, `src/features/market/price-chart.tsx`, `src/components/data-table/data-table.tsx`.
 - **Source** : `src/components/query-status.tsx`.
 
 ### ErrorState
@@ -411,7 +393,6 @@ Primitives shadcn (base-ui), voir la doc shadcn. Ne les modifie qu'en cas de bes
   ```tsx
   if (isError) return <ErrorState message={error.message} onRetry={refetch} className="h-64" />
   ```
-- **Utilisé par** : `src/features/backtest/backtest-detail.tsx`, `src/features/market/price-chart.tsx`, `src/components/data-table/data-table.tsx`.
 - **Source** : `src/components/query-status.tsx`.
 
 ## Graphiques
@@ -461,7 +442,6 @@ Primitives shadcn (base-ui), voir la doc shadcn. Ne les modifie qu'en cas de bes
   ```tsx
   { header: "Tendance", cell: (a) => <Sparkline data={a.history} positive={a.change24h >= 0} /> }
   ```
-- **Utilisé par** : `src/features/market/column.tsx`.
 - **Source** : `src/components/sparkline.tsx`.
 
 ## Symboles
@@ -490,7 +470,6 @@ Primitives shadcn (base-ui), voir la doc shadcn. Ne les modifie qu'en cas de bes
       onSelect={(item) => field.onChange([...symbols, item.symbol])}
   />
   ```
-- **Utilisé par** : `src/features/market/symbol-search.tsx`, `src/components/form/fields/symbols-field.tsx`, `src/components/form/fields/allocation-field.tsx`.
 - **Source** : `src/components/symbol-picker.tsx`.
 
 ## Formulaires (`components/form`)
@@ -527,7 +506,6 @@ Props communes `BaseProps<T>` (exportées par `field.tsx`), répétées dans cha
       )}
   </AppField>
   ```
-- **Utilisé par** : les 9 champs de `src/components/form/fields/`.
 - **Source** : `src/components/form/field.tsx`.
 
 ### TextField
@@ -539,7 +517,6 @@ Props communes `BaseProps<T>` (exportées par `field.tsx`), répétées dans cha
   ```tsx
   <TextField name="name" label="Nom du backtest" />
   ```
-- **Utilisé par** : `src/features/backtest/sections.tsx`, `src/features/auth/login-form.tsx`, `src/features/auth/register-form.tsx`.
 - **Source** : `src/components/form/fields/text-field.tsx`.
 
 ### NumberField
@@ -551,7 +528,6 @@ Props communes `BaseProps<T>` (exportées par `field.tsx`), répétées dans cha
   ```tsx
   <NumberField name="fee" label="Frais par ordre (%)" />
   ```
-- **Utilisé par** : `src/features/backtest/sections.tsx`, `src/features/backtest/quick-backtest-form.tsx`.
 - **Source** : `src/components/form/fields/number-field.tsx`.
 
 ### TextareaField
@@ -563,7 +539,6 @@ Props communes `BaseProps<T>` (exportées par `field.tsx`), répétées dans cha
   ```tsx
   <TextareaField name="notes" label="Notes" rows={4} />
   ```
-- **Utilisé par** : aucun.
 - **Source** : `src/components/form/fields/textarea-field.tsx`.
 
 ### SelectField
@@ -581,7 +556,6 @@ Props communes `BaseProps<T>` (exportées par `field.tsx`), répétées dans cha
   ```tsx
   <SelectField name="investmentMode" label="Mode d’investissement" options={investmentModeOptions} />
   ```
-- **Utilisé par** : `src/features/backtest/sections.tsx`, `src/features/backtest/quick-backtest-form.tsx`.
 - **Source** : `src/components/form/fields/select-field.tsx`.
 
 ### DateField
@@ -602,7 +576,6 @@ Props communes `BaseProps<T>` (exportées par `field.tsx`), répétées dans cha
       <DateField name="end" label="Fin" />
   </FieldRow>
   ```
-- **Utilisé par** : `src/features/backtest/sections.tsx`, `src/features/backtest/quick-backtest-form.tsx`.
 - **Source** : `src/components/form/fields/date-field.tsx`.
 
 ### CheckboxField
@@ -614,7 +587,6 @@ Props communes `BaseProps<T>` (exportées par `field.tsx`), répétées dans cha
   ```tsx
   <CheckboxField name="accept" label="J'accepte les conditions" />
   ```
-- **Utilisé par** : aucun.
 - **Source** : `src/components/form/fields/checkbox-field.tsx`.
 
 ### SwitchField
@@ -626,7 +598,6 @@ Props communes `BaseProps<T>` (exportées par `field.tsx`), répétées dans cha
   ```tsx
   <SwitchField name="notifications" label="Notifications" description="Recevoir un email à la fin du calcul" />
   ```
-- **Utilisé par** : aucun.
 - **Source** : `src/components/form/fields/switch-field.tsx`.
 
 ### SymbolsField
@@ -644,7 +615,6 @@ Props communes `BaseProps<T>` (exportées par `field.tsx`), répétées dans cha
   ```tsx
   <SymbolsField name="benchmarkSymbols" label="Benchmark" max={1} addLabel="Choisir" />
   ```
-- **Utilisé par** : `src/features/backtest/sections.tsx` (benchmark, `max={1}`).
 - **Source** : `src/components/form/fields/symbols-field.tsx`.
 
 ### FormSection
@@ -667,7 +637,6 @@ Props communes `BaseProps<T>` (exportées par `field.tsx`), répétées dans cha
       <SelectField name="investmentMode" label="Mode d’investissement" options={investmentModeOptions} />
   </FormSection>
   ```
-- **Utilisé par** : `src/features/backtest/sections.tsx`, `src/features/auth/login-form.tsx`, `src/features/auth/register-form.tsx`.
 - **Source** : `src/components/form/layout.tsx`.
 
 ### FieldRow
@@ -688,7 +657,6 @@ Props communes `BaseProps<T>` (exportées par `field.tsx`), répétées dans cha
       <NumberField name="fee" label="Frais par ordre (%)" />
   </FieldRow>
   ```
-- **Utilisé par** : `src/features/backtest/sections.tsx`, `src/features/backtest/quick-backtest-form.tsx`.
 - **Source** : `src/components/form/layout.tsx`.
 
 ## `lib`
@@ -698,22 +666,22 @@ Props communes `BaseProps<T>` (exportées par `field.tsx`), répétées dans cha
 - **Import** : `import { formatPrice, formatRatio } from "@/lib/format"`.
 - Tous en locale `LOCALE` (`fr-FR`). `formatRatio` et `formatRate` convertissent une fraction en pourcentage : `formatRatio` pour une variation (signée), `formatRate` pour une proportion (non signée).
 
-| Export | Signature / valeur | Rôle (et unité) | Utilisé par |
-| --- | --- | --- | --- |
-| `LOCALE` | `"fr-FR"` | Locale des formats `Intl` locaux à un composant (ticks de graphique, colonnes). | `components/chart.tsx`, `features/backtest/column.tsx`, `features/backtest/comparison-blocks.tsx`, `features/market/price-chart.tsx` |
-| `formatPrice` | `(v: number, currency: string) => string` | Montant dans la devise ISO **obligatoire** : `formatPrice(1234.5, "EUR")` → « 1 234,50 € ». | `components/chart.tsx`, `features/market/column.tsx`, `features/backtest/stats.tsx`, `features/backtest/column.tsx` |
-| `formatChange` | `(v: number) => string` | Nombre signé, 2 décimales, sans « % » : `1.5` → « +1,50 ». Pour un pourcentage déjà en %, ou un écart de Sharpe. | `components/data-table/cells.tsx`, `features/backtest/comparison-blocks.tsx`, `formatRatio` |
-| `formatRatio` | `(ratio: number) => string` | Ratio en **fraction** → variation signée en % : `0.342` → « +34,20 % ». Rendement, drawdown. | `features/backtest/stats.tsx`, `features/backtest/execution-history.tsx`, `features/backtest/comparison-blocks.tsx`, `features/backtest/comparison-overview.tsx` |
-| `formatRate` | `(ratio: number) => string` | Proportion en **fraction** → % non signé, arrondi à l'unité : `0.3846` → « 38 % ». Taux de réussite/échec, poids d'allocation, axe du drawdown. | `features/backtest/stats.tsx`, `features/backtest/utils.ts`, `features/backtest/result-overview.tsx`, `features/backtest/comparison-overview.tsx`, `features/backtest/comparison-blocks.tsx` |
-| `formatPercent` | `(ratio: number) => string` | Taux en **fraction** → % non signé, jusqu'à 2 décimales : `0.001` → « 0,1 % », `0.1532` → « 15,32 % ». Frais, volatilité, taux sans risque. | `features/backtest/assumptions.tsx`, `features/backtest/stats.tsx`, `features/backtest/comparison-blocks.tsx`, `features/backtest/backtest-compare.tsx` |
-| `formatSharpe` | `(v: number) => string` | Ratio de Sharpe, sans unité, 2 décimales : `1.25` → « 1,25 ». | `features/backtest/stats.tsx`, `features/backtest/comparison-blocks.tsx` |
-| `formatVolume` | `(v: number) => string` | Notation compacte : `41234567` → « 41,23 M ». | `features/market/column.tsx` |
-| `formatDate` | `(d: string \| Date) => string` | Date et heure courtes : « 28/10/2026 09:00 ». | `features/backtest/execution-history.tsx`, `features/backtest/assumptions.tsx` |
-| `formatDay` | `(d: string \| Date) => string` | Jour court : « 28/10/26 ». | `features/backtest/column.tsx`, `features/backtest/stats.tsx` |
-| `formatDayRange` | `(start: string \| Date, end: string \| Date) => string` | Période : « 28/10/25 – 28/10/26 ». | `features/backtest/column.tsx`, `features/backtest/backtest-detail.tsx`, `features/backtest/assumptions.tsx`, `features/backtest/comparison-blocks.tsx`, `features/backtest/backtest-compare.tsx` |
-| `formatMonthTick` | `(d: string \| Date) => string` | Mois court et année pour un axe temporel : « janv. 24 ». | `features/backtest/result-overview.tsx`, `features/backtest/comparison-overview.tsx` |
-| `formatMediumDate` | `(d: string \| Date) => string` | Date moyenne : « 28 oct. 2026 » (infobulle de graphique). | `features/backtest/result-overview.tsx`, `features/backtest/comparison-overview.tsx` |
-| `formatDuration` | `(days: number) => string` | Durée en jours calendaires : en jours sous deux mois (`45` → « 45 jours », `1` → « 1 jour »), sinon en mois arrondis (`426` → « 14 mois »). | `features/backtest/stats.tsx` |
+| Export | Rôle (et unité) |
+| --- | --- |
+| `LOCALE` | Locale des formats `Intl` locaux à un composant (ticks de graphique, colonnes). |
+| `formatPrice` | Montant dans la devise ISO **obligatoire** : `formatPrice(1234.5, "EUR")` → « 1 234,50 € ». |
+| `formatChange` | Nombre signé, 2 décimales, sans « % » : `1.5` → « +1,50 ». Pour un pourcentage déjà en %, ou un écart de Sharpe. |
+| `formatRatio` | Ratio en **fraction** → variation signée en % : `0.342` → « +34,20 % ». Rendement, drawdown. |
+| `formatRate` | Proportion en **fraction** → % non signé, arrondi à l'unité : `0.3846` → « 38 % ». Taux de réussite/échec, poids d'allocation, axe du drawdown. |
+| `formatPercent` | Taux en **fraction** → % non signé, jusqu'à 2 décimales : `0.001` → « 0,1 % », `0.1532` → « 15,32 % ». Frais, volatilité, taux sans risque. |
+| `formatSharpe` | Ratio de Sharpe, sans unité, 2 décimales : `1.25` → « 1,25 ». |
+| `formatVolume` | Notation compacte : `41234567` → « 41,23 M ». |
+| `formatDate` | Date et heure courtes : « 28/10/2026 09:00 ». |
+| `formatDay` | Jour court : « 28/10/26 ». |
+| `formatDayRange` | Période : « 28/10/25 – 28/10/26 ». |
+| `formatMonthTick` | Mois court et année pour un axe temporel : « janv. 24 ». |
+| `formatMediumDate` | Date moyenne : « 28 oct. 2026 » (infobulle de graphique). |
+| `formatDuration` | Durée en jours calendaires : en jours sous deux mois (`45` → « 45 jours », `1` → « 1 jour »), sinon en mois arrondis (`426` → « 14 mois »). |
 
 Source : `src/lib/format.ts`.
 
@@ -721,11 +689,11 @@ Source : `src/lib/format.ts`.
 
 - **Import** : `import { apiFetch, apiIssues } from "@/lib/api"`.
 
-| Export | Signature | Rôle | Utilisé par |
-| --- | --- | --- | --- |
-| `apiFetch` | `<T>(path: string, init?: RequestInit) => Promise<T>` | Seul point d'appel HTTP : préfixe `path` par `env.NEXT_PUBLIC_API_URL`, envoie les cookies, ajoute `Accept: application/json`. Statut non 2xx → `ApiError` (message `"Erreur API : <status> <statusText>"`) ; `204` → `undefined`. Routes : `apps/core-backend/API.md`. | `features/backtest/api.ts`, `features/market/api.ts` |
-| `ApiError` | `class extends Error { status: number; body: unknown }` | Erreur levée par `apiFetch` : `body` = corps JSON d'erreur (`{ error, ...data }`), `null` s'il n'est pas du JSON. | `apiIssues` |
-| `apiIssues` | `(error: unknown) => { path: string; message: string }[]` | Issues zod d'un `400` (`{ error, issues }`), chemin joint par des points (`"allocations.0.weight"`) pour `form.setError` ; `[]` pour toute autre erreur, issues sans chemin ignorées. | `features/backtest/new-backtest-form.tsx`, `features/backtest/quick-backtest-form.tsx` |
+| Export | Rôle |
+| --- | --- |
+| `apiFetch` | Seul point d'appel HTTP : préfixe `path` par `env.NEXT_PUBLIC_API_URL`, envoie les cookies, ajoute `Accept: application/json`. Statut non 2xx → `ApiError` (message `"Erreur API : <status> <statusText>"`) ; `204` → `undefined`. Routes : `apps/core-backend/API.md`. |
+| `ApiError` | Erreur levée par `apiFetch` : `body` = corps JSON d'erreur (`{ error, ...data }`), `null` s'il n'est pas du JSON. |
+| `apiIssues` | Issues zod d'un `400` (`{ error, issues }`), chemin joint par des points (`"allocations.0.weight"`) pour `form.setError` ; `[]` pour toute autre erreur, issues sans chemin ignorées. |
 
 Source : `src/lib/api.ts`.
 
@@ -733,11 +701,11 @@ Source : `src/lib/api.ts`.
 
 - **Import** : `import { getPageItems, paginate, type PaginationParams } from "@/lib/pagination"` ; le type de réponse `Paginated<T>` s'importe de `@trading-plateform/contracts` (`import type`).
 
-| Export | Signature / valeur | Rôle | Utilisé par |
-| --- | --- | --- | --- |
-| `PaginationParams` | `{ page: number; pageSize: number }` | Query `?page&pageSize` d'une route de liste (`page` ≥ 1, `pageSize` 1 à 100). | `features/backtest/api.ts`, `features/market/api.ts`, `features/market/hook.ts` |
-| `getPageItems` | `(page: number, pageCount: number) => (number \| "ellipsis")[]` | Numéros affichés par la pagination : toutes les pages jusqu'à 7 ; au-delà, 7 éléments : `1 2 3 4 5 … 20`, `1 … 4 5 6 … 20`, `1 … 16 17 18 19 20`. | `components/data-table/data-table.tsx` |
-| `paginate` | `<T>(items: T[], page: number, pageSize: number) => T[]` | Découpe une liste complète en page (pagination client) ; `[]` au-delà de la dernière page. | `features/backtest/backtest-detail.tsx` |
+| Export | Rôle |
+| --- | --- |
+| `PaginationParams` | Query `?page&pageSize` d'une route de liste (`page` ≥ 1, `pageSize` 1 à 100). |
+| `getPageItems` | Numéros affichés par la pagination : toutes les pages jusqu'à 7 ; au-delà, 7 éléments : `1 2 3 4 5 … 20`, `1 … 4 5 6 … 20`, `1 … 16 17 18 19 20`. |
+| `paginate` | Découpe une liste complète en page (pagination client) ; `[]` au-delà de la dernière page. |
 
 Source : `src/lib/pagination.ts`.
 
@@ -746,11 +714,11 @@ Source : `src/lib/pagination.ts`.
 - **Import** : `import { routes, safeRedirect } from "@/lib/routes"`.
 - Seule source des chemins : liens, redirections, sidebar. Jamais d'URL écrite à la main (`` `/app/backtest/${id}` ``) ailleurs. Exception : le `matcher` de `proxy.ts`, que Next lit à la compilation.
 
-| Export | Signature / valeur | Rôle | Utilisé par |
-| --- | --- | --- | --- |
-| `prefix` | `"/app"` | Préfixe des pages connectées. | `lib/navigation.ts`, `safeRedirect` |
-| `routes` | objet `{ home, login, register, dashboard, market, symbol(symbol), backtests, newBacktest, backtest(id), compare, compareIds(a, b), notifications, paperTrading, risk, projection, optimization, reports, monitoring, users, referenceData, settings }` | URL de chaque page ; `symbol` encode le symbole (`^GSPC`). | `constants/sidebar.tsx`, pages, layouts, `proxy.ts`, `components/nav-user.tsx`, `features/*` |
-| `safeRedirect` | `(redirect: string \| undefined) => string` | Destination après connexion : `redirect` s'il commence par `prefix` (et pas `//`), sinon le dashboard. | `app/(auth)/login/page.tsx` |
+| Export | Rôle |
+| --- | --- |
+| `prefix` | Préfixe des pages connectées. |
+| `routes` | URL de chaque page ; `symbol` encode le symbole (`^GSPC`). |
+| `safeRedirect` | Destination après connexion : `redirect` s'il commence par `prefix` (et pas `//`), sinon le dashboard. |
 
 Source : `src/lib/routes.ts`.
 
@@ -758,9 +726,9 @@ Source : `src/lib/routes.ts`.
 
 - **Import** : `import { findActiveTab } from "@/lib/navigation"`.
 
-| Export | Signature | Rôle | Utilisé par |
-| --- | --- | --- | --- |
-| `findActiveTab` | `(pathname: string) => ActiveTab \| undefined` (`SidebarTab & { section }`) | Onglet de `constants/sidebar.tsx` qui correspond au chemin, le plus long préfixe gagnant ; le dashboard ne matche qu'exactement. `undefined` hors du menu. | `components/sidebar-nav.tsx`, `components/app-header.tsx` |
+| Export | Rôle |
+| --- | --- |
+| `findActiveTab` | Onglet de `constants/sidebar.tsx` qui correspond au chemin, le plus long préfixe gagnant ; le dashboard ne matche qu'exactement. `undefined` hors du menu. |
 
 Source : `src/lib/navigation.ts`.
 
@@ -768,9 +736,9 @@ Source : `src/lib/navigation.ts`.
 
 - **Import** : `import { env } from "@/lib/env"`.
 
-| Export | Valeur | Rôle | Utilisé par |
-| --- | --- | --- | --- |
-| `env` | `{ NEXT_PUBLIC_API_URL: string }` | Variables d'environnement validées par zod au chargement (erreur explicite si absente ou invalide). `NEXT_PUBLIC_API_URL` : base de core-backend, `http://localhost:8000/api`. Seul lecteur de `process.env`. | `lib/api.ts`, `lib/auth.ts` |
+| Export | Rôle |
+| --- | --- |
+| `env` | Variables d'environnement validées par zod au chargement (erreur explicite si absente ou invalide). `NEXT_PUBLIC_API_URL` : base de core-backend, `http://localhost:8000/api`. Seul lecteur de `process.env`. |
 
 Source : `src/lib/env.ts`.
 
@@ -778,9 +746,9 @@ Source : `src/lib/env.ts`.
 
 - **Import** : `import { cn } from "@/lib/utils"`.
 
-| Export | Signature | Rôle | Utilisé par |
-| --- | --- | --- | --- |
-| `cn` | `(...classes) => string` (réexport du paquet `cn`) | Compose et fusionne des classes Tailwind conditionnelles. | `components/*` hors `ui/` (chart, stat-card, page-layout, data-table, form), `features/backtest/execution-history.tsx`, `features/market/price-chart.tsx`, `app/layout.tsx` ; les primitives `ui/` importent `cn` directement depuis `"cn"`. |
+| Export | Rôle |
+| --- | --- |
+| `cn` | Compose et fusionne des classes Tailwind conditionnelles. |
 
 Source : `src/lib/utils.ts`.
 
@@ -788,10 +756,10 @@ Source : `src/lib/utils.ts`.
 
 - **Import** : `import { authClient } from "@/lib/auth"`. Routes : `ALL /api/auth/{*path}` dans `apps/core-backend/API.md`.
 
-| Export | Signature / valeur | Rôle | Utilisé par |
-| --- | --- | --- | --- |
-| `authClient` | client better-auth/react (`baseURL: ${env.NEXT_PUBLIC_API_URL}/auth`, plugin `adminClient`) | Session côté serveur. | `lib/session.ts` |
-| `signIn`, `signUp`, `signOut`, `useSession` | méthodes déstructurées de `authClient` | `signIn`/`signUp` ne s'appellent que via `features/auth/api.ts` ; `useSession` n'est pas utilisé. | `features/auth/api.ts` (`signIn`, `signUp`), `components/nav-user.tsx` (`signOut`) |
+| Export | Rôle |
+| --- | --- |
+| `authClient` | Session côté serveur. |
+| `signIn`, `signUp`, `signOut`, `useSession` | `signIn`/`signUp` ne s'appellent que via `features/auth/api.ts` ; `useSession` n'est pas utilisé. |
 
 Source : `src/lib/auth.ts`.
 
@@ -799,12 +767,12 @@ Source : `src/lib/auth.ts`.
 
 - **Import** : `import { requireSession } from "@/lib/session"`. Serveur uniquement (`server-only`).
 
-| Export | Signature | Rôle | Utilisé par |
-| --- | --- | --- | --- |
-| `getSession` | `() => Promise<{ session, user } \| null>` (mis en cache par requête) | Session courante lue depuis le cookie entrant. | `requireSession`, `isAdmin`, `app/(auth)/layout.tsx` (redirige un utilisateur connecté vers le dashboard) |
-| `requireSession` | `() => Promise<{ session, user }>` | Session ou redirection vers `routes.login`. | `app/app/layout.tsx`, `app/app/(admin)/layout.tsx` |
-| `isAdmin` | `() => Promise<boolean>` | La session a le rôle `admin`. | `app/app/(admin)/layout.tsx` |
-| `hasAdminRole` | `(role?: string \| null) => boolean` | `role` (liste séparée par des virgules) contient `admin`. | `app/app/layout.tsx`, `isAdmin` |
+| Export | Rôle |
+| --- | --- |
+| `getSession` | Session courante lue depuis le cookie entrant. |
+| `requireSession` | Session ou redirection vers `routes.login`. |
+| `isAdmin` | La session a le rôle `admin`. |
+| `hasAdminRole` | `role` (liste séparée par des virgules) contient `admin`. |
 
 Source : `src/lib/session.ts`.
 
@@ -814,9 +782,9 @@ Source : `src/lib/session.ts`.
 
 - **Import** : `import { PAGE_SIZE } from "@/constants/pagination"`.
 
-| Export | Valeur | Rôle | Utilisé par |
-| --- | --- | --- | --- |
-| `PAGE_SIZE` | `20` | Lignes par page des tableaux (`pageSize` envoyé au backend, découpage client). | `features/backtest/backtest-list.tsx`, `features/backtest/backtest-detail.tsx`, `features/market/market-list.tsx` |
+| Export | Rôle |
+| --- | --- |
+| `PAGE_SIZE` | Lignes par page des tableaux (`pageSize` envoyé au backend, découpage client). |
 
 Source : `src/constants/pagination.ts`.
 
@@ -824,11 +792,11 @@ Source : `src/constants/pagination.ts`.
 
 - **Import** : `import { sidebarSections, type SidebarSection, type SidebarTab } from "@/constants/sidebar"`.
 
-| Export | Signature / valeur | Rôle | Utilisé par |
-| --- | --- | --- | --- |
-| `SidebarTab` | `{ name: string; url: string; icon: ReactNode }` | Un onglet ; `url` vient de `routes`. | `lib/navigation.ts` |
-| `SidebarSection` | `{ name: string; adminOnly: boolean; tabs: SidebarTab[] }` | Une section du menu. | `components/sidebar-nav.tsx` |
-| `sidebarSections` | `SidebarSection[]` | Menu, dans l'ordre de la roadmap : Vue d'ensemble (Dashboard, Notifications), Marché, Strategy Lab (Backtests, Nouveau backtest, Comparaison, Paper trading), Analyse (Risque, Projection, Optimisation, Rapports), Administration (`adminOnly` : Monitoring, Utilisateurs, Données de référence). Une page ajoutée = sa route dans `routes` puis son onglet ici. | `components/app-sidebar.tsx`, `lib/navigation.ts` |
+| Export | Rôle |
+| --- | --- |
+| `SidebarTab` | Un onglet ; `url` vient de `routes`. |
+| `SidebarSection` | Une section du menu. |
+| `sidebarSections` | Menu, dans l'ordre de la roadmap : Vue d'ensemble (Dashboard, Notifications), Marché, Strategy Lab (Backtests, Nouveau backtest, Comparaison, Paper trading), Analyse (Risque, Projection, Optimisation, Rapports), Administration (`adminOnly` : Monitoring, Utilisateurs, Données de référence). Une page ajoutée = sa route dans `routes` puis son onglet ici. |
 
 Source : `src/constants/sidebar.tsx`.
 
@@ -836,11 +804,11 @@ Source : `src/constants/sidebar.tsx`.
 
 - **Import** : `import { GLOSSARY, type GlossaryEntry, type GlossaryKey } from "@/constants/glossary"`.
 
-| Export | Signature / valeur | Rôle | Utilisé par |
-| --- | --- | --- | --- |
-| `GlossaryEntry` | `{ title; purpose; computation; formula?; unit; readingTip?; source }` | Explication d'une donnée (D3, feature 09) ; `source` = fichier et symbole qui la calculent. | `components/info-hint.tsx` |
-| `GLOSSARY` | objet littéral `satisfies Record<string, GlossaryEntry>` (typé `Record<GlossaryKey, …>` serait circulaire : `GlossaryKey` en dérive) | Une entrée par donnée calculée affichée : résultat (`finalValue`, `cagr`, `maxDrawdown`, `lumpSum`, `equityCurve`, ordres, positions…), hypothèses, récapitulatif du formulaire (`plannedContributions`, `plannedRebalances`), liste, comparaison (`comparisonDelta`), paramètres du formulaire, marché. | `components/info-hint.tsx` |
-| `GlossaryKey` | `keyof typeof GLOSSARY` | Clé passée à `InfoHint` (`entry`), à un champ, une ligne de `MetricBlock` ou une hypothèse (`hint`). | `info-hint.tsx`, `form/field.tsx`, `features/backtest/{metric-block,assumptions,preview-summary,result-overview}.tsx` |
+| Export | Rôle |
+| --- | --- |
+| `GlossaryEntry` | Explication d'une donnée (D3, feature 09) ; `source` = fichier et symbole qui la calculent. |
+| `GLOSSARY` | Une entrée par donnée calculée affichée : résultat (`finalValue`, `cagr`, `maxDrawdown`, `lumpSum`, `equityCurve`, ordres, positions…), hypothèses, récapitulatif du formulaire (`plannedContributions`, `plannedRebalances`), liste, comparaison (`comparisonDelta`), paramètres du formulaire, marché. |
+| `GlossaryKey` | Clé passée à `InfoHint` (`entry`), à un champ, une ligne de `MetricBlock` ou une hypothèse (`hint`). |
 
 Ajouter une donnée calculée à l'écran = ajouter son entrée ici dans le même diff (`AGENTS.md`). Relire le texte contre le symbole cité en `source` quand ce calcul change.
 
@@ -852,9 +820,9 @@ Source : `src/constants/glossary.ts`.
 
 - **Import** : `import { useDebouncedValue } from "@/hooks/use-debounced-value"`.
 
-| Export | Signature | Rôle | Utilisé par |
-| --- | --- | --- | --- |
-| `useDebouncedValue` | `<T>(value: T, delayMs: number) => T` | `value` recopiée après `delayMs` ms sans changement (debounce d'un appel API). Comparaison par référence : passer un objet de référence stable (`useWatch` + `compute`), sinon le délai repart à chaque rendu. | `features/backtest/preview-summary.tsx` |
+| Export | Rôle |
+| --- | --- |
+| `useDebouncedValue` | `value` recopiée après `delayMs` ms sans changement (debounce d'un appel API). Comparaison par référence : passer un objet de référence stable (`useWatch` + `compute`), sinon le délai repart à chaque rendu. |
 
 Source : `src/hooks/use-debounced-value.ts`.
 
@@ -873,7 +841,6 @@ Source : `src/hooks/use-debounced-value.ts`.
       <LoginForm />
   </div>
   ```
-- **Utilisé par** : `src/app/(auth)/login/page.tsx`.
 - **Source** : `src/features/auth/login-form.tsx`.
 
 ### RegisterForm
@@ -885,7 +852,6 @@ Source : `src/hooks/use-debounced-value.ts`.
   ```tsx
   <RegisterForm />
   ```
-- **Utilisé par** : `src/app/(auth)/register/page.tsx`.
 - **Source** : `src/features/auth/register-form.tsx`.
 
 ### `features/auth/api.ts`
@@ -893,10 +859,10 @@ Source : `src/hooks/use-debounced-value.ts`.
 - **Import** : `import { login } from "@/features/auth/api"`. Appeler via les hooks plutôt que directement.
 - Les routes d'auth passent par le client better-auth (`signIn`/`signUp` de `lib/auth.ts`, cookies de session), pas par `apiFetch`. Une erreur better-auth est relancée en `Error(message)`.
 
-| Export | Signature | Route (`apps/core-backend/API.md`) | Utilisé par |
-| --- | --- | --- | --- |
-| `login` | `(values: LoginValues) => Promise<void>` ; erreur → `Error(message ?? "Identifiants invalides")` | `ALL /api/auth/{*path}` (`sign-in/email`) | `useLogin` |
-| `register` | `(values: RegisterValues) => Promise<void>` ; erreur → `Error(message ?? "Inscription impossible")` | `ALL /api/auth/{*path}` (`sign-up/email`) | `useRegister` |
+| Export | Route (`apps/core-backend/API.md`) |
+| --- | --- |
+| `login` | `ALL /api/auth/{*path}` (`sign-in/email`) |
+| `register` | `ALL /api/auth/{*path}` (`sign-up/email`) |
 
 Source : `src/features/auth/api.ts`.
 
@@ -904,10 +870,10 @@ Source : `src/features/auth/api.ts`.
 
 - **Import** : `import { useLogin } from "@/features/auth/hook"`.
 
-| Export | Signature | Clé / comportement | Utilisé par |
-| --- | --- | --- | --- |
-| `useLogin` | `() => UseMutationResult<void, Error, LoginValues>` | Mutation sans invalidation ; la redirection et `router.refresh()` sont faites par le formulaire. | `login-form.tsx` |
-| `useRegister` | `() => UseMutationResult<void, Error, RegisterValues>` | Idem. | `register-form.tsx` |
+| Export | Clé / comportement |
+| --- | --- |
+| `useLogin` | Mutation sans invalidation ; la redirection et `router.refresh()` sont faites par le formulaire. |
+| `useRegister` | Idem. |
 
 Source : `src/features/auth/hook.ts`.
 
@@ -915,10 +881,10 @@ Source : `src/features/auth/hook.ts`.
 
 - **Import** : `import { loginSchema, type LoginValues } from "@/features/auth/schema"`.
 
-| Export | Valeur | Rôle | Utilisé par |
-| --- | --- | --- | --- |
-| `loginSchema` / `LoginValues` | `{ email: email valide, password: string non vide }` | Connexion : le serveur juge le mot de passe. | `login-form.tsx`, `api.ts` |
-| `registerSchema` / `RegisterValues` | `{ name: string non vide (trim), email: email valide, password: 8 à 128 caractères }` | Inscription : bornes = défauts `emailAndPassword` de better-auth côté core-backend. | `register-form.tsx`, `api.ts` |
+| Export | Rôle |
+| --- | --- |
+| `loginSchema` / `LoginValues` | Connexion : le serveur juge le mot de passe. |
+| `registerSchema` / `RegisterValues` | Inscription : bornes = défauts `emailAndPassword` de better-auth côté core-backend. |
 
 Source : `src/features/auth/schema.ts`.
 
@@ -935,7 +901,6 @@ Source : `src/features/auth/schema.ts`.
   ```tsx
   <BacktestList />
   ```
-- **Utilisé par** : `src/app/app/backtest/page.tsx`.
 - **Source** : `src/features/backtest/backtest-list.tsx`.
 
 ### BacktestDetail
@@ -952,7 +917,6 @@ Source : `src/features/auth/schema.ts`.
   ```tsx
   <BacktestDetail id={id} />
   ```
-- **Utilisé par** : `src/app/app/backtest/[id]/page.tsx`.
 - **Source** : `src/features/backtest/backtest-detail.tsx`.
 
 ### TradesTable
@@ -978,7 +942,6 @@ Source : `src/features/auth/schema.ts`.
   ```tsx
   <NewBacktestForm />
   ```
-- **Utilisé par** : `src/app/app/backtest/new/page.tsx`.
 - **Source** : `src/features/backtest/new-backtest-form.tsx`.
 
 ### BacktestPreviewSummary
@@ -990,7 +953,6 @@ Source : `src/features/auth/schema.ts`.
   ```tsx
   <BacktestPreviewSummary />
   ```
-- **Utilisé par** : `src/features/backtest/new-backtest-form.tsx`.
 - **Source** : `src/features/backtest/preview-summary.tsx`.
 
 ### QuickBacktestForm
@@ -1007,7 +969,6 @@ Source : `src/features/auth/schema.ts`.
   ```tsx
   <QuickBacktestForm symbol={symbol} />
   ```
-- **Utilisé par** : `src/features/market/symbol-sheet.tsx`.
 - **Source** : `src/features/backtest/quick-backtest-form.tsx`.
 
 ### AllocationField
@@ -1028,7 +989,6 @@ Source : `src/features/auth/schema.ts`.
   ```tsx
   <AllocationField name="allocations" label="Actifs et poids" />
   ```
-- **Utilisé par** : `src/features/backtest/sections.tsx` ; `allocationTotal` et `FULL_PERCENT` par `src/features/backtest/schema.ts`, `new-backtest-form.tsx` (`FULL_PERCENT` aussi par `quick-backtest-form.tsx`).
 - **Source** : `src/features/backtest/allocation-field.tsx`.
 
 ### GeneralSection
@@ -1041,7 +1001,6 @@ Source : `src/features/auth/schema.ts`.
   <GeneralSection />
   <AllocationSection />
   ```
-- **Utilisé par** : `src/features/backtest/new-backtest-form.tsx`.
 - **Source** : `src/features/backtest/sections.tsx`.
 
 ### AllocationSection
@@ -1050,7 +1009,6 @@ Source : `src/features/auth/schema.ts`.
 - **Rôle** : section « Allocation et période » (`allocations` via `AllocationField`, `start`, `end`, `initialAmount`, `fee`, `rebalanceFrequency` via `SelectField` « Rebalancement », aide « Ramène les poids à la cible », `benchmarkSymbols` via `SymbolsField` « Benchmark » à un symbole au plus, retirable pour simuler sans benchmark) d'un formulaire `BacktestValues`.
 - **Props** : aucune.
 - **Exemple** : voir `GeneralSection`.
-- **Utilisé par** : `src/features/backtest/new-backtest-form.tsx`.
 - **Source** : `src/features/backtest/sections.tsx`.
 
 ### ResultOverview
@@ -1067,7 +1025,6 @@ Source : `src/features/auth/schema.ts`.
   ```tsx
   <ResultOverview result={result} />
   ```
-- **Utilisé par** : `src/features/backtest/backtest-detail.tsx`.
 - **Source** : `src/features/backtest/result-overview.tsx`.
 
 ### ValueDrawdownCharts
@@ -1099,7 +1056,6 @@ Source : `src/features/auth/schema.ts`.
   ```tsx
   <MetricBlock title="Coûts et activité" columns={["Total"]} rows={[{ label: "Ordres", hint: "totalTrades", values: [result.totalTrades] }]} />
   ```
-- **Utilisé par** : `src/features/backtest/stats.tsx`, `src/features/backtest/comparison-blocks.tsx`.
 - **Source** : `src/features/backtest/metric-block.tsx`.
 
 ### ResultDetails
@@ -1116,7 +1072,6 @@ Source : `src/features/auth/schema.ts`.
   ```tsx
   <ResultDetails backtest={backtest} />
   ```
-- **Utilisé par** : `src/features/backtest/backtest-detail.tsx`.
 - **Source** : `src/features/backtest/result-details.tsx`.
 
 ### BacktestAssumptions
@@ -1134,7 +1089,6 @@ Source : `src/features/auth/schema.ts`.
   ```tsx
   <BacktestAssumptions backtest={backtest} result={result} />
   ```
-- **Utilisé par** : `src/features/backtest/result-details.tsx`.
 - **Source** : `src/features/backtest/assumptions.tsx`.
 
 ### ExecutionList
@@ -1151,7 +1105,6 @@ Source : `src/features/auth/schema.ts`.
   ```tsx
   <ExecutionList executions={executions} />
   ```
-- **Utilisé par** : `src/features/backtest/result-details.tsx`.
 - **Source** : `src/features/backtest/execution-history.tsx`.
 
 ### BacktestStats
@@ -1168,7 +1121,6 @@ Source : `src/features/auth/schema.ts`.
   ```tsx
   <BacktestStats stats={stats.data} />
   ```
-- **Utilisé par** : `src/features/backtest/backtest-list.tsx`.
 - **Source** : `src/features/backtest/stats.tsx`.
 
 ### ResultMetrics
@@ -1186,7 +1138,6 @@ Source : `src/features/auth/schema.ts`.
   ```tsx
   <ResultMetrics result={result} rebalanceFrequency={backtest.rebalanceFrequency} />
   ```
-- **Utilisé par** : `src/features/backtest/backtest-detail.tsx`.
 - **Source** : `src/features/backtest/result-metrics.tsx` (`PerformanceBlock`, `RiskBlock`, `CostsBlock` internes). Valeurs des lignes : [`features/backtest/metrics.tsx`](#featuresbacktestmetricstsx).
 
 ### `features/backtest/metrics.tsx`
@@ -1194,13 +1145,13 @@ Source : `src/features/auth/schema.ts`.
 - **Import** : `import { metricDefinitions, resultValue, benchmarkValue } from "@/features/backtest/metrics"`.
 - Une métrique = un libellé, une entrée du glossaire et un format, définis une fois pour le détail et la comparaison. Ajouter une métrique affichée : sa ligne ici, puis sa clé dans la liste des lignes de l'écran.
 
-| Export | Signature | Rôle |
-| --- | --- | --- |
-| `Metric` | `"cagr" \| "totalReturn" \| "finalValue" \| "volatility" \| "sharpeRatio" \| "maxDrawdown"` | Métriques d'un résultat et de son benchmark. |
-| `metricDefinitions` | `Record<Metric, { label; hint: GlossaryKey; format }>` | CAGR, rendement total et max drawdown en `formatRatio`, volatilité en `formatPercent`, Sharpe en `formatSharpe`, valeur finale en `formatAmount`. |
-| `resultValue` | `(result, metric) => ReactNode` | Métrique d'un résultat (Decimal sérialisé), formatée ; `<Dash />` si absente (résultat antérieur). |
-| `benchmarkValue` | `(benchmark: Benchmark, metric) => ReactNode` | Métrique d'un benchmark (nombre du moteur), formatée ; `<Dash />` si `null`. |
-| `resultRecovery`, `benchmarkRecovery` | `(result) => ReactNode`, `(benchmark) => ReactNode` | Récupération via `formatRecovery` ; `<Dash />` pour un résultat antérieur au calcul. |
+| Export | Rôle |
+| --- | --- |
+| `Metric` | Métriques d'un résultat et de son benchmark. |
+| `metricDefinitions` | CAGR, rendement total et max drawdown en `formatRatio`, volatilité en `formatPercent`, Sharpe en `formatSharpe`, valeur finale en `formatAmount`. |
+| `resultValue` | Métrique d'un résultat (Decimal sérialisé), formatée ; `<Dash />` si absente (résultat antérieur). |
+| `benchmarkValue` | Métrique d'un benchmark (nombre du moteur), formatée ; `<Dash />` si `null`. |
+| `resultRecovery`, `benchmarkRecovery` | Récupération via `formatRecovery` ; `<Dash />` pour un résultat antérieur au calcul. |
 
 Source : `src/features/backtest/metrics.tsx`.
 
@@ -1218,7 +1169,6 @@ Source : `src/features/backtest/metrics.tsx`.
   ```tsx
   <BacktestCompare ids={ids} />
   ```
-- **Utilisé par** : `src/app/app/backtest/compare/page.tsx`.
 - **Source** : `src/features/backtest/backtest-compare.tsx`.
 
 ### ComparisonSelection
@@ -1237,7 +1187,6 @@ Source : `src/features/backtest/metrics.tsx`.
   ```tsx
   <ComparisonSelection a={a} b={b} onChange={select} />
   ```
-- **Utilisé par** : `src/features/backtest/backtest-compare.tsx`.
 - **Source** : `src/features/backtest/comparison-selection.tsx`.
 
 ### ComparisonOverview
@@ -1254,7 +1203,6 @@ Source : `src/features/backtest/metrics.tsx`.
   ```tsx
   <ComparisonOverview comparison={comparison} />
   ```
-- **Utilisé par** : `src/features/backtest/backtest-compare.tsx`.
 - **Source** : `src/features/backtest/comparison-overview.tsx`.
 
 ### ComparisonMetrics, ComparisonParameters
@@ -1271,22 +1219,21 @@ Source : `src/features/backtest/metrics.tsx`.
   ```tsx
   <ComparisonMetrics comparison={comparison} />
   ```
-- **Utilisé par** : `src/features/backtest/backtest-compare.tsx`.
 - **Source** : `src/features/backtest/comparison-blocks.tsx`.
 
 ### `features/backtest/api.ts`
 
 - **Import** : `import { getBacktest } from "@/features/backtest/api"`. Appeler via les hooks plutôt que directement.
 
-| Export | Signature | Route (`apps/core-backend/API.md`) | Utilisé par |
-| --- | --- | --- | --- |
-| `createBacktest` | `(values: BacktestValues) => Promise<Backtest>` ; `benchmarkSymbols` envoyé en `benchmarkSymbol` (premier symbole, `null` si vide ou absent) | `POST /api/backtest` | `useCreateBacktest` |
-| `previewBacktest` | `(values: BacktestValues) => Promise<BacktestPreview>` | `POST /api/backtest/preview` | `useBacktestPreview` |
-| `getBacktests` | `(params: PaginationParams & { status: readonly ExecutionStatus[]; hasResult?: boolean }) => Promise<Paginated<Backtest>>` | `GET /api/backtest?page&pageSize&status&hasResult` (`status` = statuts séparés par des virgules, omis si vide ; `hasResult=true` si vrai) | `useBacktests` |
-| `getBacktestStats` | `() => Promise<BacktestListStats>` | `GET /api/backtest/stats` | `useBacktestStats` |
-| `getBacktest` | `(id: string) => Promise<BacktestDetails>` | `GET /api/backtest/:id` | `useBacktest` |
-| `compareBacktests` | `(a: string, b: string) => Promise<BacktestComparison>` | `GET /api/backtest/compare?ids=a,b` | `useBacktestComparison` |
-| `rerunBacktest` | `(id: string) => Promise<BacktestExecution>` | `POST /api/backtest/:id/executions` | `useRerunBacktest` |
+| Export | Route (`apps/core-backend/API.md`) |
+| --- | --- |
+| `createBacktest` | `POST /api/backtest` |
+| `previewBacktest` | `POST /api/backtest/preview` |
+| `getBacktests` | `GET /api/backtest?page&pageSize&status&hasResult` (`status` = statuts séparés par des virgules, omis si vide ; `hasResult=true` si vrai) |
+| `getBacktestStats` | `GET /api/backtest/stats` |
+| `getBacktest` | `GET /api/backtest/:id` |
+| `compareBacktests` | `GET /api/backtest/compare?ids=a,b` |
+| `rerunBacktest` | `POST /api/backtest/:id/executions` |
 
 Source : `src/features/backtest/api.ts`.
 
@@ -1294,15 +1241,15 @@ Source : `src/features/backtest/api.ts`.
 
 - **Import** : `import { useBacktest } from "@/features/backtest/hook"`.
 
-| Export | Signature | Clé / comportement | Utilisé par |
-| --- | --- | --- | --- |
-| `useCreateBacktest` | `() => UseMutationResult<Backtest, Error, BacktestValues>` | Invalide `["backtest", "list"]` et `["backtest", "stats"]` au succès. | `new-backtest-form.tsx`, `quick-backtest-form.tsx` |
-| `useBacktestPreview` | `(values: BacktestValues \| null) => UseQueryResult<BacktestPreview>` | `["backtest", "preview", values]` ; désactivé si `values` est `null` (formulaire invalide) ; réponse précédente gardée pendant le recalcul (`keepPreviousData`). | `preview-summary.tsx` |
-| `useBacktests` | `(params: Parameters<typeof getBacktests>[0]) => UseQueryResult<Paginated<Backtest>>` | `["backtest", "list", params]` ; page précédente gardée pendant le chargement (`keepPreviousData`). | `backtest-list.tsx`, `comparison-selection.tsx` |
-| `useBacktestStats` | `() => UseQueryResult<BacktestListStats>` | `["backtest", "stats"]`. | `backtest-list.tsx` |
-| `useBacktest` | `(id: string) => UseQueryResult<BacktestDetails>` | `["backtest", "detail", id]` ; rafraîchi toutes les 2 s tant que la dernière exécution est dans `activeStatuses`. | `backtest-detail.tsx` |
-| `useBacktestComparison` | `(a: string, b: string) => UseQueryResult<BacktestComparison>` | `["backtest", "compare", a, b]` ; désactivé sans deux ids distincts. | `backtest-compare.tsx` |
-| `useRerunBacktest` | `(id: string) => UseMutationResult<BacktestExecution>` (`mutate()` sans argument) | Invalide `["backtest"]` au succès (liste, stats et détail). | `backtest-detail.tsx` |
+| Export | Clé / comportement |
+| --- | --- |
+| `useCreateBacktest` | Invalide `["backtest", "list"]` et `["backtest", "stats"]` au succès. |
+| `useBacktestPreview` | `["backtest", "preview", values]` ; désactivé si `values` est `null` (formulaire invalide) ; réponse précédente gardée pendant le recalcul (`keepPreviousData`). |
+| `useBacktests` | `["backtest", "list", params]` ; page précédente gardée pendant le chargement (`keepPreviousData`). |
+| `useBacktestStats` | `["backtest", "stats"]`. |
+| `useBacktest` | `["backtest", "detail", id]` ; rafraîchi toutes les 2 s tant que la dernière exécution est dans `activeStatuses`. |
+| `useBacktestComparison` | `["backtest", "compare", a, b]` ; désactivé sans deux ids distincts. |
+| `useRerunBacktest` | Invalide `["backtest"]` au succès (liste, stats et détail). |
 
 Source : `src/features/backtest/hook.ts`.
 
@@ -1310,12 +1257,12 @@ Source : `src/features/backtest/hook.ts`.
 
 - **Import** : `import { backtestSchema, type BacktestValues } from "@/features/backtest/schema"`.
 
-| Export | Valeur | Rôle (et unité) | Utilisé par |
-| --- | --- | --- | --- |
-| `backtestSchema` | zod `{ name, investmentMode: "LUMP_SUM" \| "RECURRING", recurringAmount?: number > 0, allocations: { symbol, name?, weight: int 1–100 }[] (≥ 1, total = 100), start: Date, end: Date, initialAmount: number ≥ 0, rebalanceFrequency: "NONE" \| "MONTHLY" \| "QUARTERLY" \| "YEARLY", fee: number 0–100, benchmarkSymbols?: string[] (≤ 1) }`, `end > start`, `recurringAmount` requis en `RECURRING` (retiré des valeurs sinon), `initialAmount > 0` en `LUMP_SUM` | Formulaire complet, miroir de `createBacktestSchema`. `weight` en **pourcent entier** (`NaN` rejeté) ; montants en devise de saisie ; `fee` en **pourcentage** par ordre. Body de `POST /api/backtest`. | `new-backtest-form.tsx` |
-| `BacktestValues` | `z.infer<typeof backtestSchema>` | Type des valeurs. | `new-backtest-form.tsx`, `api.ts` |
-| `quickBacktestSchema` | zod `{ investmentMode, recurringAmount?, start, end, initialAmount, fee }`, mêmes règles croisées | Test rapide : `name` et `allocations` (100 % sur le symbole) ajoutés par `QuickBacktestForm`. | `quick-backtest-form.tsx` |
-| `QuickBacktestValues` | `z.infer<typeof quickBacktestSchema>` | Type des valeurs. | `quick-backtest-form.tsx` |
+| Export | Rôle (et unité) |
+| --- | --- |
+| `backtestSchema` | Formulaire complet, miroir de `createBacktestSchema`. `weight` en **pourcent entier** (`NaN` rejeté) ; montants en devise de saisie ; `fee` en **pourcentage** par ordre. Body de `POST /api/backtest`. |
+| `BacktestValues` | Type des valeurs. |
+| `quickBacktestSchema` | Test rapide : `name` et `allocations` (100 % sur le symbole) ajoutés par `QuickBacktestForm`. |
+| `QuickBacktestValues` | Type des valeurs. |
 
 Source : `src/features/backtest/schema.ts`.
 
@@ -1323,30 +1270,30 @@ Source : `src/features/backtest/schema.ts`.
 
 - **Import** : `import { statusBadges } from "@/features/backtest/constants"`.
 
-| Export | Valeur | Rôle | Utilisé par |
-| --- | --- | --- | --- |
-| `BACKTEST_CURRENCY` | `"EUR"` | Devise d'affichage des montants (cours non convertis). | `result-overview.tsx`, `result-details.tsx`, `stats.tsx`, `assumptions.tsx` |
-| `activeStatuses` | `["PENDING", "RUNNING"]` | Statuts d'une exécution qui peut encore évoluer (miroir de `ACTIVE_STATUSES` backend). | `hook.ts`, `utils.ts`, `statusFilters` |
-| `investmentModeOptions` | `{ value: InvestmentMode; label: string }[]` : `LUMP_SUM` → « Investissement unique », `RECURRING` → « Investissement unique + versements mensuels » | Options du `SelectField` `investmentMode`. | `sections.tsx`, `quick-backtest-form.tsx` |
-| `rebalanceFrequencyLabels` | `Record<RebalanceFrequency, string>` : `NONE` → « Aucun », `MONTHLY` → « Mensuel », `QUARTERLY` → « Trimestriel », `YEARLY` → « Annuel » | Libellé de la fréquence de rebalancement d'un backtest stocké. | `assumptions.tsx`, `comparison-blocks.tsx` |
-| `DEFAULT_REBALANCE_FREQUENCY` | `"NONE"` | Fréquence par défaut du formulaire complet et du test rapide (même défaut que `createBacktestSchema`). | `new-backtest-form.tsx`, `quick-backtest-form.tsx` |
-| `rebalanceFrequencyOptions` | `{ value: string; label: string }[]` dérivé de `rebalanceFrequencyLabels` | Options du `SelectField` `rebalanceFrequency`. | `sections.tsx` |
-| `DEFAULT_BENCHMARK_SYMBOL` | `"URTH"` (ETF MSCI World) | Benchmark proposé par le formulaire complet (D9), retirable. | `new-backtest-form.tsx` |
-| `NO_BENCHMARK_LABEL` | `"Aucun"` | Hypothèse « Benchmark » d'un backtest sans benchmark. | `assumptions.tsx`, `comparison-blocks.tsx`, `backtest-compare.tsx` |
-| `strategyLabels` | `Record<InvestmentMode, string>` : `RECURRING` → « DCA mensuel », `LUMP_SUM` → « Lump sum » | Libellé de stratégie d'un backtest stocké. | `column.tsx`, `backtest-detail.tsx`, `comparison-blocks.tsx` |
-| `executionRuleLabels` | `Record<ExecutionRule, string>` : `CLOSE_ON_SCHEDULED_DAY` → « Achat à la clôture du premier jour de cotation de chaque échéance » | Libellé de la règle d'exécution d'un résultat. | `assumptions.tsx` |
-| `dataProviderLabels` | `Record<DataSource["provider"], string>` : `yahoo-finance2` → « Yahoo Finance » | Libellé du fournisseur de cours. | `assumptions.tsx`, `preview-summary.tsx` |
-| `priceTypeLabels` | `Record<DataSource["priceType"], string>` : `CLOSE_SPLIT_ADJUSTED` → « Clôture ajustée des splits, hors dividendes » | Libellé du type de cours. | `assumptions.tsx`, `preview-summary.tsx` |
-| `previewSteps` | `{ label; description }[]` : « Données », « Simulation », « Métriques » | Étapes d'une exécution affichées par le récapitulatif du formulaire. | `preview-summary.tsx` |
-| `BACKTEST_DISCLAIMER` | « Les performances passées ne préjugent pas des performances futures. Simulation pédagogique, pas un conseil en investissement. » | Avertissement affiché avec tout résultat. | `assumptions.tsx` |
-| `statusBadges` | `Record<ExecutionStatus, { label; variant: "outline" \| "destructive" \| "secondary" \| "success" }>` | Badge de statut d'exécution. | `column.tsx`, `backtest-detail.tsx`, `execution-history.tsx` |
-| `tradeSideBadges` | `Record<TradeSide, { label; variant: "success" \| "destructive" }>` : `BUY` → « Achat » (`success`), `SELL` → « Vente » (`destructive`) | Badge du côté d'un ordre ; `side` absent (résultat antérieur) lu comme `BUY` (D10). | `column.tsx` |
-| `statusFilters` | `{ all, running, done, failed }` → `{ label, statuses: ExecutionStatus[] }` | Onglets de filtre de la liste ; `statuses` envoyés en `status` à `getBacktests` (`all` = vide, aucun filtre). | `backtest-list.tsx` |
-| `StatusFilter` | `keyof typeof statusFilters` | Type de l'onglet actif. | `backtest-list.tsx` |
-| `COMPARABLE_LIMIT` | `100` | Nombre de backtests proposés au choix de la comparaison (`MAX_PAGE_SIZE` du contrat, `pageSize` maximal de `GET /api/backtest`). | `comparison-selection.tsx` |
-| `comparisonSideColors` | `{ a, b }` → `{ stroke: "var(--chart-1|2)", className: "bg-chart-1|2" }` | Couleur de A et B : courbes, légende, pastilles de sélection. | `comparison-overview.tsx`, `comparison-selection.tsx` |
-| `comparisonParameterLabels` | `Record<ComparisonParameter, string>` : `period` → « périodes différentes », `feeRate` → « frais différents », `benchmarkSymbol` → « benchmarks différents » | Titre du bandeau « Comparaison non homogène ». | `backtest-compare.tsx` |
-| `comparedMetricHigherIsBetter` | `Record<ComparedMetric, boolean>` : `volatility` → `false`, les autres → `true` | Sens favorable d'un écart A − B, pour sa couleur (affichage seulement). | `comparison-blocks.tsx` |
+| Export | Rôle |
+| --- | --- |
+| `BACKTEST_CURRENCY` | Devise d'affichage des montants (cours non convertis). |
+| `activeStatuses` | Statuts d'une exécution qui peut encore évoluer (miroir de `ACTIVE_STATUSES` backend). |
+| `investmentModeOptions` | Options du `SelectField` `investmentMode`. |
+| `rebalanceFrequencyLabels` | Libellé de la fréquence de rebalancement d'un backtest stocké. |
+| `DEFAULT_REBALANCE_FREQUENCY` | Fréquence par défaut du formulaire complet et du test rapide (même défaut que `createBacktestSchema`). |
+| `rebalanceFrequencyOptions` | Options du `SelectField` `rebalanceFrequency`. |
+| `DEFAULT_BENCHMARK_SYMBOL` | Benchmark proposé par le formulaire complet (D9), retirable. |
+| `NO_BENCHMARK_LABEL` | Hypothèse « Benchmark » d'un backtest sans benchmark. |
+| `strategyLabels` | Libellé de stratégie d'un backtest stocké. |
+| `executionRuleLabels` | Libellé de la règle d'exécution d'un résultat. |
+| `dataProviderLabels` | Libellé du fournisseur de cours. |
+| `priceTypeLabels` | Libellé du type de cours. |
+| `previewSteps` | Étapes d'une exécution affichées par le récapitulatif du formulaire. |
+| `BACKTEST_DISCLAIMER` | Avertissement affiché avec tout résultat. |
+| `statusBadges` | Badge de statut d'exécution. |
+| `tradeSideBadges` | Badge du côté d'un ordre ; `side` absent (résultat antérieur) lu comme `BUY` (D10). |
+| `statusFilters` | Onglets de filtre de la liste ; `statuses` envoyés en `status` à `getBacktests` (`all` = vide, aucun filtre). |
+| `StatusFilter` | Type de l'onglet actif. |
+| `COMPARABLE_LIMIT` | Nombre de backtests proposés au choix de la comparaison (`MAX_PAGE_SIZE` du contrat, `pageSize` maximal de `GET /api/backtest`). |
+| `comparisonSideColors` |2)", className: "bg-chart-1|2" }` | Couleur de A et B : courbes, légende, pastilles de sélection. |
+| `comparisonParameterLabels` | Titre du bandeau « Comparaison non homogène ». |
+| `comparedMetricHigherIsBetter` | Sens favorable d'un écart A − B, pour sa couleur (affichage seulement). |
 
 Source : `src/features/backtest/constants.ts`.
 
@@ -1354,19 +1301,19 @@ Source : `src/features/backtest/constants.ts`.
 
 - **Import** : `import { getExecution } from "@/features/backtest/utils"`.
 
-| Export | Signature | Rôle | Utilisé par |
-| --- | --- | --- | --- |
-| `getExecution` | `(b: Backtest) => BacktestExecution \| undefined` | Dernière exécution (`executions[0]`). | `column.tsx`, `backtest-detail.tsx` |
-| `hasStatus` | `(b: Backtest, statuses: readonly ExecutionStatus[]) => boolean` | Statut de la dernière exécution dans la liste. | `hook.ts` |
-| `isActive` | `(e: BacktestExecution) => boolean` | Exécution `PENDING` ou `RUNNING`. | `backtest-detail.tsx`, `execution-history.tsx` |
-| `getExecutionDuration` | `(e: BacktestExecution) => string \| null` | Durée `finishedAt − (startedAt ?? createdAt)`, « 2 min 5 s » ou « 12 s » (minimum 1 s) ; `null` si non terminée. | `column.tsx`, `backtest-detail.tsx`, `execution-history.tsx` |
-| `fromDecimal` | `(value: string \| null \| undefined) => number \| null` | `Decimal` sérialisé → `number`, `null` ou absent → `null`. | `stats.tsx`, `result-overview.tsx`, `comparison-blocks.tsx` |
-| `formatAllocation` | `(allocations: Backtest["allocations"]) => string` | Allocation lisible : « AAPL 60 % · MSFT 40 % » (`formatRate` du poids). | `column.tsx`, `backtest-detail.tsx` |
-| `alignCurves` | `(a: EquityPoint[], b: EquityPoint[], value: (p: EquityPoint) => number \| undefined, benchmarkSide?: "a" \| "b") => ChartPoint[]` | Courbes de A et B sur l'union de leurs dates triées : séries `a` et `b` (absentes hors de leur période) et, avec `benchmarkSide`, `benchmark` = `benchmarkValue` de ce côté ; `value` choisit la série (valeur, drawdown). | `comparison-overview.tsx` |
-| `formatAmount` | `(v: number) => string` | Montant en `BACKTEST_CURRENCY`. | `stats.tsx`, `comparison-blocks.tsx` |
-| `formatRecovery` | `(recoveryDays: number \| null \| undefined, maxDrawdown: number \| null, peakDated: boolean) => string \| null` | Durée `formatDuration` ; si `recoveryDays` est null : « Aucune baisse » sans baisse, « Non récupéré » si `peakDated` (`maxDrawdownPeakDate` non null ; `true` pour un benchmark), sinon `null`, affiché `<Dash />` par l'écran (résultat antérieur, que l'API renvoie aussi à null). | `stats.tsx`, `comparison-blocks.tsx` |
-| `comparisonLabel` | `(side: "A" \| "B", name: string) => string` | « A · 60/40 » : colonnes, légende et infobulles de la comparaison. | `comparison-overview.tsx`, `comparison-blocks.tsx` |
-| `getComparisonBenchmark` | `(c: BacktestComparison) => { side: "a" \| "b"; benchmark }` | Benchmark affiché : celui de A, sinon celui de B ; `benchmark` null si aucun. | `comparison-overview.tsx`, `comparison-blocks.tsx` |
+| Export | Rôle |
+| --- | --- |
+| `getExecution` | Dernière exécution (`executions[0]`). |
+| `hasStatus` | Statut de la dernière exécution dans la liste. |
+| `isActive` | Exécution `PENDING` ou `RUNNING`. |
+| `getExecutionDuration` | Durée `finishedAt − (startedAt ?? createdAt)`, « 2 min 5 s » ou « 12 s » (minimum 1 s) ; `null` si non terminée. |
+| `fromDecimal` | `Decimal` sérialisé → `number`, `null` ou absent → `null`. |
+| `formatAllocation` | Allocation lisible : « AAPL 60 % · MSFT 40 % » (`formatRate` du poids). |
+| `alignCurves` | Courbes de A et B sur l'union de leurs dates triées : séries `a` et `b` (absentes hors de leur période) et, avec `benchmarkSide`, `benchmark` = `benchmarkValue` de ce côté ; `value` choisit la série (valeur, drawdown). |
+| `formatAmount` | Montant en `BACKTEST_CURRENCY`. |
+| `formatRecovery` | Durée `formatDuration` ; si `recoveryDays` est null : « Aucune baisse » sans baisse, « Non récupéré » si `peakDated` (`maxDrawdownPeakDate` non null ; `true` pour un benchmark), sinon `null`, affiché `<Dash />` par l'écran (résultat antérieur, que l'API renvoie aussi à null). |
+| `comparisonLabel` | « A · 60/40 » : colonnes, légende et infobulles de la comparaison. |
+| `getComparisonBenchmark` | Benchmark affiché : celui de A, sinon celui de B ; `benchmark` null si aucun. |
 
 Source : `src/features/backtest/utils.ts`. Helpers purs : aucun JSX (`<Dash />` est ajouté par l'écran).
 
@@ -1374,11 +1321,11 @@ Source : `src/features/backtest/utils.ts`. Helpers purs : aucun JSX (`<Dash />` 
 
 - **Import** : `import { backtestColumns, holdingColumns, tradeColumns } from "@/features/backtest/column"`.
 
-| Export | Type | Colonnes | Utilisé par |
-| --- | --- | --- | --- |
-| `backtestColumns` | `Column<Backtest>[]` | Nom, Stratégie, Allocation (`formatAllocation`, tronquée, texte complet en `title`), Période, Rendement (`totalReturn` × 100 via `ChangeCell`), CAGR (`cagr` du résumé × 100 via `ChangeCell`, `<Dash />` si non terminé ou résultat antérieur), Statut (badge), Durée. En-têtes Rendement, CAGR et Durée en `InfoHint`. | `backtest-list.tsx` |
-| `tradeColumns` | `Column<Trade>[]` | Date, Symbole (`SymbolCell`), Côté (badge `tradeSideBadges`, « Achat » si `side` absent), Prix (2 décimales, sans devise), Quantité (jusqu'à 6 décimales), Montant et Frais (`formatPrice` en `BACKTEST_CURRENCY`) ; `Dash` si absents (résultats antérieurs). En-têtes Côté, Prix, Quantité, Montant, Frais en `InfoHint`. | `backtest-detail.tsx` |
-| `holdingColumns` | `Column<Holding>[]` | Symbole (`SymbolCell`), Quantité (jusqu'à 6 décimales), Valeur au dernier cours (`formatPrice` en `BACKTEST_CURRENCY`). En-têtes Quantité et Valeur en `InfoHint`. | `result-details.tsx` |
+| Export | Type | Colonnes |
+| --- | --- | --- |
+| `backtestColumns` | `Column<Backtest>[]` | Nom, Stratégie, Allocation (`formatAllocation`, tronquée, texte complet en `title`), Période, Rendement (`totalReturn` × 100 via `ChangeCell`), CAGR (`cagr` du résumé × 100 via `ChangeCell`, `<Dash />` si non terminé ou résultat antérieur), Statut (badge), Durée. En-têtes Rendement, CAGR et Durée en `InfoHint`. |
+| `tradeColumns` | `Column<Trade>[]` | Date, Symbole (`SymbolCell`), Côté (badge `tradeSideBadges`, « Achat » si `side` absent), Prix (2 décimales, sans devise), Quantité (jusqu'à 6 décimales), Montant et Frais (`formatPrice` en `BACKTEST_CURRENCY`) ; `Dash` si absents (résultats antérieurs). En-têtes Côté, Prix, Quantité, Montant, Frais en `InfoHint`. |
+| `holdingColumns` | `Column<Holding>[]` | Symbole (`SymbolCell`), Quantité (jusqu'à 6 décimales), Valeur au dernier cours (`formatPrice` en `BACKTEST_CURRENCY`). En-têtes Quantité et Valeur en `InfoHint`. |
 
 Source : `src/features/backtest/column.tsx`.
 
@@ -1386,24 +1333,24 @@ Source : `src/features/backtest/column.tsx`.
 
 - **Import** : `import type { Backtest } from "@/features/backtest/types"`. `Decimal` → `string`, dates → `string` ISO. Les données du moteur (`EquityPoint`, `Trade`, `Holding`, `LumpSumComparison`, `ExecutionRule`, `DataSource`, `InvestmentMode`) sont **dérivées de `@trading-plateform/contracts`** (import de types uniquement) : unités dans `packages/contracts/src/backtest.ts`.
 
-| Export | Forme | Utilisé par |
-| --- | --- | --- |
-| `ExecutionStatus` | contrat `BacktestStatus` : `"DRAFT" \| "PENDING" \| "RUNNING" \| "COMPLETED" \| "FAILED" \| "CANCELLED"` (`BACKTEST_STATUSES`, égal à l'enum Prisma) | `utils.ts`, `constants.ts`, `api.ts` |
-| `InvestmentMode` | `BacktestRequestedPayload["investmentMode"]` = `"LUMP_SUM" \| "RECURRING"` | `constants.ts` |
-| `RebalanceFrequency` | `BacktestRequestedPayload["rebalanceFrequency"]` = `"NONE" \| "MONTHLY" \| "QUARTERLY" \| "YEARLY"` | `constants.ts`, `schema.ts` |
-| `BacktestExecution` | `{ id, status, attempt, createdAt, startedAt, finishedAt, error, result?: { totalReturn: string \| null (fraction); totalTrades: number; cagr?: string \| null (fraction annuelle, absent ou null pour les résultats antérieurs) } \| null }` | `api.ts`, `utils.ts`, `execution-history.tsx` |
-| `EquityPoint` | contrat, `drawdown` rendu optionnel : `{ date: "YYYY-MM-DD"; value; invested; lumpSumValue?: number; drawdown?: number }` (devise, `invested` frais compris, `lumpSumValue` en DCA, `drawdown` ratio ≤ 0 absent des résultats antérieurs) | `result-overview.tsx` |
-| `Trade` | contrat, `quantity`, `amount`, `fee` optionnels (absents des résultats antérieurs) | `column.tsx` |
-| `Holding` | contrat : `{ symbol; quantity; value }` (position finale au dernier cours) | `column.tsx` |
-| `LumpSumComparison` | contrat : `{ finalValue; totalReturn; maxDrawdown; dcaAdvantage }` (ratios en fraction) | `stats.tsx` |
-| `ExecutionRule` | contrat : `"CLOSE_ON_SCHEDULED_DAY"` (achat planifié exécuté à la clôture du jour de cotation de l'échéance) | `constants.ts` |
-| `DataSource` | contrat : `{ provider: "yahoo-finance2"; priceType: "CLOSE_SPLIT_ADJUSTED"; fetchedAt: string (ISO); fingerprint: string (SHA-256 hex) }` | `constants.ts` |
-| `BacktestResult` | `{ finalValue, totalInvested, totalFees, profit, totalReturn, maxDrawdown: string \| null; totalTrades; maxDrawdownDate: string \| null; equityCurve; trades; holdings; lumpSumComparison: LumpSumComparison \| null; benchmark?: Benchmark \| null (contrat, absent ou null pour les résultats antérieurs, null sans benchmark); executionRule: ExecutionRule \| null; dataSource: DataSource \| null }` (ratios en fraction ; hypothèses `null` pour les résultats antérieurs) | `stats.tsx`, `backtest-detail.tsx`, `assumptions.tsx` |
-| `Backtest` | `{ id, name, allocations: { symbol, weight: string (Decimal, ratio) }[], startDate, endDate, investmentMode, rebalanceFrequency: RebalanceFrequency ("NONE" pour les backtests antérieurs), feeRate: string (Decimal, fraction par ordre, achat ou vente), benchmarkSymbol: string \| null (null sans benchmark et pour les backtests antérieurs), createdAt, executions: BacktestExecution[] }` (plus récente d'abord) | `api.ts`, `utils.ts`, `column.tsx`, `assumptions.tsx` |
-| `BacktestPreview` | contrat : `{ contributionCount: number; rebalanceCount: number; dataSource: { provider; priceType } }` (estimations calendaires de `POST /api/backtest/preview`) | `api.ts`, `hook.ts` |
-| `BacktestListStats` | contrat `BacktestStats` : `{ total, active, completed, failed: number; completedRate, failedRate: number (fraction) }`, d'après le statut de la dernière exécution ; renommé pour ne pas masquer le composant `BacktestStats` | `api.ts`, `stats.tsx` |
-| `BacktestDetails` | `Backtest & { executions (toutes); result: BacktestResult \| null }` | `api.ts`, `backtest-detail.tsx` |
-| `BacktestComparison`, `ComparedBacktest`, `ComparedMetric`, `ComparisonParameter` | contrat : réponse de `GET /api/backtest/compare` (`a`, `b` avec paramètres, allocation et dernier résultat réduit ; `deltas` A − B en points de ratio ; `homogeneous` ; `differences`) | `api.ts`, `hook.ts`, `constants.ts`, `backtest-compare.tsx`, `comparison-*.tsx` |
+| Export | Forme |
+| --- | --- |
+| `ExecutionStatus` | contrat `BacktestStatus` : `"DRAFT" \| "PENDING" \| "RUNNING" \| "COMPLETED" \| "FAILED" \| "CANCELLED"` (`BACKTEST_STATUSES`, égal à l'enum Prisma) |
+| `InvestmentMode` | `BacktestRequestedPayload["investmentMode"]` = `"LUMP_SUM" \| "RECURRING"` |
+| `RebalanceFrequency` | `BacktestRequestedPayload["rebalanceFrequency"]` = `"NONE" \| "MONTHLY" \| "QUARTERLY" \| "YEARLY"` |
+| `BacktestExecution` | `{ id, status, attempt, createdAt, startedAt, finishedAt, error, result?: { totalReturn: string \| null (fraction); totalTrades: number; cagr?: string \| null (fraction annuelle, absent ou null pour les résultats antérieurs) } \| null }` |
+| `EquityPoint` | contrat, `drawdown` rendu optionnel : `{ date: "YYYY-MM-DD"; value; invested; lumpSumValue?: number; drawdown?: number }` (devise, `invested` frais compris, `lumpSumValue` en DCA, `drawdown` ratio ≤ 0 absent des résultats antérieurs) |
+| `Trade` | contrat, `quantity`, `amount`, `fee` optionnels (absents des résultats antérieurs) |
+| `Holding` | contrat : `{ symbol; quantity; value }` (position finale au dernier cours) |
+| `LumpSumComparison` | contrat : `{ finalValue; totalReturn; maxDrawdown; dcaAdvantage }` (ratios en fraction) |
+| `ExecutionRule` | contrat : `"CLOSE_ON_SCHEDULED_DAY"` (achat planifié exécuté à la clôture du jour de cotation de l'échéance) |
+| `DataSource` | contrat : `{ provider: "yahoo-finance2"; priceType: "CLOSE_SPLIT_ADJUSTED"; fetchedAt: string (ISO); fingerprint: string (SHA-256 hex) }` |
+| `BacktestResult` | `{ finalValue, totalInvested, totalFees, profit, totalReturn, maxDrawdown: string \| null; totalTrades; maxDrawdownDate: string \| null; equityCurve; trades; holdings; lumpSumComparison: LumpSumComparison \| null; benchmark?: Benchmark \| null (contrat, absent ou null pour les résultats antérieurs, null sans benchmark); executionRule: ExecutionRule \| null; dataSource: DataSource \| null }` (ratios en fraction ; hypothèses `null` pour les résultats antérieurs) |
+| `Backtest` | `{ id, name, allocations: { symbol, weight: string (Decimal, ratio) }[], startDate, endDate, investmentMode, rebalanceFrequency: RebalanceFrequency ("NONE" pour les backtests antérieurs), feeRate: string (Decimal, fraction par ordre, achat ou vente), benchmarkSymbol: string \| null (null sans benchmark et pour les backtests antérieurs), createdAt, executions: BacktestExecution[] }` (plus récente d'abord) |
+| `BacktestPreview` | contrat : `{ contributionCount: number; rebalanceCount: number; dataSource: { provider; priceType } }` (estimations calendaires de `POST /api/backtest/preview`) |
+| `BacktestListStats` | contrat `BacktestStats` : `{ total, active, completed, failed: number; completedRate, failedRate: number (fraction) }`, d'après le statut de la dernière exécution ; renommé pour ne pas masquer le composant `BacktestStats` |
+| `BacktestDetails` | `Backtest & { executions (toutes); result: BacktestResult \| null }` |
+| `BacktestComparison`, `ComparedBacktest`, `ComparedMetric`, `ComparisonParameter` | contrat : réponse de `GET /api/backtest/compare` (`a`, `b` avec paramètres, allocation et dernier résultat réduit ; `deltas` A − B en points de ratio ; `homogeneous` ; `differences`) |
 
 Source : `src/features/backtest/types.ts`.
 
@@ -1419,7 +1366,6 @@ Source : `src/features/backtest/types.ts`.
   <PageHeader title="Marché" description="Prix en temps réel via Yahoo Finance" />
   <MarketList />
   ```
-- **Utilisé par** : `src/app/app/market/page.tsx`.
 - **Source** : `src/features/market/market-list.tsx`.
 
 ### SymbolDetail
@@ -1438,7 +1384,6 @@ Source : `src/features/backtest/types.ts`.
       <SymbolDetail symbol={symbol} />
   </PageLayout>
   ```
-- **Utilisé par** : `src/app/app/market/[symbol]/page.tsx`.
 - **Source** : `src/features/market/symbol-detail.tsx`.
 
 ### PriceChart
@@ -1455,7 +1400,6 @@ Source : `src/features/backtest/types.ts`.
   ```tsx
   <PriceChart symbol={symbol} />
   ```
-- **Utilisé par** : `src/features/market/symbol-detail.tsx`.
 - **Source** : `src/features/market/price-chart.tsx`.
 
 ### SymbolSearch
@@ -1467,7 +1411,6 @@ Source : `src/features/backtest/types.ts`.
   ```tsx
   <SymbolSearch />
   ```
-- **Utilisé par** : `src/features/market/market-list.tsx`.
 - **Source** : `src/features/market/symbol-search.tsx`.
 
 ### SymbolSheet
@@ -1487,18 +1430,17 @@ Source : `src/features/backtest/types.ts`.
       actions={<SymbolSheet symbol={symbol} />}
   />
   ```
-- **Utilisé par** : `src/features/market/symbol-detail.tsx`.
 - **Source** : `src/features/market/symbol-sheet.tsx`.
 
 ### `features/market/api.ts`
 
 - **Import** : `import { getDefaultAssets } from "@/features/market/api"`. Appeler via les hooks. Routes relayées par le proxy core-backend, détail dans `apps/market-service/API.md`.
 
-| Export | Signature | Route | Utilisé par |
-| --- | --- | --- | --- |
-| `getDefaultAssets` | `(params: PaginationParams) => Promise<Paginated<MarketAsset>>` | `GET /api/market/defaults?page&pageSize` | `useDefaultAssets` |
-| `getAssetsDetails` | `(symbol: string, period: Period) => Promise<MarketDetails[]>` | `GET /api/market/details/:id?period=` | `useMarketDetails` |
-| `getSearchAssets` | `(query: string) => Promise<MarketData[]>` | `GET /api/market/search?query=` | `useMarketSearch` |
+| Export | Route |
+| --- | --- |
+| `getDefaultAssets` | `GET /api/market/defaults?page&pageSize` |
+| `getAssetsDetails` | `GET /api/market/details/:id?period=` |
+| `getSearchAssets` | `GET /api/market/search?query=` |
 
 Source : `src/features/market/api.ts`.
 
@@ -1506,11 +1448,11 @@ Source : `src/features/market/api.ts`.
 
 - **Import** : `import { useDefaultAssets } from "@/features/market/hook"`.
 
-| Export | Signature | Clé / comportement | Utilisé par |
-| --- | --- | --- | --- |
-| `useDefaultAssets` | `(params: PaginationParams) => UseQueryResult<Paginated<MarketAsset>>` | `["market", "list", params]`, rafraîchi toutes les 30 s, page précédente gardée pendant le chargement (`keepPreviousData`). | `market-list.tsx` |
-| `useMarketDetails` | `(symbol: string, period: Period) => UseQueryResult<MarketDetails[]>` | `["market", "detail", symbol, period]`, `staleTime` 60 s, données précédentes gardées au changement de période. | `price-chart.tsx` |
-| `useMarketSearch` | `(query: string) => UseQueryResult<MarketData[]>` | `["market", "search", query]`, actif si `query.length >= MIN_SEARCH_LENGTH`. | `components/symbol-picker.tsx` |
+| Export | Clé / comportement |
+| --- | --- |
+| `useDefaultAssets` | `["market", "list", params]`, rafraîchi toutes les 30 s, page précédente gardée pendant le chargement (`keepPreviousData`). |
+| `useMarketDetails` | `["market", "detail", symbol, period]`, `staleTime` 60 s, données précédentes gardées au changement de période. |
+| `useMarketSearch` | `["market", "search", query]`, actif si `query.length >= MIN_SEARCH_LENGTH`. |
 
 Source : `src/features/market/hook.ts`.
 
@@ -1518,11 +1460,11 @@ Source : `src/features/market/hook.ts`.
 
 - **Import** : `import { MARKET_CURRENCY } from "@/features/market/constants"`.
 
-| Export | Valeur | Rôle | Utilisé par |
-| --- | --- | --- | --- |
-| `MARKET_CURRENCY` | `"USD"` | Devise d'affichage des cours (yahoo ne les convertit pas). | `column.tsx`, `price-chart.tsx` |
-| `MIN_SEARCH_LENGTH` | `3` | Longueur minimale d'une recherche de symbole (le backend exige 2). | `hook.ts`, `components/symbol-picker.tsx` |
-| `periodOptions` | `{ value: Period; label: string; interval: string }[]` : `1d` « 1J » 5 min, `1w` « 1S » 1 h, `1m` « 1M » 1 jour, `1y` « 1A » 1 semaine, `max` « Max » 1 mois | Onglets de période et pas des points. | `price-chart.tsx` |
+| Export | Rôle |
+| --- | --- |
+| `MARKET_CURRENCY` | Devise d'affichage des cours (yahoo ne les convertit pas). |
+| `MIN_SEARCH_LENGTH` | Longueur minimale d'une recherche de symbole (le backend exige 2). |
+| `periodOptions` | Onglets de période et pas des points. |
 
 Source : `src/features/market/constants.ts`.
 
@@ -1530,9 +1472,9 @@ Source : `src/features/market/constants.ts`.
 
 - **Import** : `import { marketColumns } from "@/features/market/column"`.
 
-| Export | Type | Colonnes | Utilisé par |
-| --- | --- | --- | --- |
-| `marketColumns` | `Column<MarketAsset>[]` | Symbole (`SymbolCell`), Prix (`formatPrice` en `MARKET_CURRENCY`), Variation 24 h (`ChangeCell`, pourcentage), Volume 24 h (`formatVolume`), Tendance (`Sparkline` de `history`, couleur selon le signe de la variation) ; `<Dash />` pour une valeur `null` (tendance comprise si la variation est inconnue). En-têtes Prix, Variation, Volume, Tendance en `InfoHint`. | `market-list.tsx` |
+| Export | Type | Colonnes |
+| --- | --- | --- |
+| `marketColumns` | `Column<MarketAsset>[]` | Symbole (`SymbolCell`), Prix (`formatPrice` en `MARKET_CURRENCY`), Variation 24 h (`ChangeCell`, pourcentage), Volume 24 h (`formatVolume`), Tendance (`Sparkline` de `history`, couleur selon le signe de la variation) ; `<Dash />` pour une valeur `null` (tendance comprise si la variation est inconnue). En-têtes Prix, Variation, Volume, Tendance en `InfoHint`. |
 
 Source : `src/features/market/column.tsx`.
 
@@ -1540,11 +1482,11 @@ Source : `src/features/market/column.tsx`.
 
 - **Import** : `import type { MarketAsset, Period } from "@/features/market/types"`. Réexport de `@trading-plateform/contracts` (`src/market.ts`), qui porte les unités.
 
-| Export | Forme | Utilisé par |
-| --- | --- | --- |
-| `Period` | contrat : `"1d" \| "1w" \| "1m" \| "1y" \| "max"` | `api.ts`, `hook.ts`, `constants.ts`, `price-chart.tsx` |
-| `MarketAsset` | contrat : `{ symbol; name; logoUrl?; price: number \| null; change24h: number \| null (pourcentage, 1,5 = +1,5 %); volume24h: number \| null; history: MarketDetails[] }` (`null` si le fournisseur n'a pas la valeur) | `api.ts`, `column.tsx` |
-| `MarketDetails` | contrat : `{ date: string (ISO datetime); price: number }` (intervalles sans clôture omis) | `api.ts`, `MarketAsset.history` |
-| `MarketData` | contrat : `{ symbol; name; exchange; assetType; logoUrl? }` | `api.ts`, `components/symbol-picker.tsx` |
+| Export | Forme |
+| --- | --- |
+| `Period` | contrat : `"1d" \| "1w" \| "1m" \| "1y" \| "max"` |
+| `MarketAsset` | contrat : `{ symbol; name; logoUrl?; price: number \| null; change24h: number \| null (pourcentage, 1,5 = +1,5 %); volume24h: number \| null; history: MarketDetails[] }` (`null` si le fournisseur n'a pas la valeur) |
+| `MarketDetails` | contrat : `{ date: string (ISO datetime); price: number }` (intervalles sans clôture omis) |
+| `MarketData` | contrat : `{ symbol; name; exchange; assetType; logoUrl? }` |
 
 Source : `src/features/market/types.ts`.
