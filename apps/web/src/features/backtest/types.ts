@@ -6,6 +6,7 @@ import type {
     BacktestRequestedPayload,
     BacktestStats,
     BacktestStatus,
+    Benchmark,
     ComparedBacktest,
     ComparedMetric,
     ComparisonParameter,
@@ -18,12 +19,12 @@ import type {
     TradeSide,
 } from "@trading-plateform/contracts"
 
-// Formes et unités des données du moteur : définies une seule fois dans les contrats
-// Réponse de POST /api/backtest/preview : nombres prévus estimés sur le calendrier par core-backend
-// Réponse de GET /api/backtest/compare : écarts A − B et homogénéité calculés par core-backend
+// Formes et unités définies une seule fois dans les contrats : données du moteur (résultat, benchmark), réponse de
+// POST /api/backtest/preview (nombres prévus estimés par core-backend) et de GET /api/backtest/compare (écarts A − B)
 export type {
     BacktestComparison,
     BacktestPreview,
+    Benchmark,
     ComparedBacktest,
     ComparedMetric,
     ComparisonParameter,

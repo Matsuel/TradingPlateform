@@ -1,20 +1,13 @@
 import type { ReactNode } from "react"
-import { Dash, orDash } from "@/components/dash"
+import { Dash } from "@/components/dash"
 import { Badge } from "@/components/ui/badge"
-import {
-    formatChange,
-    formatDayRange,
-    formatPercent,
-    formatRate,
-    formatRatio,
-    formatSharpe,
-    LOCALE,
-} from "@/lib/format"
+import { formatChange, formatDayRange, formatPercent, formatRate, LOCALE } from "@/lib/format"
 import { cn } from "@/lib/utils"
 import { comparedMetricHigherIsBetter, NO_BENCHMARK_LABEL, rebalanceFrequencyLabels, strategyLabels } from "./constants"
-import { MetricBlock } from "./metric-block"
-import type { BacktestComparison, ComparedBacktest, ComparedMetric, ComparisonParameter } from "./types"
-import { comparisonLabel, formatAmount, formatRecovery, fromDecimal, getComparisonBenchmark } from "./utils"
+import { MetricBlock, type MetricRow } from "./metric-block"
+import { benchmarkRecovery, benchmarkValue, metricDefinitions, resultRecovery, resultValue } from "./metrics"
+import type { BacktestComparison, Benchmark, ComparedBacktest, ComparedMetric, ComparisonParameter } from "./types"
+import { comparisonLabel, getComparisonBenchmark } from "./utils"
 
 // Écart en points de ratio (0.044 → « +4,4 pts »)
 const formatPointChange = new Intl.NumberFormat(LOCALE, {
@@ -43,6 +36,20 @@ function Delta({
     )
 }
 
+// Format de l'écart A − B : points de ratio, sauf le Sharpe, sans unité
+const deltaFormats: Record<ComparedMetric, (value: number) => string> = {
+    cagr: formatPoints,
+    totalReturn: formatPoints,
+    volatility: formatPoints,
+    sharpeRatio: formatChange,
+    maxDrawdown: formatPoints,
+}
+
+// Lignes qui ont un écart, dans l'ordre de la maquette ; récupération et valeur finale suivent, sans écart
+const metricsWithDelta: ComparedMetric[] = ["cagr", "totalReturn", "volatility", "sharpeRatio", "maxDrawdown"]
+
+type ComparedResult = ComparedBacktest["result"]
+
 /**
  * Tableau « Métriques comparées » (maquette 14) : A, B, écart A − B calculé par le backend (`deltas`) et, si A (sinon
  * B) a un benchmark, ses métriques. Récupération et valeur finale n'ont pas d'écart. `<Dash />` pour une valeur absente.
@@ -57,11 +64,34 @@ export function ComparisonMetrics({ comparison }: { comparison: BacktestComparis
         ...(benchmark ? [benchmark.symbol] : []),
     ]
     // Valeur de A, de B, écart puis, avec un benchmark, la sienne
-    const values = (
-        value: (r: ComparedBacktest["result"]) => ReactNode,
+    const row = (
+        { label, hint }: Pick<MetricRow, "label" | "hint">,
+        valueOf: (result: ComparedResult) => ReactNode,
         delta: ReactNode,
-        benchmarkValue: ReactNode,
-    ) => [value(a.result), value(b.result), delta, ...(benchmark ? [benchmarkValue] : [])]
+        benchmarkCell: (benchmark: Benchmark) => ReactNode,
+    ): MetricRow => ({
+        label,
+        hint,
+        values: [valueOf(a.result), valueOf(b.result), delta, ...(benchmark ? [benchmarkCell(benchmark)] : [])],
+    })
+
+    const rows = [
+        ...metricsWithDelta.map((metric) =>
+            row(
+                metricDefinitions[metric],
+                (r) => resultValue(r, metric),
+                <Delta metric={metric} value={deltas[metric]} format={deltaFormats[metric]} />,
+                (bm) => benchmarkValue(bm, metric),
+            ),
+        ),
+        row({ label: "Récupération", hint: "recovery" }, resultRecovery, <Dash />, benchmarkRecovery),
+        row(
+            metricDefinitions.finalValue,
+            (r) => resultValue(r, "finalValue"),
+            <Dash />,
+            (bm) => benchmarkValue(bm, "finalValue"),
+        ),
+    ]
 
     return (
         <MetricBlock
@@ -71,76 +101,7 @@ export function ComparisonMetrics({ comparison }: { comparison: BacktestComparis
             columns={columns}
             columnHints={{ Écart: "comparisonDelta" }}
             strong={2}
-            rows={[
-                {
-                    label: "CAGR",
-                    hint: "cagr",
-                    values: values(
-                        (r) => orDash(fromDecimal(r.cagr), formatRatio),
-                        <Delta metric="cagr" value={deltas.cagr} format={formatPoints} />,
-                        benchmark && orDash(benchmark.cagr, formatRatio),
-                    ),
-                },
-                {
-                    label: "Rendement total",
-                    hint: "totalReturn",
-                    values: values(
-                        (r) => orDash(fromDecimal(r.totalReturn), formatRatio),
-                        <Delta metric="totalReturn" value={deltas.totalReturn} format={formatPoints} />,
-                        benchmark && formatRatio(benchmark.totalReturn),
-                    ),
-                },
-                {
-                    label: "Volatilité",
-                    hint: "volatility",
-                    values: values(
-                        (r) => orDash(fromDecimal(r.volatility), formatPercent),
-                        <Delta metric="volatility" value={deltas.volatility} format={formatPoints} />,
-                        benchmark && orDash(benchmark.volatility, formatPercent),
-                    ),
-                },
-                {
-                    label: "Sharpe",
-                    hint: "sharpeRatio",
-                    values: values(
-                        (r) => orDash(fromDecimal(r.sharpeRatio), formatSharpe),
-                        <Delta metric="sharpeRatio" value={deltas.sharpeRatio} format={formatChange} />,
-                        benchmark && orDash(benchmark.sharpeRatio, formatSharpe),
-                    ),
-                },
-                {
-                    label: "Max drawdown",
-                    hint: "maxDrawdown",
-                    values: values(
-                        (r) => orDash(fromDecimal(r.maxDrawdown), formatRatio),
-                        <Delta metric="maxDrawdown" value={deltas.maxDrawdown} format={formatPoints} />,
-                        benchmark && formatRatio(benchmark.maxDrawdown),
-                    ),
-                },
-                {
-                    label: "Récupération",
-                    hint: "recovery",
-                    values: values(
-                        (r) =>
-                            formatRecovery(
-                                r.recoveryDays,
-                                fromDecimal(r.maxDrawdown),
-                                r.maxDrawdownPeakDate != null,
-                            ) ?? <Dash />,
-                        <Dash />,
-                        benchmark && (formatRecovery(benchmark.recoveryDays, benchmark.maxDrawdown, true) ?? <Dash />),
-                    ),
-                },
-                {
-                    label: "Valeur finale",
-                    hint: "finalValue",
-                    values: values(
-                        (r) => orDash(fromDecimal(r.finalValue), formatAmount),
-                        <Dash />,
-                        benchmark && formatAmount(benchmark.finalValue),
-                    ),
-                },
-            ]}
+            rows={rows}
         />
     )
 }

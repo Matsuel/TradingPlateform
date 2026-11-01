@@ -14,8 +14,8 @@ import { tradeColumns } from "./column"
 import { rebalanceFrequencyLabels, statusBadges, strategyLabels } from "./constants"
 import { useBacktest, useRerunBacktest } from "./hook"
 import { ResultDetails } from "./result-details"
+import { ResultMetrics } from "./result-metrics"
 import { ResultOverview } from "./result-overview"
-import { BacktestResultBlocks } from "./stats"
 import type { BacktestDetails } from "./types"
 import { formatAllocation, getExecution, getExecutionDuration, isActive } from "./utils"
 
@@ -97,7 +97,7 @@ export function BacktestDetail({ id }: { id: string }) {
             {result ? (
                 <>
                     <ResultOverview result={result} />
-                    <BacktestResultBlocks result={result} rebalanceFrequency={backtest.rebalanceFrequency} />
+                    <ResultMetrics result={result} rebalanceFrequency={backtest.rebalanceFrequency} />
                     <DataTable
                         rows={
                             allTrades

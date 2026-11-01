@@ -973,7 +973,7 @@ Source : `src/features/auth/schema.ts`.
 ### BacktestDetail
 
 - **Import** : `import { BacktestDetail } from "@/features/backtest/backtest-detail"`.
-- **Rôle** : écran détail (maquette 13 v2 · A) : en-tête avec statut, allocation, rebalancement, benchmark et relance ; `ResultOverview` (valeur finale, courbes de valeur et de drawdown) ; `BacktestResultBlocks` (indicateurs groupés) ; ordres : les `RECENT_TRADES` (5) plus récents, puis tous, paginés côté client (`paginate`, `PAGE_SIZE`) sur « Voir les N ordres » ; `ResultDetails` (positions, hypothèses, historique repliés). Instancie `useBacktest` et `useRerunBacktest`.
+- **Rôle** : écran détail (maquette 13 v2 · A) : en-tête avec statut, allocation, rebalancement, benchmark et relance ; `ResultOverview` (valeur finale, courbes de valeur et de drawdown) ; `ResultMetrics` (indicateurs groupés) ; ordres : les `RECENT_TRADES` (5) plus récents, puis tous, paginés côté client (`paginate`, `PAGE_SIZE`) sur « Voir les N ordres » ; `ResultDetails` (positions, hypothèses, historique repliés). Instancie `useBacktest` et `useRerunBacktest`.
 - **Props** :
 
   | Nom | Type | Requis | Défaut | Description |
@@ -1161,9 +1161,9 @@ Source : `src/features/auth/schema.ts`.
 - **Utilisé par** : `src/features/backtest/backtest-list.tsx`.
 - **Source** : `src/features/backtest/stats.tsx`.
 
-### BacktestResultBlocks
+### ResultMetrics
 
-- **Import** : `import { BacktestResultBlocks } from "@/features/backtest/stats"`.
+- **Import** : `import { ResultMetrics } from "@/features/backtest/result-metrics"`.
 - **Rôle** : 3 `MetricBlock` d'un résultat, sur 2 colonnes à partir de `md` et 3 à partir de `xl` : « Performance » (CAGR, rendement total, valeur finale ; note : investissement unique et écart `dcaAdvantage` en DCA), « Risque » (volatilité, Sharpe avec `result.riskFreeRate` en description, max drawdown, récupération `formatRecovery` ; note : date du plus haut), « Coûts et activité » (frais payés, déduits de la valeur sur achats et ventes, ordres, rebalancements `rebalanceCount`). Avec `result.benchmark`, une colonne au symbole du benchmark affiche ses métriques. Tout est calculé par le moteur ; `<Dash />` si un champ manque (résultat antérieur).
 - **Props** :
 
@@ -1174,10 +1174,25 @@ Source : `src/features/auth/schema.ts`.
 
 - **Exemple** (tiré de `src/features/backtest/backtest-detail.tsx`) :
   ```tsx
-  <BacktestResultBlocks result={result} rebalanceFrequency={backtest.rebalanceFrequency} />
+  <ResultMetrics result={result} rebalanceFrequency={backtest.rebalanceFrequency} />
   ```
 - **Utilisé par** : `src/features/backtest/backtest-detail.tsx`.
-- **Source** : `src/features/backtest/stats.tsx`. Helpers d'affichage d'une métrique (`orDash` de `components/dash`, `formatAmount`, `formatRecovery`) : [`features/backtest/utils.ts`](#featuresbacktestutilsts).
+- **Source** : `src/features/backtest/result-metrics.tsx` (`PerformanceBlock`, `RiskBlock`, `CostsBlock` internes). Valeurs des lignes : [`features/backtest/metrics.tsx`](#featuresbacktestmetricstsx).
+
+### `features/backtest/metrics.tsx`
+
+- **Import** : `import { metricDefinitions, resultValue, benchmarkValue } from "@/features/backtest/metrics"`.
+- Une métrique = un libellé, une entrée du glossaire et un format, définis une fois pour le détail et la comparaison. Ajouter une métrique affichée : sa ligne ici, puis sa clé dans la liste des lignes de l'écran.
+
+| Export | Signature | Rôle |
+| --- | --- | --- |
+| `Metric` | `"cagr" \| "totalReturn" \| "finalValue" \| "volatility" \| "sharpeRatio" \| "maxDrawdown"` | Métriques d'un résultat et de son benchmark. |
+| `metricDefinitions` | `Record<Metric, { label; hint: GlossaryKey; format }>` | CAGR, rendement total et max drawdown en `formatRatio`, volatilité en `formatPercent`, Sharpe en `formatSharpe`, valeur finale en `formatAmount`. |
+| `resultValue` | `(result, metric) => ReactNode` | Métrique d'un résultat (Decimal sérialisé), formatée ; `<Dash />` si absente (résultat antérieur). |
+| `benchmarkValue` | `(benchmark: Benchmark, metric) => ReactNode` | Métrique d'un benchmark (nombre du moteur), formatée ; `<Dash />` si `null`. |
+| `resultRecovery`, `benchmarkRecovery` | `(result) => ReactNode`, `(benchmark) => ReactNode` | Récupération via `formatRecovery` ; `<Dash />` pour un résultat antérieur au calcul. |
+
+Source : `src/features/backtest/metrics.tsx`.
 
 ### BacktestCompare
 
