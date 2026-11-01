@@ -41,7 +41,7 @@ Les dossiers des features 02 à 08 citent les anciens numéros ; cette table les
 | 06 | [Extraction de market-service](06-market-service/) | 2 | 2026-10-28 | #3 | Livrée | 8 ᵃ |
 | 07 | [Clôture du Strategy Lab](07-strategy-lab-cloture/) | 3 | 2026-10-29 → 2026-10-30 | #3 | Livrée | 24 ᵃ |
 | 08 | [Portfolio Management V1](08-portfolio-v1/) | 4 | 2026-10-30 → 2026-10-31 | — | Livrée | 104 |
-| 09 | [Aide contextuelle sur les données](09-aide-contextuelle/) | 4–5 ᵇ | à planifier | — | Planifiée | 22 |
+| 09 | [Aide contextuelle sur les données](09-aide-contextuelle/) | 4–5 ᵇ | 2026-11-01 | — | Livrée | 28 |
 
 ᵃ estimés a posteriori d’après les diffs.
 ᵇ hors « Roadmap annuelle » : demande du 2026-10-30, après le lot 3 de la feature 08.

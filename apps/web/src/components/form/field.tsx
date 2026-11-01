@@ -8,11 +8,14 @@ import {
     type FieldValues,
 } from "react-hook-form"
 
+import { InfoHint } from "@/components/info-hint"
 import { Field, FieldContent, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field"
+import type { GlossaryKey } from "@/constants/glossary"
 
 export type BaseProps<T extends FieldValues> = {
     name: FieldPath<T>
     label?: string
+    hint?: GlossaryKey // libellé cliquable qui ouvre cette entrée du glossaire
     description?: string
     className?: string
 }
@@ -29,7 +32,7 @@ type Props<T extends FieldValues> = BaseProps<T> & {
 }
 
 export function AppField<T extends FieldValues>({
-    name, label, description, className, inline, reverse, children,
+    name, label, hint, description, className, inline, reverse, children,
 }: Props<T>) {
     const { control } = useFormContext<T>()
 
@@ -40,7 +43,9 @@ export function AppField<T extends FieldValues>({
             render={({ field, fieldState }) => {
                 const invalid = fieldState.invalid
                 const input = children({ field, invalid })
-                const labelEl = label && <FieldLabel htmlFor={field.name}>{label}</FieldLabel>
+                const labelEl = label && (
+                    <FieldLabel htmlFor={field.name}><InfoHint entry={hint}>{label}</InfoHint></FieldLabel>
+                )
                 const descEl = description && <FieldDescription>{description}</FieldDescription>
                 const errorEl = invalid && <FieldError errors={[fieldState.error]} />
 

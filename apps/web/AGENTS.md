@@ -66,6 +66,7 @@ Règles :
 - `DataTable` : `query` pour des lignes issues d'une requête (états chargement / erreur), `rows` pour des lignes déjà en mémoire (sous-liste d'un détail chargé). Ne pas fabriquer un faux `query`.
 - Conversion `Decimal` → `number` : `fromDecimal` (`features/<domaine>/utils.ts`), qui garde `null` pour un champ absent.
 - Composants partagés : consulte `COMPONENTS.md`, réutilise-les en priorité (`DataTable`, `StatCard`, `PriceAreaChart`, `SymbolCell`, `PageHeader`). Un besoin manquant s'ajoute par une prop optionnelle rétrocompatible (slot `ReactNode` nommé `actions`, `badge`, `leading`), jamais par une copie. Ne modifie un composant `ui/` shadcn qu'en cas de besoin réel.
+- **Aide sur les données** : une donnée calculée ou interprétée affichée (métrique, taux, écart, frais, empreinte, paramètre qui change le calcul) a son entrée dans `constants/glossary.ts` et son libellé en `InfoHint` (ou `hint` d'un champ) **dans le même diff**. Le texte cite en `source` le symbole qui calcule la donnée et se relit contre lui quand ce calcul change. Champs bruts évidents (nom, date, symbole, statut) : pas d'aide.
 - Formulaires : react-hook-form + schéma de `schema.ts` + champs de `components/form/fields`. Après création, redirige vers la page de détail de la ressource.
 - Server Component par défaut ; `"use client"` seulement si le fichier utilise hooks, état ou événements.
 - Classes via `cn` de `lib/utils`.

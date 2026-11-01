@@ -40,13 +40,13 @@ Module de fonctions, hooks, constantes ou types (`lib/*.ts`, `features/<domaine>
 ## Sommaire
 
 - [`components/ui`](#componentsui)
-- [Mise en page et navigation](#mise-en-page-et-navigation) : `PageLayout`, `PageHeader`, `Header`, `AppSidebar`, `SidebarNav`, `NavUser`, `ThemeToggle`, `AppSheet`
+- [Mise en page et navigation](#mise-en-page-et-navigation) : `PageLayout`, `PageHeader`, `Header`, `AppSidebar`, `SidebarNav`, `NavUser`, `ThemeToggle`, `AppSheet`, `InfoHint`
 - [Données et tableaux](#données-et-tableaux) : `DataTable` (`Column`), `SymbolCell`, `ChangeCell`, `Dash`, `FilterTabs`, `StatCard`, `LoadingState`, `ErrorState`
 - [Graphiques](#graphiques) : `PriceAreaChart` (`PricePoint`), `Sparkline`
 - [Symboles](#symboles) : `SymbolPicker`
 - [Formulaires (`components/form`)](#formulaires-componentsform) : `AppField`, `TextField`, `NumberField`, `TextareaField`, `SelectField`, `DateField`, `CheckboxField`, `SwitchField`, `SymbolsField`, `AllocationField`, `FormSection`, `FieldRow`
 - [`lib`](#lib) : `format.ts`, `api.ts`, `pagination.ts`, `path.ts`, `utils.ts`, `auth.ts`, `session.ts`
-- [`constants`](#constants) : `pagination.ts`
+- [`constants`](#constants) : `pagination.ts`, `glossary.ts`
 - [`hooks`](#hooks) : `use-debounced-value.ts`
 - [`features/auth`](#featuresauth)
 - [`features/backtest`](#featuresbacktest)
@@ -210,8 +210,28 @@ Primitives shadcn (base-ui), voir la doc shadcn. Ne les modifie qu'en cas de bes
       <Tabs defaultValue="trade" className="flex-1 px-4 pb-4">…</Tabs>
   </AppSheet>
   ```
-- **Utilisé par** : `src/features/market/symbol-sheet.tsx`.
+- **Utilisé par** : `src/features/market/symbol-sheet.tsx`, `src/components/info-hint.tsx`.
 - **Source** : `src/components/app-sheet/app-sheet.tsx`.
+
+### InfoHint
+
+- **Import** : `import { InfoHint } from "@/components/info-hint"`.
+- **Rôle** : libellé d'une donnée calculée, souligné en pointillés (`cursor-pointer`, `<button>` focusable, maquette 15.1), qui ouvre dans un `AppSheet` son entrée de `constants/glossary.ts` : « À quoi ça sert », « Comment c’est calculé », formule en `font-mono`, « Unité », « Comment le lire », valeur affichée, source (maquette 15). Le clic, y compris dans le panneau, n'atteint pas le parent (ligne de `DataTable` cliquable, libellé de champ). Garde la typographie du parent.
+- **Props** :
+
+  | Nom | Type | Requis | Défaut | Description |
+  | --- | --- | --- | --- | --- |
+  | `entry` | `GlossaryKey` | non | — | Clé de `GLOSSARY` ; absente, `children` est rendu seul (libellé sans aide), ce qui évite un test chez l'appelant. |
+  | `value` | `ReactNode` | non | — | Valeur déjà formatée par l'écran, rappelée dans le panneau sous « Valeur affichée » ; jamais recalculée. |
+  | `details` | `HintDetail[]` = `{ label: string; value: ReactNode }[]` | non | `[]` | Lignes ajoutées au bloc de valeurs (ex. « Creux atteint le », une colonne d'un tableau). Bloc masqué sans `value` ni `details`. |
+  | `children` | `ReactNode` | oui | — | Libellé affiché. |
+
+- **Exemple** (tiré de `src/features/backtest/stats.tsx`) :
+  ```tsx
+  <InfoHint entry="completedRate" value={completedRate}>Taux de réussite</InfoHint>
+  ```
+- **Utilisé par** : `src/features/backtest/{stats,result-overview,assumptions,column,metric-block,preview-summary}.tsx`, `src/features/market/{column,price-chart}.tsx`, `src/components/form/field.tsx` (prop `hint`).
+- **Source** : `src/components/info-hint.tsx`.
 
 ## Données et tableaux
 
@@ -496,6 +516,7 @@ Props communes `BaseProps<T>` (exportées par `field.tsx`), répétées dans cha
 | --- | --- | --- | --- | --- |
 | `name` | `FieldPath<T>` | oui | — | Chemin du champ dans le formulaire. |
 | `label` | `string` | non | — | Libellé. |
+| `hint` | `GlossaryKey` | non | — | Rend le libellé cliquable (`InfoHint`) sur cette entrée du glossaire ; le clic ne donne pas le focus au champ et ne soumet pas le formulaire. |
 | `description` | `string` | non | — | Aide sous le contrôle. |
 | `className` | `string` | non | — | Sur le `Field`. |
 
@@ -813,6 +834,20 @@ Source : `src/lib/session.ts`.
 
 Source : `src/constants/pagination.ts`.
 
+### `constants/glossary.ts`
+
+- **Import** : `import { GLOSSARY, type GlossaryEntry, type GlossaryKey } from "@/constants/glossary"`.
+
+| Export | Signature / valeur | Rôle | Utilisé par |
+| --- | --- | --- | --- |
+| `GlossaryEntry` | `{ title; purpose; computation; formula?; unit; readingTip?; source }` | Explication d'une donnée (D3, feature 09) ; `source` = fichier et symbole qui la calculent. | `components/info-hint.tsx` |
+| `GLOSSARY` | objet littéral `satisfies Record<string, GlossaryEntry>` (typé `Record<GlossaryKey, …>` serait circulaire : `GlossaryKey` en dérive) | Une entrée par donnée calculée affichée : résultat (`finalValue`, `cagr`, `maxDrawdown`, `lumpSum`, `equityCurve`, ordres, positions…), hypothèses, récapitulatif du formulaire (`plannedContributions`, `plannedRebalances`), liste, comparaison (`comparisonDelta`), paramètres du formulaire, marché. | `components/info-hint.tsx` |
+| `GlossaryKey` | `keyof typeof GLOSSARY` | Clé passée à `InfoHint` (`entry`), à un champ, une ligne de `MetricBlock` ou une hypothèse (`hint`). | `info-hint.tsx`, `form/field.tsx`, `features/backtest/{metric-block,assumptions,preview-summary,result-overview}.tsx` |
+
+Ajouter une donnée calculée à l'écran = ajouter son entrée ici dans le même diff (`AGENTS.md`). Relire le texte contre le symbole cité en `source` quand ce calcul change.
+
+Source : `src/constants/glossary.ts`.
+
 ## `hooks`
 
 ### `hooks/use-debounced-value.ts`
@@ -937,7 +972,7 @@ Source : `src/features/auth/schema.ts`.
 ### BacktestPreviewSummary
 
 - **Import** : `import { BacktestPreviewSummary } from "@/features/backtest/preview-summary"`.
-- **Rôle** : carte « Récapitulatif » du formulaire « Nouveau backtest » (maquette 12.1), sous `FormProvider` d'un formulaire `BacktestValues` : étapes Données / Simulation / Métriques (`previewSteps`), puis « Rebalancements prévus », « Versements prévus » et « Source des données » (`dataProviderLabels` · `priceTypeLabels`) renvoyés par `useBacktestPreview` (estimations calendaires du backend, aucun calcul côté web) et mention « Estimation calendaire ». Valeurs validées par `backtestSchema.safeParse` dans `useWatch({ compute })`, appel débouncé de 500 ms (`useDebouncedValue`) ; `<Dash />` tant que le formulaire est invalide ou la réponse absente.
+- **Rôle** : carte « Récapitulatif » du formulaire « Nouveau backtest » (maquette 12.1), sous `FormProvider` d'un formulaire `BacktestValues` : étapes Données / Simulation / Métriques (`previewSteps`), puis « Rebalancements prévus », « Versements prévus » et « Source des données » (`dataProviderLabels` · `priceTypeLabels`) renvoyés par `useBacktestPreview` (estimations calendaires du backend, aucun calcul côté web) et mention « Estimation calendaire ». Valeurs validées par `backtestSchema.safeParse` dans `useWatch({ compute })`, appel débouncé de 500 ms (`useDebouncedValue`) ; `<Dash />` tant que le formulaire est invalide ou la réponse absente. Les trois libellés sont des `InfoHint` (`plannedRebalances`, `plannedContributions`, `dataSource`).
 - **Props** : aucune.
 - **Exemple** (tiré de `src/features/backtest/new-backtest-form.tsx`) :
   ```tsx
@@ -988,7 +1023,7 @@ Source : `src/features/auth/schema.ts`.
 ### ResultOverview
 
 - **Import** : `import { ResultOverview } from "@/features/backtest/result-overview"`.
-- **Rôle** : carte principale d'un résultat : « Valeur finale » (`text-h1`), badge du rendement total, plus-value sur le montant investi (et rendement du benchmark s'il existe), puis courbe de valeur (`PriceAreaChart`, axe des dates masqué) et, dessous sur le même axe, courbe de drawdown. Série en pointillés : benchmark (`benchmarkValue`) s'il existe, sinon investissement unique (`lumpSumValue`, DCA). Drawdown masqué si aucun point ne porte `drawdown` (résultat antérieur).
+- **Rôle** : carte principale d'un résultat : « Valeur finale » (`text-h1`), badge du rendement total, plus-value sur le montant investi (et rendement du benchmark s'il existe), légende des séries (Portefeuille, benchmark ou investissement unique, Drawdown ; libellés `InfoHint`, maquette 15.1), puis courbe de valeur (`PriceAreaChart`, axe des dates masqué) et, dessous sur le même axe, courbe de drawdown. Série en pointillés : benchmark (`benchmarkValue`) s'il existe, sinon investissement unique (`lumpSumValue`, DCA). Drawdown masqué si aucun point ne porte `drawdown` (résultat antérieur).
 - **Props** :
 
   | Nom | Type | Requis | Défaut | Description |
@@ -1013,7 +1048,8 @@ Source : `src/features/auth/schema.ts`.
   | `title` | `string` | oui | — | Titre de la carte. |
   | `description` | `string` | non | — | Sous le titre. |
   | `columns` | `string[]` | oui | — | En-tête de chaque colonne de valeurs. |
-  | `rows` | `MetricRow[]` = `{ label: string; badge?: ReactNode; values: ReactNode[] }[]` | oui | — | `values` dans l'ordre de `columns` ; `badge` après le libellé (ex. « diffère »). |
+  | `columnHints` | `Partial<Record<string, GlossaryKey>>` | non | `{}` | Entrée du glossaire d'un en-tête, par libellé (ex. `{ Écart: "comparisonDelta" }`). |
+  | `rows` | `MetricRow[]` = `{ label: string; hint?: GlossaryKey; details?: HintDetail[]; badge?: ReactNode; values: ReactNode[] }[]` | oui | — | `values` dans l'ordre de `columns` ; avec `hint`, le libellé est un `InfoHint` dont le panneau rappelle la valeur de chaque colonne puis `details` ; `badge` après le libellé (ex. « diffère »). |
   | `strong` | `number` | non | `1` | Nombre de premières colonnes en gras ; `0` = toutes en retrait. |
   | `rowHeader` | `string` | non | « Indicateur » pour lecteurs d'écran | En-tête visible de la colonne des libellés. |
   | `note` | `ReactNode` | non | — | Texte sous la liste. |
@@ -1021,7 +1057,7 @@ Source : `src/features/auth/schema.ts`.
 
 - **Exemple** (tiré de `src/features/backtest/stats.tsx`) :
   ```tsx
-  <MetricBlock title="Coûts et activité" columns={["Total"]} rows={[{ label: "Ordres", values: [result.totalTrades] }]} />
+  <MetricBlock title="Coûts et activité" columns={["Total"]} rows={[{ label: "Ordres", hint: "totalTrades", values: [result.totalTrades] }]} />
   ```
 - **Utilisé par** : `src/features/backtest/stats.tsx`, `src/features/backtest/comparison-blocks.tsx`.
 - **Source** : `src/features/backtest/metric-block.tsx`.
@@ -1046,7 +1082,7 @@ Source : `src/features/auth/schema.ts`.
 ### BacktestAssumptions
 
 - **Import** : `import { BacktestAssumptions } from "@/features/backtest/assumptions"`.
-- **Rôle** : liste « Hypothèses » d'un résultat, sans carte, en deux colonnes à partir de `sm` : période, devise (`BACKTEST_CURRENCY`), frais par ordre (achat et vente, D8), rebalancement (`rebalanceFrequencyLabels`), benchmark (`backtest.benchmarkSymbol`, `NO_BENCHMARK_LABEL` si null), taux sans risque du Sharpe (`result.riskFreeRate`, publié par l'engine), règle d'exécution, source et type de cours, date de récupération et empreinte des données (12 premiers caractères, valeur complète en `title`), puis `BACKTEST_DISCLAIMER`. `<Dash />` si `riskFreeRate`, `executionRule` ou `dataSource` est `null` (résultat antérieur).
+- **Rôle** : liste « Hypothèses » d'un résultat, sans carte, en deux colonnes à partir de `sm` : période, devise (`BACKTEST_CURRENCY`), frais par ordre (achat et vente, D8), rebalancement (`rebalanceFrequencyLabels`), benchmark (`backtest.benchmarkSymbol`, `NO_BENCHMARK_LABEL` si null), taux sans risque du Sharpe (`result.riskFreeRate`, publié par l'engine), règle d'exécution, source et type de cours, date de récupération et empreinte des données (12 premiers caractères, valeur complète en `title`), puis `BACKTEST_DISCLAIMER`. `<Dash />` si `riskFreeRate`, `executionRule` ou `dataSource` est `null` (résultat antérieur). Libellés des données calculées ou des paramètres qui changent le calcul (frais, rebalancement, benchmark, taux sans risque, règle d’exécution, source, empreinte) en `InfoHint`.
 - **Props** :
 
   | Nom | Type | Requis | Défaut | Description |
@@ -1286,9 +1322,9 @@ Source : `src/features/backtest/utils.tsx`.
 
 | Export | Type | Colonnes | Utilisé par |
 | --- | --- | --- | --- |
-| `backtestColumns` | `Column<Backtest>[]` | Nom, Stratégie, Allocation (`formatAllocation`, tronquée, texte complet en `title`), Période, Rendement (`totalReturn` × 100 via `ChangeCell`), CAGR (`cagr` du résumé × 100 via `ChangeCell`, `<Dash />` si non terminé ou résultat antérieur), Statut (badge), Durée. | `backtest-list.tsx` |
-| `tradeColumns` | `Column<Trade>[]` | Date, Symbole (`SymbolCell`), Côté (badge `tradeSideBadges`, « Achat » si `side` absent), Prix (2 décimales, sans devise), Quantité (jusqu'à 6 décimales), Montant et Frais (`formatPrice` en `BACKTEST_CURRENCY`) ; `Dash` si absents (résultats antérieurs). | `backtest-detail.tsx` |
-| `holdingColumns` | `Column<Holding>[]` | Symbole (`SymbolCell`), Quantité (jusqu'à 6 décimales), Valeur au dernier cours (`formatPrice` en `BACKTEST_CURRENCY`). | `result-details.tsx` |
+| `backtestColumns` | `Column<Backtest>[]` | Nom, Stratégie, Allocation (`formatAllocation`, tronquée, texte complet en `title`), Période, Rendement (`totalReturn` × 100 via `ChangeCell`), CAGR (`cagr` du résumé × 100 via `ChangeCell`, `<Dash />` si non terminé ou résultat antérieur), Statut (badge), Durée. En-têtes Rendement, CAGR et Durée en `InfoHint`. | `backtest-list.tsx` |
+| `tradeColumns` | `Column<Trade>[]` | Date, Symbole (`SymbolCell`), Côté (badge `tradeSideBadges`, « Achat » si `side` absent), Prix (2 décimales, sans devise), Quantité (jusqu'à 6 décimales), Montant et Frais (`formatPrice` en `BACKTEST_CURRENCY`) ; `Dash` si absents (résultats antérieurs). En-têtes Côté, Prix, Quantité, Montant, Frais en `InfoHint`. | `backtest-detail.tsx` |
+| `holdingColumns` | `Column<Holding>[]` | Symbole (`SymbolCell`), Quantité (jusqu'à 6 décimales), Valeur au dernier cours (`formatPrice` en `BACKTEST_CURRENCY`). En-têtes Quantité et Valeur en `InfoHint`. | `result-details.tsx` |
 
 Source : `src/features/backtest/column.tsx`.
 
@@ -1442,7 +1478,7 @@ Source : `src/features/market/constants.ts`.
 
 | Export | Type | Colonnes | Utilisé par |
 | --- | --- | --- | --- |
-| `marketColumns` | `Column<MarketAsset>[]` | Symbole (`SymbolCell`), Prix (`formatPrice` en `MARKET_CURRENCY`), Variation 24 h (`ChangeCell`, pourcentage), Volume 24 h (`formatVolume`), Tendance (`Sparkline` de `history`, couleur selon le signe de la variation) ; `<Dash />` pour une valeur `null` (tendance comprise si la variation est inconnue). | `market-list.tsx` |
+| `marketColumns` | `Column<MarketAsset>[]` | Symbole (`SymbolCell`), Prix (`formatPrice` en `MARKET_CURRENCY`), Variation 24 h (`ChangeCell`, pourcentage), Volume 24 h (`formatVolume`), Tendance (`Sparkline` de `history`, couleur selon le signe de la variation) ; `<Dash />` pour une valeur `null` (tendance comprise si la variation est inconnue). En-têtes Prix, Variation, Volume, Tendance en `InfoHint`. | `market-list.tsx` |
 
 Source : `src/features/market/column.tsx`.
 

@@ -28,10 +28,8 @@ export function ComparisonMetrics({ comparison }: { comparison: BacktestComparis
     const { benchmark } = getComparisonBenchmark(comparison)
     const columns = [comparisonLabel("A", a.name), comparisonLabel("B", b.name), "Écart", ...(benchmark ? [benchmark.symbol] : [])]
     // Valeur de A, de B, écart puis, avec un benchmark, la sienne
-    const row = (label: string, value: (r: ComparedBacktest["result"]) => ReactNode, delta: ReactNode, benchmarkValue: ReactNode) => ({
-        label,
-        values: [value(a.result), value(b.result), delta, ...(benchmark ? [benchmarkValue] : [])],
-    })
+    const values = (value: (r: ComparedBacktest["result"]) => ReactNode, delta: ReactNode, benchmarkValue: ReactNode) =>
+        [value(a.result), value(b.result), delta, ...(benchmark ? [benchmarkValue] : [])]
 
     return (
         <MetricBlock
@@ -39,15 +37,16 @@ export function ComparisonMetrics({ comparison }: { comparison: BacktestComparis
             description="Écart = A − B, en points (Sharpe sans unité)"
             rowHeader="Indicateur"
             columns={columns}
+            columnHints={{ Écart: "comparisonDelta" }}
             strong={2}
             rows={[
-                row("CAGR", (r) => show(fromDecimal(r.cagr), formatRatio), <Delta metric="cagr" value={deltas.cagr} format={formatPoints} />, benchmark && show(benchmark.cagr, formatRatio)),
-                row("Rendement total", (r) => show(fromDecimal(r.totalReturn), formatRatio), <Delta metric="totalReturn" value={deltas.totalReturn} format={formatPoints} />, benchmark && formatRatio(benchmark.totalReturn)),
-                row("Volatilité", (r) => show(fromDecimal(r.volatility), formatPercent), <Delta metric="volatility" value={deltas.volatility} format={formatPoints} />, benchmark && show(benchmark.volatility, formatPercent)),
-                row("Sharpe", (r) => show(fromDecimal(r.sharpeRatio), formatSharpe), <Delta metric="sharpeRatio" value={deltas.sharpeRatio} format={formatChange} />, benchmark && show(benchmark.sharpeRatio, formatSharpe)),
-                row("Max drawdown", (r) => show(fromDecimal(r.maxDrawdown), formatRatio), <Delta metric="maxDrawdown" value={deltas.maxDrawdown} format={formatPoints} />, benchmark && formatRatio(benchmark.maxDrawdown)),
-                row("Récupération", (r) => formatRecovery(r.recoveryDays, fromDecimal(r.maxDrawdown), r.maxDrawdownPeakDate != null), <Dash />, benchmark && formatRecovery(benchmark.recoveryDays, benchmark.maxDrawdown, true)),
-                row("Valeur finale", (r) => show(fromDecimal(r.finalValue), formatAmount), <Dash />, benchmark && formatAmount(benchmark.finalValue)),
+                { label: "CAGR", hint: "cagr", values: values((r) => show(fromDecimal(r.cagr), formatRatio), <Delta metric="cagr" value={deltas.cagr} format={formatPoints} />, benchmark && show(benchmark.cagr, formatRatio)) },
+                { label: "Rendement total", hint: "totalReturn", values: values((r) => show(fromDecimal(r.totalReturn), formatRatio), <Delta metric="totalReturn" value={deltas.totalReturn} format={formatPoints} />, benchmark && formatRatio(benchmark.totalReturn)) },
+                { label: "Volatilité", hint: "volatility", values: values((r) => show(fromDecimal(r.volatility), formatPercent), <Delta metric="volatility" value={deltas.volatility} format={formatPoints} />, benchmark && show(benchmark.volatility, formatPercent)) },
+                { label: "Sharpe", hint: "sharpeRatio", values: values((r) => show(fromDecimal(r.sharpeRatio), formatSharpe), <Delta metric="sharpeRatio" value={deltas.sharpeRatio} format={formatChange} />, benchmark && show(benchmark.sharpeRatio, formatSharpe)) },
+                { label: "Max drawdown", hint: "maxDrawdown", values: values((r) => show(fromDecimal(r.maxDrawdown), formatRatio), <Delta metric="maxDrawdown" value={deltas.maxDrawdown} format={formatPoints} />, benchmark && formatRatio(benchmark.maxDrawdown)) },
+                { label: "Récupération", hint: "recovery", values: values((r) => formatRecovery(r.recoveryDays, fromDecimal(r.maxDrawdown), r.maxDrawdownPeakDate != null), <Dash />, benchmark && formatRecovery(benchmark.recoveryDays, benchmark.maxDrawdown, true)) },
+                { label: "Valeur finale", hint: "finalValue", values: values((r) => show(fromDecimal(r.finalValue), formatAmount), <Dash />, benchmark && formatAmount(benchmark.finalValue)) },
             ]}
         />
     )
@@ -59,11 +58,8 @@ export function ComparisonMetrics({ comparison }: { comparison: BacktestComparis
  */
 export function ComparisonParameters({ comparison }: { comparison: BacktestComparison }) {
     const { a, b, differences } = comparison
-    const row = (label: string, value: (backtest: ComparedBacktest) => ReactNode, parameter?: ComparisonParameter) => ({
-        label,
-        badge: parameter && differences.includes(parameter) && <Badge variant="outline">diffère</Badge>,
-        values: [value(a), value(b)],
-    })
+    const values = (value: (backtest: ComparedBacktest) => ReactNode) => [value(a), value(b)]
+    const differs = (parameter: ComparisonParameter) => differences.includes(parameter) && <Badge variant="outline">diffère</Badge>
 
     return (
         <MetricBlock
@@ -73,12 +69,12 @@ export function ComparisonParameters({ comparison }: { comparison: BacktestCompa
             columns={["A", "B"]}
             strong={0}
             rows={[
-                row("Période", (t) => formatDayRange(t.startDate, t.endDate), "period"),
-                row("Mode", (t) => strategyLabels[t.investmentMode]),
-                row("Allocation", (t) => t.allocations.map(({ symbol, weight }) => <div key={symbol}>{symbol} {formatRate(Number(weight))}</div>)),
-                row("Rebalancement", (t) => rebalanceFrequencyLabels[t.rebalanceFrequency]),
-                row("Frais", (t) => formatPercent(Number(t.feeRate)), "feeRate"),
-                row("Benchmark", (t) => t.benchmarkSymbol ?? NO_BENCHMARK_LABEL, "benchmarkSymbol"),
+                { label: "Période", badge: differs("period"), values: values((t) => formatDayRange(t.startDate, t.endDate)) },
+                { label: "Mode", hint: "investmentMode", values: values((t) => strategyLabels[t.investmentMode]) },
+                { label: "Allocation", hint: "allocation", values: values((t) => t.allocations.map(({ symbol, weight }) => <div key={symbol}>{symbol} {formatRate(Number(weight))}</div>)) },
+                { label: "Rebalancement", hint: "rebalanceFrequency", values: values((t) => rebalanceFrequencyLabels[t.rebalanceFrequency]) },
+                { label: "Frais", hint: "feeRate", badge: differs("feeRate"), values: values((t) => formatPercent(Number(t.feeRate))) },
+                { label: "Benchmark", hint: "benchmark", badge: differs("benchmarkSymbol"), values: values((t) => t.benchmarkSymbol ?? NO_BENCHMARK_LABEL) },
             ]}
         />
     )

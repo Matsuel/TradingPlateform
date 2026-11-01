@@ -11,7 +11,7 @@ export function GeneralSection() {
     return (
         <FormSection title="Général" description="Nom et mode d’investissement">
             <TextField name="name" label="Nom du backtest" />
-            <SelectField name="investmentMode" label="Mode d’investissement" options={investmentModeOptions} />
+            <SelectField name="investmentMode" label="Mode d’investissement" hint="investmentMode" options={investmentModeOptions} />
             {investmentMode === "RECURRING" && <NumberField name="recurringAmount" label="Versement mensuel (€)" />}
         </FormSection>
     )
@@ -20,24 +20,26 @@ export function GeneralSection() {
 export function AllocationSection() {
     return (
         <FormSection title="Allocation et période" description="Actifs, poids et fenêtre historique">
-            <AllocationField name="allocations" label="Actifs et poids" />
+            <AllocationField name="allocations" label="Actifs et poids" hint="allocation" />
             <FieldRow>
                 <DateField name="start" label="Début" />
                 <DateField name="end" label="Fin" />
             </FieldRow>
             <FieldRow>
                 <NumberField name="initialAmount" label="Capital initial (€)" />
-                <NumberField name="fee" label="Frais par ordre (%)" />
+                <NumberField name="fee" label="Frais par ordre (%)" hint="feeRate" />
             </FieldRow>
             <SelectField
                 name="rebalanceFrequency"
                 label="Rebalancement"
+                hint="rebalanceFrequency"
                 description="Ramène les poids à la cible"
                 options={rebalanceFrequencyOptions}
             />
             <SymbolsField
                 name="benchmarkSymbols"
                 label="Benchmark"
+                hint="benchmark"
                 description="Rejoué avec les mêmes versements et frais ; retire-le pour simuler sans benchmark"
                 max={1}
                 addLabel="Choisir"
