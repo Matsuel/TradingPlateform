@@ -1,15 +1,15 @@
-import PageLayout from "@/components/page-layout"
-import PageHeader from "@/components/page-layout/header"
+import type { Metadata } from "next"
+import { PageHeader, PageLayout } from "@/components/page-layout"
 
-export default function Page() {
+export const metadata: Metadata = { title: "Dashboard" }
 
-  return (
-    <PageLayout>
-      <PageHeader
-        title="Dashboard"
-        description="Vue d’ensemble de votre portefeuille virtuel."
-      />
-
-    </PageLayout>
-  )
+export default function DashboardPage() {
+    return (
+        <PageLayout>
+            <PageHeader
+                title="Dashboard"
+                description="Vue d’ensemble de vos backtests, portefeuilles et signaux récents."
+            />
+        </PageLayout>
+    )
 }

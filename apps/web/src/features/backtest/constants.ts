@@ -1,7 +1,19 @@
-import type { ComparedMetric, ComparisonParameter, DataSource, ExecutionRule, ExecutionStatus, InvestmentMode, RebalanceFrequency, TradeSide } from "./types"
+import type {
+    ComparedMetric,
+    ComparisonParameter,
+    DataSource,
+    ExecutionRule,
+    ExecutionStatus,
+    InvestmentMode,
+    RebalanceFrequency,
+    TradeSide,
+} from "./types"
 
 // Devise des montants saisis : les cours ne sont pas convertis
 export const BACKTEST_CURRENCY = "EUR"
+
+// Total des poids d'une allocation, en pourcent entier (D2)
+export const FULL_PERCENT = 100
 
 // Une exécution dans ces statuts peut encore évoluer
 export const activeStatuses = ["PENDING", "RUNNING"] as const satisfies readonly ExecutionStatus[]
@@ -18,10 +30,18 @@ export const rebalanceFrequencyLabels: Record<RebalanceFrequency, string> = {
     YEARLY: "Annuel",
 }
 
+// Valeurs initiales du formulaire et du test rapide : capital en `BACKTEST_CURRENCY`, frais en pourcent par ordre
+export const DEFAULT_INVESTMENT_MODE = "LUMP_SUM" satisfies InvestmentMode
+export const DEFAULT_INITIAL_AMOUNT = 10_000
+export const DEFAULT_FEE_PERCENT = 0.1
+
 // Valeur par défaut du formulaire et du test rapide, comme le défaut de createBacktestSchema
 export const DEFAULT_REBALANCE_FREQUENCY = "NONE" satisfies RebalanceFrequency
 
-export const rebalanceFrequencyOptions = Object.entries(rebalanceFrequencyLabels).map(([value, label]) => ({ value, label }))
+export const rebalanceFrequencyOptions = Object.entries(rebalanceFrequencyLabels).map(([value, label]) => ({
+    value,
+    label,
+}))
 
 // Benchmark proposé par le formulaire (D9) : ETF iShares MSCI World
 export const DEFAULT_BENCHMARK_SYMBOL = "URTH"
@@ -55,7 +75,10 @@ export const previewSteps = [
 export const BACKTEST_DISCLAIMER =
     "Les performances passées ne préjugent pas des performances futures. Simulation pédagogique, pas un conseil en investissement."
 
-export const statusBadges: Record<ExecutionStatus, { label: string; variant: "outline" | "destructive" | "secondary" | "success" }> = {
+export const statusBadges: Record<
+    ExecutionStatus,
+    { label: string; variant: "outline" | "destructive" | "secondary" | "success" }
+> = {
     DRAFT: { label: "Brouillon", variant: "secondary" },
     PENDING: { label: "En attente", variant: "outline" },
     RUNNING: { label: "En cours", variant: "outline" },

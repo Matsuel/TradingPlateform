@@ -1,12 +1,13 @@
-import type { Column } from "@/components/data-table/data-table"
+import { Dash } from "@/components/dash"
 import { ChangeCell, SymbolCell } from "@/components/data-table/cells"
+import type { Column } from "@/components/data-table/data-table"
 import { InfoHint } from "@/components/info-hint"
 import { Badge } from "@/components/ui/badge"
 import { formatDay, formatDayRange, formatPrice, LOCALE } from "@/lib/format"
-import { BACKTEST_CURRENCY, statusBadges, strategyLabels, tradeSideBadges } from "./constants"
+import { BACKTEST_CURRENCY, strategyLabels, tradeSideBadges } from "./constants"
+import { StatusBadge } from "./status-badge"
 import type { Backtest, Holding, Trade } from "./types"
 import { formatAllocation, getExecution, getExecutionDuration } from "./utils"
-import Dash from "@/components/custom/Dash"
 
 // Cours de l'ordre sans devise : « 268,50 »
 const formatTradePrice = new Intl.NumberFormat(LOCALE, { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format
@@ -21,7 +22,11 @@ export const backtestColumns: Column<Backtest>[] = [
         header: "Allocation",
         cell: (b) => {
             const allocation = formatAllocation(b.allocations)
-            return <span className="block max-w-56 truncate" title={allocation}>{allocation}</span>
+            return (
+                <span className="block max-w-56 truncate" title={allocation}>
+                    {allocation}
+                </span>
+            )
         },
     },
     { header: "Période", cell: (b) => formatDayRange(b.startDate, b.endDate) },
@@ -48,14 +53,17 @@ export const backtestColumns: Column<Backtest>[] = [
         cell: (b) => {
             const e = getExecution(b)
             if (!e) return <Dash />
-            const { label, variant } = statusBadges[e.status]
-            return <Badge variant={variant}>{label}</Badge>
+            return <StatusBadge status={e.status} />
         },
     },
-    { header: <InfoHint entry="executionDuration">Durée</InfoHint>, className: "text-right", cell: (b) => {
-        const e = getExecution(b)
-        return (e && getExecutionDuration(e)) ?? <Dash />
-    } },
+    {
+        header: <InfoHint entry="executionDuration">Durée</InfoHint>,
+        className: "text-right",
+        cell: (b) => {
+            const e = getExecution(b)
+            return (e && getExecutionDuration(e)) ?? <Dash />
+        },
+    },
 ]
 
 export const tradeColumns: Column<Trade>[] = [
@@ -93,6 +101,14 @@ export const tradeColumns: Column<Trade>[] = [
 
 export const holdingColumns: Column<Holding>[] = [
     { header: "Symbole", cell: (h) => <SymbolCell symbol={h.symbol} /> },
-    { header: <InfoHint entry="holdingQuantity">Quantité</InfoHint>, className: "text-right", cell: (h) => formatQuantity(h.quantity) },
-    { header: <InfoHint entry="holdingValue">Valeur</InfoHint>, className: "text-right", cell: (h) => formatPrice(h.value, BACKTEST_CURRENCY) },
+    {
+        header: <InfoHint entry="holdingQuantity">Quantité</InfoHint>,
+        className: "text-right",
+        cell: (h) => formatQuantity(h.quantity),
+    },
+    {
+        header: <InfoHint entry="holdingValue">Valeur</InfoHint>,
+        className: "text-right",
+        cell: (h) => formatPrice(h.value, BACKTEST_CURRENCY),
+    },
 ]

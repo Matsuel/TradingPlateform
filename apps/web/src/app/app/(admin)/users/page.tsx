@@ -1,15 +1,12 @@
-import PageLayout from "@/components/page-layout"
-import PageHeader from "@/components/page-layout/header"
+import type { Metadata } from "next"
+import { PageHeader, PageLayout } from "@/components/page-layout"
 
-const UsersPage = () => {
+export const metadata: Metadata = { title: "Utilisateurs" }
+
+export default function UsersPage() {
     return (
         <PageLayout>
-            <PageHeader
-                title="Utilisateurs"
-                description="Gérez les comptes, les rôles et les accès à la plateforme."
-            />
+            <PageHeader title="Utilisateurs" description="Gérez les comptes, les rôles et les accès à la plateforme." />
         </PageLayout>
     )
 }
-
-export default UsersPage

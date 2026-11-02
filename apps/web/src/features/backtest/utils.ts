@@ -1,8 +1,18 @@
-import Dash from "@/components/custom/Dash"
-import type { PricePoint } from "@/components/chart"
+import type { ChartPoint } from "@/components/area-series-chart"
 import { formatDuration, formatPrice, formatRate } from "@/lib/format"
 import { activeStatuses, BACKTEST_CURRENCY } from "./constants"
-import type { Backtest, BacktestComparison, BacktestExecution, EquityPoint, ExecutionStatus } from "./types"
+import type {
+    AllocationInput,
+    Backtest,
+    BacktestComparison,
+    BacktestExecution,
+    EquityPoint,
+    ExecutionStatus,
+} from "./types"
+
+/** Somme des poids saisis, en pourcent ; un poids vidé (`NaN`) compte 0 (le schéma du formulaire le rejette à part). */
+export const allocationTotal = (rows: AllocationInput[]) =>
+    rows.reduce((sum, r) => sum + (Number.isNaN(r.weight) ? 0 : r.weight), 0)
 
 /** Dernière exécution d'un backtest (l'API les trie de la plus récente à la plus ancienne). */
 export const getExecution = (b: Backtest) => b.executions[0]
@@ -31,22 +41,26 @@ export const formatAllocation = (allocations: Backtest["allocations"]) =>
 /** Decimal sérialisé en string par l'API → number ; null ou absent → null (champ absent des résultats antérieurs). */
 export const fromDecimal = (value: string | null | undefined) => (value == null ? null : Number(value))
 
-/** Valeur formatée, ou `<Dash />` si elle manque (résultat antérieur, moins de deux points). */
-export const show = (value: number | null, format: (v: number) => string) => (value == null ? <Dash /> : format(value))
-
 /** Montant en `BACKTEST_CURRENCY`. */
 export const formatAmount = (v: number) => formatPrice(v, BACKTEST_CURRENCY)
 
 /**
  * Durée de récupération ; `recoveryDays` null : « Aucune baisse » sans baisse, « Non récupéré » si la baisse a un plus haut
- * daté par le moteur (`peakDated`), `<Dash />` sinon : résultat antérieur au calcul, où l'API renvoie aussi null.
+ * daté par le moteur (`peakDated`), `null` sinon (l'écran affiche `<Dash />`) : résultat antérieur au calcul, où l'API renvoie aussi null.
  */
-export function formatRecovery(recoveryDays: number | null | undefined, maxDrawdown: number | null, peakDated: boolean) {
+export function formatRecovery(
+    recoveryDays: number | null | undefined,
+    maxDrawdown: number | null,
+    peakDated: boolean,
+): string | null {
     if (recoveryDays != null) return formatDuration(recoveryDays)
-    if (maxDrawdown == null) return <Dash />
+    if (maxDrawdown == null) return null
     if (maxDrawdown === 0) return "Aucune baisse"
-    return peakDated ? "Non récupéré" : <Dash />
+    return peakDated ? "Non récupéré" : null
 }
+
+/** Nom de la série du benchmark dans un graphique : « Benchmark URTH ». */
+export const benchmarkLabel = (symbol: string) => `Benchmark ${symbol}`
 
 /** Libellé d'un côté de la comparaison : « A · 60/40 ». */
 export const comparisonLabel = (side: "A" | "B", name: string) => `${side} · ${name}`
@@ -58,14 +72,28 @@ export function getComparisonBenchmark({ a, b }: BacktestComparison) {
 }
 
 /**
- * Aligne les courbes de A et B sur l'union de leurs dates, triées, pour un même graphique : `price` = série de A (null
- * les jours hors de sa période), `other` = série de B, `compare` = benchmark du côté `benchmarkSide` (`getComparisonBenchmark`).
- * `value` choisit la série (valeur, drawdown).
+ * Aligne les courbes de A et B sur l'union de leurs dates, triées, pour un même graphique : séries `a` et `b` (absentes
+ * les jours hors de la période d'un côté) et, avec `benchmarkSide`, `benchmark` = benchmark de ce côté
+ * (`getComparisonBenchmark`). `value` choisit la série (valeur, drawdown).
  */
-export function alignCurves(a: EquityPoint[], b: EquityPoint[], value: (p: EquityPoint) => number | undefined, benchmarkSide: "a" | "b"): PricePoint[] {
-    const points = new Map<string, PricePoint>()
-    const at = (date: string): PricePoint => points.get(date) ?? { date, price: null }
-    for (const p of a) points.set(p.date, { ...at(p.date), price: value(p) ?? null, ...(benchmarkSide === "a" && { compare: p.benchmarkValue }) })
-    for (const p of b) points.set(p.date, { ...at(p.date), other: value(p), ...(benchmarkSide === "b" && { compare: p.benchmarkValue }) })
+export function alignCurves(
+    a: EquityPoint[],
+    b: EquityPoint[],
+    value: (p: EquityPoint) => number | undefined,
+    benchmarkSide?: "a" | "b",
+): ChartPoint[] {
+    const points = new Map<string, ChartPoint>()
+    const add = (side: "a" | "b", curve: EquityPoint[]) => {
+        for (const p of curve) {
+            const point = points.get(p.date) ?? { date: p.date }
+            points.set(p.date, {
+                ...point,
+                [side]: value(p),
+                ...(benchmarkSide === side && { benchmark: p.benchmarkValue }),
+            })
+        }
+    }
+    add("a", a)
+    add("b", b)
     return [...points.values()].sort((x, y) => x.date.localeCompare(y.date))
 }

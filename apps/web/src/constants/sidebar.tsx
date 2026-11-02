@@ -1,95 +1,68 @@
-import { Activity, ChartCandlestick, FlaskConical, GitCompareArrows, LayoutDashboard, ListOrdered, Plus, User, Wallet } from "lucide-react"
+import {
+    Activity,
+    Bell,
+    BrainCircuit,
+    ChartCandlestick,
+    Database,
+    FileText,
+    FlaskConical,
+    GitCompareArrows,
+    LayoutDashboard,
+    Plus,
+    ShieldAlert,
+    Sparkles,
+    TrendingUp,
+    Users,
+} from "lucide-react"
+import type { ReactNode } from "react"
+import { routes } from "@/lib/routes"
 
-export const prefix = "/app";
+export type SidebarTab = { name: string; url: string; icon: ReactNode }
 
-const tabs = [
+export type SidebarSection = { name: string; adminOnly: boolean; tabs: SidebarTab[] }
+
+// Sections du menu, dans l'ordre de la roadmap : marché, Strategy Lab, analyses (mois 6 à 9), administration
+export const sidebarSections: SidebarSection[] = [
     {
-        name: "Trading",
+        name: "Vue d’ensemble",
         adminOnly: false,
         tabs: [
-            {
-                name: "Dashboard",
-                url: `${prefix}`,
-                icon: (
-                    <LayoutDashboard />
-                )
-            },
-            {
-                name: "Marché",
-                url: `${prefix}/market`,
-                icon: (
-                    <ChartCandlestick />
-                )
-            },
-            {
-                name: "Portefeuille",
-                url: `${prefix}/portfolio`,
-                icon: (
-                    <Wallet />
-                )
-            },
-            {
-                name: "Ordres",
-                url: `${prefix}/orders`,
-                icon: (
-                    <ListOrdered />
-                )
-            }
-        ]
+            { name: "Dashboard", url: routes.dashboard, icon: <LayoutDashboard /> },
+            { name: "Notifications", url: routes.notifications, icon: <Bell /> },
+        ],
     },
     {
-        name: "Experimentation",
+        name: "Marché",
+        adminOnly: false,
+        tabs: [{ name: "Marché", url: routes.market, icon: <ChartCandlestick /> }],
+    },
+    {
+        name: "Strategy Lab",
         adminOnly: false,
         tabs: [
-            {
-                name: "Backtests",
-                url: `${prefix}/backtest`,
-                icon: (
-                    <FlaskConical />
-                )
-            },
-            {
-                name: "Nouveau backtest",
-                url: `${prefix}/backtest/new`,
-                icon: (
-                    <Plus />
-                )
-            }
-        ]
+            { name: "Backtests", url: routes.backtests, icon: <FlaskConical /> },
+            { name: "Nouveau backtest", url: routes.newBacktest, icon: <Plus /> },
+            { name: "Comparaison", url: routes.compare, icon: <GitCompareArrows /> },
+            { name: "Paper trading", url: routes.paperTrading, icon: <TrendingUp /> },
+        ],
     },
     {
         name: "Analyse",
         adminOnly: false,
         tabs: [
-            {
-                name: "Comparaison",
-                url: `${prefix}/backtest/compare`,
-                icon: (
-                    <GitCompareArrows />
-                )
-            }
-        ]
+            { name: "Risque", url: routes.risk, icon: <ShieldAlert /> },
+            { name: "Projection", url: routes.projection, icon: <Sparkles /> },
+            { name: "Optimisation", url: routes.optimization, icon: <BrainCircuit /> },
+            { name: "Rapports", url: routes.reports, icon: <FileText /> },
+        ],
     },
     {
-        name: "Avancée",
+        name: "Administration",
         adminOnly: true,
         tabs: [
-            {
-                name: "Surveillance",
-                url: `${prefix}/monitoring`,
-                icon: (
-                    <Activity />
-                )
-            },
-            {
-                name: "Utilisateurs",
-                url: `${prefix}/users`,
-                icon: (
-                    <User />
-                )
-            }
-        ]
-    }
+            { name: "Monitoring", url: routes.monitoring, icon: <Activity /> },
+            { name: "Utilisateurs", url: routes.users, icon: <Users /> },
+            { name: "Données de référence", url: routes.referenceData, icon: <Database /> },
+        ],
+    },
 ]
-
-export default tabs

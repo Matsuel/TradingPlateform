@@ -33,15 +33,47 @@ Un écran, ou une section d'écran, se code uniquement depuis un cadre Figma **v
 
 Restent hors règle, sans nouveau cadre : composant non visuel, correctif de bug ou de responsive qui respecte la maquette, retouche demandée explicitement par l'utilisateur (libellé, champ retiré) ; l'écart à la maquette est alors noté dans le résumé.
 
+## shadcn d'abord (règle stricte)
+
+Toute brique d'interface vient de `components/ui/` (shadcn, style `base-nova` de `components.json`) :
+
+- **Primitive** (bouton, champ, label, tableau, carte, badge, onglets, dialog, menu…) : le composant `ui/` correspondant. Absent du dossier : ajoute-le avec `bunx --bun shadcn@latest add <nom>`, puis utilise-le.
+- **Style ou état que le composant n'a pas** : un **variant** de plus dans son `cva`, dans `ui/<composant>.tsx` (ex. `success` de `Badge`), appelé par `variant="…"`. Un style partagé par deux écrans est un variant.
+- **Classes autour d'un composant `ui/`** : la mise en page seulement (marges, grille, largeur, position).
+- **Élément HTML brut** à la place d'une primitive (`<table>`, `<button>`, `<label>`, `<select>`, `<input>`, `<textarea>`, barre de progression en `<div>`) : seulement si shadcn n'a aucun équivalent, avec la raison en commentaire sur la ligne.
+- `components/` et `features/` composent les `ui/` ; un variant ajouté a son entrée dans `COMPONENTS.md` (« `components/ui` ») dans le même diff.
+
 ## Structure `src/`
 
 | Dossier | Rôle |
 | --- | --- |
 | `app/` | Routes (groupes `(auth)`, `(base)`, `app/`). Pages fines : `await params`, puis composent un composant de `features/`. Aucun appel API ni logique. |
 | `features/<domaine>/` | Code d'un domaine (voir ci-dessous). |
-| `components/` | Composants réutilisés par ≥ 2 domaines (`ui/` = shadcn, `form/`, `data-table/`, `page-layout/`, `app-sheet/`, `chart.tsx`, `stat-card.tsx`). |
-| `lib/` | Transverse : `api.ts` (`apiFetch`), `format.ts` (tous les formatters réutilisés), `path.ts`, `auth.ts`, `session.ts`, `utils.ts` (`cn`). |
-| `hooks/`, `provider/`, `constants/` | Hooks génériques, providers, constantes globales (sidebar). |
+| `components/` | Composants réutilisés par ≥ 2 domaines (`ui/` = shadcn, `form/`, `data-table/`, `page-layout.tsx`, `app-sheet.tsx`, `chart.tsx`, `stat-card.tsx`). Exception documentée : `symbol-picker.tsx` dépend de `features/market` (recherche), car les champs de `form/` l'utilisent. |
+| `lib/` | Transverse : `api.ts` (`apiFetch`), `format.ts` (tous les formatters réutilisés), `routes.ts` (toutes les URL), `navigation.ts` (onglet actif), `env.ts` (env validé), `auth.ts`, `session.ts`, `utils.ts` (`cn`). |
+| `hooks/`, `provider/`, `constants/` | Hooks génériques, providers, constantes globales (sidebar, glossaire, pagination). |
+| `proxy.ts` | Dans `src/`, au niveau de `app/` (sinon Next l'ignore). Redirection optimiste sur le cookie ; la session réelle se vérifie dans les layouts (`requireSession`). |
+
+## Forme du code
+
+- **Formatage : Biome** (`biome.json`), lancé par `bun run format` (formate et trie les imports) ; `bun run format:check` échoue sur un fichier non formaté. 4 espaces, guillemets doubles, sans point-virgule, 120 colonnes. `components/ui/` (shadcn) et le Markdown sont exclus. ESLint (`bun run lint`) garde les règles Next et React.
+- **Fichiers** en kebab-case (`app-header.tsx`), un composant exporté **nommé** (`export function AppHeader`) ; `export default` seulement là où Next l'exige (`page.tsx`, `layout.tsx`, `error.tsx`, `not-found.tsx`). Pas de dossier pour un seul fichier.
+- **Pages** : `export default function XPage()`, typées par les helpers globaux `PageProps<"/route">` / `LayoutProps<"/route">` ; `export const metadata = { title }` (le gabarit « %s · MarketFlow » est dans le layout racine), `generateMetadata` pour une page dynamique.
+- **Navigation** : toute URL vient de `routes` (`lib/routes.ts`) ; un lien interne est un `next/link`, jamais un `<a href>` (rechargement complet, cache TanStack perdu). Un bouton-lien : `<Button nativeButton={false} render={<Link href={…} />}>`, jamais `<Link><Button>` (HTML invalide).
+- **Nouvelle page** : sa route dans `routes`, son onglet dans `constants/sidebar.tsx`, puis `app/app/<route>/page.tsx`. Une page pas encore construite n'affiche que `PageHeader` (titre et description).
+- `process.env` ne se lit que dans `lib/env.ts` (validé par zod).
+- **Typographie** : tokens du thème (`text-h1` à `text-h3`, `text-stat`, `text-body`, `text-body-medium`, `text-body-semibold`, `text-small`, `text-small-medium`, dans `globals.css`), pas les tailles Tailwind (`text-sm`, `text-xs`).
+- **Couleur d'une variation** : `trendOf` et `trendStyles` (`lib/trend.ts`).
+
+## Taille et complexité
+
+Le code reste lisible d'une traite ; au-delà de ces seuils, découpe avant d'ajouter :
+
+- **Fichier** ≤ 150 lignes (hors `components/ui/` et `constants/glossary.ts`) ; `verify` avertit au-delà.
+- **Composant ou fonction** ≤ 60 lignes (`verify` avertit au-delà), JSX imbriqué sur peu de niveaux : une ligne de liste, un en-tête, un bloc deviennent un sous-composant nommé (`AllocationRow`, `ResultHeadline`).
+- **Props** ≤ 8 (`verify` avertit au-delà) ; au-delà, une liste de données remplace les variantes (`AreaSeriesChart` et son `series`).
+- **Une table plutôt qu'une répétition** : une même correspondance (métrique → libellé, aide, format) écrite deux fois devient une table partagée (`features/backtest/metrics.tsx`).
+- **Un état unique plutôt que des conditions répétées** : un écran à plusieurs états calcule l'état une fois, puis l'affiche (`searchState` de `SymbolPicker`).
 
 ## Rangement dans `features/<domaine>/`
 
@@ -65,7 +97,7 @@ Règles :
 - Une mutation est instanciée **une fois** par écran, dans le composant d'écran ; les sections reçoivent l'action ou le bouton par props (`actions`).
 - `DataTable` : `query` pour des lignes issues d'une requête (états chargement / erreur), `rows` pour des lignes déjà en mémoire (sous-liste d'un détail chargé). Ne pas fabriquer un faux `query`.
 - Conversion `Decimal` → `number` : `fromDecimal` (`features/<domaine>/utils.ts`), qui garde `null` pour un champ absent.
-- Composants partagés : consulte `COMPONENTS.md`, réutilise-les en priorité (`DataTable`, `StatCard`, `PriceAreaChart`, `SymbolCell`, `PageHeader`). Un besoin manquant s'ajoute par une prop optionnelle rétrocompatible (slot `ReactNode` nommé `actions`, `badge`, `leading`), jamais par une copie. Ne modifie un composant `ui/` shadcn qu'en cas de besoin réel.
+- Composants partagés : consulte `COMPONENTS.md`, réutilise-les en priorité (`DataTable`, `StatCard`, `AreaSeriesChart`, `SymbolCell`, `PageHeader`). Un besoin manquant s'ajoute par une prop optionnelle rétrocompatible (slot `ReactNode` nommé `actions`, `badge`, `leading`), jamais par une copie. Un style manquant à une primitive s'ajoute en variant `ui/` (« shadcn d'abord »).
 - **Aide sur les données** : une donnée calculée ou interprétée affichée (métrique, taux, écart, frais, empreinte, paramètre qui change le calcul) a son entrée dans `constants/glossary.ts` et son libellé en `InfoHint` (ou `hint` d'un champ) **dans le même diff**. Le texte cite en `source` le symbole qui calcule la donnée et se relit contre lui quand ce calcul change. Champs bruts évidents (nom, date, symbole, statut) : pas d'aide.
 - Formulaires : react-hook-form + schéma de `schema.ts` + champs de `components/form/fields`. Après création, redirige vers la page de détail de la ressource.
 - Server Component par défaut ; `"use client"` seulement si le fichier utilise hooks, état ou événements.
@@ -78,4 +110,4 @@ Règles :
 2. `types.ts`, `api.ts`, `hook.ts`, puis `constants.ts`/`utils.ts` si besoin.
 3. `schema.ts` si formulaire ; `column.tsx` si table ; `stats.tsx` si cartes.
 4. Composants `<sujet>.tsx` codés depuis le cadre validé (« Maquette d'abord »), composés de `components/` (catalogue `COMPONENTS.md`) ; nouvelle entrée dans `COMPONENTS.md` pour chaque composant partagé ou export de feature créé.
-5. Page `app/app/<domaine>/page.tsx` fine ; entrée sidebar dans `constants/sidebar.tsx`.
+5. Route dans `lib/routes.ts`, page `app/app/<domaine>/page.tsx` fine, entrée sidebar dans `constants/sidebar.tsx`.

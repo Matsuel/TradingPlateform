@@ -1,19 +1,17 @@
-import PageLayout from "@/components/page-layout"
+import type { Metadata } from "next"
+import { PageLayout } from "@/components/page-layout"
 import { SymbolDetail } from "@/features/market/symbol-detail"
 
-type Props = {
-    params: Promise<{ symbol: string }>
+export async function generateMetadata({ params }: PageProps<"/app/market/[symbol]">): Promise<Metadata> {
+    const { symbol } = await params
+    return { title: decodeURIComponent(symbol) }
 }
 
-const SymbolPage = async ({ params }: Props) => {
-
+export default async function SymbolPage({ params }: PageProps<"/app/market/[symbol]">) {
     const { symbol } = await params
-
     return (
         <PageLayout>
-            <SymbolDetail symbol={symbol} />
+            <SymbolDetail symbol={decodeURIComponent(symbol)} />
         </PageLayout>
     )
 }
-
-export default SymbolPage

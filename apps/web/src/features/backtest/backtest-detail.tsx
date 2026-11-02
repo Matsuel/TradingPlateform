@@ -1,26 +1,19 @@
 "use client"
 
-import { useState } from "react"
-import { DataTable } from "@/components/data-table/data-table"
-import PageHeader from "@/components/page-layout/header"
+import { EmptyCard } from "@/components/empty-card"
+import { PageHeader } from "@/components/page-layout"
 import { ErrorState, LoadingState } from "@/components/query-status"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { PAGE_SIZE } from "@/constants/pagination"
 import { formatDayRange } from "@/lib/format"
-import { paginate } from "@/lib/pagination"
-import { tradeColumns } from "./column"
-import { rebalanceFrequencyLabels, statusBadges, strategyLabels } from "./constants"
+import { rebalanceFrequencyLabels, strategyLabels } from "./constants"
 import { useBacktest, useRerunBacktest } from "./hook"
 import { ResultDetails } from "./result-details"
+import { ResultMetrics } from "./result-metrics"
 import { ResultOverview } from "./result-overview"
-import { BacktestResultBlocks } from "./stats"
+import { StatusBadge } from "./status-badge"
+import { TradesTable } from "./trades-table"
 import type { BacktestDetails } from "./types"
 import { formatAllocation, getExecution, getExecutionDuration, isActive } from "./utils"
-
-// Ordres affichés avant « Voir les N ordres » : les plus récents
-const RECENT_TRADES = 5
 
 function describe(backtest: BacktestDetails) {
     const e = getExecution(backtest)
@@ -28,26 +21,24 @@ function describe(backtest: BacktestDetails) {
     return [
         strategyLabels[backtest.investmentMode],
         formatAllocation(backtest.allocations),
-        backtest.rebalanceFrequency !== "NONE" && `rebalancement ${rebalanceFrequencyLabels[backtest.rebalanceFrequency].toLowerCase()}`,
+        backtest.rebalanceFrequency !== "NONE" &&
+            `rebalancement ${rebalanceFrequencyLabels[backtest.rebalanceFrequency].toLowerCase()}`,
         backtest.benchmarkSymbol && `benchmark ${backtest.benchmarkSymbol}`,
         formatDayRange(backtest.startDate, backtest.endDate),
         duration && `exécuté en ${duration}`,
-    ].filter(Boolean).join(" · ")
+    ]
+        .filter(Boolean)
+        .join(" · ")
 }
 
 function NoResult({ backtest }: { backtest: BacktestDetails }) {
     const e = getExecution(backtest)
-    const message = e?.status === "FAILED"
-        ? `Le backtest a échoué : ${e.error ?? "erreur inconnue"}`
-        : "Les résultats s’afficheront à la fin du calcul."
+    const message =
+        e?.status === "FAILED"
+            ? `Le backtest a échoué : ${e.error ?? "erreur inconnue"}`
+            : "Les résultats s’afficheront à la fin du calcul."
 
-    return (
-        <Card>
-            <CardContent className="flex h-40 items-center justify-center text-sm text-muted-foreground">
-                {message}
-            </CardContent>
-        </Card>
-    )
+    return <EmptyCard>{message}</EmptyCard>
 }
 
 /**
@@ -58,8 +49,6 @@ function NoResult({ backtest }: { backtest: BacktestDetails }) {
 export function BacktestDetail({ id }: { id: string }) {
     const query = useBacktest(id)
     const rerun = useRerunBacktest(id)
-    const [tradePage, setTradePage] = useState(1)
-    const [allTrades, setAllTrades] = useState(false)
     const { data: backtest, isPending, isError, error, refetch } = query
 
     if (isPending) return <LoadingState className="h-64" />
@@ -75,35 +64,20 @@ export function BacktestDetail({ id }: { id: string }) {
         <>
             <PageHeader
                 title={backtest.name}
-                badge={execution && <Badge variant={statusBadges[execution.status].variant}>{statusBadges[execution.status].label}</Badge>}
+                badge={execution && <StatusBadge status={execution.status} />}
                 description={describe(backtest)}
-                actions={<Button onClick={() => rerun.mutate()} disabled={!canRerun}>Relancer</Button>}
+                actions={
+                    <Button onClick={() => rerun.mutate()} disabled={!canRerun}>
+                        Relancer
+                    </Button>
+                }
             />
 
             {result ? (
                 <>
                     <ResultOverview result={result} />
-                    <BacktestResultBlocks result={result} rebalanceFrequency={backtest.rebalanceFrequency} />
-                    <DataTable
-                        rows={allTrades
-                            ? paginate(result.trades.toReversed(), tradePage, PAGE_SIZE)
-                            : result.trades.slice(-RECENT_TRADES).toReversed()}
-                        columns={tradeColumns}
-                        rowKey={(t) => `${t.date}-${t.symbol}-${t.side}-${t.amount}`}
-                        title="Ordres"
-                        description={allTrades
-                            ? "Achats et ventes, du plus récent au plus ancien"
-                            : `${Math.min(RECENT_TRADES, result.trades.length)} plus récents sur ${result.trades.length}`}
-                        actions={result.trades.length > RECENT_TRADES && (
-                            <Button variant="outline" size="sm" onClick={() => setAllTrades(!allTrades)}>
-                                {allTrades ? "Afficher les plus récents" : `Voir les ${result.trades.length} ordres`}
-                            </Button>
-                        )}
-                        emptyMessage="Aucun ordre."
-                        pagination={allTrades
-                            ? { page: tradePage, pageSize: PAGE_SIZE, count: result.trades.length, onPageChange: setTradePage }
-                            : undefined}
-                    />
+                    <ResultMetrics result={result} rebalanceFrequency={backtest.rebalanceFrequency} />
+                    <TradesTable trades={result.trades} />
                 </>
             ) : (
                 <NoResult backtest={backtest} />

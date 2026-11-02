@@ -1,13 +1,13 @@
 "use client"
 
+import type { ReactNode } from "react"
 import {
     Controller,
-    useFormContext,
     type ControllerRenderProps,
     type FieldPath,
     type FieldValues,
+    useFormContext,
 } from "react-hook-form"
-
 import { InfoHint } from "@/components/info-hint"
 import { Field, FieldContent, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field"
 import type { GlossaryKey } from "@/constants/glossary"
@@ -28,51 +28,72 @@ export type RenderCtx<T extends FieldValues> = {
 type Props<T extends FieldValues> = BaseProps<T> & {
     inline?: boolean // checkbox / switch : contrôle à côté du texte
     reverse?: boolean // switch : texte à gauche, contrôle à droite
-    children: (ctx: RenderCtx<T>) => React.ReactNode
+    children: (ctx: RenderCtx<T>) => ReactNode
 }
 
-export function AppField<T extends FieldValues>({
-    name, label, hint, description, className, inline, reverse, children,
-}: Props<T>) {
+type FieldLayoutProps = Pick<Props<FieldValues>, "inline" | "reverse" | "className"> & {
+    invalid: boolean
+    label: ReactNode
+    input: ReactNode
+    details: ReactNode // description puis erreur
+}
+
+// Champ empilé (libellé au-dessus) ou en ligne (contrôle à côté du texte, à droite avec `reverse`)
+function FieldLayout({ inline, reverse, className, invalid, label, input, details }: FieldLayoutProps) {
+    if (!inline) {
+        return (
+            <Field data-invalid={invalid} className={className}>
+                {label}
+                {input}
+                {details}
+            </Field>
+        )
+    }
+    const content = (
+        <FieldContent>
+            {label}
+            {details}
+        </FieldContent>
+    )
+    return (
+        <Field orientation="horizontal" data-invalid={invalid} className={className}>
+            {reverse ? content : input}
+            {reverse ? input : content}
+        </Field>
+    )
+}
+
+/**
+ * Champ react-hook-form du formulaire courant (`FormProvider`) : libellé (`InfoHint` si `hint`), description et erreur
+ * autour du contrôle rendu par `children({ field, invalid })`.
+ */
+export function AppField<T extends FieldValues>({ name, label, hint, description, children, ...layout }: Props<T>) {
     const { control } = useFormContext<T>()
 
     return (
         <Controller
             control={control}
             name={name}
-            render={({ field, fieldState }) => {
-                const invalid = fieldState.invalid
-                const input = children({ field, invalid })
-                const labelEl = label && (
-                    <FieldLabel htmlFor={field.name}><InfoHint entry={hint}>{label}</InfoHint></FieldLabel>
-                )
-                const descEl = description && <FieldDescription>{description}</FieldDescription>
-                const errorEl = invalid && <FieldError errors={[fieldState.error]} />
-
-                if (inline) {
-                    const text = (
-                        <FieldContent>
-                            {labelEl}
-                            {descEl}
-                            {errorEl}
-                        </FieldContent>
-                    )
-                    return (
-                        <Field orientation="horizontal" data-invalid={invalid} className={className}>
-                            {reverse ? <>{text}{input}</> : <>{input}{text}</>}
-                        </Field>
-                    )
-                }
-
-                return (
-                    <Field data-invalid={invalid} className={className}>
-                        {labelEl}
-                        {input}
-                        {descEl}
-                        {errorEl}
-                    </Field>
-                )
-            }}
+            render={({ field, fieldState }) => (
+                <FieldLayout
+                    {...layout}
+                    invalid={fieldState.invalid}
+                    label={
+                        label && (
+                            <FieldLabel htmlFor={field.name}>
+                                <InfoHint entry={hint}>{label}</InfoHint>
+                            </FieldLabel>
+                        )
+                    }
+                    input={children({ field, invalid: fieldState.invalid })}
+                    details={
+                        <>
+                            {description && <FieldDescription>{description}</FieldDescription>}
+                            {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                        </>
+                    }
+                />
+            )}
         />
     )
 }

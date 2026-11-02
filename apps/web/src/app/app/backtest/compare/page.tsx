@@ -1,19 +1,14 @@
-import PageLayout from "@/components/page-layout"
+import type { Metadata } from "next"
+import { PageLayout } from "@/components/page-layout"
 import { BacktestCompare } from "@/features/backtest/backtest-compare"
 
-type Props = {
-    searchParams: Promise<{ ids?: string | string[] }>
-}
+export const metadata: Metadata = { title: "Comparaison" }
 
-const BacktestComparePage = async ({ searchParams }: Props) => {
-
+export default async function BacktestComparePage({ searchParams }: PageProps<"/app/backtest/compare">) {
     const { ids } = await searchParams
-
     return (
         <PageLayout>
             <BacktestCompare ids={ids} />
         </PageLayout>
     )
 }
-
-export default BacktestComparePage

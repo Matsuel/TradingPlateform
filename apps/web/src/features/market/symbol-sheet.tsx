@@ -1,21 +1,14 @@
-import AppSheet from "@/components/app-sheet/app-sheet"
+import { AppSheet } from "@/components/app-sheet"
 import { Button } from "@/components/ui/button"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { QuickBacktestForm } from "@/features/backtest/quick-backtest-form"
 
+/** Bouton « Tester » du détail d'un symbole : ouvre le test rapide (`QuickBacktestForm`) dans un panneau latéral. */
 export function SymbolSheet({ symbol }: { symbol: string }) {
     return (
-        <AppSheet title={symbol} trigger={<Button size="lg">Acheter</Button>}>
-            <Tabs defaultValue="trade" className="flex-1 px-4 pb-4">
-                <TabsList className="w-full">
-                    <TabsTrigger value="trade">Trade</TabsTrigger>
-                    <TabsTrigger value="test">Test</TabsTrigger>
-                </TabsList>
-                <TabsContent value="trade" />
-                <TabsContent value="test" className="flex flex-col pt-2">
-                    <QuickBacktestForm symbol={symbol} />
-                </TabsContent>
-            </Tabs>
+        <AppSheet title={`Test rapide · ${symbol}`} trigger={<Button size="lg">Tester</Button>}>
+            <div className="flex flex-1 flex-col px-4 pb-4">
+                <QuickBacktestForm symbol={symbol} />
+            </div>
         </AppSheet>
     )
 }

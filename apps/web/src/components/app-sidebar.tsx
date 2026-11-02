@@ -1,70 +1,57 @@
-"use client"
-
-import * as React from "react";
-
-import SidebarNav from "@/components/SidebarNav";
-import { NavUser } from "@/components/nav-user";
-import ThemeToggle from "@/components/themeToggle";
+import type { User } from "better-auth"
+import { GalleryVerticalEnd } from "lucide-react"
+import Link from "next/link"
+import { NavUser } from "@/components/nav-user"
+import { SidebarNav } from "@/components/sidebar-nav"
+import { ThemeToggle } from "@/components/theme-toggle"
 import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarRail
-} from "@/components/ui/sidebar";
-import { GalleryVerticalEnd } from "lucide-react";
-import Link from "next/link";
-import tabs from "@/constants/sidebar";
-import type { User } from "better-auth";
+    Sidebar,
+    SidebarContent,
+    SidebarFooter,
+    SidebarHeader,
+    SidebarMenu,
+    SidebarMenuButton,
+    SidebarMenuItem,
+    SidebarRail,
+} from "@/components/ui/sidebar"
+import { sidebarSections } from "@/constants/sidebar"
+import { routes } from "@/lib/routes"
 
-
-interface SidebarProps extends React.ComponentProps<typeof Sidebar> {
-  user: User
-  isAdmin: boolean
+interface AppSidebarProps {
+    user: User
+    isAdmin: boolean // affiche les sections `adminOnly` ; l'accès reste vérifié par le layout `(admin)`
 }
 
-export function AppSidebar({
-  user,
-  isAdmin,
-  ...props
-}: SidebarProps) {
+/** Sidebar repliable de l'app : marque, sections du menu visibles pour le rôle, profil et choix du thème. */
+export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
+    const sections = sidebarSections.filter((section) => !section.adminOnly || isAdmin)
 
-  const visibleSections = tabs.filter((section) => !section.adminOnly || isAdmin)
-
-
-  return (
-    <Sidebar collapsible="icon" {...props}>
-      <SidebarHeader>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton size="lg">
-              <Link href="/dashboard" className="flex w-full items-center gap-2">
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                  <GalleryVerticalEnd className="size-4" />
+    return (
+        <Sidebar collapsible="icon">
+            <SidebarHeader>
+                <SidebarMenu>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton size="lg" render={<Link href={routes.dashboard} />}>
+                            <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+                                <GalleryVerticalEnd className="size-4" />
+                            </div>
+                            <span className="font-medium">MarketFlow</span>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                </SidebarMenu>
+            </SidebarHeader>
+            <SidebarContent>
+                {sections.map((section) => (
+                    <SidebarNav key={section.name} section={section} />
+                ))}
+            </SidebarContent>
+            <SidebarFooter className="flex-row items-center group-data-[collapsible=icon]:flex-col">
+                <div className="min-w-0 flex-1">
+                    <NavUser user={user} />
                 </div>
-                <div className="flex flex-col gap-0.5 leading-none">
-                  <span className="font-medium">Oeoeoe l&apos;application</span>
-                </div>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarHeader>
-      <SidebarContent>
-        {visibleSections.map((parts) => (
-          <SidebarNav tabs={parts.tabs} name={parts.name} key={parts.name} />
-        ))}
-      </SidebarContent>
-      <SidebarFooter className="flex-row items-center group-data-[collapsible=icon]:flex-col">
-        <div className="min-w-0 flex-1">
-          <NavUser user={user} />
-        </div>
-        <ThemeToggle />
-      </SidebarFooter>
-      <SidebarRail />
-    </Sidebar>
-  )
+                <ThemeToggle />
+            </SidebarFooter>
+            <SidebarRail />
+        </Sidebar>
+    )
 }

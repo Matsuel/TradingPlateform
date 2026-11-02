@@ -21,8 +21,10 @@ interface ErrorStateProps {
 export function ErrorState({ message, onRetry, className }: ErrorStateProps) {
     return (
         <div className={cn("flex flex-col items-center justify-center gap-3 text-center", className)}>
-            <p className="text-sm text-destructive">{message}</p>
-            <Button variant="outline" size="sm" onClick={() => onRetry()}>Réessayer</Button>
+            <p className="text-body text-destructive">{message}</p>
+            <Button variant="outline" size="sm" onClick={() => onRetry()}>
+                Réessayer
+            </Button>
         </div>
     )
 }

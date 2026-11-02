@@ -1,77 +1,45 @@
 "use client"
 
-import { PriceAreaChart } from "@/components/chart"
+import { type ChartSeries, referenceSeries } from "@/components/area-series-chart"
+import { ChartLegend } from "@/components/chart-legend"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { formatMediumDate, formatMonthTick, formatRate, formatRatio } from "@/lib/format"
-import { cn } from "@/lib/utils"
-import { BACKTEST_CURRENCY, comparisonSideColors } from "./constants"
+import { comparisonSideColors } from "./constants"
 import type { BacktestComparison } from "./types"
-import { alignCurves, comparisonLabel, getComparisonBenchmark } from "./utils"
+import { alignCurves, benchmarkLabel, comparisonLabel, getComparisonBenchmark } from "./utils"
+import { ValueDrawdownCharts } from "./value-drawdown-charts"
 
 /**
  * Carte « Valeur des portefeuilles » de la comparaison (maquette 14) : valeurs de A et B et, en pointillés, le benchmark
- * de A (sinon de B), puis leurs drawdowns sur le même axe des dates. Drawdown masqué si aucun des deux résultats n'en porte (résultats antérieurs).
+ * de A (sinon de B), puis leurs drawdowns sur le même axe des dates. Drawdown masqué si aucun des deux résultats n'en
+ * porte (résultats antérieurs).
  */
 export function ComparisonOverview({ comparison }: { comparison: BacktestComparison }) {
-    const { a, b } = comparison
     const { side: benchmarkSide, benchmark } = getComparisonBenchmark(comparison)
-    const labelA = comparisonLabel("A", a.name)
-    const labelB = comparisonLabel("B", b.name)
-    const benchmarkLabel = benchmark ? `Benchmark ${benchmark.symbol}` : undefined
-    const hasDrawdown = [...a.result.equityCurve, ...b.result.equityCurve].some((p) => p.drawdown != null)
-    const legend = [
-        { label: labelA, className: cn("h-[3px]", comparisonSideColors.a.className) },
-        { label: labelB, className: cn("h-[3px]", comparisonSideColors.b.className) },
-        ...(benchmarkLabel ? [{ label: benchmarkLabel, className: "h-0.5 bg-muted-foreground" }] : []),
-    ]
+    const curves = [comparison.a.result.equityCurve, comparison.b.result.equityCurve] as const
+    const sides: ChartSeries[] = (["a", "b"] as const).map((side) => ({
+        key: side,
+        label: comparisonLabel(side === "a" ? "A" : "B", comparison[side].name),
+        color: comparisonSideColors[side].stroke,
+    }))
+    const valueSeries = benchmark
+        ? [...sides, referenceSeries({ key: "benchmark", label: benchmarkLabel(benchmark.symbol), hint: "benchmark" })]
+        : sides
+    const hasDrawdown = curves.some((curve) => curve.some((p) => p.drawdown != null))
 
     return (
-        <Card className="gap-4">
+        <Card size="compact">
             <CardHeader className="flex flex-wrap items-center justify-between gap-4">
                 <div className="flex flex-col gap-1">
-                    <CardTitle className="text-body-semibold">Valeur des portefeuilles</CardTitle>
-                    <CardDescription className="text-small">Drawdown sous la courbe, même axe temporel</CardDescription>
+                    <CardTitle>Valeur des portefeuilles</CardTitle>
+                    <CardDescription>Drawdown sous la courbe, même axe temporel</CardDescription>
                 </div>
-                <ul className="flex flex-wrap items-center gap-4">
-                    {legend.map(({ label, className }) => (
-                        <li key={label} className="flex items-center gap-1.5 text-small text-muted-foreground">
-                            <span className={cn("w-3 rounded-xs", className)} />
-                            {label}
-                        </li>
-                    ))}
-                </ul>
+                <ChartLegend series={valueSeries} />
             </CardHeader>
-            <CardContent className="flex flex-col gap-2">
-                <PriceAreaChart
-                    data={alignCurves(a.result.equityCurve, b.result.equityCurve, (p) => p.value, benchmarkSide)}
-                    formatTick={formatMonthTick}
-                    formatTooltipDate={formatMediumDate}
-                    label={labelA}
-                    color={comparisonSideColors.a.stroke}
-                    otherLabel={labelB}
-                    otherColor={comparisonSideColors.b.stroke}
-                    compareLabel={benchmarkLabel}
-                    currency={BACKTEST_CURRENCY}
-                    hideXAxis={hasDrawdown}
-                    className="h-56"
+            <CardContent>
+                <ValueDrawdownCharts
+                    value={{ data: alignCurves(...curves, (p) => p.value, benchmarkSide), series: valueSeries }}
+                    drawdown={{ data: hasDrawdown ? alignCurves(...curves, (p) => p.drawdown) : [], series: sides }}
                 />
-                {hasDrawdown && (
-                    <>
-                        <span className="text-small font-medium text-muted-foreground">Drawdown</span>
-                        <PriceAreaChart
-                            data={alignCurves(a.result.equityCurve, b.result.equityCurve, (p) => p.drawdown, benchmarkSide)}
-                            formatTick={formatMonthTick}
-                            formatTooltipDate={formatMediumDate}
-                            formatAxis={formatRate}
-                            formatValue={formatRatio}
-                            label={labelA}
-                            color={comparisonSideColors.a.stroke}
-                            otherLabel={labelB}
-                            otherColor={comparisonSideColors.b.stroke}
-                            className="h-24"
-                        />
-                    </>
-                )}
             </CardContent>
         </Card>
     )

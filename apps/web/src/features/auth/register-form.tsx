@@ -1,15 +1,16 @@
 "use client"
 
+import { zodResolver } from "@hookform/resolvers/zod"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { FormProvider, useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
 
 import { FormSection, TextField } from "@/components/form"
 import { Button } from "@/components/ui/button"
-import { authPaths, prefix } from "@/lib/path"
+import { FieldError } from "@/components/ui/field"
+import { routes } from "@/lib/routes"
 import { useRegister } from "./hook"
-import { registerSchema, type RegisterValues } from "./schema"
+import { type RegisterValues, registerSchema } from "./schema"
 
 export function RegisterForm() {
     const router = useRouter()
@@ -21,7 +22,7 @@ export function RegisterForm() {
 
     const onSubmit = async (values: RegisterValues) => {
         await mutateAsync(values)
-        router.push(prefix)
+        router.push(routes.dashboard)
         router.refresh() // relit la session côté serveur
     }
 
@@ -33,13 +34,16 @@ export function RegisterForm() {
                     <TextField name="email" label="Email" type="email" />
                     <TextField name="password" label="Mot de passe" type="password" />
 
-                    {error && <p className="text-sm text-destructive">{error.message}</p>}
+                    {error && <FieldError>{error.message}</FieldError>}
 
                     <Button type="submit" disabled={form.formState.isSubmitting}>
                         Créer le compte
                     </Button>
-                    <p className="text-center text-sm text-muted-foreground">
-                        Déjà un compte ? <Link href={authPaths.login} className="underline">Se connecter</Link>
+                    <p className="text-center text-body text-muted-foreground">
+                        Déjà un compte ?{" "}
+                        <Link href={routes.login} className="underline">
+                            Se connecter
+                        </Link>
                     </p>
                 </FormSection>
             </form>

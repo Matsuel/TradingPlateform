@@ -6,26 +6,37 @@ import type {
     BacktestRequestedPayload,
     BacktestStats,
     BacktestStatus,
+    Benchmark,
+    ComparedBacktest,
+    ComparedMetric,
+    ComparisonParameter,
+    EquityPoint as CompletedEquityPoint,
+    Trade as CompletedTrade,
+    DataSource,
+    ExecutionRule,
+    Holding,
+    LumpSumComparison,
+    TradeSide,
+} from "@trading-plateform/contracts"
+
+// Formes et unités définies une seule fois dans les contrats : données du moteur (résultat, benchmark), réponse de
+// POST /api/backtest/preview (nombres prévus estimés par core-backend) et de GET /api/backtest/compare (écarts A − B)
+export type {
+    BacktestComparison,
+    BacktestPreview,
+    Benchmark,
     ComparedBacktest,
     ComparedMetric,
     ComparisonParameter,
     DataSource,
-    EquityPoint as CompletedEquityPoint,
     ExecutionRule,
     Holding,
     LumpSumComparison,
-    Trade as CompletedTrade,
     TradeSide,
-} from "@trading-plateform/contracts"
+}
 
-// Formes et unités des données du moteur : définies une seule fois dans les contrats
-export type { DataSource, ExecutionRule, Holding, LumpSumComparison, TradeSide }
-
-// Réponse de POST /api/backtest/preview : nombres prévus estimés sur le calendrier par core-backend
-export type { BacktestPreview }
-
-// Réponse de GET /api/backtest/compare : écarts A − B et homogénéité calculés par core-backend
-export type { BacktestComparison, ComparedBacktest, ComparedMetric, ComparisonParameter }
+// Ligne d'allocation saisie : poids en pourcent entier (60 = 60 %, D2), converti en ratio par le backend ; NaN = champ vidé
+export type AllocationInput = Pick<Allocation, "symbol"> & { name?: string; weight: number }
 
 export type ExecutionStatus = BacktestStatus
 
@@ -49,7 +60,8 @@ export interface BacktestExecution {
 export type EquityPoint = Omit<CompletedEquityPoint, "drawdown"> & Partial<Pick<CompletedEquityPoint, "drawdown">>
 
 // quantity, amount, fee et side absents des résultats antérieurs à leur calcul ; side absent = achat (D10)
-export type Trade = Pick<CompletedTrade, "date" | "symbol" | "price"> & Partial<Pick<CompletedTrade, "quantity" | "amount" | "fee" | "side">>
+export type Trade = Pick<CompletedTrade, "date" | "symbol" | "price"> &
+    Partial<Pick<CompletedTrade, "quantity" | "amount" | "fee" | "side">>
 
 // Colonnes Decimal : sérialisées en string par l'API, null pour les résultats antérieurs au champ ; ratios en fraction
 type DecimalField = "finalValue" | "totalInvested" | "totalFees" | "profit" | "totalReturn" | "maxDrawdown"
@@ -66,8 +78,9 @@ type MetricField = "cagr" | "volatility" | "sharpeRatio" | "riskFreeRate"
 export type BacktestResult = Record<DecimalField, string | null> &
     Partial<Record<MetricField, string | null>> &
     Pick<BacktestCompletedPayload, "totalTrades" | "holdings" | "lumpSumComparison"> &
-    Partial<Pick<BacktestCompletedPayload, "recoveryDays" | "rebalanceCount" | "benchmark">> &
-    { [K in AssumptionField]: BacktestCompletedPayload[K] | null } & {
+    Partial<Pick<BacktestCompletedPayload, "recoveryDays" | "rebalanceCount" | "benchmark">> & {
+        [K in AssumptionField]: BacktestCompletedPayload[K] | null
+    } & {
         maxDrawdownDate: string | null // ISO
         maxDrawdownPeakDate?: string | null // ISO ; null sans baisse
         maxDrawdownRecoveryDate?: string | null // ISO ; null si non récupéré ou sans baisse

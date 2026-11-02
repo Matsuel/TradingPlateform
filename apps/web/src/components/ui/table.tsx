@@ -1,5 +1,6 @@
 "use client"
 
+import { cva, type VariantProps } from "class-variance-authority"
 import * as React from "react"
 import { cn } from "cn"
 
@@ -51,40 +52,67 @@ function TableFooter({ className, ...props }: React.ComponentProps<"tfoot">) {
   )
 }
 
-function TableRow({ className, ...props }: React.ComponentProps<"tr">) {
+// Ajouts du projet : `static` sans survol (ligne d'état), `plain` sans bordure ni survol (liste d'indicateurs)
+const tableRowVariants = cva("transition-colors", {
+  variants: {
+    variant: {
+      default: "border-b hover:bg-muted/50 has-aria-expanded:bg-muted/50 data-[state=selected]:bg-muted",
+      static: "border-b",
+      plain: "",
+    },
+  },
+  defaultVariants: { variant: "default" },
+})
+
+function TableRow({ className, variant, ...props }: React.ComponentProps<"tr"> & VariantProps<typeof tableRowVariants>) {
   return (
     <tr
       data-slot="table-row"
-      className={cn(
-        "border-b transition-colors hover:bg-muted/50 has-aria-expanded:bg-muted/50 data-[state=selected]:bg-muted",
-        className
-      )}
+      className={cn(tableRowVariants({ variant }), className)}
       {...props}
     />
   )
 }
 
-function TableHead({ className, ...props }: React.ComponentProps<"th">) {
+// Ajouts du projet : `caption` en-tête discret (petit, atténué), `row` libellé de ligne d'une liste d'indicateurs
+const tableHeadVariants = cva("px-2 text-left align-middle whitespace-nowrap has-[[role=checkbox]]:pr-0", {
+  variants: {
+    variant: {
+      default: "h-10 font-medium text-foreground",
+      caption: "text-small font-medium text-muted-foreground",
+      row: "font-normal whitespace-normal",
+    },
+  },
+  defaultVariants: { variant: "default" },
+})
+
+function TableHead({ className, variant, ...props }: React.ComponentProps<"th"> & VariantProps<typeof tableHeadVariants>) {
   return (
     <th
       data-slot="table-head"
-      className={cn(
-        "h-10 px-2 text-left align-middle font-medium whitespace-nowrap text-foreground has-[[role=checkbox]]:pr-0",
-        className
-      )}
+      className={cn(tableHeadVariants({ variant }), className)}
       {...props}
     />
   )
 }
 
-function TableCell({ className, ...props }: React.ComponentProps<"td">) {
+// Ajouts du projet : `strong` valeur mise en avant, `muted` valeur en retrait (colonnes d'une liste d'indicateurs)
+const tableCellVariants = cva("p-2 align-middle whitespace-nowrap has-[[role=checkbox]]:pr-0", {
+  variants: {
+    variant: {
+      default: "",
+      strong: "font-semibold",
+      muted: "text-muted-foreground",
+    },
+  },
+  defaultVariants: { variant: "default" },
+})
+
+function TableCell({ className, variant, ...props }: React.ComponentProps<"td"> & VariantProps<typeof tableCellVariants>) {
   return (
     <td
       data-slot="table-cell"
-      className={cn(
-        "p-2 align-middle whitespace-nowrap has-[[role=checkbox]]:pr-0",
-        className
-      )}
+      className={cn(tableCellVariants({ variant }), className)}
       {...props}
     />
   )

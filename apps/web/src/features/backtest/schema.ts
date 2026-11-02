@@ -1,7 +1,8 @@
 import { z } from "zod"
 
-import { allocationTotal, FULL_PERCENT } from "@/components/form"
+import { FULL_PERCENT } from "./constants"
 import type { InvestmentMode, RebalanceFrequency } from "./types"
+import { allocationTotal } from "./utils"
 
 const general = {
     name: z.string().min(1, "Requis"),
@@ -13,18 +14,22 @@ const general = {
 const market = {
     // Poids en pourcent entier (D2) ; un champ vidé (NaN) est rejeté par z.number()
     allocations: z
-        .array(z.object({
-            symbol: z.string(),
-            name: z.string().optional(),
-            weight: z.number({ error: "Requis" }).int("Pourcent entier").min(1, "Au moins 1 %").max(FULL_PERCENT),
-        }))
+        .array(
+            z.object({
+                symbol: z.string(),
+                name: z.string().optional(),
+                weight: z.number({ error: "Requis" }).int("Pourcent entier").min(1, "Au moins 1 %").max(FULL_PERCENT),
+            }),
+        )
         .min(1, "Ajoute au moins un actif")
         .refine((rows) => allocationTotal(rows) === FULL_PERCENT, `Le total doit faire ${FULL_PERCENT} %`),
     start: z.date({ error: "Requis" }),
     end: z.date({ error: "Requis" }),
     // Devise de saisie, versé le premier jour
     initialAmount: z.number({ error: "Requis" }).min(0),
-    rebalanceFrequency: z.enum(["NONE", "MONTHLY", "QUARTERLY", "YEARLY"] satisfies RebalanceFrequency[], { error: "Requis" }),
+    rebalanceFrequency: z.enum(["NONE", "MONTHLY", "QUARTERLY", "YEARLY"] satisfies RebalanceFrequency[], {
+        error: "Requis",
+    }),
     // Pourcentage par ordre
     fee: z.number({ error: "Requis" }).min(0).max(100),
     // Au plus un symbole (SymbolsField) : vide = sans benchmark, envoyé en benchmarkSymbol par api.ts

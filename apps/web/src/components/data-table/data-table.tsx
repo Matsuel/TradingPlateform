@@ -1,20 +1,11 @@
 "use client"
 
-import type { MouseEvent, ReactNode } from "react"
 import type { UseQueryResult } from "@tanstack/react-query"
+import type { ReactNode } from "react"
 import { ErrorState, LoadingState } from "@/components/query-status"
-import {
-    Pagination,
-    PaginationContent,
-    PaginationEllipsis,
-    PaginationItem,
-    PaginationLink,
-    PaginationNext,
-    PaginationPrevious,
-} from "@/components/ui/pagination"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { getPageItems } from "@/lib/pagination"
 import { cn } from "@/lib/utils"
+import { TablePagination, type TablePaginationProps } from "./table-pagination"
 
 export type Column<T> = {
     header: ReactNode
@@ -22,7 +13,9 @@ export type Column<T> = {
     className?: string
 }
 
-type QueryState<T> = Pick<UseQueryResult<T[], Error>, "data" | "isPending" | "isError" | "error"> & { refetch: () => unknown }
+type QueryState<T> = Pick<UseQueryResult<T[], Error>, "data" | "isPending" | "isError" | "error"> & {
+    refetch: () => unknown
+}
 
 // Lignes issues d'une requête (états chargement / erreur affichés) ou déjà chargées (rows)
 type DataTableSource<T> = { query: QueryState<T>; rows?: never } | { rows: T[]; query?: never }
@@ -32,81 +25,44 @@ type DataTableProps<T> = DataTableSource<T> & {
     rowKey: (row: T) => string
     onRowClick?: (row: T) => void
     emptyMessage?: ReactNode
-    loader?: ReactNode
-    title?: ReactNode
-    description?: ReactNode
-    actions?: ReactNode // ex. onglets de filtre, à droite du titre
-    className?: string
-    frameless?: boolean // sans cadre ni marge, dans un conteneur qui en a déjà un
     pagination?: TablePaginationProps // page courante (à partir de 1) et count total, toutes pages confondues
 }
 
-type TablePaginationProps = {
-    page: number
-    pageSize: number
-    count: number
-    onPageChange: (page: number) => void
-}
-
-function TablePagination({ page, pageSize, count, onPageChange }: TablePaginationProps) {
-    const pageCount = Math.ceil(count / pageSize)
-    if (pageCount <= 1) return null
-
-    const select = (target: number) => (e: MouseEvent<HTMLAnchorElement>) => {
-        e.preventDefault()
-        onPageChange(target)
-    }
-    const bound = (disabled: boolean) => ({
-        "aria-disabled": disabled,
-        tabIndex: disabled ? -1 : undefined,
-        className: cn(disabled && "pointer-events-none opacity-50"),
-    })
-
+// Ligne pleine largeur d'un état (chargement, erreur, vide) à la place des lignes de données
+function StatusRow({ colSpan, children }: { colSpan: number; children: ReactNode }) {
     return (
-        <div className="flex items-center justify-between gap-4">
-            <span className="text-small text-muted-foreground">
-                {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, count)} sur {count}
-            </span>
-            <Pagination className="mx-0 w-auto">
-                <PaginationContent>
-                    <PaginationItem>
-                        <PaginationPrevious
-                            href="#"
-                            text="Précédent"
-                            aria-label="Page précédente"
-                            onClick={select(page - 1)}
-                            {...bound(page <= 1)}
-                        />
-                    </PaginationItem>
-                    {getPageItems(page, pageCount).map((item, i) => (
-                        <PaginationItem key={item === "ellipsis" ? `ellipsis-${i}` : item}>
-                            {item === "ellipsis" ? (
-                                <PaginationEllipsis />
-                            ) : (
-                                <PaginationLink href="#" isActive={item === page} onClick={select(item)}>
-                                    {item}
-                                </PaginationLink>
-                            )}
-                        </PaginationItem>
-                    ))}
-                    <PaginationItem>
-                        <PaginationNext
-                            href="#"
-                            text="Suivant"
-                            aria-label="Page suivante"
-                            onClick={select(page + 1)}
-                            {...bound(page >= pageCount)}
-                        />
-                    </PaginationItem>
-                </PaginationContent>
-            </Pagination>
-        </div>
+        <TableRow variant="plain">
+            <TableCell colSpan={colSpan} className="h-64">
+                <div className="flex flex-col items-center justify-center gap-3 text-center">{children}</div>
+            </TableCell>
+        </TableRow>
     )
 }
 
+function DataRows<T>({
+    rows,
+    columns,
+    rowKey,
+    onRowClick,
+}: Pick<DataTableProps<T>, "columns" | "rowKey" | "onRowClick"> & { rows: T[] }) {
+    return rows.map((row) => (
+        <TableRow
+            key={rowKey(row)}
+            onClick={onRowClick ? () => onRowClick(row) : undefined}
+            className={cn(onRowClick && "cursor-pointer")}
+        >
+            {columns.map((col, i) => (
+                <TableCell key={i} className={col.className}>
+                    {col.cell(row)}
+                </TableCell>
+            ))}
+        </TableRow>
+    ))
+}
+
 /**
- * Tableau générique : lignes d'une requête (`query`, avec états chargement / erreur / vide)
- * ou déjà chargées (`rows`), colonnes déclarées dans `features/<domaine>/column.tsx`, pagination optionnelle.
+ * Tableau générique : lignes d'une requête (`query`, avec états chargement / erreur / vide) ou déjà chargées (`rows`),
+ * colonnes déclarées dans `features/<domaine>/column.tsx`, pagination optionnelle. Cadre et titre : `TableCard`.
  */
 export function DataTable<T>({
     query,
@@ -115,36 +71,41 @@ export function DataTable<T>({
     rowKey,
     onRowClick,
     emptyMessage = "Aucune donnée.",
-    loader = <LoadingState />,
-    title,
-    description,
-    actions,
-    className,
-    frameless = false,
     pagination,
 }: DataTableProps<T>) {
-    const { data, isPending, isError, error, refetch } = query ?? { data: rows, isPending: false, isError: false, error: null, refetch: () => undefined }
+    const { data, isPending, isError, error, refetch } = query ?? {
+        data: rows,
+        isPending: false,
+        isError: false,
+        error: null,
+        refetch: () => undefined,
+    }
+    const span = columns.length
 
-    const status = (content: ReactNode) => (
-        <TableRow className="hover:bg-transparent">
-            <TableCell colSpan={columns.length} className="h-64">
-                <div className="flex flex-col items-center justify-center gap-3 text-center">{content}</div>
-            </TableCell>
-        </TableRow>
-    )
+    let body: ReactNode
+    if (isPending)
+        body = (
+            <StatusRow colSpan={span}>
+                <LoadingState />
+            </StatusRow>
+        )
+    else if (isError)
+        body = (
+            <StatusRow colSpan={span}>
+                <ErrorState message={error?.message} onRetry={refetch} />
+            </StatusRow>
+        )
+    else if (!data?.length)
+        body = (
+            <StatusRow colSpan={span}>
+                <span className="text-body text-muted-foreground">{emptyMessage}</span>
+            </StatusRow>
+        )
+    else body = <DataRows rows={data} columns={columns} rowKey={rowKey} onRowClick={onRowClick} />
 
     return (
-        <div className={cn("flex flex-col gap-4", !frameless && "p-6 border rounded-xl")}>
-            {(title || description || actions) && (
-                <div className="flex items-center justify-between gap-4">
-                    <div className="flex flex-col">
-                        {title && <span className="text-body-semibold">{title}</span>}
-                        {description && <span className="text-small text-muted-foreground">{description}</span>}
-                    </div>
-                    {actions}
-                </div>
-            )}
-            <Table className={className}>
+        <div className="flex flex-col gap-4">
+            <Table>
                 <TableHeader>
                     <TableRow>
                         {columns.map((col, i) => (
@@ -154,29 +115,7 @@ export function DataTable<T>({
                         ))}
                     </TableRow>
                 </TableHeader>
-                <TableBody>
-                    {isPending ? (
-                        status(loader)
-                    ) : isError ? (
-                        status(<ErrorState message={error?.message} onRetry={refetch} />)
-                    ) : data && data.length === 0 ? (
-                        status(<span className="text-sm text-muted-foreground">{emptyMessage}</span>)
-                    ) : (
-                        data && data.map((row) => (
-                            <TableRow
-                                key={rowKey(row)}
-                                onClick={onRowClick ? () => onRowClick(row) : undefined}
-                                className={cn(onRowClick && "cursor-pointer")}
-                            >
-                                {columns.map((col, i) => (
-                                    <TableCell key={i} className={col.className}>
-                                        {col.cell(row)}
-                                    </TableCell>
-                                ))}
-                            </TableRow>
-                        ))
-                    )}
-                </TableBody>
+                <TableBody>{body}</TableBody>
             </Table>
             {pagination && <TablePagination {...pagination} />}
         </div>

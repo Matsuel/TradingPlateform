@@ -66,6 +66,7 @@ for (const ws of workspaces.filter((ws) => toCheck.has(ws.name))) {
 }
 if (toCheck.has("backtest-engine")) await run("bun test apps/backtest-engine", "apps/backtest-engine", ["bun", "test"]);
 if (touched(/^apps\/web\//)) await run("lint apps/web", "apps/web", ["bun", "run", "lint"]);
+if (touched(/^apps\/web\//)) await run("format apps/web", "apps/web", ["bun", "run", "format:check"]);
 
 // --- Lignes ajoutées par le diff (fichiers non suivis : tout leur contenu)
 
@@ -118,6 +119,45 @@ for (const { code, catalog } of catalogs) {
         warnings.push(`${catalog} inchangé alors que ${changed.filter((file) => code.test(file)).join(", ")} a changé : mets l'entrée à jour si une route ou un élément catalogué a changé.`);
     }
 }
+
+// Taille et complexité (apps/web/AGENTS.md) : fichier ≤ 150 lignes, fonction de premier niveau ≤ 60 lignes, ≤ 8 props.
+// Heuristique sur le format Biome, fichiers modifiés seulement : une fonction va de `function X` en colonne 0 jusqu'à la
+// `}` en colonne 0 suivante ; les props se comptent sur les types `…Props` et les types écrits en ligne.
+const WEB_LIMITS = { fileLines: 150, functionLines: 60, props: 8 };
+const webSources = changed.filter((file) =>
+    /^apps\/web\/src\/(?!components\/ui\/|constants\/glossary\.ts$).*\.tsx?$/.test(file),
+);
+const sizeIssues: string[] = [];
+for (const file of webSources) {
+    const lines = readFileSync(file, "utf8").split("\n");
+    if (lines.length > WEB_LIMITS.fileLines) sizeIssues.push(`${file} : ${lines.length} lignes`);
+    let start = -1;
+    let name = "";
+    lines.forEach((line, i) => {
+        const declaration = /^(?:export )?(?:async )?function (\w+)/.exec(line);
+        if (start < 0 && declaration) {
+            start = i;
+            name = declaration[1] ?? "";
+        } else if (start >= 0 && line === "}") {
+            if (i - start + 1 > WEB_LIMITS.functionLines) sizeIssues.push(`${file}:${start + 1} ${name} : ${i - start + 1} lignes`);
+            start = -1;
+        }
+    });
+    const source = lines.join("\n");
+    for (const match of source.matchAll(/(?:interface|type) (\w+Props)\b[^{]*\{([^]*?)\n\}/g)) {
+        const props = (match[2] ?? "").split("\n").filter((l) => /^\s+\w+\??:/.test(l)).length;
+        if (props > WEB_LIMITS.props) sizeIssues.push(`${file} ${match[1]} : ${props} props`);
+    }
+    // Props typées en ligne : `function X({ a, b }: { a: A; b: B })`, sur une ou plusieurs lignes
+    for (const match of source.matchAll(/function (\w+)(?:<[^>]*>)?\(\{[^}]*\}: \{([^}]*)\}\)/g)) {
+        const props = (match[2] ?? "").split(/[;\n]/).filter((m) => /^\s*\w+\??:/.test(m)).length;
+        if (props > WEB_LIMITS.props) sizeIssues.push(`${file} ${match[1]} : ${props} props (type en ligne)`);
+    }
+}
+if (sizeIssues.length > 0)
+    warnings.push(
+        `Taille web au-delà des seuils (fichier ${WEB_LIMITS.fileLines} l., fonction ${WEB_LIMITS.functionLines} l., ${WEB_LIMITS.props} props) : découpe ou justifie :\n${sizeIssues.join("\n")}`,
+    );
 
 // Écran rendu modifié : la conformité à la maquette se juge en regardant, pas en lisant le diff
 const screens = changed.filter((file) => /^apps\/web\/src\/(app|features|components\/(?!ui\/))[^]*\.tsx$/.test(file));

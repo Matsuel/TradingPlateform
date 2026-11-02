@@ -1,15 +1,12 @@
-import PageLayout from "@/components/page-layout"
-import PageHeader from "@/components/page-layout/header"
+import type { Metadata } from "next"
+import { PageHeader, PageLayout } from "@/components/page-layout"
 
-const MonitoringPage = () => {
+export const metadata: Metadata = { title: "Monitoring" }
+
+export default function MonitoringPage() {
     return (
         <PageLayout>
-            <PageHeader
-                title="Monitoring"
-                description="État des microservices, lag Kafka et workflows Argo en cours."
-            />
+            <PageHeader title="Monitoring" description="État des microservices, lag Kafka et exécutions en cours." />
         </PageLayout>
     )
 }
-
-export default MonitoringPage

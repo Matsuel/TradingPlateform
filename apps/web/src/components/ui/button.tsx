@@ -17,6 +17,8 @@ const buttonVariants = cva(
         destructive:
           "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40",
         link: "text-primary underline-offset-4 hover:underline",
+        // Ajout du projet : libellé d'une donnée qui ouvre son aide (InfoHint), souligné en pointillés
+        hint: "rounded-sm text-left font-[inherit] text-[length:inherit] leading-[inherit] whitespace-normal underline decoration-muted-foreground decoration-dotted underline-offset-4 active:not-aria-[haspopup]:translate-y-0",
       },
       size: {
         default:
@@ -30,6 +32,8 @@ const buttonVariants = cva(
         "icon-sm":
           "size-7 rounded-[min(var(--radius-md),12px)] in-data-[slot=button-group]:rounded-lg",
         "icon-lg": "size-9",
+        // Ajout du projet : sans hauteur ni marge, dans le flux du texte (variant hint)
+        inline: "h-auto gap-0 border-0 p-0",
       },
     },
     defaultVariants: {

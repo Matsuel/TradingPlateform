@@ -1,7 +1,8 @@
 "use client"
 
 import type { MouseEvent, ReactNode } from "react"
-import AppSheet from "@/components/app-sheet/app-sheet"
+import { AppSheet } from "@/components/app-sheet"
+import { Button } from "@/components/ui/button"
 import { GLOSSARY, type GlossaryEntry, type GlossaryKey } from "@/constants/glossary"
 
 function HintSection({ title, children }: { title: string; children: ReactNode }) {
@@ -43,13 +44,9 @@ export function InfoHint({ entry, value, details = [], children }: InfoHintProps
                 title={title}
                 className="sm:max-w-md"
                 trigger={
-                    <button
-                        type="button"
-                        aria-haspopup="dialog"
-                        className="cursor-pointer text-left underline decoration-muted-foreground decoration-dotted underline-offset-4 focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-ring"
-                    >
+                    <Button type="button" variant="hint" size="inline" aria-haspopup="dialog">
                         {children}
-                    </button>
+                    </Button>
                 }
             >
                 <div className="flex flex-col gap-6 overflow-y-auto px-4 pb-6 text-body text-muted-foreground">
@@ -69,7 +66,9 @@ export function InfoHint({ entry, value, details = [], children }: InfoHintProps
                     <HintSection title="Comment c’est calculé">
                         <p>{computation}</p>
                         {formula && (
-                            <pre className="rounded-lg bg-muted px-4 py-3 font-mono text-small whitespace-pre-wrap text-foreground">{formula}</pre>
+                            <pre className="rounded-lg bg-muted px-4 py-3 font-mono text-small whitespace-pre-wrap text-foreground">
+                                {formula}
+                            </pre>
                         )}
                     </HintSection>
                     <HintSection title="Unité">

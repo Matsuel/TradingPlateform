@@ -1,15 +1,12 @@
-import PageLayout from '@/components/page-layout'
-import PageHeader from '@/components/page-layout/header'
+import type { Metadata } from "next"
+import { PageHeader, PageLayout } from "@/components/page-layout"
 
-const SettingsPage = () => {
+export const metadata: Metadata = { title: "Paramètres" }
+
+export default function SettingsPage() {
     return (
         <PageLayout>
-            <PageHeader
-                title='Paramètres'
-                description='Gérez votre profil et votre portefeuille virtuel.'
-            />
+            <PageHeader title="Paramètres" description="Gérez votre profil, vos notifications et l’apparence." />
         </PageLayout>
     )
 }
-
-export default SettingsPage

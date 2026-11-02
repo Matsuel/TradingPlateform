@@ -72,7 +72,7 @@ Chaque app qui expose quelque chose de réutilisable tient un **catalogue** : co
 
 - **Bun partout** : `bun install`, `bun run <script>`, `bun <file>`, `bun test`, `bunx`. Bun charge `.env` : pas de `dotenv`.
 - TypeScript `strict`, ESM. `import type` pour les types (`verbatimModuleSyntax`). Pas de `any` dans le nouveau code.
-- Indentation 4 espaces dans les apps backend et packages ; `web` suit le style de ses fichiers voisins.
+- Indentation 4 espaces dans les apps backend et packages ; `web` est formaté par Biome (`bun run format` dans `apps/web`).
 - Logs via `Logger.here()` de `@trading-plateform/utils`.
 - **Documentation des fonctions** : chaque fonction ou composant exporté dont le rôle ne se lit pas dans son nom porte un JSDoc `/** */` : ce qu'il fait, unités, cas limites (`null`, erreur levée). Pas de JSDoc qui paraphrase la signature.
 - **Résultats stockés qui évoluent** : un champ ajouté à un résultat déjà en base est nullable (ou `@default`) côté Prisma et optionnel côté web ; l'écran affiche `<Dash />` ou masque la légende pour un résultat antérieur, sans recalculer la valeur.
@@ -94,7 +94,7 @@ bun run dev:backtest   # backtest-engine seul
 
 Chaque point est vérifié, pas supposé :
 
-1. `bunx tsc --noEmit` passe dans chaque app/package touché ; `bun run lint` dans `apps/web` si le front change ; `bun test` dans `apps/backtest-engine` si l'engine change.
+1. `bunx tsc --noEmit` passe dans chaque app/package touché ; `bun run lint` et `bun run format:check` dans `apps/web` si le front change ; `bun test` dans `apps/backtest-engine` si l'engine change.
 2. Responsabilités : le diff web ne contient que de l'affichage ; tout nouveau calcul vit chez son propriétaire.
 3. Rangement : aucune constante, helper ou type dupliqué introduit (`grep` les nouveaux noms et littéraux).
 4. Catalogues : chaque route ou composant catalogué créé, modifié ou supprimé a son entrée à jour.

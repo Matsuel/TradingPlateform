@@ -1,44 +1,35 @@
 "use client"
 
+import { OptionSelect, type SelectOption } from "@/components/option-select"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Label } from "@/components/ui/label"
 import { cn } from "@/lib/utils"
 import { COMPARABLE_LIMIT, comparisonSideColors } from "./constants"
 import { useBacktests } from "./hook"
 
-const PLACEHOLDER = "Sélectionner…"
-
-type Option = { value: string; label: string }
-
-function BacktestSelect({ id, label, dotClassName, value, options, onChange }: {
+function BacktestSelect({
+    id,
+    label,
+    dotClassName,
+    value,
+    options,
+    onChange,
+}: {
     id: string
     label: string
     dotClassName: string
     value: string
-    options: Option[]
+    options: SelectOption[]
     onChange: (value: string) => void
 }) {
     return (
         <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-            <label htmlFor={id} className="flex items-center gap-1.5 text-small font-medium">
+            <Label htmlFor={id} className="gap-1.5">
                 <span className={cn("size-2 rounded-full", dotClassName)} />
                 {label}
-            </label>
-            <Select value={value || null} onValueChange={(v) => onChange(v ?? "")}>
-                <SelectTrigger id={id} className="w-full">
-                    <SelectValue placeholder={PLACEHOLDER}>
-                        {(v: string | null) => options.find((o) => o.value === v)?.label ?? PLACEHOLDER}
-                    </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                    {options.map((o) => (
-                        <SelectItem key={o.value} value={o.value}>
-                            {o.label}
-                        </SelectItem>
-                    ))}
-                </SelectContent>
-            </Select>
+            </Label>
+            <OptionSelect id={id} value={value} options={options} onChange={onChange} />
         </div>
     )
 }
@@ -48,7 +39,15 @@ function BacktestSelect({ id, label, dotClassName, value, options, onChange }: {
  * terminé, même relancés depuis (les `COMPARABLE_LIMIT` plus récents), et « Échanger ». Un backtest choisi d'un côté n'est pas proposé de l'autre.
  * `a`, `b` : ids, `""` si non choisi ; `onChange` reçoit la nouvelle paire.
  */
-export function ComparisonSelection({ a, b, onChange }: { a: string; b: string; onChange: (a: string, b: string) => void }) {
+export function ComparisonSelection({
+    a,
+    b,
+    onChange,
+}: {
+    a: string
+    b: string
+    onChange: (a: string, b: string) => void
+}) {
     const { data } = useBacktests({ page: 1, pageSize: COMPARABLE_LIMIT, status: [], hasResult: true })
     const options = (data?.data ?? []).map((t) => ({
         value: t.id,
@@ -67,7 +66,9 @@ export function ComparisonSelection({ a, b, onChange }: { a: string; b: string; 
                         options={options.filter((o) => o.value !== b)}
                         onChange={(v) => onChange(v, b)}
                     />
-                    <Button variant="ghost" onClick={() => onChange(b, a)} disabled={!a && !b}>Échanger</Button>
+                    <Button variant="ghost" onClick={() => onChange(b, a)} disabled={!a && !b}>
+                        Échanger
+                    </Button>
                     <BacktestSelect
                         id="backtest-b"
                         label="Backtest B"

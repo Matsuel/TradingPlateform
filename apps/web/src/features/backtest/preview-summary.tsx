@@ -1,28 +1,17 @@
 "use client"
 
-import type { ReactNode } from "react"
 import { useFormContext, useWatch } from "react-hook-form"
 
-import Dash from "@/components/custom/Dash"
-import { InfoHint } from "@/components/info-hint"
+import { Dash } from "@/components/dash"
+import { DetailRow } from "@/components/detail-row"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import type { GlossaryKey } from "@/constants/glossary"
 import { useDebouncedValue } from "@/hooks/use-debounced-value"
 import { dataProviderLabels, previewSteps, priceTypeLabels } from "./constants"
 import { useBacktestPreview } from "./hook"
-import { backtestSchema, type BacktestValues } from "./schema"
+import { type BacktestValues, backtestSchema } from "./schema"
 
 // Attente après la dernière saisie avant de redemander la prévisualisation
 const PREVIEW_DEBOUNCE_MS = 500
-
-function SummaryRow({ label, hint, children }: { label: string; hint: GlossaryKey; children: ReactNode }) {
-    return (
-        <div className="flex items-start gap-4">
-            <dt className="flex-1 text-muted-foreground"><InfoHint entry={hint}>{label}</InfoHint></dt>
-            <dd className="text-right font-medium">{children}</dd>
-        </div>
-    )
-}
 
 /**
  * Carte « Récapitulatif » du formulaire « Nouveau backtest » (maquette 12), sous `FormProvider` d'un formulaire `BacktestValues` :
@@ -43,16 +32,16 @@ export function BacktestPreviewSummary() {
     const preview = values ? data : undefined
 
     return (
-        <Card className="gap-4">
+        <Card size="compact">
             <CardHeader>
-                <CardTitle className="text-body-semibold">Récapitulatif</CardTitle>
-                <CardDescription className="text-small">Ce que lancera le backtest</CardDescription>
+                <CardTitle>Récapitulatif</CardTitle>
+                <CardDescription>Ce que lancera le backtest</CardDescription>
             </CardHeader>
             <CardContent className="grid gap-4">
-                <ol className="grid gap-3 text-sm">
+                <ol className="grid gap-3 text-body">
                     {previewSteps.map((step, i) => (
                         <li key={step.label} className="flex items-start gap-3">
-                            <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-medium">
+                            <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-muted text-small-medium">
                                 {i + 1}
                             </span>
                             <div>
@@ -62,19 +51,26 @@ export function BacktestPreviewSummary() {
                         </li>
                     ))}
                 </ol>
-                <dl className="grid gap-2 border-t pt-4 text-sm">
-                    <SummaryRow label="Rebalancements prévus" hint="plannedRebalances">{preview ? preview.rebalanceCount : <Dash />}</SummaryRow>
-                    <SummaryRow label="Versements prévus" hint="plannedContributions">{preview ? preview.contributionCount : <Dash />}</SummaryRow>
-                    <SummaryRow label="Source des données" hint="dataSource">
-                        {preview
-                            ? `${dataProviderLabels[preview.dataSource.provider]} · ${priceTypeLabels[preview.dataSource.priceType]}`
-                            : <Dash />}
-                    </SummaryRow>
+                <dl className="grid gap-2 border-t pt-4 text-body">
+                    <DetailRow label="Rebalancements prévus" hint="plannedRebalances">
+                        {preview ? preview.rebalanceCount : <Dash />}
+                    </DetailRow>
+                    <DetailRow label="Versements prévus" hint="plannedContributions">
+                        {preview ? preview.contributionCount : <Dash />}
+                    </DetailRow>
+                    <DetailRow label="Source des données" hint="dataSource">
+                        {preview ? (
+                            `${dataProviderLabels[preview.dataSource.provider]} · ${priceTypeLabels[preview.dataSource.priceType]}`
+                        ) : (
+                            <Dash />
+                        )}
+                    </DetailRow>
                 </dl>
             </CardContent>
             <CardFooter>
-                <p className="text-xs text-muted-foreground">
-                    Estimation calendaire : jours ouvrés du lundi au vendredi, jours fériés inconnus avant le chargement des cours.
+                <p className="text-small text-muted-foreground">
+                    Estimation calendaire : jours ouvrés du lundi au vendredi, jours fériés inconnus avant le chargement
+                    des cours.
                 </p>
             </CardFooter>
         </Card>
