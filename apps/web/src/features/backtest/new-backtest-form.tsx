@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { FormProvider, useForm, useWatch } from "react-hook-form"
 
 import { Button } from "@/components/ui/button"
+import { FieldError } from "@/components/ui/field"
 import { setFormIssues } from "@/lib/api"
 import { routes } from "@/lib/routes"
 import {
@@ -54,7 +55,7 @@ export function NewBacktestForm() {
                     <GeneralSection />
                     <AllocationSection />
 
-                    {error && <p className="text-sm text-destructive">{error.message}</p>}
+                    {error && <FieldError>{error.message}</FieldError>}
 
                     <div className="flex justify-end">
                         <Button

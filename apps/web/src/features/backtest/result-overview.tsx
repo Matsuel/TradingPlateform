@@ -100,7 +100,7 @@ export function ResultOverview({ result }: { result: BacktestResult }) {
     }))
 
     return (
-        <Card className="gap-4">
+        <Card>
             <CardContent className="flex flex-col gap-6">
                 <div className="flex flex-col gap-1.5">
                     <ResultHeadline result={result} />

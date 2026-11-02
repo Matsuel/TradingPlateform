@@ -1,9 +1,9 @@
 "use client"
 
+import { EmptyCard } from "@/components/empty-card"
 import { PageHeader } from "@/components/page-layout"
 import { ErrorState, LoadingState } from "@/components/query-status"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
 import { formatDayRange } from "@/lib/format"
 import { rebalanceFrequencyLabels, strategyLabels } from "./constants"
 import { useBacktest, useRerunBacktest } from "./hook"
@@ -38,13 +38,7 @@ function NoResult({ backtest }: { backtest: BacktestDetails }) {
             ? `Le backtest a échoué : ${e.error ?? "erreur inconnue"}`
             : "Les résultats s’afficheront à la fin du calcul."
 
-    return (
-        <Card>
-            <CardContent className="flex h-40 items-center justify-center text-sm text-muted-foreground">
-                {message}
-            </CardContent>
-        </Card>
-    )
+    return <EmptyCard>{message}</EmptyCard>
 }
 
 /**

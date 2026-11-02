@@ -45,10 +45,10 @@ export function BacktestPreviewSummary() {
     const preview = values ? data : undefined
 
     return (
-        <Card className="gap-4">
+        <Card size="compact">
             <CardHeader>
-                <CardTitle className="text-body-semibold">Récapitulatif</CardTitle>
-                <CardDescription className="text-small">Ce que lancera le backtest</CardDescription>
+                <CardTitle>Récapitulatif</CardTitle>
+                <CardDescription>Ce que lancera le backtest</CardDescription>
             </CardHeader>
             <CardContent className="grid gap-4">
                 <ol className="grid gap-3 text-sm">

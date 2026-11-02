@@ -1,8 +1,8 @@
 import type { ReactNode } from "react"
 import { type HintDetail, InfoHint } from "@/components/info-hint"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import type { GlossaryKey } from "@/constants/glossary"
-import { cn } from "@/lib/utils"
 
 // En-tête d'une colonne de valeurs ; `hint` : entrée du glossaire ouverte par l'en-tête (ex. « Écart »)
 export type MetricColumn = { label: string; hint?: GlossaryKey }
@@ -16,8 +16,6 @@ export type MetricRow = {
     badge?: ReactNode
     values: ReactNode[]
 }
-
-const headClassName = "pb-2.5 text-small font-medium text-muted-foreground"
 
 // Une ligne : libellé (avec son aide, qui rappelle la valeur de chaque colonne puis `details`), badge, valeurs
 function MetricBlockRow({
@@ -33,27 +31,25 @@ function MetricBlockRow({
     const shown = [...columns.map((c, i) => ({ label: c.label, value: values[i] })), ...details]
 
     return (
-        <tr>
-            <th scope="row" className="py-2.5 text-left font-normal">
+        <TableRow variant="plain">
+            <TableHead scope="row" variant="row" className="px-0 py-2.5">
                 <span className="flex items-center gap-2">
                     <InfoHint entry={hint} details={shown}>
                         {label}
                     </InfoHint>
                     {badge}
                 </span>
-            </th>
+            </TableHead>
             {values.map((value, i) => (
-                <td
+                <TableCell
                     key={columns[i].label}
-                    className={cn(
-                        "py-2.5 pl-2 text-right whitespace-nowrap",
-                        i < boldColumns ? "font-semibold" : "text-muted-foreground",
-                    )}
+                    variant={i < boldColumns ? "strong" : "muted"}
+                    className="py-2.5 pr-0 pl-2 text-right"
                 >
                     {value}
-                </td>
+                </TableCell>
             ))}
-        </tr>
+        </TableRow>
     )
 }
 
@@ -74,31 +70,31 @@ interface MetricBlockProps {
  */
 export function MetricBlock({ title, description, columns, rows, boldColumns = 1, rowHeader, note }: MetricBlockProps) {
     return (
-        <Card className="gap-4">
+        <Card size="compact">
             <CardHeader>
-                <CardTitle className="text-body-semibold">{title}</CardTitle>
-                {description && <CardDescription className="text-small">{description}</CardDescription>}
+                <CardTitle>{title}</CardTitle>
+                {description && <CardDescription>{description}</CardDescription>}
             </CardHeader>
             <CardContent>
-                <table className="w-full text-sm">
-                    <thead>
-                        <tr className="border-b">
-                            <th className={cn(headClassName, "text-left")}>
+                <Table>
+                    <TableHeader>
+                        <TableRow variant="static">
+                            <TableHead variant="caption" className="px-0 pb-2.5">
                                 {rowHeader ?? <span className="sr-only">Indicateur</span>}
-                            </th>
+                            </TableHead>
                             {columns.map((c) => (
-                                <th key={c.label} className={cn(headClassName, "pl-2 text-right")}>
+                                <TableHead key={c.label} variant="caption" className="pr-0 pb-2.5 pl-2 text-right">
                                     <InfoHint entry={c.hint}>{c.label}</InfoHint>
-                                </th>
+                                </TableHead>
                             ))}
-                        </tr>
-                    </thead>
-                    <tbody>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
                         {rows.map((row) => (
                             <MetricBlockRow key={row.label} row={row} columns={columns} boldColumns={boldColumns} />
                         ))}
-                    </tbody>
-                </table>
+                    </TableBody>
+                </Table>
                 {note && <p className="mt-3 text-small text-muted-foreground">{note}</p>}
             </CardContent>
         </Card>

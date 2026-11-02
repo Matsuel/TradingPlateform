@@ -2,7 +2,6 @@ import { TrendingDown, TrendingUp } from "lucide-react"
 import type { ReactNode } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
-import { cn } from "@/lib/utils"
 
 type Trend = "up" | "down" | "neutral"
 
@@ -29,7 +28,7 @@ export function StatCard({ label, value, caption, delta, trend = "neutral", clas
     const t: { variant: "success" | "outline"; className?: string; icon?: ReactNode } = trends[trend]
 
     return (
-        <Card className={cn("shadow-xs", className)}>
+        <Card className={className}>
             <CardContent className="flex flex-col gap-1">
                 <div className="flex items-center justify-between gap-2">
                     <span className="text-body text-muted-foreground">{label}</span>

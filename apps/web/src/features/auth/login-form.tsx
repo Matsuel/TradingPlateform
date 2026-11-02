@@ -7,6 +7,7 @@ import { FormProvider, useForm } from "react-hook-form"
 
 import { FormSection, TextField } from "@/components/form"
 import { Button } from "@/components/ui/button"
+import { FieldError } from "@/components/ui/field"
 import { routes } from "@/lib/routes"
 import { useLogin } from "./hook"
 import { type LoginValues, loginSchema } from "./schema"
@@ -33,7 +34,7 @@ export function LoginForm({ redirectTo }: { redirectTo: string }) {
                     <TextField name="email" label="Email" type="email" />
                     <TextField name="password" label="Mot de passe" type="password" />
 
-                    {error && <p className="text-sm text-destructive">{error.message}</p>}
+                    {error && <FieldError>{error.message}</FieldError>}
 
                     <Button type="submit" disabled={form.formState.isSubmitting}>
                         Se connecter

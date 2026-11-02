@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation"
 import { FormProvider, useForm, useWatch } from "react-hook-form"
 import { Dash } from "@/components/dash"
 import { Button } from "@/components/ui/button"
+import { FieldError } from "@/components/ui/field"
 import { setFormIssues } from "@/lib/api"
 import { routes } from "@/lib/routes"
 import {
@@ -98,7 +99,7 @@ export function QuickBacktestForm({ symbol }: { symbol: string }) {
                 <p className="text-xs text-muted-foreground">
                     Test rapide sur ce symbole. Pour comparer plusieurs symboles, utilisez la page Backtests.
                 </p>
-                {error && <p className="text-sm text-destructive">{error.message}</p>}
+                {error && <FieldError>{error.message}</FieldError>}
                 <QuickTestActions submitting={form.formState.isSubmitting} />
             </form>
         </FormProvider>

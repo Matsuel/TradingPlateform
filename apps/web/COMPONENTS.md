@@ -42,7 +42,7 @@ Module de fonctions, hooks, constantes ou types (`lib/*.ts`, `features/<domaine>
 
 - [`components/ui`](#componentsui)
 - [Mise en page et navigation](#mise-en-page-et-navigation) : `PageLayout`, `PageHeader`, `AppHeader`, `AppSidebar`, `SidebarNav`, `NavUser`, `ThemeToggle`, `AppSheet`, `InfoHint`
-- [Données et tableaux](#données-et-tableaux) : `DataTable` (`Column`), `TableCard`, `SymbolCell`, `ChangeCell`, `Dash` (`orDash`), `OptionSelect`, `FilterTabs`, `StatCard`, `LoadingState`, `ErrorState`
+- [Données et tableaux](#données-et-tableaux) : `DataTable` (`Column`), `TableCard`, `SymbolCell`, `ChangeCell`, `Dash` (`orDash`), `OptionSelect`, `FilterTabs`, `StatCard`, `EmptyCard`, `LoadingState`, `ErrorState`
 - [Graphiques](#graphiques) : `AreaSeriesChart` (`ChartPoint`, `ChartSeries`, `trendColor`, `referenceSeries`), `ChartLegend`, `Sparkline`
 - [Symboles](#symboles) : `SymbolPicker`
 - [Formulaires (`components/form`)](#formulaires-componentsform) : `AppField`, `TextField`, `NumberField`, `TextareaField`, `SelectField`, `DateField`, `CheckboxField`, `SwitchField`, `SymbolsField`, `FormSection`, `FieldRow`
@@ -57,7 +57,12 @@ Module de fonctions, hooks, constantes ou types (`lib/*.ts`, `features/<domaine>
 
 Primitives shadcn (base-ui), voir la doc shadcn. Seule base des briques d'interface (`AGENTS.md`, « shadcn d'abord ») : un composant manquant s'ajoute par `bunx --bun shadcn@latest add <nom>`, un style manquant par un variant de son `cva`. Chaque variant ajouté au-delà de shadcn est listé ici.
 
-- `ui/badge.tsx` : variant `success` (bordure et texte `--success`), ajouté au projet ; badges de statut terminé, d'achat et de hausse.
+- `ui/badge.tsx` : variant `success` (bordure et texte `--success`) : statut terminé, achat, hausse. Taille `lg` (`size="lg"`) : pastille plus haute qui porte un bouton (symbole retirable de `SymbolsField`).
+- `ui/button.tsx` : variant `hint` avec la taille `inline` : libellé souligné en pointillés qui garde la typographie du parent, déclencheur d'`InfoHint`. Taille `inline` : sans hauteur ni marge.
+- `ui/card.tsx` : taille `compact` (`<Card size="compact">`) : titre `text-body-semibold`, description `text-small` ; cartes de données (indicateurs, graphiques, récapitulatif).
+- `ui/table.tsx` : `TableRow` `variant` `static` (sans survol, ligne d'état) et `plain` (sans bordure ni survol) ; `TableHead` `variant` `caption` (en-tête discret) et `row` (libellé de ligne) ; `TableCell` `variant` `strong` et `muted`. Utilisés par `DataTable` et `MetricBlock`.
+- `ui/progress.tsx` (ajouté par `shadcn add progress`) : `size` `md` (piste de 6 px) et `variant` `success` et `running` (pulsation, calcul en cours). Barres de poids d'`AllocationField` et d'exécution active.
+- `ui/empty.tsx` (ajouté par `shadcn add empty`) : état vide, utilisé via `EmptyCard`.
 
 - `ui/pagination.tsx` (`Pagination`, `PaginationContent`, `PaginationItem`, `PaginationLink`, `PaginationPrevious`, `PaginationNext`, `PaginationEllipsis`) : généré par `bunx --bun shadcn@latest add pagination`, non modifié ; libellés anglais par défaut, passer `text` et `aria-label` en français. Utilisé seulement via la prop `pagination` de `DataTable`.
 
@@ -179,7 +184,7 @@ Primitives shadcn (base-ui), voir la doc shadcn. Seule base des briques d'interf
 ### InfoHint
 
 - **Import** : `import { InfoHint } from "@/components/info-hint"`.
-- **Rôle** : libellé d'une donnée calculée, souligné en pointillés (`cursor-pointer`, `<button>` focusable, maquette 15.1), qui ouvre dans un `AppSheet` son entrée de `constants/glossary.ts` : « À quoi ça sert », « Comment c’est calculé », formule en `font-mono`, « Unité », « Comment le lire », valeur affichée, source (maquette 15). Le clic, y compris dans le panneau, n'atteint pas le parent (ligne de `DataTable` cliquable, libellé de champ). Garde la typographie du parent.
+- **Rôle** : libellé d'une donnée calculée, souligné en pointillés (`Button variant="hint" size="inline"`, focusable, maquette 15.1), qui ouvre dans un `AppSheet` son entrée de `constants/glossary.ts` : « À quoi ça sert », « Comment c’est calculé », formule en `font-mono`, « Unité », « Comment le lire », valeur affichée, source (maquette 15). Le clic, y compris dans le panneau, n'atteint pas le parent (ligne de `DataTable` cliquable, libellé de champ). Garde la typographie du parent.
 - **Props** :
   - `entry` (optionnel) : Clé de `GLOSSARY` ; absente, `children` est rendu seul (libellé sans aide), ce qui évite un test chez l'appelant.
   - `value` (optionnel) : Valeur déjà formatée par l'écran, rappelée dans le panneau sous « Valeur affichée » ; jamais recalculée.
@@ -275,6 +280,13 @@ Primitives shadcn (base-ui), voir la doc shadcn. Seule base des briques d'interf
   - `trend` (optionnel) : Style et icône du badge (`up` vert, `down` rouge).
   - `className` (optionnel) : Sur la carte.
 - **Source** : `src/components/stat-card.tsx`.
+
+### EmptyCard
+
+- **Import** : `import { EmptyCard } from "@/components/empty-card"`.
+- **Rôle** : carte d'état vide (`Card` + `Empty`) : un message centré à la place d'un contenu pas encore disponible (comparaison sans sélection, backtest sans résultat).
+- **Props** : `children` (le message).
+- **Source** : `src/components/empty-card.tsx`.
 
 ### LoadingState
 

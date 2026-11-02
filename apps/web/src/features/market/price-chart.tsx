@@ -40,12 +40,12 @@ export function PriceChart({ symbol }: { symbol: string }) {
     const interval = periodOptions.find((p) => p.value === period)!.interval
 
     return (
-        <Card className="gap-4">
+        <Card size="compact">
             <CardHeader>
-                <CardTitle className="text-body-semibold">
+                <CardTitle>
                     <InfoHint entry="priceChart">Prix</InfoHint>
                 </CardTitle>
-                <CardDescription className="text-small">
+                <CardDescription>
                     {symbol} · points toutes les {interval}
                 </CardDescription>
                 <CardAction>

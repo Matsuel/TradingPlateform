@@ -3,10 +3,10 @@
 import { TriangleAlert } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
+import { EmptyCard } from "@/components/empty-card"
 import { PageHeader } from "@/components/page-layout"
 import { ErrorState, LoadingState } from "@/components/query-status"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
 import { formatDayRange, formatPercent } from "@/lib/format"
 import { routes } from "@/lib/routes"
 import { ComparisonMetrics } from "./comparison-metrics"
@@ -69,13 +69,11 @@ export function BacktestCompare({ ids }: { ids: string | string[] | undefined })
     let content
     if (!a || !b) {
         content = (
-            <Card>
-                <CardContent className="flex h-40 items-center justify-center text-sm text-muted-foreground">
-                    {invalidLink
-                        ? "Ce lien ne désigne pas deux backtests différents : choisissez-en deux."
-                        : "Choisissez deux backtests terminés à comparer."}
-                </CardContent>
-            </Card>
+            <EmptyCard>
+                {invalidLink
+                    ? "Ce lien ne désigne pas deux backtests différents : choisissez-en deux."
+                    : "Choisissez deux backtests terminés à comparer."}
+            </EmptyCard>
         )
     } else if (isError) {
         content = <ErrorState message={error.message} onRetry={refetch} className="h-64" />

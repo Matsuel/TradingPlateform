@@ -26,16 +26,17 @@ export function SymbolsField<T extends FieldValues>({
                     <>
                         <div id={field.name} className="flex flex-wrap items-center gap-2" aria-invalid={invalid}>
                             {symbols.map((symbol) => (
-                                <Badge key={symbol} variant="outline" className="h-auto py-1 gap-1.5 px-2 text-xs">
+                                <Badge key={symbol} variant="outline" size="lg">
                                     {symbol}
-                                    <button
+                                    <Button
                                         type="button"
+                                        variant="ghost"
+                                        size="icon-xs"
                                         aria-label={`Retirer ${symbol}`}
-                                        className="rounded-full text-muted-foreground hover:text-foreground"
                                         onClick={() => field.onChange(symbols.filter((s) => s !== symbol))}
                                     >
-                                        <X className="cursor-pointer" width={12} height={12} />
-                                    </button>
+                                        <X />
+                                    </Button>
                                 </Badge>
                             ))}
                             <Button type="button" variant="outline" disabled={full} onClick={() => setOpen(true)}>

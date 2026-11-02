@@ -9,6 +9,8 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { FieldError } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Progress } from "@/components/ui/progress"
 import { FULL_PERCENT } from "./constants"
 import type { AllocationInput } from "./types"
 import { allocationTotal } from "./utils"
@@ -29,13 +31,13 @@ function AllocationRow({ row, inputId, error, onWeightChange, onRemove, onBlur }
     return (
         <>
             <div className="flex items-center gap-3">
-                <label htmlFor={inputId} className="w-40 min-w-0">
-                    <p className="text-sm font-medium">{row.symbol}</p>
-                    {row.name && <p className="truncate text-xs text-muted-foreground">{row.name}</p>}
-                </label>
-                <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted" aria-hidden>
-                    <div className="h-full rounded-full bg-primary" style={{ width: `${width}%` }} />
-                </div>
+                <Label htmlFor={inputId} className="w-40 min-w-0 flex-col items-start gap-1">
+                    {row.symbol}
+                    {row.name && (
+                        <span className="truncate text-small font-normal text-muted-foreground">{row.name}</span>
+                    )}
+                </Label>
+                <Progress value={width} size="md" className="flex-1" aria-hidden />
                 <div className="flex items-center gap-1.5">
                     <Input
                         id={inputId}

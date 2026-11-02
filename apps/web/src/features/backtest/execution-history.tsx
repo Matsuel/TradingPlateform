@@ -1,3 +1,4 @@
+import { Progress } from "@/components/ui/progress"
 import { formatDate, formatRatio } from "@/lib/format"
 import { cn } from "@/lib/utils"
 import { statusBadges } from "./constants"
@@ -40,11 +41,13 @@ function ExecutionRow({ execution: e }: { execution: BacktestExecution }) {
                     {formatDate(e.createdAt)} · {describe(e)}
                 </span>
                 {isActive(e) && (
-                    <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-muted">
-                        {e.status === "RUNNING" && (
-                            <div className="h-full w-full animate-pulse rounded-full bg-success" />
-                        )}
-                    </div>
+                    <Progress
+                        aria-label={e.status === "RUNNING" ? "Calcul en cours" : "En file d’attente"}
+                        value={e.status === "RUNNING" ? 100 : 0}
+                        variant="running"
+                        size="md"
+                        className="mt-1 w-full"
+                    />
                 )}
             </div>
             <span className="shrink-0 text-small text-muted-foreground">{duration(e)}</span>

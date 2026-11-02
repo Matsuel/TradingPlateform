@@ -27,11 +27,11 @@ export function ComparisonOverview({ comparison }: { comparison: BacktestCompari
     const hasDrawdown = curves.some((curve) => curve.some((p) => p.drawdown != null))
 
     return (
-        <Card className="gap-4">
+        <Card size="compact">
             <CardHeader className="flex flex-wrap items-center justify-between gap-4">
                 <div className="flex flex-col gap-1">
-                    <CardTitle className="text-body-semibold">Valeur des portefeuilles</CardTitle>
-                    <CardDescription className="text-small">Drawdown sous la courbe, même axe temporel</CardDescription>
+                    <CardTitle>Valeur des portefeuilles</CardTitle>
+                    <CardDescription>Drawdown sous la courbe, même axe temporel</CardDescription>
                 </div>
                 <ChartLegend series={valueSeries} />
             </CardHeader>

@@ -3,6 +3,7 @@
 import { OptionSelect, type SelectOption } from "@/components/option-select"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { Label } from "@/components/ui/label"
 import { cn } from "@/lib/utils"
 import { COMPARABLE_LIMIT, comparisonSideColors } from "./constants"
 import { useBacktests } from "./hook"
@@ -24,10 +25,10 @@ function BacktestSelect({
 }) {
     return (
         <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-            <label htmlFor={id} className="flex items-center gap-1.5 text-small font-medium">
+            <Label htmlFor={id} className="gap-1.5">
                 <span className={cn("size-2 rounded-full", dotClassName)} />
                 {label}
-            </label>
+            </Label>
             <OptionSelect id={id} value={value} options={options} onChange={onChange} />
         </div>
     )

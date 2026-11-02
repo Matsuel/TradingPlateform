@@ -31,7 +31,7 @@ type DataTableProps<T> = DataTableSource<T> & {
 // Ligne pleine largeur d'un état (chargement, erreur, vide) à la place des lignes de données
 function StatusRow({ colSpan, children }: { colSpan: number; children: ReactNode }) {
     return (
-        <TableRow className="hover:bg-transparent">
+        <TableRow variant="plain">
             <TableCell colSpan={colSpan} className="h-64">
                 <div className="flex flex-col items-center justify-center gap-3 text-center">{children}</div>
             </TableCell>
