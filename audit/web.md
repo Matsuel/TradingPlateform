@@ -56,7 +56,7 @@ Mesure hors `components/ui/` et `constants/glossary.ts` : 5 148 lignes. Les plus
 | C3 | `components/chart.tsx` `PriceAreaChart` (15 props, 105 l.) | Trois `<Area>` presque identiques, deux modes de couleur, et un nom « Price » alors que le composant trace aussi un drawdown. | Une liste de séries `{ key, label, color, dashed }` rendue par un `map`, et un nom neutre (`AreaSeriesChart`). Il ne reste que 3 appelants une fois C2 fait. |
 | C4 | `components/form/fields/allocation-field.tsx` (111 l., 13 niveaux d'indentation) | Le rendu d'une ligne est écrit directement dans le render-prop. | Composant `AllocationRow`. Déplacer `allocationTotal` et `FULL_PERCENT` (règle de domaine) dans `features/backtest`. |
 | C5 | `components/symbol-picker.tsx` (98 l.) | Quatre blocs conditionnels répètent `!tooShort && !isSearching && !error…`. | Calculer un état unique (`"tooShort" \| "searching" \| "error" \| "empty" \| "results"`), puis un seul `switch` d'affichage. |
-| C6 | `features/backtest/backtest-detail.tsx` (composant de 84 l., fichier de 144 l.) | L'état de la table des ordres (`allTrades`, `tradePage`, découpage) vit dans l'écran. | Section `trades-table.tsx` ; l'écran garde la composition et la mutation de relance. |
+| C6 | `features/backtest/backtest-detail.tsx` (composant de 83 l., fichier de 144 l.) | L'état de la table des ordres (`allTrades`, `tradePage`, découpage) vit dans l'écran. | Section `trades-table.tsx` ; l'écran garde la composition et la mutation de relance. |
 | C7 | `components/data-table/data-table.tsx` (191 l.) | `TablePagination` (60 l.) partage le fichier de `DataTable`. | Fichier `data-table/table-pagination.tsx`. |
 | C8 | `apps/web/COMPONENTS.md` (1 500 l.) | Les colonnes « Utilisé par » sont à retoucher à chaque refacto (constaté sur chaque lot de ce chantier). Les tableaux de props recopient les types. | Retirer « Utilisé par » (un `grep` le donne) et garder rôle, exemple et props non évidentes. Environ −40 %. |
 | C9 | Règle manquante | Aucun seuil de taille n'est écrit. | Ajouter dans `apps/web/AGENTS.md` : fichier ≤ 150 lignes, composant ≤ 60 lignes, ≤ 8 props. Ajouter dans `verify` un avertissement sur un `.tsx` de plus de 150 lignes. |
@@ -88,7 +88,7 @@ Traité en section 4 : plus aucun composant au-delà de 60 lignes.
 
 ## 4. Revue de code et corrections
 
-Revue `/code-review` de `develop...HEAD` sur deux axes (standards du dépôt, conformité à cet audit). Tous les points relevés sont corrigés. Après chaque commit : `tsc`, `lint` et `format:check` passent (`verify`).
+Revue `/code-review` de `develop...HEAD` sur deux axes (standards du dépôt, conformité à cet audit). Tous les points relevés sont corrigés, sauf C8 (voir ci-dessous et section 5). Après chaque commit : `tsc`, `lint` et `format:check` passent (`verify`).
 
 | Commit | Point de la revue | Correction |
 | --- | --- | --- |
@@ -104,3 +104,28 @@ Revue `/code-review` de `develop...HEAD` sur deux axes (standards du dépôt, co
 - Aucun fichier au-delà de 150 lignes (le plus gros : `features/backtest/allocation-field.tsx`, 146). Aucune fonction au-delà de 60 lignes, aucun composant au-delà de 8 props : `verify` ne signale rien.
 - Total : 5 323 lignes (+144 depuis la section 3). La hausse vient des sous-composants nommés et de leur JSDoc.
 - Écarts visuels mineurs : dans le test rapide, le versement mensuel apparaît désormais juste sous le mode, comme dans le formulaire complet, et le champ des frais a son aide. Les traits de légende de la comparaison passent de 3 px à 2 px, comme ceux du résultat. **Non comparé au Figma.**
+
+## 5. Règle « shadcn d'abord » et 3ᵉ revue
+
+Demande : « prioriser l'utilisation de composants shadcn quitte à développer de nouveaux variants, règle stricte ». La règle est écrite dans `apps/web/AGENTS.md` (« shadcn d'abord (règle stricte) », commit `271647d`). La 3ᵉ revue (PR #6) a relevé les écarts du code existant à cette règle, et quelques code smells restants. Tout est corrigé ci-dessous. Après chaque commit : `tsc`, `lint` et `format:check` passent (`verify`).
+
+| Commit | Correction |
+| --- | --- |
+| `8208c06` | `shadcn add progress empty`. Variants ajoutés : `Badge` `size="lg"`, `Button` `variant="hint"` et `size="inline"`, `Card` `size="compact"`, `Table` (`TableRow` `static`/`plain`, `TableHead` `caption`/`row`, `TableCell` `strong`/`muted`), `Progress` (`size`, `variant`). Les éléments bruts deviennent `Button`, `Label` et `Table`. Les barres faites main deviennent `Progress`. Les erreurs de formulaire passent par `FieldError`, les états vides par `EmptyCard`. Les classes de style posées sur des composants `ui/` deviennent des variants. |
+| `c10a2cf` | `DetailRow` remplace trois copies de la ligne libellé / valeur. `lib/trend.ts` (`trendOf`, `trendStyles`) fixe une seule règle de couleur pour une variation. `withBenchmark` construit une fois les colonnes et les cellules du benchmark, et `recoveryRow` se construit comme `metricRow`. `setFormIssues` passe dans `components/form`. `useWatch` est typé dans les champs partagés. La légende de la comparaison a l'aide `benchmark`. Typographie : les tokens du thème remplacent `text-sm` et `text-xs`, et la règle est écrite. |
+| `d2312d8` | Exemples des composants partagés restaurés : la compaction `b8c22c3` les avait retirés à tort ; les exemples périmés sont mis à jour. La règle shadcn nomme aussi `<input>`, `<textarea>` et les barres de progression en `<div>`. `verify` compte aussi les props typées en ligne et décrit son heuristique. |
+
+### Résultat
+
+- Aucun élément HTML brut à la place d'une primitive hors `components/ui/` (`grep` de `<table>`, `<button>`, `<label>`, `<select>`, `<input>`, `<textarea>` : 0).
+- Plus gros fichier : 148 lignes (`features/backtest/allocation-field.tsx`). Plus longue fonction : 58 lignes (`BacktestPreviewSummary`). Total : 5 356 lignes. `verify` ne signale aucun dépassement.
+- **C8 reste partiel** : `COMPONENTS.md` fait 75 321 octets contre 96 424 sur `develop` (−22 %). L'objectif était −40 %. Le catalogue décrit maintenant une quinzaine d'exports de plus (`TableCard`, `EmptyCard`, `DetailRow`, `ChartLegend`, `lib/trend.ts`, variants `ui/`…), et les composants partagés gardent leurs exemples.
+- **Écarts visuels mineurs** :
+  - le titre des cartes de données passe en `CardTitle` taille `compact` ;
+  - les états vides passent par `Empty` ;
+  - `StatCard` perd son `shadow-xs` ;
+  - une variation nulle n'est plus verte mais neutre (texte, badge, courbe) ;
+  - le bouton de retrait d'un symbole devient un `Button` `icon-xs` ;
+  - les libellés de la sélection de comparaison passent de `text-small` à la taille de `Label`.
+- **Non comparé au Figma.**
+
