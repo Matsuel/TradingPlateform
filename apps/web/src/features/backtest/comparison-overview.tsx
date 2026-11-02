@@ -22,7 +22,7 @@ export function ComparisonOverview({ comparison }: { comparison: BacktestCompari
         color: comparisonSideColors[side].stroke,
     }))
     const valueSeries = benchmark
-        ? [...sides, referenceSeries({ key: "benchmark", label: benchmarkLabel(benchmark.symbol) })]
+        ? [...sides, referenceSeries({ key: "benchmark", label: benchmarkLabel(benchmark.symbol), hint: "benchmark" })]
         : sides
     const hasDrawdown = curves.some((curve) => curve.some((p) => p.drawdown != null))
 

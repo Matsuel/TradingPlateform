@@ -98,7 +98,7 @@ export function DataTable<T>({
     else if (!data?.length)
         body = (
             <StatusRow colSpan={span}>
-                <span className="text-sm text-muted-foreground">{emptyMessage}</span>
+                <span className="text-body text-muted-foreground">{emptyMessage}</span>
             </StatusRow>
         )
     else body = <DataRows rows={data} columns={columns} rowKey={rowKey} onRowClick={onRowClick} />

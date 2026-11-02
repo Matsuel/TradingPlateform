@@ -11,6 +11,7 @@ import {
     recoveryDefinition,
     resultRecovery,
     resultValue,
+    withBenchmark,
 } from "./metrics"
 import type { BacktestResult, RebalanceFrequency } from "./types"
 import { formatAmount, fromDecimal } from "./utils"
@@ -20,22 +21,20 @@ const performanceMetrics: Metric[] = ["cagr", "totalReturn", "finalValue"]
 const riskMetrics: Metric[] = ["volatility", "sharpeRatio", "maxDrawdown"]
 
 // Colonnes : le portefeuille puis, avec un benchmark, son symbole
-const columnsOf = ({ benchmark }: BacktestResult): MetricColumn[] => [
-    { label: "Portefeuille" },
-    ...(benchmark ? [{ label: benchmark.symbol }] : []),
-]
+const columnsOf = ({ benchmark }: BacktestResult): MetricColumn[] =>
+    withBenchmark([{ label: "Portefeuille" }], benchmark, (bm) => ({ label: bm.symbol }))
 
+// Ligne d'une métrique : valeur du portefeuille puis, avec un benchmark, la sienne
 function metricRow(result: BacktestResult, metric: Metric, details?: HintDetail[]): MetricRow {
     const { label, hint } = metricDefinitions[metric]
-    const { benchmark } = result
-    const values = [resultValue(result, metric), ...(benchmark ? [benchmarkValue(benchmark, metric)] : [])]
+    const values = withBenchmark([resultValue(result, metric)], result.benchmark, (bm) => benchmarkValue(bm, metric))
     return { label, hint, details, values }
 }
 
-function recoveryRow({ benchmark, ...result }: BacktestResult): MetricRow {
+function recoveryRow(result: BacktestResult): MetricRow {
     return {
         ...recoveryDefinition,
-        values: [resultRecovery(result), ...(benchmark ? [benchmarkRecovery(benchmark)] : [])],
+        values: withBenchmark([resultRecovery(result)], result.benchmark, benchmarkRecovery),
     }
 }
 

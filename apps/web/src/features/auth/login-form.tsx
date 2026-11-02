@@ -39,7 +39,7 @@ export function LoginForm({ redirectTo }: { redirectTo: string }) {
                     <Button type="submit" disabled={form.formState.isSubmitting}>
                         Se connecter
                     </Button>
-                    <p className="text-center text-sm text-muted-foreground">
+                    <p className="text-center text-body text-muted-foreground">
                         Pas encore de compte ?{" "}
                         <Link href={routes.register} className="underline">
                             Créer un compte

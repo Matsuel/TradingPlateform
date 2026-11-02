@@ -1,12 +1,13 @@
 "use client"
 
-import { type ChartSeries, referenceSeries, trendColor } from "@/components/area-series-chart"
+import { type ChartSeries, referenceSeries } from "@/components/area-series-chart"
 import { ChartLegend } from "@/components/chart-legend"
 import { Dash } from "@/components/dash"
 import { InfoHint } from "@/components/info-hint"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { formatRatio } from "@/lib/format"
+import { type Trend, trendOf, trendStyles } from "@/lib/trend"
 import type { BacktestResult } from "./types"
 import { benchmarkLabel, formatAmount, fromDecimal } from "./utils"
 import { ValueDrawdownCharts } from "./value-drawdown-charts"
@@ -27,7 +28,7 @@ function ResultHeadline({ result }: { result: BacktestResult }) {
             <div className="flex flex-wrap items-center gap-3">
                 <span className="text-h1">{finalValueText ?? <Dash />}</span>
                 {totalReturn != null && (
-                    <Badge variant={totalReturn >= 0 ? "success" : "destructive"}>{formatRatio(totalReturn)}</Badge>
+                    <Badge variant={trendStyles[trendOf(totalReturn)].badge}>{formatRatio(totalReturn)}</Badge>
                 )}
             </div>
         </>
@@ -57,11 +58,11 @@ function ProfitLine({ result }: { result: BacktestResult }) {
 
 // Séries de la courbe de valeur : le portefeuille, puis en pointillés le benchmark s'il existe, sinon l'investissement
 // unique (DCA) ; aucune pour un résultat antérieur sans l'un ni l'autre
-function valueSeriesOf({ benchmark, equityCurve }: BacktestResult, positive: boolean): ChartSeries[] {
+function valueSeriesOf({ benchmark, equityCurve }: BacktestResult, trend: Trend): ChartSeries[] {
     const portfolio: ChartSeries = {
         key: "value",
         label: "Portefeuille",
-        color: trendColor(positive),
+        color: trendStyles[trend].color,
         fill: true,
         hint: "equityCurve",
     }
@@ -90,8 +91,7 @@ const drawdownSeries: ChartSeries = {
  */
 export function ResultOverview({ result }: { result: BacktestResult }) {
     const { equityCurve, benchmark } = result
-    const positive = (fromDecimal(result.totalReturn) ?? 0) >= 0
-    const valueSeries = valueSeriesOf(result, positive)
+    const valueSeries = valueSeriesOf(result, trendOf(fromDecimal(result.totalReturn) ?? 0))
     const drawdown = equityCurve.flatMap((p) => (p.drawdown == null ? [] : [{ date: p.date, drawdown: p.drawdown }]))
     const valuePoints = equityCurve.map((p) => ({
         date: p.date,

@@ -27,6 +27,15 @@ type ResultFields = Partial<Record<Metric, string | null>> & {
     maxDrawdownPeakDate?: string | null
 }
 
+/** `cells` suivies, avec un benchmark, de `benchmarkCell(benchmark)` : la colonne du benchmark n'existe que s'il y en a un. */
+export function withBenchmark<T>(
+    cells: T[],
+    benchmark: Benchmark | null | undefined,
+    benchmarkCell: (benchmark: Benchmark) => T,
+): T[] {
+    return benchmark ? [...cells, benchmarkCell(benchmark)] : cells
+}
+
 /** Métrique d'un résultat, formatée ; `<Dash />` si elle manque. */
 export const resultValue = (result: ResultFields, metric: Metric) =>
     orDash(fromDecimal(result[metric]), metricDefinitions[metric].format)

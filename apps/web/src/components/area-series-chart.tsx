@@ -13,7 +13,7 @@ export type ChartPoint = { date: string; [series: string]: number | string | nul
 export type ChartSeries = {
     key: string // clé de la valeur dans chaque `ChartPoint`
     label: string // nom dans l'infobulle quand il y a plusieurs séries
-    color: string // couleur CSS, ex. "var(--chart-1)" ou `trendColor(…)`
+    color: string // couleur CSS, ex. "var(--chart-1)" ou `trendStyles[trend].color`
     fill?: boolean // aire remplie jusqu'à zéro (une seule série remplie, sinon elles se masquent)
     dashed?: boolean // trait en pointillés, plus fin (série de référence : benchmark)
     hint?: GlossaryKey // aide ouverte par le libellé dans `ChartLegend`
@@ -25,9 +25,6 @@ export const referenceSeries = (series: Pick<ChartSeries, "key" | "label" | "hin
     color: "var(--muted-foreground)",
     dashed: true,
 })
-
-/** Vert pour une hausse, rouge pour une baisse. */
-export const trendColor = (positive: boolean) => (positive ? "var(--success)" : "var(--destructive)")
 
 const formatNumberAxis = (v: number) => v.toLocaleString(LOCALE, { maximumFractionDigits: v < 10 ? 2 : 0 })
 

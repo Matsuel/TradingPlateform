@@ -1,7 +1,7 @@
 import type { ReactNode } from "react"
 import { Dash } from "@/components/dash"
 import { formatChange, LOCALE } from "@/lib/format"
-import { cn } from "@/lib/utils"
+import { trendOf, trendStyles } from "@/lib/trend"
 import { comparedMetricHigherIsBetter } from "./constants"
 import { MetricBlock, type MetricColumn, type MetricRow } from "./metric-block"
 import {
@@ -11,6 +11,7 @@ import {
     recoveryDefinition,
     resultRecovery,
     resultValue,
+    withBenchmark,
 } from "./metrics"
 import type { BacktestComparison, Benchmark, ComparedBacktest, ComparedMetric } from "./types"
 import { comparisonLabel, getComparisonBenchmark } from "./utils"
@@ -34,11 +35,8 @@ function Delta({
     format: (v: number) => string
 }) {
     if (value == null) return <Dash />
-    const favorable = value === 0 ? null : value > 0 === comparedMetricHigherIsBetter[metric]
     return (
-        <span className={cn(favorable === true && "text-success", favorable === false && "text-destructive")}>
-            {format(value)}
-        </span>
+        <span className={trendStyles[trendOf(value, comparedMetricHigherIsBetter[metric])].text}>{format(value)}</span>
     )
 }
 
@@ -63,12 +61,15 @@ type ComparedResult = ComparedBacktest["result"]
 export function ComparisonMetrics({ comparison }: { comparison: BacktestComparison }) {
     const { a, b, deltas } = comparison
     const { benchmark } = getComparisonBenchmark(comparison)
-    const columns: MetricColumn[] = [
-        { label: comparisonLabel("A", a.name) },
-        { label: comparisonLabel("B", b.name) },
-        { label: "Écart", hint: "comparisonDelta" },
-        ...(benchmark ? [{ label: benchmark.symbol }] : []),
-    ]
+    const columns: MetricColumn[] = withBenchmark<MetricColumn>(
+        [
+            { label: comparisonLabel("A", a.name) },
+            { label: comparisonLabel("B", b.name) },
+            { label: "Écart", hint: "comparisonDelta" },
+        ],
+        benchmark,
+        (bm) => ({ label: bm.symbol }),
+    )
     // Valeur de A, de B, écart puis, avec un benchmark, la sienne
     const row = (
         { label, hint }: Pick<MetricRow, "label" | "hint">,
@@ -78,7 +79,7 @@ export function ComparisonMetrics({ comparison }: { comparison: BacktestComparis
     ): MetricRow => ({
         label,
         hint,
-        values: [valueOf(a.result), valueOf(b.result), delta, ...(benchmark ? [benchmarkCell(benchmark)] : [])],
+        values: withBenchmark([valueOf(a.result), valueOf(b.result), delta], benchmark, benchmarkCell),
     })
 
     const rows = [

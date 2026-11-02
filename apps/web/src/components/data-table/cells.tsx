@@ -1,6 +1,7 @@
 import { cva, type VariantProps } from "class-variance-authority"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { formatChange } from "@/lib/format"
+import { trendOf, trendStyles } from "@/lib/trend"
 import { cn } from "@/lib/utils"
 
 const symbolVariants = cva("flex items-center", {
@@ -55,7 +56,7 @@ export function SymbolCell({ symbol, name, logoUrl, size = "md", className }: Sy
     )
 }
 
-/** Variation déjà en pourcent (`1.5` → « +1,50 % »), verte si ≥ 0, rouge sinon. */
+/** Variation déjà en pourcent (`1.5` → « +1,50 % »), verte en hausse, rouge en baisse, neutre à zéro. */
 export function ChangeCell({ value }: { value: number }) {
-    return <span className={value >= 0 ? "text-success" : "text-destructive"}>{formatChange(value)} %</span>
+    return <span className={trendStyles[trendOf(value)].text}>{formatChange(value)} %</span>
 }

@@ -52,7 +52,7 @@ function AllocationRow({ row, inputId, error, onWeightChange, onRemove, onBlur }
                         onChange={(e) => onWeightChange(e.target.valueAsNumber)}
                         onBlur={onBlur}
                     />
-                    <span className="text-sm text-muted-foreground">%</span>
+                    <span className="text-body text-muted-foreground">%</span>
                 </div>
                 <Button
                     type="button"

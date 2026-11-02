@@ -42,8 +42,8 @@ Module de fonctions, hooks, constantes ou types (`lib/*.ts`, `features/<domaine>
 
 - [`components/ui`](#componentsui)
 - [Mise en page et navigation](#mise-en-page-et-navigation) : `PageLayout`, `PageHeader`, `AppHeader`, `AppSidebar`, `SidebarNav`, `NavUser`, `ThemeToggle`, `AppSheet`, `InfoHint`
-- [Données et tableaux](#données-et-tableaux) : `DataTable` (`Column`), `TableCard`, `SymbolCell`, `ChangeCell`, `Dash` (`orDash`), `OptionSelect`, `FilterTabs`, `StatCard`, `EmptyCard`, `LoadingState`, `ErrorState`
-- [Graphiques](#graphiques) : `AreaSeriesChart` (`ChartPoint`, `ChartSeries`, `trendColor`, `referenceSeries`), `ChartLegend`, `Sparkline`
+- [Données et tableaux](#données-et-tableaux) : `DataTable` (`Column`), `TableCard`, `SymbolCell`, `ChangeCell`, `Dash` (`orDash`), `OptionSelect`, `FilterTabs`, `StatCard`, `EmptyCard`, `DetailRow`, `LoadingState`, `ErrorState`
+- [Graphiques](#graphiques) : `AreaSeriesChart` (`ChartPoint`, `ChartSeries`, `referenceSeries`), `ChartLegend`, `Sparkline`
 - [Symboles](#symboles) : `SymbolPicker`
 - [Formulaires (`components/form`)](#formulaires-componentsform) : `AppField`, `TextField`, `NumberField`, `TextareaField`, `SelectField`, `DateField`, `CheckboxField`, `SwitchField`, `SymbolsField`, `FormSection`, `FieldRow`
 - [`lib`](#lib) : `format.ts`, `api.ts`, `pagination.ts`, `routes.ts`, `navigation.ts`, `env.ts`, `utils.ts`, `auth.ts`, `session.ts`
@@ -232,7 +232,7 @@ Primitives shadcn (base-ui), voir la doc shadcn. Seule base des briques d'interf
 ### ChangeCell
 
 - **Import** : `import { ChangeCell } from "@/components/data-table/cells"`.
-- **Rôle** : variation signée suivie de « % », verte si ≥ 0, rouge sinon.
+- **Rôle** : variation signée suivie de « % », colorée par `trendOf` : verte en hausse, rouge en baisse, neutre à zéro.
 - **Props** :
   - `value` : **Pourcentage** (`1.5` → « +1,50 % ») ; un ratio doit être multiplié par 100 avant (ou utiliser `formatRatio` hors tableau).
 - **Source** : `src/components/data-table/cells.tsx`.
@@ -288,6 +288,17 @@ Primitives shadcn (base-ui), voir la doc shadcn. Seule base des briques d'interf
 - **Props** : `children` (le message).
 - **Source** : `src/components/empty-card.tsx`.
 
+### DetailRow
+
+- **Import** : `import { DetailRow } from "@/components/detail-row"`.
+- **Rôle** : ligne d'une liste `<dl>` : libellé atténué à gauche (`InfoHint` si `hint`), valeur à droite ; `divided` ajoute un trait sous la ligne.
+- **Props** : `label`, `hint?: GlossaryKey`, `divided?: boolean`, `children` (valeur déjà formatée).
+- **Exemple** (tiré de `src/features/backtest/assumptions.tsx`) :
+  ```tsx
+  <DetailRow divided label="Frais" hint="feeRate">{formatPercent(Number(backtest.feeRate))} par ordre</DetailRow>
+  ```
+- **Source** : `src/components/detail-row.tsx`.
+
 ### LoadingState
 
 - **Import** : `import { LoadingState } from "@/components/query-status"`.
@@ -310,8 +321,8 @@ Primitives shadcn (base-ui), voir la doc shadcn. Seule base des briques d'interf
 
 ### AreaSeriesChart
 
-- **Import** : `import { AreaSeriesChart, referenceSeries, trendColor, type ChartPoint, type ChartSeries } from "@/components/area-series-chart"`.
-- **Rôle** : courbes datées sur un axe commun, une `Area` par série. L'appelant fournit les séries, les formats de date et de valeur. `trendColor(positive)` donne le vert ou le rouge d'une tendance ; `referenceSeries({ key, label, hint? })` une série de référence grise en pointillés (benchmark, investissement unique).
+- **Import** : `import { AreaSeriesChart, referenceSeries, type ChartPoint, type ChartSeries } from "@/components/area-series-chart"`.
+- **Rôle** : courbes datées sur un axe commun, une `Area` par série. L'appelant fournit les séries, les formats de date et de valeur. Couleur d'une tendance : `trendStyles[trend].color` (`lib/trend.ts`) ; `referenceSeries({ key, label, hint? })` une série de référence grise en pointillés (benchmark, investissement unique).
 - **Props** :
   - `data` : Points ; une série absente un jour n'a pas de point (périodes différentes).
   - `series` : `fill` : aire remplie jusqu'à zéro (une seule série) ; `dashed` : série de référence en pointillés. Le nom de la série préfixe l'infobulle quand il y en a plusieurs.
@@ -336,7 +347,7 @@ Primitives shadcn (base-ui), voir la doc shadcn. Seule base des briques d'interf
 - **Rôle** : mini-courbe sans axe pour une colonne « Tendance ».
 - **Props** :
   - `data` : Points `{ date, price }`.
-  - `positive` : Vert si vrai, rouge sinon.
+  - `trend` : `Trend` (`lib/trend.ts`), couleur de la courbe.
   - `className` (optionnel) : Remplace la taille par défaut.
 - **Source** : `src/components/sparkline.tsx`.
 
@@ -494,6 +505,16 @@ Props communes `BaseProps<T>` (exportées par `field.tsx`), répétées dans cha
   ```
 - **Source** : `src/components/form/fields/symbols-field.tsx`.
 
+### `components/form/form-issues.ts`
+
+- **Import** : `import { setFormIssues } from "@/components/form/form-issues"`.
+
+| Export | Rôle (et unité) |
+| --- | --- |
+| `setFormIssues` | `setFormIssues(error, form.setError)` dans le `catch` d'une mutation : chaque issue zod d'un `400` va sous le champ de son chemin ; toute autre erreur est ignorée ici, l'écran l'affiche depuis la mutation. |
+
+Source : `src/components/form/form-issues.ts`.
+
 ### FormSection
 
 - **Import** : `import { FormSection } from "@/components/form"`.
@@ -543,13 +564,13 @@ Source : `src/lib/format.ts`.
 
 ### `lib/api.ts`
 
-- **Import** : `import { apiFetch, setFormIssues } from "@/lib/api"`.
+- **Import** : `import { apiFetch, apiIssues } from "@/lib/api"`.
 
 | Export | Rôle |
 | --- | --- |
 | `apiFetch` | Seul point d'appel HTTP : préfixe `path` par `env.NEXT_PUBLIC_API_URL`, envoie les cookies, ajoute `Accept: application/json`. Statut non 2xx → `ApiError` (message `"Erreur API : <status> <statusText>"`) ; `204` → `undefined`. Routes : `apps/core-backend/API.md`. |
 | `ApiError` | Erreur levée par `apiFetch` : `body` = corps JSON d'erreur (`{ error, ...data }`), `null` s'il n'est pas du JSON. |
-| `setFormIssues` | `setFormIssues(error, form.setError)` dans le `catch` d'une mutation : chaque issue zod d'un `400` (`{ error, issues }`) va sous le champ de son chemin (`"allocations.0.weight"`) ; toute autre erreur est ignorée ici, l'écran l'affiche depuis la mutation. |
+| `apiIssues` | Issues zod d'un `400` (`{ error, issues }`), chemin joint par des points (`"allocations.0.weight"`) ; `[]` pour toute autre erreur. Dans un formulaire, passer par `setFormIssues` (`components/form/form-issues.ts`). |
 
 Source : `src/lib/api.ts`.
 
@@ -597,6 +618,19 @@ Source : `src/lib/navigation.ts`.
 | `env` | Variables d'environnement validées par zod au chargement (erreur explicite si absente ou invalide). `NEXT_PUBLIC_API_URL` : base de core-backend, `http://localhost:8000/api`. Seul lecteur de `process.env`. |
 
 Source : `src/lib/env.ts`.
+
+### `lib/trend.ts`
+
+- **Import** : `import { trendOf, trendStyles, type Trend } from "@/lib/trend"`.
+- Seule règle de couleur d'une variation : courbes, textes et badges la lisent ici.
+
+| Export | Rôle (et unité) |
+| --- | --- |
+| `Trend` | `"up" \| "down" \| "neutral"`. |
+| `trendOf` | `trendOf(change, higherIsBetter = true)` : `up` si la variation est favorable, `down` sinon, `neutral` à zéro (écart de volatilité : `higherIsBetter = false`). |
+| `trendStyles` | Par tendance : `color` (variable CSS d'une courbe), `text` (classe de texte), `badge` (variant de `Badge`). |
+
+Source : `src/lib/trend.ts`.
 
 ### `lib/utils.ts`
 
@@ -907,6 +941,7 @@ Source : `src/features/auth/schema.ts`.
 | `Metric` | Métriques d'un résultat et de son benchmark. |
 | `metricDefinitions` | CAGR, rendement total et max drawdown en `formatRatio`, volatilité en `formatPercent`, Sharpe en `formatSharpe`, valeur finale en `formatAmount`. |
 | `resultValue` | Métrique d'un résultat (Decimal sérialisé), formatée ; `<Dash />` si absente (résultat antérieur). |
+| `withBenchmark` | `withBenchmark(cells, benchmark, benchmarkCell)` : `cells`, suivies avec un benchmark de `benchmarkCell(benchmark)` (colonnes et valeurs d'un tableau d'indicateurs). |
 | `benchmarkValue` | Métrique d'un benchmark (nombre du moteur), formatée ; `<Dash />` si `null`. |
 | `recoveryDefinition` | Libellé « Récupération » et aide `recovery` de la ligne, sans format. |
 | `resultRecovery`, `benchmarkRecovery` | Récupération via `formatRecovery` ; `<Dash />` pour un résultat antérieur au calcul. |

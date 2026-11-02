@@ -5,6 +5,7 @@ import { DateField, FieldRow, FormSection, NumberField, SelectField, SymbolsFiel
 import { currencySymbol } from "@/lib/format"
 import { AllocationField } from "./allocation-field"
 import { BACKTEST_CURRENCY, investmentModeOptions, rebalanceFrequencyOptions } from "./constants"
+import type { InvestmentMode } from "./types"
 
 const currency = currencySymbol(BACKTEST_CURRENCY)
 
@@ -12,7 +13,8 @@ const currency = currencySymbol(BACKTEST_CURRENCY)
 
 /** Mode d'investissement et, en `RECURRING` seulement, le versement mensuel. */
 export function InvestmentModeFields() {
-    const investmentMode = useWatch({ name: "investmentMode" })
+    // Partagé par deux formulaires : seul `investmentMode` est lu, typé ici
+    const investmentMode = useWatch<{ investmentMode: InvestmentMode }>({ name: "investmentMode" })
 
     return (
         <>

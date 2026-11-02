@@ -6,9 +6,10 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { FormProvider, useForm, useWatch } from "react-hook-form"
 import { Dash } from "@/components/dash"
+import { DetailRow } from "@/components/detail-row"
+import { setFormIssues } from "@/components/form/form-issues"
 import { Button } from "@/components/ui/button"
 import { FieldError } from "@/components/ui/field"
-import { setFormIssues } from "@/lib/api"
 import { routes } from "@/lib/routes"
 import {
     DEFAULT_FEE_PERCENT,
@@ -28,14 +29,8 @@ function QuickTestSummary({ symbol }: { symbol: string }) {
 
     return (
         <dl className="grid gap-2 rounded-md bg-muted p-4">
-            <div className="flex items-center gap-2">
-                <dt className="flex-1 text-muted-foreground">Symbole</dt>
-                <dd className="font-medium">{symbol}</dd>
-            </div>
-            <div className="flex items-center gap-2">
-                <dt className="flex-1 text-muted-foreground">Données analysées</dt>
-                <dd className="font-medium">{days > 0 ? `${days} jours` : <Dash />}</dd>
-            </div>
+            <DetailRow label="Symbole">{symbol}</DetailRow>
+            <DetailRow label="Données analysées">{days > 0 ? `${days} jours` : <Dash />}</DetailRow>
         </dl>
     )
 }
@@ -96,7 +91,7 @@ export function QuickBacktestForm({ symbol }: { symbol: string }) {
                 <InvestmentModeFields />
                 <PeriodAndCapitalFields />
                 <QuickTestSummary symbol={symbol} />
-                <p className="text-xs text-muted-foreground">
+                <p className="text-small text-muted-foreground">
                     Test rapide sur ce symbole. Pour comparer plusieurs symboles, utilisez la page Backtests.
                 </p>
                 {error && <FieldError>{error.message}</FieldError>}

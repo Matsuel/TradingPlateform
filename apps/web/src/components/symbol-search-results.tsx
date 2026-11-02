@@ -57,7 +57,7 @@ export function SearchResults({
     switch (state.kind) {
         case "tooShort":
             return (
-                <p className="py-6 text-center text-sm text-muted-foreground">
+                <p className="py-6 text-center text-body text-muted-foreground">
                     Saisis au moins {MIN_SEARCH_LENGTH} caractères.
                 </p>
             )
@@ -67,7 +67,7 @@ export function SearchResults({
             return (
                 <div className="flex flex-col items-center gap-2 py-6 text-center">
                     <AlertCircle className="size-5 text-destructive" />
-                    <p className="text-sm font-medium">La recherche a échoué</p>
+                    <p className="text-body-medium">La recherche a échoué</p>
                 </div>
             )
         case "empty":
@@ -88,7 +88,7 @@ export function SearchResults({
                                 logoUrl={item.logoUrl}
                                 className="min-w-0 flex-1"
                             />
-                            <span className="text-right text-xs text-muted-foreground">{item.exchange}</span>
+                            <span className="text-right text-small text-muted-foreground">{item.exchange}</span>
                         </CommandItem>
                     ))}
                 </CommandGroup>

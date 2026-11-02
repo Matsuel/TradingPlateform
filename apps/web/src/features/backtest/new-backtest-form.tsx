@@ -3,10 +3,9 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useRouter } from "next/navigation"
 import { FormProvider, useForm, useWatch } from "react-hook-form"
-
+import { setFormIssues } from "@/components/form/form-issues"
 import { Button } from "@/components/ui/button"
 import { FieldError } from "@/components/ui/field"
-import { setFormIssues } from "@/lib/api"
 import { routes } from "@/lib/routes"
 import {
     DEFAULT_BENCHMARK_SYMBOL,

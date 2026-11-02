@@ -26,9 +26,9 @@ function UserIdentity({ user }: { user: User }) {
                 <AvatarImage src={user.image ?? undefined} alt={user.name} />
                 <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
             </Avatar>
-            <div className="grid flex-1 text-left text-sm leading-tight">
+            <div className="grid flex-1 text-left text-body leading-tight">
                 <span className="truncate font-medium">{user.name}</span>
-                <span className="truncate text-xs">{user.email}</span>
+                <span className="truncate text-small">{user.email}</span>
             </div>
         </>
     )

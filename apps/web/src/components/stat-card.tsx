@@ -2,8 +2,7 @@ import { TrendingDown, TrendingUp } from "lucide-react"
 import type { ReactNode } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
-
-type Trend = "up" | "down" | "neutral"
+import type { Trend } from "@/lib/trend"
 
 const trends = {
     up: { variant: "success", icon: <TrendingUp data-icon="inline-start" /> },

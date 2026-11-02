@@ -39,7 +39,7 @@ export function RegisterForm() {
                     <Button type="submit" disabled={form.formState.isSubmitting}>
                         Créer le compte
                     </Button>
-                    <p className="text-center text-sm text-muted-foreground">
+                    <p className="text-center text-body text-muted-foreground">
                         Déjà un compte ?{" "}
                         <Link href={routes.login} className="underline">
                             Se connecter

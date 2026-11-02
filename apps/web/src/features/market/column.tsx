@@ -4,6 +4,7 @@ import type { Column } from "@/components/data-table/data-table"
 import { InfoHint } from "@/components/info-hint"
 import { Sparkline } from "@/components/sparkline"
 import { formatPrice, formatVolume } from "@/lib/format"
+import { trendOf } from "@/lib/trend"
 import { MARKET_CURRENCY } from "./constants"
 import type { MarketAsset } from "./types"
 
@@ -24,6 +25,6 @@ export const marketColumns: Column<MarketAsset>[] = [
     // Sans variation connue, la couleur de la tendance n'aurait pas de sens
     {
         header: <InfoHint entry="trend">Tendance</InfoHint>,
-        cell: (a) => (a.change24h == null ? <Dash /> : <Sparkline data={a.history} positive={a.change24h >= 0} />),
+        cell: (a) => (a.change24h == null ? <Dash /> : <Sparkline data={a.history} trend={trendOf(a.change24h)} />),
     },
 ]
