@@ -15,7 +15,7 @@ Les dossiers des features 02 à 08 citent les anciens numéros ; cette table les
 | 01 · Connexion | 01 | 19 v2 · Comparaison de backtests | 14 |
 | 02 · Inscription | 02 | 26 · Aide sur une donnée (sheet) | 15 |
 | 16 · Page 404 | 03 | — · Déclencheur de l’aide | 15.1 |
-| 17 · Page d’erreur | 04 | — (proposée) · Robustesse | 16 |
+| 17 · Page d’erreur | 04 | | |
 | 03 · Dashboard (03.1 sombre) | 05 (05.1) | 20 · Risque (+ contraintes, proposée) | 17 (17.1) |
 | 10 · Paramètres / Profil | 06 | 21 · Projection Monte Carlo (+ paramètres, proposée) | 18 (18.1) |
 | 10.2 · Notifications, 10.3 · Apparence | 06.1, 06.2 | 22 · Explorateur d’allocations (+ nouvelle exploration, proposée) | 19 (19.1) |
