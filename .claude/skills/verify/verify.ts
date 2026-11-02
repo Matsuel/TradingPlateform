@@ -121,7 +121,8 @@ for (const { code, catalog } of catalogs) {
 }
 
 // Taille et complexité (apps/web/AGENTS.md) : fichier ≤ 150 lignes, fonction de premier niveau ≤ 60 lignes, ≤ 8 props.
-// Heuristique sur le format Biome : une fonction va de `function X` en colonne 0 jusqu'à la `}` en colonne 0 suivante.
+// Heuristique sur le format Biome, fichiers modifiés seulement : une fonction va de `function X` en colonne 0 jusqu'à la
+// `}` en colonne 0 suivante ; les props se comptent sur les types `…Props` et les types écrits en ligne.
 const WEB_LIMITS = { fileLines: 150, functionLines: 60, props: 8 };
 const webSources = changed.filter((file) =>
     /^apps\/web\/src\/(?!components\/ui\/|constants\/glossary\.ts$).*\.tsx?$/.test(file),
@@ -142,9 +143,15 @@ for (const file of webSources) {
             start = -1;
         }
     });
-    for (const match of lines.join("\n").matchAll(/(?:interface|type) (\w+Props)\b[^{]*\{([^]*?)\n\}/g)) {
+    const source = lines.join("\n");
+    for (const match of source.matchAll(/(?:interface|type) (\w+Props)\b[^{]*\{([^]*?)\n\}/g)) {
         const props = (match[2] ?? "").split("\n").filter((l) => /^\s+\w+\??:/.test(l)).length;
         if (props > WEB_LIMITS.props) sizeIssues.push(`${file} ${match[1]} : ${props} props`);
+    }
+    // Props typées en ligne : `function X({ a, b }: { a: A; b: B })`, sur une ou plusieurs lignes
+    for (const match of source.matchAll(/function (\w+)(?:<[^>]*>)?\(\{[^}]*\}: \{([^}]*)\}\)/g)) {
+        const props = (match[2] ?? "").split(/[;\n]/).filter((m) => /^\s*\w+\??:/.test(m)).length;
+        if (props > WEB_LIMITS.props) sizeIssues.push(`${file} ${match[1]} : ${props} props (type en ligne)`);
     }
 }
 if (sizeIssues.length > 0)

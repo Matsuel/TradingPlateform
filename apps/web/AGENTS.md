@@ -40,7 +40,7 @@ Toute brique d'interface vient de `components/ui/` (shadcn, style `base-nova` de
 - **Primitive** (bouton, champ, label, tableau, carte, badge, onglets, dialog, menu…) : le composant `ui/` correspondant. Absent du dossier : ajoute-le avec `bunx --bun shadcn@latest add <nom>`, puis utilise-le.
 - **Style ou état que le composant n'a pas** : un **variant** de plus dans son `cva`, dans `ui/<composant>.tsx` (ex. `success` de `Badge`), appelé par `variant="…"`. Un style partagé par deux écrans est un variant.
 - **Classes autour d'un composant `ui/`** : la mise en page seulement (marges, grille, largeur, position).
-- **Élément HTML brut** à la place d'une primitive (`<table>`, `<button>`, `<label>`, `<select>`) : seulement si shadcn n'a aucun équivalent, avec la raison en commentaire sur la ligne.
+- **Élément HTML brut** à la place d'une primitive (`<table>`, `<button>`, `<label>`, `<select>`, `<input>`, `<textarea>`, barre de progression en `<div>`) : seulement si shadcn n'a aucun équivalent, avec la raison en commentaire sur la ligne.
 - `components/` et `features/` composent les `ui/` ; un variant ajouté a son entrée dans `COMPONENTS.md` (« `components/ui` ») dans le même diff.
 
 ## Structure `src/`

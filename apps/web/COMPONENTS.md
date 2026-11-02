@@ -179,6 +179,10 @@ Primitives shadcn (base-ui), voir la doc shadcn. Seule base des briques d'interf
   - `className` (optionnel) : Sur `SheetContent`.
   - `open` (optionnel) : Mode contrôlé.
   - `onOpenChange` (optionnel) : Mode contrôlé.
+- **Exemple** (tiré de `src/features/market/symbol-sheet.tsx`) :
+  ```tsx
+  <AppSheet title={symbol} trigger={<Button size="lg">Tester</Button>}>…</AppSheet>
+  ```
 - **Source** : `src/components/app-sheet.tsx`.
 
 ### InfoHint
@@ -190,6 +194,10 @@ Primitives shadcn (base-ui), voir la doc shadcn. Seule base des briques d'interf
   - `value` (optionnel) : Valeur déjà formatée par l'écran, rappelée dans le panneau sous « Valeur affichée » ; jamais recalculée.
   - `details` (optionnel) : Lignes ajoutées au bloc de valeurs (ex. « Creux atteint le », une colonne d'un tableau). Bloc masqué sans `value` ni `details`.
   - `children` : Libellé affiché.
+- **Exemple** (tiré de `src/features/backtest/stats.tsx`) :
+  ```tsx
+  <InfoHint entry="completedRate" value={completedRate}>Taux de réussite</InfoHint>
+  ```
 - **Source** : `src/components/info-hint.tsx`.
 
 ## Données et tableaux
@@ -208,6 +216,19 @@ Primitives shadcn (base-ui), voir la doc shadcn. Seule base des briques d'interf
   - `pagination` (optionnel) : Pied de tableau (`TablePagination`) : « 21–40 sur 57 », précédent / numéros (ellipses au-delà de 7 pages) / suivant ; masqué sur une seule page. `page` commence à 1, `count` = total toutes pages confondues ; `data` ne contient que la page affichée (page serveur ou `paginate`).
   `Column<T>` : `{ header: ReactNode; cell: (row: T) => ReactNode; className?: string }` (`className` appliquée à l'en-tête et aux cellules).
 
+- **Exemple** (tiré de `src/features/backtest/backtest-list.tsx`) :
+  ```tsx
+  <TableCard title="Tous les backtests" description="Triés par date de lancement" actions={<FilterTabs … />}>
+      <DataTable
+          query={{ ...query, data: query.data?.data }}
+          columns={backtestColumns}
+          rowKey={(b) => b.id}
+          onRowClick={(b) => router.push(routes.backtest(b.id))}
+          emptyMessage="Aucun backtest."
+          pagination={{ page, pageSize: PAGE_SIZE, count: query.data?.count ?? 0, onPageChange: setPage }}
+      />
+  </TableCard>
+  ```
 - **Source** : `src/components/data-table/data-table.tsx` (`StatusRow`, `DataRows` internes), `src/components/data-table/table-pagination.tsx`.
 
 ### TableCard
@@ -227,6 +248,10 @@ Primitives shadcn (base-ui), voir la doc shadcn. Seule base des briques d'interf
   - `logoUrl` (optionnel) : Image de l'avatar.
   - `size` (optionnel) : `md` : avatar 32 px ; `lg` : 48 px, symbole en `text-h2`.
   - `className` (optionnel) : Sur le conteneur.
+- **Exemple** (tiré de `src/features/market/column.tsx`) :
+  ```tsx
+  { header: "Symbole", cell: (a) => <SymbolCell symbol={a.symbol} name={a.name} logoUrl={a.logoUrl} /> }
+  ```
 - **Source** : `src/components/data-table/cells.tsx`.
 
 ### ChangeCell
@@ -235,6 +260,10 @@ Primitives shadcn (base-ui), voir la doc shadcn. Seule base des briques d'interf
 - **Rôle** : variation signée suivie de « % », colorée par `trendOf` : verte en hausse, rouge en baisse, neutre à zéro.
 - **Props** :
   - `value` : **Pourcentage** (`1.5` → « +1,50 % ») ; un ratio doit être multiplié par 100 avant (ou utiliser `formatRatio` hors tableau).
+- **Exemple** (tiré de `src/features/backtest/column.tsx`) :
+  ```tsx
+  return value == null ? <Dash /> : <ChangeCell value={Number(value) * 100} />
+  ```
 - **Source** : `src/components/data-table/cells.tsx`.
 
 ### Dash
@@ -242,6 +271,10 @@ Primitives shadcn (base-ui), voir la doc shadcn. Seule base des briques d'interf
 - **Import** : `import { Dash, orDash } from "@/components/dash"`.
 - **Rôle** : tiret « — » atténué pour une valeur absente. `orDash(value, format)` rend `format(value)`, ou `<Dash />` si `value` est `null`/`undefined` (résultat antérieur au champ).
 - **Props** : aucune.
+- **Exemple** (tiré de `src/features/backtest/stats.tsx`) :
+  ```tsx
+  orDash(fromDecimal(result.cagr), formatRatio)
+  ```
 - **Source** : `src/components/dash.tsx`.
 
 ### OptionSelect
@@ -255,6 +288,10 @@ Primitives shadcn (base-ui), voir la doc shadcn. Seule base des briques d'interf
   - `id` (optionnel) : Sur le déclencheur, pour un `<label htmlFor>`.
   - `placeholder` (optionnel) : Sans valeur.
   - `invalid` (optionnel) : `aria-invalid` du déclencheur.
+- **Exemple** (tiré de `src/features/backtest/comparison-selection.tsx`) :
+  ```tsx
+  <OptionSelect id={id} value={value} options={options} onChange={onChange} />
+  ```
 - **Source** : `src/components/option-select.tsx`.
 
 ### FilterTabs
@@ -266,6 +303,10 @@ Primitives shadcn (base-ui), voir la doc shadcn. Seule base des briques d'interf
   - `onChange` : Changement d'onglet.
   - `options` : Onglets.
   - `className` (optionnel) : Sur `Tabs`.
+- **Exemple** (tiré de `src/features/backtest/backtest-list.tsx`) :
+  ```tsx
+  <FilterTabs value={filter} onChange={changeFilter} options={filterOptions} />
+  ```
 - **Source** : `src/components/filter-tabs.tsx`.
 
 ### StatCard
@@ -279,6 +320,10 @@ Primitives shadcn (base-ui), voir la doc shadcn. Seule base des briques d'interf
   - `delta` (optionnel) : Contenu du badge ; badge masqué si `null`/`undefined`.
   - `trend` (optionnel) : Style et icône du badge (`up` vert, `down` rouge).
   - `className` (optionnel) : Sur la carte.
+- **Exemple** (tiré de `src/features/backtest/stats.tsx`) :
+  ```tsx
+  <StatCard label="En cours" value={stats?.active ?? <Dash />} caption="Backtests actifs" />
+  ```
 - **Source** : `src/components/stat-card.tsx`.
 
 ### EmptyCard
@@ -305,6 +350,10 @@ Primitives shadcn (base-ui), voir la doc shadcn. Seule base des briques d'interf
 - **Rôle** : spinner `Loader2` centré, pendant le chargement d'une requête (`isPending`). La hauteur de la zone se passe par `className`.
 - **Props** :
   - `className` (optionnel) : Sur le conteneur (ex. `h-64`).
+- **Exemple** (tiré de `src/features/backtest/backtest-detail.tsx`) :
+  ```tsx
+  if (isPending) return <LoadingState className="h-64" />
+  ```
 - **Source** : `src/components/query-status.tsx`.
 
 ### ErrorState
@@ -315,6 +364,10 @@ Primitives shadcn (base-ui), voir la doc shadcn. Seule base des briques d'interf
   - `message` (optionnel) : Texte affiché, en général `error.message`.
   - `onRetry` : Appelé au clic sur « Réessayer » (ex. `refetch`).
   - `className` (optionnel) : Sur le conteneur (ex. `h-64`).
+- **Exemple** (tiré de `src/features/backtest/backtest-detail.tsx`) :
+  ```tsx
+  if (isError) return <ErrorState message={error.message} onRetry={refetch} className="h-64" />
+  ```
 - **Source** : `src/components/query-status.tsx`.
 
 ## Graphiques
@@ -332,6 +385,16 @@ Primitives shadcn (base-ui), voir la doc shadcn. Seule base des briques d'interf
   - `formatAxis` (optionnel) : Axe Y.
   - `hideXAxis` (optionnel) : Graphique empilé au-dessus d'un autre qui porte l'axe des dates.
   - `className` (optionnel) : Hauteur.
+- **Exemple** (tiré de `src/features/market/price-chart.tsx`) :
+  ```tsx
+  <AreaSeriesChart
+      data={data}
+      series={[{ key: "price", label: "Prix", color: trendStyles[trendOfPeriod(data)].color, fill: true }]}
+      formatTick={(d) => formatTick(d, period)}
+      formatTooltipDate={(d) => formatTooltipDate(d, period)}
+      formatValue={(v) => formatPrice(v, MARKET_CURRENCY)}
+  />
+  ```
 - **Source** : `src/components/area-series-chart.tsx`.
 
 ### ChartLegend
@@ -339,6 +402,10 @@ Primitives shadcn (base-ui), voir la doc shadcn. Seule base des briques d'interf
 - **Import** : `import { ChartLegend } from "@/components/chart-legend"`.
 - **Rôle** : légende d'un graphique (maquette 15.1), tirée de ses `ChartSeries` : trait de la couleur de chaque série (pointillé si `dashed`) et libellé, en `InfoHint` si la série a un `hint`.
 - **Props** : `series: ChartSeries[]`.
+- **Exemple** (tiré de `src/features/backtest/comparison-overview.tsx`) :
+  ```tsx
+  <ChartLegend series={valueSeries} />
+  ```
 - **Source** : `src/components/chart-legend.tsx`.
 
 ### Sparkline
@@ -349,6 +416,10 @@ Primitives shadcn (base-ui), voir la doc shadcn. Seule base des briques d'interf
   - `data` : Points `{ date, price }`.
   - `trend` : `Trend` (`lib/trend.ts`), couleur de la courbe.
   - `className` (optionnel) : Remplace la taille par défaut.
+- **Exemple** (tiré de `src/features/market/column.tsx`) :
+  ```tsx
+  { header: "Tendance", cell: (a) => <Sparkline data={a.history} trend={trendOf(a.change24h)} /> }
+  ```
 - **Source** : `src/components/sparkline.tsx`.
 
 ## Symboles
@@ -420,6 +491,10 @@ Props communes `BaseProps<T>` (exportées par `field.tsx`), répétées dans cha
 - **Import** : `import { TextField } from "@/components/form"`.
 - **Rôle** : saisie texte d'une valeur `string`.
 - **Props** : `BaseProps<T>` + `type` (`"text" | "email" | "password"`, non requis, défaut `"text"`), `placeholder` (`string`, non requis).
+- **Exemple** (tiré de `src/features/backtest/sections.tsx`) :
+  ```tsx
+  <TextField name="name" label="Nom du backtest" />
+  ```
 - **Source** : `src/components/form/fields/text-field.tsx`.
 
 ### NumberField
@@ -427,6 +502,10 @@ Props communes `BaseProps<T>` (exportées par `field.tsx`), répétées dans cha
 - **Import** : `import { NumberField } from "@/components/form"`.
 - **Rôle** : saisie d'un `number` ; un champ vide vaut `undefined` (le schéma zod signale « Requis »).
 - **Props** : `BaseProps<T>` + `placeholder` (`string`, non requis). L'unité se met dans `label`.
+- **Exemple** (tiré de `src/features/backtest/sections.tsx`) :
+  ```tsx
+  <NumberField name="fee" label="Frais par ordre (%)" hint="feeRate" />
+  ```
 - **Source** : `src/components/form/fields/number-field.tsx`.
 
 ### TextareaField
@@ -451,6 +530,10 @@ Props communes `BaseProps<T>` (exportées par `field.tsx`), répétées dans cha
   | `options` | `SelectOption[]` (`{ value: string; label: string }`) | oui | — | Options (ex. `investmentModeOptions`). |
   | `placeholder` | `string` | non | `"Sélectionner…"` | Sans valeur. |
 
+- **Exemple** (tiré de `src/features/backtest/sections.tsx`) :
+  ```tsx
+  <SelectField name="investmentMode" label="Mode d’investissement" options={investmentModeOptions} />
+  ```
 - **Source** : `src/components/form/fields/select-field.tsx`.
 
 ### DateField
@@ -464,6 +547,13 @@ Props communes `BaseProps<T>` (exportées par `field.tsx`), répétées dans cha
   | `placeholder` | `string` | non | `"jj/mm/aaaa"` | Sans valeur. |
   | `disabled` | `(d: Date) => boolean` | non | — | Jours non sélectionnables. |
 
+- **Exemple** (tiré de `src/features/backtest/sections.tsx`) :
+  ```tsx
+  <FieldRow>
+      <DateField name="start" label="Début" />
+      <DateField name="end" label="Fin" />
+  </FieldRow>
+  ```
 - **Source** : `src/components/form/fields/date-field.tsx`.
 
 ### CheckboxField
@@ -524,6 +614,13 @@ Source : `src/components/form/form-issues.ts`.
   - `description` (optionnel) : Sous le titre.
   - `className` (optionnel) : Sur la carte.
   - `children` : Champs.
+- **Exemple** (tiré de `src/features/backtest/sections.tsx`) :
+  ```tsx
+  <FormSection title="Général" description="Nom et mode d’investissement">
+      <TextField name="name" label="Nom du backtest" />
+      <InvestmentModeFields />
+  </FormSection>
+  ```
 - **Source** : `src/components/form/layout.tsx`.
 
 ### FieldRow
@@ -533,6 +630,13 @@ Source : `src/components/form/form-issues.ts`.
 - **Props** :
   - `children` : Champs.
   - `className` (optionnel) : Sur la grille.
+- **Exemple** (tiré de `src/features/backtest/sections.tsx`) :
+  ```tsx
+  <FieldRow>
+      <NumberField name="initialAmount" label={`Capital initial (${currency})`} />
+      <NumberField name="fee" label="Frais par ordre (%)" hint="feeRate" />
+  </FieldRow>
+  ```
 - **Source** : `src/components/form/layout.tsx`.
 
 ## `lib`
