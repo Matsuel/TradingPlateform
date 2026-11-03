@@ -53,6 +53,34 @@ Les dossiers des features 02 à 08 citent les anciens numéros ; cette table les
 | 3 — Clôture du Strategy Lab | 07 | 24 ᵃ |
 | 4 — Portfolio Management V1 | 08 | 104 |
 
+## Features à venir (ordre d’exécution)
+
+Ordre fixé le 2026-11-03 d’après les dépendances, pas d’après les mois seuls. L’internationalisation (10) est **urgente** : elle passe avant toute nouvelle page, pour que les écrans suivants naissent traduits. Chaque feature est planifiée avec le skill `feature-roadmap` (dossier `roadmap/<NN>-<slug>/`). « Dépend de » liste les features qui doivent être **livrées** avant.
+
+Planification : **toutes les features 10 à 24 sont planifiées** (dossiers `roadmap/<NN>-<slug>/`, statut `Planifiée`). Maquettes Figma 30 à 40 : **non dessinées**, à faire avec un agent plus fort que Haiku.
+
+| # | Feature | Mois | Dépend de | Pourquoi à cette place |
+| --- | --- | --- | --- | --- |
+| 10 | Internationalisation du web (FR / EN) | 5 · urgente | 09 | Toute nouvelle page doit naître traduite ; retrofit coûteux sinon. |
+| 11 | Dividendes, splits et effet devise | 5 | 08 | Change tous les rendements (rendement total). Le forward des options en a besoin. |
+| 12 | Robustesse : dates de départ et métriques glissantes | 5 | 11 | Sensibilité à la date d’entrée, sur des rendements corrects. |
+| 13 | Risk Engine | 6 | 11 | Corrélations, expositions, concentration, VaR/CVaR, contraintes. Gel fonctionnel du moteur de simulation à la fin. |
+| 14 | Projection Monte Carlo | 7 | 12 | Moteur seedé réutilisé par le pricing (18). |
+| 15 | Taux et obligations | 8 | 08 | Source de taux (FRED), courbe, actualisation, prix, duration. Indépendant du risque. |
+| 16 | Options vanilles : payoffs et Black-Scholes | 9 | 11, 15 | Besoin du taux (15) et des dividendes (11). |
+| 17 | Grecques, volatilité implicite et surface | 9 | 16 | Route `options/:symbol` dans `market-service` ; volatilité implicite recalculée par le moteur. |
+| 18 | Pricing Monte Carlo et option à barrière | 10 | 14, 16 | Moteur de 14, validé contre Black-Scholes (16). |
+| 19 | Produits structurés : décomposition, juste valeur, marge | 10 | 15, 17, 18 | Capital garanti, reverse convertible, autocallable. |
+| 20 | Stress de produit et term sheet | 10 | 13, 19 | Chocs sur sous-jacent, volatilité et taux ; fiche produit. |
+| 21 | Pipeline CI/CD et images | 11 | — | Voir la note ci-dessous. |
+| 22 | Kubernetes, Helm et Argo CD | 11 | 21 | Environnements `dev` / `demo`. |
+| 23 | Observabilité : OpenTelemetry, traces, runbooks | 11 | 22 | Trace d’une simulation de bout en bout. ClickHouse seulement si une requête analytique le justifie. |
+| 24 | Résilience et soutenance | 12 | 23 | Reprise du worker et des consumers, sauvegarde-restauration, pannes contrôlées, charge, audit sécurité, démo, rapport. |
+
+**Extensions (COULD, hors chemin critique)** : delta-hedging (après 19), optimisation minimale Max Sharpe / min variance (après 13), objectifs financiers et taux de retrait (après 14), paper trading, notifications, profils de clients fictifs, marché simulé (bonus).
+
+**CI/CD (21)** : aucune dépendance fonctionnelle, donc libre d’être avancée. Les moteurs de pricing (16 à 20) sont les plus lourds en tests ; un pipeline qui exécute `bun test` et `tsc` à chaque PR avant la 16 les protégerait. Décision à prendre par l’utilisateur ; l’ordre ci-dessus garde le mois 11 d’origine.
+
 ## Journal des décisions structurantes
 
 | Date | Décision | Trace |
@@ -63,6 +91,7 @@ Les dossiers des features 02 à 08 citent les anciens numéros ; cette table les
 | 2026-10-29 | Pivot : de la bourse simulée au laboratoire de portefeuille ; carnet d’ordres et matching engine deviennent un bonus. | `5f0890c`, [07](07-strategy-lab-cloture/) |
 | 2026-10-30 | Messages Kafka compressés en GZIP (limite de 1 Mo du broker). | `e87fdcc` |
 | 2026-10-30 | Aide contextuelle ajoutée hors roadmap annuelle : chaque donnée calculée affichée porte une explication (à quoi elle sert, comment elle est calculée). | [09](09-aide-contextuelle/) |
+| 2026-11-03 | Cap « structureur » : la roadmap des mois 5 à 10 passe de l’optimisation et du reporting à la structuration (taux, obligations, options, produits structurés, term sheet). Optimisation, paper trading, notifications et profils de clients passent en COULD ; CI/CD, Kubernetes, Helm et GitOps (mois 11-12) sont conservés. | [README racine](../README.md#structuration--taux-options-et-produits-structurés) |
 
 ## Conventions communes
 

@@ -17,6 +17,7 @@
 - [Données et stockages](#données-et-stockages)
 - [API et temps réel](#api-et-temps-réel)
 - [Portfolio Management Lab : portefeuille, risque et optimisation](#portfolio-management-lab--portefeuille-risque-et-optimisation)
+- [Structuration : taux, options et produits structurés](#structuration--taux-options-et-produits-structurés)
 - [Strategy Lab : DCA, backtest et paper trading](#strategy-lab--dca-backtest-et-paper-trading)
 - [Simulation, bots et replay](#simulation-bots-et-replay)
 - [Fiabilité, sécurité et observabilité](#fiabilité-sécurité-et-observabilité)
@@ -41,18 +42,21 @@ Le but n’est pas de bâtir un outil de gestion prêt pour la production. Le bu
 
 Le marché simulé (carnet d’ordres, matching engine, trading entre comptes) est un **module bonus** (COULD) : sa conception est conservée dans ce document, mais il ne conditionne ni le MVP ni la soutenance.
 
+Le projet sert aussi de **terrain d’apprentissage pour le métier de structureur** (produits structurés, dérivés actions) : après le moteur de portefeuille et de risque, il couvre les taux, les obligations, les options et la décomposition d’un produit structuré en briques (voir [Structuration](#structuration--taux-options-et-produits-structurés)). Chaque feature est choisie pour faire comprendre un concept ou un outil de ce métier ; celles qui n’y contribuent pas sont reléguées en COULD.
+
 ### Objectifs pédagogiques
 
-1. Implémenter et expliquer les concepts de gestion de portefeuille : rendement, volatilité, drawdown, Sharpe, corrélation, rebalancement, frontière efficiente, Monte Carlo.
-2. Concevoir des moteurs de calcul purs, testés et reproductibles, séparés de l’orchestration.
-3. Justifier l’usage de Kafka, PostgreSQL, Redis et ClickHouse par des besoins distincts.
-4. Mettre en place une chaîne de livraison moderne : conteneurs, Kubernetes, Helm et GitOps.
-5. Prouver le comportement par des tests, des métriques, des traces et une démonstration de panne maîtrisée.
+1. Implémenter et expliquer les concepts de gestion de portefeuille : rendement, volatilité, drawdown, Sharpe, corrélation, rebalancement, Monte Carlo.
+2. Comprendre et pricer les briques d’un produit structuré : actualisation et obligations, options, grecques, volatilité implicite, Monte Carlo, décomposition obligation + options.
+3. Concevoir des moteurs de calcul purs, testés et reproductibles, séparés de l’orchestration.
+4. Justifier l’usage de Kafka, PostgreSQL, Redis et ClickHouse par des besoins distincts.
+5. Mettre en place une chaîne de livraison moderne : conteneurs, Kubernetes, Helm, CI/CD et GitOps.
+6. Prouver le comportement par des tests, des métriques, des traces et une démonstration de panne maîtrisée.
 
 ### Hors périmètre
 
 - argent réel, courtage, KYC/AML, fiscalité, conformité financière ou conservation d’actifs ;
-- options, marge, liquidation, multi-devises, haute fréquence et latence microseconde ;
+- négociation d’options (ordres, marge, exercice, liquidation) : les options sont **pricées et analysées**, jamais échangées ; multi-devises dans les comptes, haute fréquence et latence microseconde ;
 - microservices pour le principe : le MVP conserve peu de services et des frontières nettes.
 
 ## Périmètre et priorités
@@ -76,19 +80,22 @@ Les étiquettes suivantes évitent de sacrifier un projet fini à une architectu
 
 ### Après le MVP
 
-- **SHOULD** : métriques glissantes, Risk Engine, projection Monte Carlo, optimisation, reporting, paper trading, ClickHouse, Kubernetes, Helm, CI/CD, OpenTelemetry et GitOps.
-- **COULD** : marché simulé (carnet d’ordres, matching engine, bots, replay), MinIO, chaos engineering avancé, Keycloak, multi-région simulée.
+- **SHOULD** : dividendes et splits, métriques glissantes, Risk Engine, projection Monte Carlo, taux et obligations, options (Black-Scholes, grecques, volatilité implicite), pricing Monte Carlo, produits structurés avec term sheet, ClickHouse, Kubernetes, Helm, CI/CD, OpenTelemetry et GitOps.
+- **COULD** : optimisation d’allocations, paper trading, notifications, profils de clients fictifs, couverture delta (delta-hedging), options exotiques au-delà de la barrière, marché simulé (carnet d’ordres, matching engine, bots, replay), MinIO, chaos engineering avancé, Keycloak, multi-région simulée.
 
 ## Fonctionnalités
 
 | Domaine | MUST | SHOULD | COULD |
 | --- | --- | --- | --- |
-| Strategy Lab | Backtest DCA / investissement unique, frais, comparaison des deux | Paper trading à partir d’aujourd’hui, dividendes | Scénarios de crise personnalisés |
+| Strategy Lab | Backtest DCA / investissement unique, frais, comparaison des deux | Dividendes et splits | Paper trading à partir d’aujourd’hui, scénarios de crise personnalisés |
 | Portefeuille | Poids, rebalancement, benchmark, CAGR, volatilité, drawdown, Sharpe | Métriques glissantes, comparaison de dates de départ, effet devise | Attribution de performance |
-| Risque | Drawdown et durée de récupération | Corrélations, VaR/CVaR, contribution au risque, contraintes | Analyse factorielle |
-| Projection | — | Monte Carlo seedé, objectifs financiers et taux de retrait | Modèles statistiques plus riches |
-| Optimisation | — | Explorateur d’allocations, frontière efficiente, validation hors échantillon | Profils de clients fictifs avancés |
-| Notifications | — | Toaster en bas à droite, page dédiée, lu / non lu | Préférences par type, e-mail |
+| Risque | Drawdown et durée de récupération | Corrélations, VaR/CVaR, contribution au risque, contraintes, stress de scénarios | Analyse factorielle |
+| Projection | — | Monte Carlo seedé (moteur réutilisé pour le pricing) | Objectifs financiers et taux de retrait |
+| Taux et obligations | — | Courbe de taux, actualisation, prix d’obligation, duration, zéro-coupon | Convexité |
+| Options | — | Payoffs, Black-Scholes, grecques, volatilité implicite, smile et surface | Options américaines |
+| Produits structurés | — | Décomposition en briques, capital garanti, reverse convertible, autocallable, juste valeur contre prix client, term sheet | Worst-of, couverture delta (delta-hedging) |
+| Optimisation | — | — | Explorateur d’allocations, frontière efficiente, validation hors échantillon |
+| Notifications | — | — | Toaster, page dédiée, lu / non lu, préférences par type, e-mail |
 | Marché simulé (bonus) | — | — | Carnet d’ordres, ordres limités, matching engine, bots, replay |
 | Exploitation | Logs, métriques et dashboard minimal | Traces distribuées, alertes | Chaos testing programmé |
 | Déploiement | Compose local | Kubernetes + Helm + Argo CD | Environnement éphémère par PR |
@@ -530,7 +537,9 @@ Drawdown cible : <= 15 %
 
 Le résultat doit montrer **si la stratégie historique respecte ou non la contrainte**, sans présenter cette contrainte comme une garantie pour le futur.
 
-### V3 : Portfolio Optimizer
+### V3 : Portfolio Optimizer (COULD)
+
+> Reclassé COULD : utile pour comprendre le compromis rendement/risque, mais éloigné du métier de structureur. À faire après la structuration, dans une version minimale (Max Sharpe et min variance).
 
 Après validation du Risk Engine, ajouter une optimisation sous contraintes.
 
@@ -581,7 +590,9 @@ Prérequis dans le moteur actuel : poids par actif dans `backtest.requested`, re
 
 Le résultat est formulé au passé (« ce mix **aurait** offert… ») avec sa performance hors échantillon face au mix équipondéré. Si l'allocation optimisée ne bat pas ce mix naïf sur la période de test, l'interface le dit explicitement.
 
-### V4 : profils de clients fictifs
+### V4 : profils de clients fictifs (COULD)
+
+> Reclassé COULD : relève de l’adéquation client en gestion privée, pas de la structuration.
 
 Créer plusieurs profils pédagogiques :
 
@@ -621,6 +632,8 @@ Ces profils sont fictifs et ne constituent pas une fonctionnalité de conseil fi
 
 ### V5 : reporting gestionnaire
 
+> Remplacé pour la structuration par la **term sheet** d’un produit (voir [Structuration](#structuration--taux-options-et-produits-structurés)). Le rapport gestionnaire de portefeuille reste utile comme base, sans priorité propre.
+
 Générer un rapport lisible contenant :
 
 - allocation actuelle ;
@@ -638,7 +651,9 @@ Le rapport doit permettre de répondre simplement à :
 
 > « Qu'est-ce qui s'est passé avec ce portefeuille et quel risque a été pris pour obtenir cette performance ? »
 
-### V6 : paper trading
+### V6 : paper trading (COULD)
+
+> Reclassé COULD : peu de valeur d’apprentissage pour la structuration.
 
 Une fois les simulations historiques fiables, permettre de lancer une stratégie **à partir d'aujourd'hui** avec de l'argent virtuel.
 
@@ -688,7 +703,7 @@ Le backtest raconte **le** passé ; la projection Monte Carlo montre **les** fut
 
 Le même moteur servira plus tard au pricing de produits structurés (moyenne actualisée des gains sur des trajectoires simulées).
 
-#### Objectif financier et taux de retrait
+#### Objectif financier et taux de retrait (COULD)
 
 Extension de la projection Monte Carlo : des flux sont ajoutés à chaque trajectoire simulée.
 
@@ -713,7 +728,9 @@ Contribution du change = différence entre les deux
 
 Il s'agit uniquement d'une conversion analytique des historiques : les comptes, le ledger et le marché simulé restent mono-devise (`EUR`), conformément au hors périmètre.
 
-### Notifications
+### Notifications (COULD)
+
+> Reclassé COULD : confort d’interface sans valeur d’apprentissage financier.
 
 Les simulations sont asynchrones : l’utilisateur doit être prévenu quand un résultat arrive ou qu’un signal mérite son attention, sans rester sur la page concernée.
 
@@ -816,23 +833,64 @@ Ne pas commencer par l'optimisation ou Kubernetes.
         ↓
 4. Métriques de performance
         ↓
-5. Comparaison de dates de départ
+5. Comparaison de dates de départ, dividendes, splits
         ↓
 6. Risk Engine
         ↓
-7. Optimisation sous contraintes
+7. Projection Monte Carlo
         ↓
-8. Profils de clients fictifs
+8. Taux et obligations
         ↓
-9. Reporting
+9. Options : Black-Scholes, grecques, volatilité implicite
         ↓
-10. Paper trading
+10. Pricing Monte Carlo et produits structurés, term sheet
         ↓
-11. Architecture distribuée avancée
+11. Plateforme de déploiement : CI/CD, Kubernetes, Helm, GitOps, observabilité
+        ↓
+12. Résilience et soutenance
 ```
+
+Optimisation, paper trading, notifications, profils de clients et couverture delta sont des extensions (COULD), à insérer seulement si le calendrier le permet.
 
 Le **backtest est la priorité absolue** : tant que son résultat n'est pas reproductible, explicable et correctement testé, il ne faut pas construire l'optimiseur au-dessus.
 
+
+## Structuration : taux, options et produits structurés
+
+Objectif : comprendre comment un produit structuré se **décompose, se price et se couvre**. Un produit structuré est, en première approximation, une **obligation** (la part sûre) plus une ou plusieurs **options** (la part de pari encadré). Tous les calculs vivent dans `backtest-engine/engine/` (ou un module `pricing/` voisin, pur et testé) ; le web affiche.
+
+### Briques, dans l’ordre d’apprentissage
+
+| Brique | Ce qu’elle apprend | Contenu |
+| --- | --- | --- |
+| Taux et obligations | Un euro futur vaut moins qu’un euro aujourd’hui | Actualisation `PV = flux / (1 + taux)^années`, courbe de taux interpolée, prix d’une obligation, zéro-coupon, duration |
+| Options vanilles | Payer pour profiter d’une hausse ou d’une baisse sans le risque inverse | Payoffs call et put, Black-Scholes, parité call-put (test de cohérence du moteur), dividendes dans le forward |
+| Grecques | Comment le prix réagit | Delta, gamma, vega, theta, rho |
+| Volatilité implicite | Ce que le marché anticipe, contre ce qui s’est passé | Volatilité implicite calculée **par le moteur** (inversion de Black-Scholes) à partir du prix de marché, smile et surface |
+| Pricing Monte Carlo | Pricer ce qui n’a pas de formule | Moteur Monte Carlo seedé de la projection, validé contre Black-Scholes sur une option européenne, puis option à barrière |
+| Produits structurés | Assembler les briques | Capital garanti (zéro-coupon + call), reverse convertible (coupon + vente de put), autocallable (observations périodiques, barrière), décomposition obligation + options |
+| Juste valeur et marge | D’où vient la rémunération du structureur | Prix théorique contre prix client, marge affichée |
+| Stress de scénarios | Où est l’exposition cachée | Chocs sur le sous-jacent, la volatilité et les taux, lecture de la perte ou du gain |
+| Term sheet | Lire et écrire la fiche d’un produit | Paramètres, scénarios favorable / neutre / défavorable, risques, prix ; remplace le rapport gestionnaire |
+| Couverture delta (COULD) | Pourquoi un prix existe | Simulation de delta-hedging sur historique, P&L de réplication |
+
+### Données
+
+Constat sur `yahoo-finance2` 4.0.4/4.0.5, appel réel sur `SPY` le 2026-11-03 :
+
+- **Chaîne d’options** : 32 échéances, de 2026-11-03 à 2029-01-19 (maturités longues disponibles).
+- **Qualité** : sur l’échéance la plus proche, `bid` et `ask` valent `0` et `impliedVolatility` vaut `0` ou est aberrante pour 91 contrats sur 220 (41 %), même près de la monnaie. Cause non établie : la séance était peut-être fermée. Règle : **le moteur recalcule la volatilité implicite** à partir de `lastPrice` (ou du milieu `bid`/`ask` quand il existe) et écarte les contrats sans prix exploitable ; la valeur Yahoo n’est pas une source de vérité.
+- **Dividendes** : disponibles via `chart` avec `events: 'div|split'` (11 dividendes de `SPY` depuis 2024, aucun split).
+- **Taux** : seuls des points de la courbe US sont disponibles (`^IRX` 3 mois, `^FVX` 5 ans, `^TNX` 10 ans, `^TYX` 30 ans), pas de 2 ans ni de courbe euro. Source complémentaire : FRED pour les taux US ; pour l’euro, un taux plat saisi par l’utilisateur.
+- **Change** : `EURUSD=X` via `quote` / `chart`.
+- **Pas d’historique d’options** : la chaîne est celle du jour. Pour backtester avec la volatilité implicite du passé, il faudrait un instantané quotidien en base ; sinon, volatilité historique ou valeur choisie par l’utilisateur.
+- Terrain de test : actions et ETF US liquides (`SPY`, `AAPL`, `MSFT`).
+
+Ajouts à `market-service` : `options/:symbol` (chaîne par échéance), dividendes et splits (via `events` de `chart`), taux. Chaque route est cataloguée dans `apps/market-service/API.md`, et son type partagé dans `packages/contracts/src/market.ts`.
+
+### Limites à afficher
+
+Black-Scholes suppose une volatilité constante, des marchés sans friction et aucun risque de crédit sur l’émetteur. Les prix produits par MarketFlow sont des **valeurs pédagogiques**, pas des prix exécutables ; les produits longs utilisent une volatilité choisie par l’utilisateur.
 
 ## Strategy Lab : DCA, backtest et paper trading
 
@@ -1040,14 +1098,15 @@ Cette roadmap suppose un travail individuel régulier. Chaque phase se termine p
 | **Mois 2** | Strategy Lab MVP | Backtest asynchrone DCA / investissement unique, frais, courbe de valeur, transactions simulées, historique des exécutions, tests du moteur. |
 | **Mois 3** | Clôture du Strategy Lab | Comparaison DCA / investissement unique, total des frais, quantités accumulées, règle d’exécution et source des données affichées, tests de reproductibilité. |
 | **Mois 4** | Portfolio Management V1 | Poids par actif, rebalancement, benchmark, CAGR, volatilité, durée de récupération et Sharpe. |
-| **Mois 5** | Robustesse | Comparaison de dates de départ, métriques glissantes, effet devise. |
-| **Mois 6** | Risk Engine | Corrélations, expositions, concentration, VaR/CVaR, contribution au risque, contraintes de risque et premiers rapports. **Gel fonctionnel du moteur de simulation avant optimisation.** |
-| **Mois 7** | Projection | Projection Monte Carlo seedée (fan chart, percentiles, probabilité de perte), objectifs financiers et taux de retrait. |
-| **Mois 8** | Optimisation | Explorateur d'allocations (balayage de poids, frontière efficiente, objectifs Sharpe/min variance/risk parity), optimisation sous contraintes, validation hors échantillon face au mix équipondéré, profils de clients fictifs. |
-| **Mois 9** | Reporting, paper trading et notifications | Reporting gestionnaire, historique des décisions, portefeuilles virtuels suivis à partir d’aujourd’hui, notifications (toaster en bas à droite, page dédiée, lu / non lu, push WebSocket). |
-| **Mois 10** | Données et historique | Importeur de données de référence, dataset versionné, dividendes et splits, ClickHouse si une requête analytique le justifie. |
-| **Mois 11** | Plateforme de déploiement | Images, Kubernetes, Helm, Argo CD, OpenTelemetry, trace d’une simulation de bout en bout, runbooks et environnements `dev`/`demo`. |
+| **Mois 5** | Robustesse et données | Internationalisation FR / EN (urgente, avant toute nouvelle page), comparaison de dates de départ, métriques glissantes, effet devise, dividendes et splits (`events` de `chart`), dataset de référence versionné. |
+| **Mois 6** | Risk Engine | Corrélations, expositions, concentration, VaR/CVaR, contribution au risque, contraintes de risque, stress de portefeuille (choc sur le sous-jacent). **Gel fonctionnel du moteur de simulation avant la structuration.** |
+| **Mois 7** | Projection | Projection Monte Carlo seedée (fan chart, percentiles, probabilité de perte). Le moteur est réutilisé au mois 10 pour le pricing. |
+| **Mois 8** | Taux et obligations | Source de taux (FRED, points `^IRX`/`^FVX`/`^TNX`/`^TYX`), courbe interpolée, actualisation, prix d’obligation, zéro-coupon, duration. |
+| **Mois 9** | Options | Route `options/:symbol`, payoffs call et put, Black-Scholes avec dividendes, parité call-put, grecques, volatilité implicite recalculée par le moteur, smile et surface. |
+| **Mois 10** | Pricing et produits structurés | Pricing Monte Carlo validé contre Black-Scholes, option à barrière, constructeur de produits (capital garanti, reverse convertible, autocallable), décomposition obligation + options, juste valeur contre prix client, stress de produit (sous-jacent, volatilité, taux), term sheet. |
+| **Mois 11** | Plateforme de déploiement | Images, CI/CD, Kubernetes, Helm, Argo CD, OpenTelemetry, trace d’une simulation de bout en bout, runbooks et environnements `dev`/`demo`, ClickHouse si une requête analytique le justifie. |
 | **Mois 12** | Résilience et soutenance | Reprise des consumers et du worker, sauvegarde-restauration, scénarios de panne contrôlés, charge mesurée, tests de non-régression, audit sécurité de base, documentation, dataset reproductible, schémas, métriques avant/après panne, script de démo et rapport. |
+| **Extensions** | COULD | Couverture delta (delta-hedging), optimisation minimale (Max Sharpe, min variance), paper trading, notifications, profils de clients fictifs, objectifs financiers et taux de retrait. |
 | **Bonus** | Marché simulé | Carnet en mémoire, ordres limités, matching engine, outbox, WebSocket, bots et replay — seulement si le reste est stable. |
 
 ### Ordre strict de priorité
@@ -1082,8 +1141,8 @@ Si le temps manque : finir le MVP du mois 4, documenter ses limites et préparer
 1. Composer un portefeuille (par exemple 60 % `AAPL` / 40 % `MSFT`, rebalancement annuel, frais) et lancer le backtest.
 2. Montrer le traitement asynchrone : statut `PENDING` → `RUNNING` → `COMPLETED`, puis la courbe de valeur, le drawdown et les métriques face au benchmark.
 3. Comparer deux allocations et deux dates de départ ; expliquer le compromis rendement/risque.
-4. Lancer l’explorateur d’allocations et montrer la frontière efficiente, puis la validation hors échantillon face au mix équipondéré.
-5. Afficher la projection Monte Carlo (fan chart, probabilité de perte).
+4. Afficher la projection Monte Carlo (fan chart, probabilité de perte).
+5. Construire un produit à capital garanti : décomposition en zéro-coupon et call, prix théorique, marge, term sheet ; montrer le smile de volatilité de `SPY` et l’effet d’un stress (volatilité +10 points, sous-jacent −20 %).
 6. Suivre le même `executionId` dans la trace, les logs et les métriques.
 7. Arrêter le worker, lancer quelques backtests, puis le redémarrer pour prouver qu’il rattrape son retard sans doubler les résultats.
 
@@ -1091,7 +1150,8 @@ Si le temps manque : finir le MVP du mois 4, documenter ses limites et préparer
 
 - Pourquoi Kafka plutôt qu’un appel HTTP direct entre le backend et le moteur de calcul ?
 - Comment un résultat de simulation est-il rendu reproductible et testable ?
-- Pourquoi une allocation « optimale » sur le passé n’est-elle pas une prévision, et comment le projet le montre-t-il ?
+- Comment se décompose un produit à capital garanti, et d’où vient la marge du structureur ?
+- Pourquoi la volatilité implicite diffère-t-elle de la volatilité historique, et comment le moteur la calcule-t-il ?
 - Comment évitez-vous les doubles exécutions et les doubles résultats ?
 - Quelle est la frontière entre ce laboratoire et un vrai service de conseil en investissement réglementé ?
 
