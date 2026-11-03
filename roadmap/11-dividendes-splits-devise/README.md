@@ -5,7 +5,7 @@
 - **Période** : à fixer au démarrage de la feature
 - **Branche / PR** : `feat/dividendes-splits-devise` — PR à ouvrir
 - **Points** : 22 (MUST 16, SHOULD 6) — prévus
-- **Maquettes** : `31 · Résultat avec dividendes` (à créer, agent Figma)
+- **Maquettes** : `31 · Résultat avec dividendes` (créée, node `452:11711`)
 - **Dépend de** : 08 (livrée) ; 10 (i18n) pour les nouveaux libellés.
 
 ## Objectif

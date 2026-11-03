@@ -5,7 +5,7 @@
 - **Période** : à fixer au démarrage de la feature
 - **Branche / PR** : `feat/options-vanilles` — PR à ouvrir
 - **Points** : 24 (MUST 19, SHOULD 5) — prévus
-- **Maquettes** : `36 · Calculateur d'option` (maquette non faite : à créer)
+- **Maquettes** : `36 · Calculateur d’option` (créée, node `459:12719`)
 - **Dépend de** : 11 (dividendes) ; 15 (taux, pipeline pricing).
 
 ## Objectif

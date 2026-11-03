@@ -5,7 +5,7 @@
 - **Période** : à fixer au démarrage de la feature
 - **Branche / PR** : `feat/risk-engine` — PR à ouvrir
 - **Points** : 25 (MUST 18, SHOULD 7) — prévus
-- **Maquettes** : `33 · Risque` (à créer, agent Figma)
+- **Maquettes** : `33 · Risque` (créée, node `454:12126`)
 - **Dépend de** : 11 (rendements corrects). Gèle le moteur de simulation à la fin de cette feature.
 
 ## Objectif

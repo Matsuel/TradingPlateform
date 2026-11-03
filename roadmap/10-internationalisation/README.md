@@ -5,7 +5,7 @@
 - **Période** : à fixer au démarrage de la feature
 - **Branche / PR** : `feat/internationalisation` — PR à ouvrir
 - **Points** : 28 (MUST 23, SHOULD 5) — prévus
-- **Maquettes** : `30 · Sélecteur de langue` (existe déjà dans Figma)
+- **Maquettes** : `30 · Sélecteur de langue` (existant, node `447:11464`)
 - **Dépend de** : 09 (livrée). Passe avant 11 pour que les nouvelles pages naissent traduites.
 
 ## Objectif

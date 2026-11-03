@@ -5,7 +5,7 @@
 - **Période** : à fixer au démarrage de la feature
 - **Branche / PR** : `feat/robustesse-dates-de-depart` — PR à ouvrir
 - **Points** : 27 (MUST 21, SHOULD 6) — prévus
-- **Maquettes** : `32 · Robustesse` (à créer, agent Figma)
+- **Maquettes** : `32 · Robustesse` (créée, node `453:11911`)
 - **Dépend de** : 11 (dividendes, rendements corrects).
 
 ## Objectif

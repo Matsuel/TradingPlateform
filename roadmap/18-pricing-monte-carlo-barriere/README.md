@@ -5,7 +5,7 @@
 - **Période** : à fixer au démarrage de la feature
 - **Branche / PR** : `feat/pricing-monte-carlo-barriere` — PR à ouvrir
 - **Points** : 22 (MUST 19, SHOULD 3) — prévus
-- **Maquettes** : `38 · Pricing Monte Carlo` (maquette non faite : à créer)
+- **Maquettes** : `38 · Pricing Monte Carlo` (créée, node `462:13129`)
 - **Dépend de** : 14 (moteur Monte Carlo, PRNG) ; 16 (Black-Scholes sert de référence).
 
 ## Objectif

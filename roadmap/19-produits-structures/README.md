@@ -5,7 +5,7 @@
 - **Période** : à fixer au démarrage de la feature
 - **Branche / PR** : `feat/produits-structures` — PR à ouvrir
 - **Points** : 29 (MUST 29, SHOULD 0) — prévus
-- **Maquettes** : `39 · Constructeur de produit` (maquette non faite : à créer)
+- **Maquettes** : `39 · Constructeur de produit` (créée, node `465:13338`)
 - **Dépend de** : 15 (obligation), 17 (grecques, IV), 18 (Monte Carlo, barrière).
 
 ## Objectif

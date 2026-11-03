@@ -5,7 +5,7 @@
 - **Période** : à fixer au démarrage de la feature
 - **Branche / PR** : `feat/grecques-volatilite-implicite` — PR à ouvrir
 - **Points** : 24 (MUST 19, SHOULD 5) — prévus
-- **Maquettes** : `37 · Grecques et smile` (maquette non faite : à créer)
+- **Maquettes** : `37 · Grecques et smile` (créée, node `461:12922`)
 - **Dépend de** : 16 (options vanilles).
 
 ## Objectif

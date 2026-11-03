@@ -5,7 +5,7 @@
 - **Période** : à fixer au démarrage de la feature
 - **Branche / PR** : `feat/taux-et-obligations` — PR à ouvrir
 - **Points** : 27 (MUST 21, SHOULD 6) — prévus
-- **Maquettes** : `35 · Taux et obligations` (maquette non faite : à créer)
+- **Maquettes** : `35 · Taux et obligations` (créée, node `456:12522`)
 - **Dépend de** : 08 (livrée). Introduit le pipeline `pricing.*` réutilisé par 16 à 20.
 
 ## Objectif

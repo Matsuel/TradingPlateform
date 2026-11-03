@@ -5,7 +5,7 @@
 - **Période** : à fixer au démarrage de la feature
 - **Branche / PR** : `feat/stress-produit-term-sheet` — PR à ouvrir
 - **Points** : 19 (MUST 15, SHOULD 4) — prévus
-- **Maquettes** : `40 · Term sheet` (maquette non faite : à créer)
+- **Maquettes** : `40 · Term sheet` (créée, node `467:13542`)
 - **Dépend de** : 13 (Risk Engine, vocabulaire du stress) ; 19 (produit à stresser).
 
 ## Objectif
