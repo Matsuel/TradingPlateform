@@ -1,30 +1,33 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import { useWatch } from "react-hook-form"
 import { DateField, FieldRow, FormSection, NumberField, SelectField, SymbolsField, TextField } from "@/components/form"
 import { useFormatters } from "@/lib/format"
 import { AllocationField } from "./allocation-field"
-import { BACKTEST_CURRENCY, investmentModeOptions, rebalanceFrequencyOptions } from "./constants"
+import { BACKTEST_CURRENCY, investmentModes, rebalanceFrequencies } from "./constants"
 import type { InvestmentMode } from "./types"
 
 // Champs communs au formulaire « Nouveau backtest » et au test rapide, sous `FormProvider`
 
 /** Mode d'investissement et, en `RECURRING` seulement, le versement mensuel. */
 export function InvestmentModeFields() {
-    // Partagé par deux formulaires : seul `investmentMode` est lu, typé ici
+    const t = useTranslations("backtest.form")
+    const tMode = useTranslations("backtest.investmentMode")
     const currency = useFormatters().currencySymbol(BACKTEST_CURRENCY)
+    // Partagé par deux formulaires : seul `investmentMode` est lu, typé ici
     const investmentMode = useWatch<{ investmentMode: InvestmentMode }>({ name: "investmentMode" })
 
     return (
         <>
             <SelectField
                 name="investmentMode"
-                label="Mode d’investissement"
+                label={t("investmentMode")}
                 hint="investmentMode"
-                options={investmentModeOptions}
+                options={investmentModes.map((value) => ({ value, label: tMode(value) }))}
             />
             {investmentMode === "RECURRING" && (
-                <NumberField name="recurringAmount" label={`Versement mensuel (${currency})`} />
+                <NumberField name="recurringAmount" label={t("recurringAmount", { currency })} />
             )}
         </>
     )
@@ -32,17 +35,18 @@ export function InvestmentModeFields() {
 
 /** Période (début, fin), puis capital initial et frais par ordre. */
 export function PeriodAndCapitalFields() {
+    const t = useTranslations("backtest.form")
     const currency = useFormatters().currencySymbol(BACKTEST_CURRENCY)
 
     return (
         <>
             <FieldRow>
-                <DateField name="start" label="Début" />
-                <DateField name="end" label="Fin" />
+                <DateField name="start" label={t("start")} />
+                <DateField name="end" label={t("end")} />
             </FieldRow>
             <FieldRow>
-                <NumberField name="initialAmount" label={`Capital initial (${currency})`} />
-                <NumberField name="fee" label="Frais par ordre (%)" hint="feeRate" />
+                <NumberField name="initialAmount" label={t("initialAmount", { currency })} />
+                <NumberField name="fee" label={t("fee")} hint="feeRate" />
             </FieldRow>
         </>
     )
@@ -50,9 +54,11 @@ export function PeriodAndCapitalFields() {
 
 /** Section « Général » du formulaire : nom, mode d'investissement et versement mensuel. */
 export function GeneralSection() {
+    const t = useTranslations("backtest.form")
+
     return (
-        <FormSection title="Général" description="Nom et mode d’investissement">
-            <TextField name="name" label="Nom du backtest" />
+        <FormSection title={t("general.title")} description={t("general.description")}>
+            <TextField name="name" label={t("name")} />
             <InvestmentModeFields />
         </FormSection>
     )
@@ -60,24 +66,27 @@ export function GeneralSection() {
 
 /** Section « Allocation et période » : actifs et poids, période, capital, frais, rebalancement et benchmark. */
 export function AllocationSection() {
+    const t = useTranslations("backtest.form")
+    const tFrequency = useTranslations("backtest.rebalanceFrequency")
+
     return (
-        <FormSection title="Allocation et période" description="Actifs, poids et fenêtre historique">
-            <AllocationField name="allocations" label="Actifs et poids" hint="allocation" />
+        <FormSection title={t("allocationSection.title")} description={t("allocationSection.description")}>
+            <AllocationField name="allocations" label={t("allocations")} hint="allocation" />
             <PeriodAndCapitalFields />
             <SelectField
                 name="rebalanceFrequency"
-                label="Rebalancement"
+                label={t("rebalance")}
                 hint="rebalanceFrequency"
-                description="Ramène les poids à la cible"
-                options={rebalanceFrequencyOptions}
+                description={t("rebalanceDescription")}
+                options={rebalanceFrequencies.map((value) => ({ value, label: tFrequency(value) }))}
             />
             <SymbolsField
                 name="benchmarkSymbols"
-                label="Benchmark"
+                label={t("benchmark")}
                 hint="benchmark"
-                description="Rejoué avec les mêmes versements et frais ; retire-le pour simuler sans benchmark"
+                description={t("benchmarkDescription")}
                 max={1}
-                addLabel="Choisir"
+                addLabel={t("benchmarkAdd")}
             />
         </FormSection>
     )

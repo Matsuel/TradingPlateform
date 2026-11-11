@@ -1,6 +1,7 @@
 "use client"
 
 import { Plus, X } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { useState } from "react"
 import { type FieldValues, type FieldError as FormFieldError, useFormContext } from "react-hook-form"
 import { AppField, type BaseProps } from "@/components/form/field"
@@ -26,6 +27,7 @@ interface AllocationRowProps {
 
 // Une ligne : symbole et nom, barre du poids, saisie en pourcent, retrait ; l'erreur du poids sous la ligne
 function AllocationRow({ row, inputId, error, onWeightChange, onRemove, onBlur }: AllocationRowProps) {
+    const t = useTranslations("backtest.allocation")
     const width = Number.isNaN(row.weight) ? 0 : Math.min(Math.max(row.weight, 0), FULL_PERCENT)
 
     return (
@@ -58,7 +60,7 @@ function AllocationRow({ row, inputId, error, onWeightChange, onRemove, onBlur }
                     type="button"
                     variant="ghost"
                     size="icon"
-                    aria-label={`Retirer ${row.symbol}`}
+                    aria-label={t("remove", { symbol: row.symbol })}
                     onClick={onRemove}
                 >
                     <X />
@@ -71,6 +73,8 @@ function AllocationRow({ row, inputId, error, onWeightChange, onRemove, onBlur }
 
 // Bouton d'ajout et total saisi, vert à 100 %, rouge sinon (la validation reste au schéma)
 function AllocationFooter({ total, addLabel, onAdd }: { total: number; addLabel: string; onAdd: () => void }) {
+    const t = useTranslations("backtest.allocation")
+
     return (
         <div className="flex items-center justify-between gap-2">
             <Button type="button" variant="outline" onClick={onAdd}>
@@ -78,7 +82,7 @@ function AllocationFooter({ total, addLabel, onAdd }: { total: number; addLabel:
                 {addLabel}
             </Button>
             <Badge variant={total === FULL_PERCENT ? "success" : "destructive"} aria-live="polite">
-                Total : {total} %
+                {t("total", { total })}
             </Badge>
         </div>
     )
@@ -89,10 +93,8 @@ function AllocationFooter({ total, addLabel, onAdd }: { total: number; addLabel:
  * Le badge « Total » additionne la saisie pour l'affichage ; la validation (somme = 100) reste au schéma.
  * Un actif ajouté reçoit le reste jusqu'à 100 % (vide s'il n'en reste pas) ; un symbole déjà présent n'est pas ajouté.
  */
-export function AllocationField<T extends FieldValues>({
-    addLabel = "Ajouter un actif",
-    ...base
-}: BaseProps<T> & { addLabel?: string }) {
+export function AllocationField<T extends FieldValues>({ addLabel, ...base }: BaseProps<T> & { addLabel?: string }) {
+    const t = useTranslations("backtest.allocation")
     const [open, setOpen] = useState(false)
     const { getFieldState, formState } = useFormContext<T>()
 
@@ -131,13 +133,17 @@ export function AllocationField<T extends FieldValues>({
                                     />
                                 )
                             })}
-                            <AllocationFooter total={total} addLabel={addLabel} onAdd={() => setOpen(true)} />
+                            <AllocationFooter
+                                total={total}
+                                addLabel={addLabel ?? t("add")}
+                                onAdd={() => setOpen(true)}
+                            />
                         </div>
                         <SymbolPicker
                             open={open}
                             onOpenChange={setOpen}
                             exclude={symbols}
-                            title="Ajouter un actif"
+                            title={t("add")}
                             onSelect={(item) => add(item.symbol, item.name)}
                         />
                     </>

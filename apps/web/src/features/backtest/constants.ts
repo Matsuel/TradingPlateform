@@ -1,8 +1,6 @@
 import type {
     ComparedMetric,
-    ComparisonParameter,
     DataSource,
-    ExecutionRule,
     ExecutionStatus,
     InvestmentMode,
     RebalanceFrequency,
@@ -18,17 +16,16 @@ export const FULL_PERCENT = 100
 // Une exécution dans ces statuts peut encore évoluer
 export const activeStatuses = ["PENDING", "RUNNING"] as const satisfies readonly ExecutionStatus[]
 
-export const investmentModeOptions: { value: InvestmentMode; label: string }[] = [
-    { value: "LUMP_SUM", label: "Investissement unique" },
-    { value: "RECURRING", label: "Investissement unique + versements mensuels" },
-]
+// Libellés : `backtest.investmentMode.<mode>` dans les dictionnaires
+export const investmentModes = ["LUMP_SUM", "RECURRING"] as const satisfies readonly InvestmentMode[]
 
-export const rebalanceFrequencyLabels: Record<RebalanceFrequency, string> = {
-    NONE: "Aucun",
-    MONTHLY: "Mensuel",
-    QUARTERLY: "Trimestriel",
-    YEARLY: "Annuel",
-}
+// Libellés : `backtest.rebalanceFrequency.<fréquence>`
+export const rebalanceFrequencies = [
+    "NONE",
+    "MONTHLY",
+    "QUARTERLY",
+    "YEARLY",
+] as const satisfies readonly RebalanceFrequency[]
 
 // Valeurs initiales du formulaire et du test rapide : capital en `BACKTEST_CURRENCY`, frais en pourcent par ordre
 export const DEFAULT_INVESTMENT_MODE = "LUMP_SUM" satisfies InvestmentMode
@@ -38,42 +35,15 @@ export const DEFAULT_FEE_PERCENT = 0.1
 // Valeur par défaut du formulaire et du test rapide, comme le défaut de createBacktestSchema
 export const DEFAULT_REBALANCE_FREQUENCY = "NONE" satisfies RebalanceFrequency
 
-export const rebalanceFrequencyOptions = Object.entries(rebalanceFrequencyLabels).map(([value, label]) => ({
-    value,
-    label,
-}))
-
 // Benchmark proposé par le formulaire (D9) : ETF iShares MSCI World
 export const DEFAULT_BENCHMARK_SYMBOL = "URTH"
-
-export const NO_BENCHMARK_LABEL = "Aucun"
-
-export const strategyLabels: Record<InvestmentMode, string> = {
-    RECURRING: "DCA mensuel",
-    LUMP_SUM: "Lump sum",
-}
-
-export const executionRuleLabels: Record<ExecutionRule, string> = {
-    CLOSE_ON_SCHEDULED_DAY: "Achat à la clôture du premier jour de cotation de chaque échéance",
-}
 
 export const dataProviderLabels: Record<DataSource["provider"], string> = {
     "yahoo-finance2": "Yahoo Finance",
 }
 
-export const priceTypeLabels: Record<DataSource["priceType"], string> = {
-    CLOSE_SPLIT_ADJUSTED: "Clôture ajustée des splits, hors dividendes",
-}
-
-// Étapes d'une exécution, dans l'ordre, affichées par le récapitulatif du formulaire (maquette 12)
-export const previewSteps = [
-    { label: "Données", description: "Cours de clôture journaliers des actifs" },
-    { label: "Simulation", description: "Versements, ordres et rebalancements" },
-    { label: "Métriques", description: "Rendement, risque et drawdown" },
-] as const
-
-export const BACKTEST_DISCLAIMER =
-    "Les performances passées ne préjugent pas des performances futures. Simulation pédagogique, pas un conseil en investissement."
+// Étapes d'une exécution, dans l'ordre, affichées par le récapitulatif du formulaire (maquette 12) ; textes : `backtest.preview.steps.<étape>`
+export const previewSteps = ["data", "simulation", "metrics"] as const
 
 // Couleur du badge de chaque statut ; le libellé vient de `backtest.status.<statut>`
 export const statusVariants: Record<ExecutionStatus, "outline" | "destructive" | "secondary" | "success"> = {
@@ -88,29 +58,13 @@ export const statusVariants: Record<ExecutionStatus, "outline" | "destructive" |
 // Couleur du badge de chaque côté d'un ordre ; le libellé vient de `backtest.tradeSide.<côté>`
 export const tradeSideVariants: Record<TradeSide, "success" | "destructive"> = { BUY: "success", SELL: "destructive" }
 
-export const statusBadges: Record<
-    ExecutionStatus,
-    { label: string; variant: "outline" | "destructive" | "secondary" | "success" }
-> = {
-    DRAFT: { label: "Brouillon", variant: "secondary" },
-    PENDING: { label: "En attente", variant: "outline" },
-    RUNNING: { label: "En cours", variant: "outline" },
-    COMPLETED: { label: "Terminé", variant: "success" },
-    FAILED: { label: "Échoué", variant: "destructive" },
-    CANCELLED: { label: "Annulé", variant: "secondary" },
-}
-
-export const tradeSideBadges: Record<TradeSide, { label: string; variant: "success" | "destructive" }> = {
-    BUY: { label: "Achat", variant: "success" },
-    SELL: { label: "Vente", variant: "destructive" },
-}
-
+// Onglets de filtre de la liste ; libellés : `backtest.filters.<filtre>`
 export const statusFilters = {
-    all: { label: "Tous", statuses: [] },
-    running: { label: "En cours", statuses: activeStatuses },
-    done: { label: "Terminés", statuses: ["COMPLETED"] },
-    failed: { label: "Échoués", statuses: ["FAILED"] },
-} as const satisfies Record<string, { label: string; statuses: readonly ExecutionStatus[] }>
+    all: { statuses: [] },
+    running: { statuses: activeStatuses },
+    done: { statuses: ["COMPLETED"] },
+    failed: { statuses: ["FAILED"] },
+} as const satisfies Record<string, { statuses: readonly ExecutionStatus[] }>
 
 export type StatusFilter = keyof typeof statusFilters
 
@@ -123,13 +77,6 @@ export const comparisonSideColors = {
     a: { stroke: "var(--chart-1)", className: "bg-chart-1" },
     b: { stroke: "var(--chart-2)", className: "bg-chart-2" },
 } as const
-
-// Fragment du titre du bandeau « Comparaison non homogène : … » pour chaque paramètre qui diffère
-export const comparisonParameterLabels: Record<ComparisonParameter, string> = {
-    period: "périodes différentes",
-    feeRate: "frais différents",
-    benchmarkSymbol: "benchmarks différents",
-}
 
 // Sens favorable d'un écart A − B, pour le colorer : une volatilité plus haute est défavorable
 export const comparedMetricHigherIsBetter: Record<ComparedMetric, boolean> = {

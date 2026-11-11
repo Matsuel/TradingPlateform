@@ -2,6 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useRouter } from "next/navigation"
+import { useTranslations } from "next-intl"
 import { FormProvider, useForm, useWatch } from "react-hook-form"
 import { setFormIssues } from "@/components/form/form-issues"
 import { Button } from "@/components/ui/button"
@@ -17,15 +18,16 @@ import {
 } from "./constants"
 import { useCreateBacktest } from "./hook"
 import { BacktestPreviewSummary } from "./preview-summary"
-import { type BacktestValues, backtestSchema } from "./schema"
+import { type BacktestValues, createBacktestSchema } from "./schema"
 import { AllocationSection, GeneralSection } from "./sections"
 import { allocationTotal } from "./utils"
 
 export function NewBacktestForm() {
+    const t = useTranslations("backtest")
     const router = useRouter()
     const { mutateAsync, error } = useCreateBacktest()
     const form = useForm<BacktestValues>({
-        resolver: zodResolver(backtestSchema),
+        resolver: zodResolver(createBacktestSchema(t)),
         defaultValues: {
             name: "",
             investmentMode: DEFAULT_INVESTMENT_MODE,
@@ -61,7 +63,7 @@ export function NewBacktestForm() {
                             type="submit"
                             disabled={form.formState.isSubmitting || allocationTotal(allocations) !== FULL_PERCENT}
                         >
-                            Lancer le backtest
+                            {t("form.submit")}
                         </Button>
                     </div>
                 </form>
