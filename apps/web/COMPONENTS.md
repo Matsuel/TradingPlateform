@@ -1235,7 +1235,7 @@ Source : `src/features/backtest/types.ts`.
 ### PriceChart
 
 - **Import** : `import { PriceChart } from "@/features/market/price-chart"`.
-- **Rôle** : carte « Prix » d'un symbole avec onglets `FilterTabs` sur `periodOptions` (`1d` par défaut) ; charge via `useMarketDetails`, affiche en `MARKET_CURRENCY`.
+- **Rôle** : carte « Prix » d'un symbole avec onglets `FilterTabs` sur `periods` (`1d` par défaut ; libellés `market.periods.*`, pas des points `market.intervals.*`) ; charge via `useMarketDetails`, affiche en `MARKET_CURRENCY`.
 - **Props** :
   - `symbol` : Symbole yahoo.
 - **Source** : `src/features/market/price-chart.tsx`.
@@ -1287,7 +1287,7 @@ Source : `src/features/market/hook.ts`.
 | --- | --- |
 | `MARKET_CURRENCY` | Devise d'affichage des cours (yahoo ne les convertit pas). |
 | `MIN_SEARCH_LENGTH` | Longueur minimale d'une recherche de symbole (le backend exige 2). |
-| `periodOptions` | Onglets de période et pas des points. |
+| `periods` | Périodes du graphique, dans l'ordre des onglets ; libellés et pas des points dans `messages/*.json`, namespace `market`. |
 
 Source : `src/features/market/constants.ts`.
 
