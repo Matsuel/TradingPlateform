@@ -15,10 +15,10 @@
 | T-07 | Test de cohérence des dictionnaires | US-03 | web | MUST | 2 | T-02 | 2 | `c308167`, `06b48cb` |
 | T-08 | Paramètres : onglet Apparence et carte « Thème » | US-04 | web | MUST | 3 | T-01 | 5 | `810b276` |
 | T-09 | Traduction du glossaire (aide contextuelle) | US-01 | web | SHOULD | 8 | T-02 | 8 | `1362977`, `30540f7`, `215a7ea` |
-| T-10 | Traduction de la page d’accueil et des pages `/app/*` à venir | US-01 | web | MUST | 3 | T-02 | — | — |
+| T-10 | Traduction de la page d’accueil et des pages `/app/*` à venir | US-01 | web | MUST | 3 | T-02 | 3 | `f346219` |
 | T-11 | Erreurs de l’API en code stable, traduites par le web | US-05 | backend, web | SHOULD | 5 | T-02 | — | — |
 
-**Total** : 45 points prévus — MUST 29, SHOULD 16 ; 47 réalisés sur T-01 à T-09 (39 prévus).
+**Total** : 45 points prévus — MUST 29, SHOULD 16 ; 50 réalisés sur T-01 à T-10 (42 prévus).
 
 Écarts réalisés : T-04 3 → 5, 20 fichiers adaptés (colonnes devenues des hooks, helpers qui reçoivent les formatters) ; T-05 8 → 13, traduction de 50 composants et helpers, schémas zod en fabriques, découpe de `result-metrics.tsx` et `allocation-field.tsx` sous les seuils ; T-08 3 → 5, cartes ajustées à la maquette 06.2 et correction de l’hydratation du thème ; T-03 2 → 3, Server Action `setLocale`. T-06 5 → 3 : le glossaire, qui en faisait partie, devient T-09. T-06 et T-09 réalisés par deux sous-agents en parallèle (un worktree chacun), fusionnés le 2026-11-11 (`fefb857`) ; `GLOSSARY` ne porte plus que la `source` de chaque entrée, les textes sont dans `messages/*.json`.
 
@@ -28,7 +28,7 @@
 | 2. Écrans | T-05 → T-07 | 13 |
 | 3. Écrans restants | T-09 → T-11 | 16 |
 
-**Chemin critique** (16 points) : T-01 → T-02 → T-05 (livré). Reste à faire : T-10 (3 points) et T-11 (5 points).
+**Chemin critique** (16 points) : T-01 → T-02 → T-05 (livré). Reste à faire : T-11 (5 points).
 
 **Parallélisable** : T-06, T-09, T-10 et T-11 après T-02, sans dépendance entre elles.
 
@@ -160,13 +160,13 @@ Critères d’acceptation :
 
 ### T-10 · Traduction de la page d’accueil et des pages `/app/*` à venir
 
-- **US** : US-01 · **Priorité** : MUST · **Points** : 3 · **Dépend de** : T-02 · **Commits** : —
+- **US** : US-01 · **Priorité** : MUST · **Points** : 3 · **Dépend de** : T-02 · **Commits** : `f346219`
 - **Fichiers** : `apps/web/src/app/(base)/page.tsx`, `apps/web/src/app/app/**/page.tsx`, `apps/web/src/features/market/*` (hors périmètre de T-06), `apps/web/messages/*.json`
 
 Critères d’acceptation :
-- [ ] La page d’accueil (titre, présentation, trois cartes, mention pédagogique) est traduite.
-- [ ] Les pages `/app/*` qui n’affichent que `PageHeader` (dashboard, notifications, paper trading, risque, projection, optimisation, rapports, monitoring, utilisateurs, données de référence) ont titre, description et `metadata` lus dans les dictionnaires.
-- [ ] Le test de cohérence des dictionnaires (T-07) passe.
+- [x] La page d’accueil (titre, présentation, trois cartes, mention pédagogique) est traduite.
+- [x] Les pages `/app/*` qui n’affichent que `PageHeader` (dashboard, notifications, paper trading, risque, projection, optimisation, rapports, monitoring, utilisateurs, données de référence) ont titre, description et `metadata` lus dans les dictionnaires.
+- [x] Le test de cohérence des dictionnaires (T-07) passe.
 
 ### T-11 · Erreurs de l’API en code stable, traduites par le web
 

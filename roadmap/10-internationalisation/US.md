@@ -45,7 +45,7 @@
 Critères d’acceptation :
 - [x] Le choix FR / EN est dans Paramètres > Apparence, carte « Langue et région » (maquette `06.2`).
 - [x] Le parcours backtest (liste, formulaires, détail, comparaison), le marché et les textes d'aide sont dans la langue choisie.
-- [ ] La page d'accueil et les pages `/app/*` à venir sont dans la langue choisie (T-10).
+- [x] La page d'accueil et les pages `/app/*` à venir sont dans la langue choisie.
 - [x] Le choix survit à un rechargement.
 
 Tâches : T-01, T-02, T-03, T-05, T-06, T-09, T-10 (détail dans `TASKS.md`).
