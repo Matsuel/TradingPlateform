@@ -1,6 +1,7 @@
 "use client"
 
 import type { UseQueryResult } from "@tanstack/react-query"
+import { useTranslations } from "next-intl"
 import type { ReactNode } from "react"
 import { ErrorState, LoadingState } from "@/components/query-status"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -70,9 +71,10 @@ export function DataTable<T>({
     columns,
     rowKey,
     onRowClick,
-    emptyMessage = "Aucune donnée.",
+    emptyMessage,
     pagination,
 }: DataTableProps<T>) {
+    const t = useTranslations("components.dataTable")
     const { data, isPending, isError, error, refetch } = query ?? {
         data: rows,
         isPending: false,
@@ -98,7 +100,7 @@ export function DataTable<T>({
     else if (!data?.length)
         body = (
             <StatusRow colSpan={span}>
-                <span className="text-body text-muted-foreground">{emptyMessage}</span>
+                <span className="text-body text-muted-foreground">{emptyMessage ?? t("empty")}</span>
             </StatusRow>
         )
     else body = <DataRows rows={data} columns={columns} rowKey={rowKey} onRowClick={onRowClick} />

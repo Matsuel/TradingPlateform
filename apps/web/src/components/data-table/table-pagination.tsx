@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl"
 import type { MouseEvent } from "react"
 import {
     Pagination,
@@ -20,6 +21,7 @@ export type TablePaginationProps = {
 
 /** Pagination sous un tableau : « 1–20 sur 134 », précédent, numéros (`getPageItems`), suivant ; rien sur une seule page. */
 export function TablePagination({ page, pageSize, count, onPageChange }: TablePaginationProps) {
+    const t = useTranslations("components.pagination")
     const pageCount = Math.ceil(count / pageSize)
     if (pageCount <= 1) return null
 
@@ -36,15 +38,15 @@ export function TablePagination({ page, pageSize, count, onPageChange }: TablePa
     return (
         <div className="flex items-center justify-between gap-4">
             <span className="text-small text-muted-foreground">
-                {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, count)} sur {count}
+                {t("range", { from: (page - 1) * pageSize + 1, to: Math.min(page * pageSize, count), count })}
             </span>
             <Pagination className="mx-0 w-auto">
                 <PaginationContent>
                     <PaginationItem>
                         <PaginationPrevious
                             href="#"
-                            text="Précédent"
-                            aria-label="Page précédente"
+                            text={t("previous")}
+                            aria-label={t("previousAria")}
                             onClick={select(page - 1)}
                             {...bound(page <= 1)}
                         />
@@ -63,8 +65,8 @@ export function TablePagination({ page, pageSize, count, onPageChange }: TablePa
                     <PaginationItem>
                         <PaginationNext
                             href="#"
-                            text="Suivant"
-                            aria-label="Page suivante"
+                            text={t("next")}
+                            aria-label={t("nextAria")}
                             onClick={select(page + 1)}
                             {...bound(page >= pageCount)}
                         />

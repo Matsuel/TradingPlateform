@@ -90,5 +90,355 @@
             "description": "Format d’affichage des textes, dates et nombres.",
             "label": "Langue"
         }
+    },
+    "components": {
+        "symbolSearch": {
+            "tooShort": "Saisis au moins {count} caractères.",
+            "failed": "La recherche a échoué",
+            "empty": "Aucun résultat pour « {query} ».",
+            "results": "Résultats"
+        },
+        "symbolPicker": {
+            "title": "Rechercher un symbole",
+            "description": "Actions, ETF, cryptos et indices."
+        },
+        "infoHint": {
+            "shownValue": "Valeur affichée",
+            "purpose": "À quoi ça sert",
+            "computation": "Comment c’est calculé",
+            "unit": "Unité",
+            "readingTip": "Comment le lire",
+            "source": "Source : {source}"
+        },
+        "optionSelect": {
+            "placeholder": "Sélectionner…"
+        },
+        "symbolsField": {
+            "add": "Ajouter",
+            "remove": "Retirer {symbol}",
+            "pickerTitle": "Ajouter un symbole"
+        },
+        "pagination": {
+            "range": "{from}–{to} sur {count}",
+            "previous": "Précédent",
+            "previousAria": "Page précédente",
+            "next": "Suivant",
+            "nextAria": "Page suivante"
+        },
+        "dataTable": {
+            "empty": "Aucune donnée."
+        },
+        "dateField": {
+            "placeholder": "jj/mm/aaaa"
+        }
+    },
+    "backtest": {
+        "list": {
+            "title": "Backtests",
+            "description": "Historique des runs de stratégies exécutés.",
+            "action": "Nouveau backtest",
+            "tableTitle": "Tous les backtests",
+            "tableDescription": "Triés par date de lancement",
+            "empty": "Aucun backtest."
+        },
+        "new": {
+            "title": "Nouveau backtest",
+            "description": "Configurez une stratégie : un test sera effectué afin de voir si cette stratégie est la bonne"
+        },
+        "detail": {
+            "metaTitle": "Backtest",
+            "rerun": "Relancer",
+            "failed": "Le backtest a échoué : {error}",
+            "unknownError": "erreur inconnue",
+            "pending": "Les résultats s’afficheront à la fin du calcul.",
+            "rebalancing": "rebalancement {frequency}",
+            "benchmark": "benchmark {symbol}",
+            "executedIn": "exécuté en {duration}"
+        },
+        "noBenchmark": "Aucun",
+        "disclaimer": "Les performances passées ne préjugent pas des performances futures. Simulation pédagogique, pas un conseil en investissement.",
+        "investmentMode": {
+            "LUMP_SUM": "Investissement unique",
+            "RECURRING": "Investissement unique + versements mensuels"
+        },
+        "strategy": {
+            "RECURRING": "DCA mensuel",
+            "LUMP_SUM": "Lump sum"
+        },
+        "rebalanceFrequency": {
+            "NONE": "Aucun",
+            "MONTHLY": "Mensuel",
+            "QUARTERLY": "Trimestriel",
+            "YEARLY": "Annuel"
+        },
+        "executionRule": {
+            "CLOSE_ON_SCHEDULED_DAY": "Achat à la clôture du premier jour de cotation de chaque échéance"
+        },
+        "priceType": {
+            "CLOSE_SPLIT_ADJUSTED": "Clôture ajustée des splits, hors dividendes"
+        },
+        "status": {
+            "DRAFT": "Brouillon",
+            "PENDING": "En attente",
+            "RUNNING": "En cours",
+            "COMPLETED": "Terminé",
+            "FAILED": "Échoué",
+            "CANCELLED": "Annulé"
+        },
+        "tradeSide": {
+            "BUY": "Achat",
+            "SELL": "Vente"
+        },
+        "filters": {
+            "all": "Tous",
+            "running": "En cours",
+            "done": "Terminés",
+            "failed": "Échoués"
+        },
+        "metrics": {
+            "cagr": "CAGR",
+            "totalReturn": "Rendement total",
+            "finalValue": "Valeur finale",
+            "volatility": "Volatilité",
+            "sharpeRatio": "Sharpe",
+            "maxDrawdown": "Max drawdown",
+            "recovery": "Récupération",
+            "rowHeader": "Indicateur"
+        },
+        "recovery": {
+            "noDrawdown": "Aucune baisse",
+            "notRecovered": "Non récupéré"
+        },
+        "duration": {
+            "minutesSeconds": "{minutes} min {seconds} s",
+            "seconds": "{seconds} s",
+            "after": "Après {duration}"
+        },
+        "benchmarkLabel": "Benchmark {symbol}",
+        "columns": {
+            "name": "Nom",
+            "strategy": "Stratégie",
+            "allocation": "Allocation",
+            "period": "Période",
+            "return": "Rendement",
+            "cagr": "CAGR",
+            "status": "Statut",
+            "duration": "Durée",
+            "date": "Date",
+            "symbol": "Symbole",
+            "side": "Côté",
+            "price": "Prix",
+            "quantity": "Quantité",
+            "amount": "Montant",
+            "fees": "Frais",
+            "value": "Valeur"
+        },
+        "stats": {
+            "total": "Backtests au total",
+            "sinceCreation": "Depuis la création",
+            "active": "En cours",
+            "activeCaption": "Backtests actifs",
+            "completed": "Terminés",
+            "successRate": "Taux de réussite",
+            "failed": "Échoués",
+            "failedRuns": "Runs en erreur"
+        },
+        "trades": {
+            "title": "Ordres",
+            "recent": "{shown} plus récents sur {total}",
+            "all": "Achats et ventes, du plus récent au plus ancien",
+            "seeAll": "Voir les {count} ordres",
+            "showRecent": "Afficher les plus récents",
+            "empty": "Aucun ordre."
+        },
+        "form": {
+            "submit": "Lancer le backtest",
+            "general": {
+                "title": "Général",
+                "description": "Nom et mode d’investissement"
+            },
+            "allocationSection": {
+                "title": "Allocation et période",
+                "description": "Actifs, poids et fenêtre historique"
+            },
+            "name": "Nom du backtest",
+            "investmentMode": "Mode d’investissement",
+            "recurringAmount": "Versement mensuel ({currency})",
+            "start": "Début",
+            "end": "Fin",
+            "initialAmount": "Capital initial ({currency})",
+            "fee": "Frais par ordre (%)",
+            "allocations": "Actifs et poids",
+            "rebalance": "Rebalancement",
+            "rebalanceDescription": "Ramène les poids à la cible",
+            "benchmark": "Benchmark",
+            "benchmarkDescription": "Rejoué avec les mêmes versements et frais ; retire-le pour simuler sans benchmark",
+            "benchmarkAdd": "Choisir"
+        },
+        "allocation": {
+            "add": "Ajouter un actif",
+            "remove": "Retirer {symbol}",
+            "total": "Total : {total} %"
+        },
+        "validation": {
+            "required": "Requis",
+            "integer": "Pourcent entier",
+            "minWeight": "Au moins 1 %",
+            "atLeastOne": "Ajoute au moins un actif",
+            "total": "Le total doit faire {total} %",
+            "endAfterStart": "Doit être après la date de début",
+            "greaterThanZero": "Doit être supérieur à 0"
+        },
+        "quick": {
+            "name": "Test rapide {symbol}",
+            "symbol": "Symbole",
+            "analysedData": "Données analysées",
+            "days": "{count, plural, one {# jour} other {# jours}}",
+            "hint": "Test rapide sur ce symbole. Pour comparer plusieurs symboles, utilisez la page Backtests.",
+            "advanced": "Configuration avancée",
+            "run": "Lancer le test"
+        },
+        "preview": {
+            "title": "Récapitulatif",
+            "description": "Ce que lancera le backtest",
+            "steps": {
+                "data": {
+                    "label": "Données",
+                    "description": "Cours de clôture journaliers des actifs"
+                },
+                "simulation": {
+                    "label": "Simulation",
+                    "description": "Versements, ordres et rebalancements"
+                },
+                "metrics": {
+                    "label": "Métriques",
+                    "description": "Rendement, risque et drawdown"
+                }
+            },
+            "plannedRebalances": "Rebalancements prévus",
+            "plannedContributions": "Versements prévus",
+            "dataSource": "Source des données",
+            "estimate": "Estimation calendaire : jours ouvrés du lundi au vendredi, jours fériés inconnus avant le chargement des cours."
+        },
+        "overview": {
+            "finalValue": "Valeur finale",
+            "profit": "Plus-value",
+            "profitOn": "{profit} sur {invested}",
+            "invested": "{amount} investis",
+            "benchmarkReturn": "{symbol} sur la même période : {return}",
+            "portfolio": "Portefeuille",
+            "lumpSum": "Investissement unique",
+            "drawdown": "Drawdown"
+        },
+        "result": {
+            "performance": {
+                "title": "Performance",
+                "description": "Rendement, hors versements"
+            },
+            "risk": {
+                "title": "Risque",
+                "annualised": "Annualisé",
+                "annualisedRiskFree": "Annualisé, taux sans risque {rate}",
+                "trough": "Creux atteint le",
+                "peak": "Baisse maximale depuis le plus haut du {date}"
+            },
+            "costs": {
+                "title": "Coûts et activité",
+                "noRebalancing": "Sans rebalancement",
+                "rebalancing": "Rebalancement {frequency}",
+                "description": "{rebalancing} · frais déduits de la valeur, achats et ventes",
+                "fees": "Frais payés",
+                "trades": "Ordres",
+                "rebalances": "Rebalancements",
+                "total": "Total"
+            },
+            "portfolio": "Portefeuille",
+            "lumpSum": {
+                "label": "Investi en une fois au 1er jour",
+                "summary": "{final}, soit {gap} {direction, select, less {de moins} other {de mieux}} que le DCA",
+                "single": "Investissement unique",
+                "dcaGap": "Écart du DCA"
+            }
+        },
+        "assumptions": {
+            "period": "Période",
+            "currency": "Devise",
+            "fees": "Frais",
+            "feesValue": "{rate} par ordre, achat et vente",
+            "rebalancing": "Rebalancement",
+            "benchmark": "Benchmark",
+            "riskFree": "Taux sans risque",
+            "executionRule": "Règle d’exécution",
+            "dataSource": "Source des données",
+            "fetchedAt": "Données récupérées le",
+            "fingerprint": "Empreinte des données"
+        },
+        "details": {
+            "positions": "Positions finales",
+            "positionsEmpty": "Positions non disponibles pour ce résultat.",
+            "assumptions": "Hypothèses",
+            "assumptionsSummary": "Conditions de la simulation",
+            "history": "Historique d’exécution",
+            "historyCount": "{count, plural, one {# exécution} other {# exécutions}}",
+            "show": "Afficher",
+            "hide": "Masquer"
+        },
+        "history": {
+            "pending": "En file d’attente",
+            "running": "Calcul en cours",
+            "unknownError": "Erreur inconnue",
+            "completed": "Terminé",
+            "completedSummary": "{count, plural, one {# ordre} other {# ordres}} · {return}"
+        },
+        "compare": {
+            "title": "Comparaison",
+            "description": "Deux backtests terminés, mêmes métriques côte à côte",
+            "copy": "Copier le lien",
+            "copied": "Lien copié",
+            "invalidLink": "Ce lien ne désigne pas deux backtests différents : choisissez-en deux.",
+            "choose": "Choisissez deux backtests terminés à comparer.",
+            "selection": {
+                "a": "Backtest A",
+                "b": "Backtest B",
+                "swap": "Échanger",
+                "hint": "Seuls vos backtests terminés sont proposés. Le lien de la page garde la sélection."
+            },
+            "overview": {
+                "title": "Valeur des portefeuilles",
+                "description": "Drawdown sous la courbe, même axe temporel"
+            },
+            "metrics": {
+                "title": "Métriques comparées",
+                "description": "Écart = A − B, en points (Sharpe sans unité)",
+                "delta": "Écart",
+                "points": "{value} pts"
+            },
+            "parameters": {
+                "title": "Paramètres",
+                "description": "Ceux qui diffèrent sont signalés",
+                "rowHeader": "Paramètre",
+                "differs": "diffère",
+                "period": "Période",
+                "mode": "Mode",
+                "allocation": "Allocation",
+                "rebalancing": "Rebalancement",
+                "fees": "Frais",
+                "benchmark": "Benchmark"
+            },
+            "banner": {
+                "title": "Comparaison non homogène : {differences}",
+                "note": "Les écarts restent calculés, mais ne mesurent plus seulement l’effet de l’allocation."
+            },
+            "differences": {
+                "period": "périodes différentes",
+                "feeRate": "frais différents",
+                "benchmarkSymbol": "benchmarks différents"
+            },
+            "details": {
+                "period": "A couvre {a}, B {b}.",
+                "feeRate": "A paie {a} par ordre, B {b}.",
+                "benchmarkSymbol": "Benchmark de A : {a}, de B : {b}."
+            }
+        }
     }
 }

@@ -1,5 +1,6 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import type { MouseEvent, ReactNode } from "react"
 import { AppSheet } from "@/components/app-sheet"
 import { Button } from "@/components/ui/button"
@@ -34,8 +35,9 @@ interface InfoHintProps {
  * Le clic n'atteint pas le parent (ligne cliquable, formulaire). Sans `entry`, rend `children` seul.
  */
 export function InfoHint({ entry, value, details = [], children }: InfoHintProps) {
+    const t = useTranslations("components.infoHint")
     if (!entry) return children
-    const shown = value == null ? details : [{ label: "Valeur affichée", value }, ...details]
+    const shown = value == null ? details : [{ label: t("shownValue"), value }, ...details]
     const { title, purpose, computation, formula, unit, readingTip, source }: GlossaryEntry = GLOSSARY[entry]
 
     return (
@@ -60,10 +62,10 @@ export function InfoHint({ entry, value, details = [], children }: InfoHintProps
                             ))}
                         </dl>
                     )}
-                    <HintSection title="À quoi ça sert">
+                    <HintSection title={t("purpose")}>
                         <p>{purpose}</p>
                     </HintSection>
-                    <HintSection title="Comment c’est calculé">
+                    <HintSection title={t("computation")}>
                         <p>{computation}</p>
                         {formula && (
                             <pre className="rounded-lg bg-muted px-4 py-3 font-mono text-small whitespace-pre-wrap text-foreground">
@@ -71,15 +73,15 @@ export function InfoHint({ entry, value, details = [], children }: InfoHintProps
                             </pre>
                         )}
                     </HintSection>
-                    <HintSection title="Unité">
+                    <HintSection title={t("unit")}>
                         <p>{unit}</p>
                     </HintSection>
                     {readingTip && (
-                        <HintSection title="Comment le lire">
+                        <HintSection title={t("readingTip")}>
                             <p>{readingTip}</p>
                         </HintSection>
                     )}
-                    <p className="text-small">Source : {source}</p>
+                    <p className="text-small">{t("source", { source })}</p>
                 </div>
             </AppSheet>
         </span>
