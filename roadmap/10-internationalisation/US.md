@@ -1,6 +1,6 @@
 # 10 · Internationalisation et apparence du web (FR / EN, thème) — User stories
 
-> Sources : demande utilisateur du 2026-11-03 (feature urgente), demande du 2026-11-11 (onglet Apparence), maquette `06.2 · Paramètres · Apparence` (`129:2996`).
+> Sources : demande utilisateur du 2026-11-03 (feature urgente), demande du 2026-11-11 (onglet Apparence), maquette `06.2 · Paramètres · Apparence` (`129:2996`), validée le 11/11/2026.
 
 ## Point de départ
 

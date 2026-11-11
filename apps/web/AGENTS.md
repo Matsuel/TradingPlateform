@@ -62,6 +62,8 @@ Toute brique d'interface vient de `components/ui/` (shadcn, style `base-nova` de
 - **Navigation** : toute URL vient de `routes` (`lib/routes.ts`) ; un lien interne est un `next/link`, jamais un `<a href>` (rechargement complet, cache TanStack perdu). Un bouton-lien : `<Button nativeButton={false} render={<Link href={…} />}>`, jamais `<Link><Button>` (HTML invalide).
 - **Nouvelle page** : sa route dans `routes`, son onglet dans `constants/sidebar.tsx`, puis `app/app/<route>/page.tsx`. Une page pas encore construite n'affiche que `PageHeader` (titre et description).
 - `process.env` ne se lit que dans `lib/env.ts` (validé par zod).
+- **Libellés** : tout texte affiché vient des dictionnaires `messages/fr.json` et `messages/en.json` (mêmes clés dans les deux), lu par `useTranslations` (`getTranslations` dans une fonction `async` : `generateMetadata`). La langue active vient du cookie `locale` (`src/i18n/`), jamais de l'URL. Un schéma zod traduit est une fabrique `create<Nom>Schema(t)` ; une constante porte une clé de dictionnaire, pas un libellé (`constants/sidebar.tsx`).
+- **Nombres et dates** : formatés par `useFormatters()` (`lib/format.ts`), dans la langue active ; jamais de locale en dur. Un helper hors composant reçoit les `Formatters` en premier argument ; des colonnes qui formatent sont un hook `use<Nom>Columns()`.
 - **Typographie** : tokens du thème (`text-h1` à `text-h3`, `text-stat`, `text-body`, `text-body-medium`, `text-body-semibold`, `text-small`, `text-small-medium`, dans `globals.css`), pas les tailles Tailwind (`text-sm`, `text-xs`).
 - **Couleur d'une variation** : `trendOf` et `trendStyles` (`lib/trend.ts`).
 
