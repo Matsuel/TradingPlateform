@@ -440,5 +440,295 @@
                 "benchmarkSymbol": "A’s benchmark: {a}, B’s: {b}."
             }
         }
+    },
+    "glossary": {
+        "shared": {
+            "moneyUnit": "Amount shown in euros. Prices are not converted: for an asset listed in dollars, the amount is actually in dollars.",
+            "marketMoneyUnit": "Amount shown in dollars. Prices are not converted: for an asset listed in another currency (e.g. in euros on Euronext), the value is actually in its listing currency.",
+            "twr": "The engine chains the portfolio’s performance day after day, measured before the day’s contribution: a monthly contribution is not counted as performance (time-weighted return, TWR)."
+        },
+        "finalValue": {
+            "title": "Final value",
+            "purpose": "What the portfolio is worth on the last day of the period: the amount you would get by selling everything that day, before selling fees.",
+            "computation": "Sum, for each asset, of the quantity held multiplied by its last known closing price. Fees already paid are deducted, since they reduced the quantities bought.",
+            "formula": "final value = Σ quantity(asset) × price(asset, last day)",
+            "unit": "{moneyUnit}",
+            "readingTip": "Compare it with the amount invested: the difference between the two is the profit."
+        },
+        "profit": {
+            "title": "Profit",
+            "purpose": "The gain (or loss) in euros, once everything you paid in is subtracted.",
+            "computation": "Final value minus total amount invested.",
+            "formula": "profit = final value − amount invested",
+            "unit": "{moneyUnit} Negative in case of a loss."
+        },
+        "totalInvested": {
+            "title": "Amount invested",
+            "purpose": "All the money that left your pocket: initial capital and, with DCA, each contribution.",
+            "computation": "Sum of the contributions, fees included: a €6,000 order costs €6,000, fees included. Rebalancing is self-financing and does not increase it.",
+            "unit": "{moneyUnit}"
+        },
+        "totalReturn": {
+            "title": "Total return",
+            "purpose": "The gain relative to what you paid in, over the whole period, regardless of its length.",
+            "computation": "Profit divided by the amount invested. With DCA, the latest contributions had little time to work: this return cannot be compared across durations, use the CAGR for that.",
+            "formula": "total return = (final value − amount invested) / amount invested",
+            "unit": "Ratio displayed as a percentage.",
+            "readingTip": "+15%: for every €100 paid in, €115 is left at the end."
+        },
+        "cagr": {
+            "title": "CAGR (annualised return)",
+            "purpose": "The average return per year, to compare strategies over different durations.",
+            "computation": "{twr} The cumulative performance is then scaled to a 365.25-day calendar year, including for a period shorter than one year (extrapolation).",
+            "formula": "CAGR = (final index / initial index)^(365.25 / days) − 1",
+            "unit": "Annual ratio displayed as a percentage.",
+            "readingTip": "+7%: the portfolio grew by 7% a year on average. Over less than a year the figure is extrapolated and can look extreme."
+        },
+        "volatility": {
+            "title": "Volatility",
+            "purpose": "How widely the portfolio swings: the higher it is, the bumpier the ride.",
+            "computation": "{twr} The engine takes the standard deviation of these daily returns (over the whole simulated history), then annualises it by multiplying by √252, the number of trading days in a year.",
+            "formula": "volatility = standard deviation(daily returns) × √252",
+            "unit": "Annual ratio displayed as a percentage.",
+            "readingTip": "15%: over a year, the return typically strays ±15% from its average."
+        },
+        "sharpeRatio": {
+            "title": "Sharpe ratio",
+            "purpose": "The return earned per unit of risk taken: it separates two strategies with similar returns.",
+            "computation": "CAGR minus the risk-free rate, divided by the annualised volatility. Absent if volatility is zero.",
+            "formula": "Sharpe = (CAGR − risk-free rate) / volatility",
+            "unit": "No unit.",
+            "readingTip": "Above 1, the return pays well for the risk; below 0, the strategy did worse than the risk-free investment."
+        },
+        "riskFreeRate": {
+            "title": "Risk-free rate",
+            "purpose": "The return of a risk-free investment, subtracted from the CAGR in the Sharpe ratio.",
+            "computation": "A fixed assumption of the engine, published with every result so you know which rate the Sharpe was computed with.",
+            "unit": "Annual ratio displayed as a percentage."
+        },
+        "maxDrawdown": {
+            "title": "Max drawdown",
+            "purpose": "The worst loss along the way: the largest fall of the portfolio from its previous peak. It is the “worst moment” you would have had to sit through without selling.",
+            "computation": "{twr} Each day, the engine compares this index with its highest value so far; the max drawdown is the deepest fall. On the result, the note in the Risk block gives the date of that peak and the panel the date of the trough.",
+            "formula": "drawdown(t) = index(t) / max index(s ≤ t) − 1\nmax drawdown = min drawdown(t)",
+            "unit": "Ratio displayed as a percentage, always ≤ 0%. 0% means no fall.",
+            "readingTip": "−12.99%: at its worst, the portfolio was worth 12.99% less than its previous best level. The closer to 0, the smoother the ride."
+        },
+        "recovery": {
+            "title": "Recovery",
+            "purpose": "How long it took to wipe out the worst fall (max drawdown).",
+            "computation": "{twr} Recovery counts the calendar days between the peak of this index preceding the worst fall and the first day the index regains that level. With DCA, the portfolio value can rise earlier thanks to contributions: they are not taken into account. If the peak is not regained before the end of the period, the fall is not recovered.",
+            "unit": "Duration in calendar days, displayed in days, months or years.",
+            "readingTip": "4 months: it took 4 months to get back to the level before the fall. “Not recovered”: the peak was not regained."
+        },
+        "equityCurve": {
+            "title": "Value curve",
+            "purpose": "Track the portfolio value day after day over the period, contributions included.",
+            "computation": "Each trading day, value of the positions at the closing price, after any contribution and rebalancing of the day. A missing price is carried forward from the last known day.",
+            "unit": "{moneyUnit} One point per trading day.",
+            "readingTip": "With DCA, the curve also rises at each contribution: to judge performance, read the CAGR or the drawdown, which ignore contributions."
+        },
+        "drawdownCurve": {
+            "title": "Drawdown curve",
+            "purpose": "See, for each day, how far the portfolio is below its previous peak.",
+            "computation": "{twr} Each point is the day’s index divided by its highest value so far, minus 1.",
+            "formula": "drawdown(t) = index(t) / max index(s ≤ t) − 1",
+            "unit": "Ratio displayed as a percentage, always ≤ 0%.",
+            "readingTip": "The curve touches 0% at each new peak; its lowest point is the max drawdown."
+        },
+        "benchmark": {
+            "title": "Benchmark",
+            "purpose": "A point of comparison: the same savings invested 100% in a reference index (ETF), to see whether your strategy beats a passive investment.",
+            "computation": "The engine replays exactly the same contributions, on the same dates and with the same fees, on the benchmark symbol alone, without rebalancing. Its metrics are computed like those of the portfolio.",
+            "unit": "Same units as the portfolio metrics.",
+            "readingTip": "Its figures appear in the column under its symbol and as a dashed line on the value curve."
+        },
+        "lumpSum": {
+            "title": "Lump sum and DCA gap",
+            "purpose": "Answer “would it have been better to invest everything on day one?” for a monthly contribution strategy (DCA).",
+            "computation": "The engine replays the same total paid in as a single purchase on the first day: same capital, same period, same fees, only the spread over time changes. The gap is the final value of the DCA minus that of the lump sum.",
+            "formula": "gap = final value (DCA) − final value (lump sum)",
+            "unit": "{moneyUnit}",
+            "readingTip": "A positive gap means the DCA did better. Without a benchmark, the lump sum is the dashed curve."
+        },
+        "totalFees": {
+            "title": "Fees paid",
+            "purpose": "The total cost of the orders placed during the simulation, rebalancing buys and sells included.",
+            "computation": "Sum, over every order, of the order amount multiplied by the fee rate. Fees are already deducted from the final value.",
+            "formula": "fees = Σ amount(order) × fee rate",
+            "unit": "{moneyUnit}"
+        },
+        "totalTrades": {
+            "title": "Orders",
+            "purpose": "The number of buy and sell orders placed: an indicator of activity and therefore of fees.",
+            "computation": "One buy per asset at each contribution (split by weights). At each rebalancing, one sell per asset above its target and one buy per asset below it, if the gap to the target is at least 0.01 in the backtest currency (one cent).",
+            "unit": "Number of orders."
+        },
+        "rebalanceCount": {
+            "title": "Rebalances",
+            "purpose": "The number of times the portfolio was brought back to its target weights.",
+            "computation": "On the first trading day of each period (month, quarter, year), excluding the first day, the engine sells the holdings above their target weight and buys back those below it, with no new money. The day only counts if at least one holding is above its target and another below it, by a gap of at least 0.01 in the backtest currency (one cent).",
+            "unit": "Number of rebalances."
+        },
+        "holdingQuantity": {
+            "title": "Quantity held",
+            "purpose": "The number of shares of each asset held on the last day.",
+            "computation": "Sum of the shares bought minus those sold at rebalancing. Purchases are fractional: (order amount − fees) / price.",
+            "unit": "Number of shares, up to 6 decimals."
+        },
+        "holdingValue": {
+            "title": "Position value",
+            "purpose": "How much each asset weighs in the final value.",
+            "computation": "Quantity held multiplied by the asset’s last known closing price.",
+            "formula": "value = quantity × price (last day)",
+            "unit": "{moneyUnit}"
+        },
+        "tradeSide": {
+            "title": "Order side",
+            "purpose": "Tell a buy from a sell.",
+            "computation": "Buy at each contribution and for holdings below their target at rebalancing; sell for holdings above their target.",
+            "unit": "Buy or sell."
+        },
+        "tradePrice": {
+            "title": "Execution price",
+            "purpose": "The price at which the order was executed.",
+            "computation": "Closing price, adjusted for stock splits, on the day of the contribution or rebalancing. If the asset did not trade that day, its last known price is carried forward.",
+            "unit": "Asset price in its listing currency, without conversion."
+        },
+        "tradeQuantity": {
+            "title": "Order quantity",
+            "purpose": "The number of shares bought or sold.",
+            "computation": "Buy: (amount − fees) / price. Sell: number of shares sold to return to the target weight.",
+            "unit": "Number of shares, up to 6 decimals."
+        },
+        "tradeAmount": {
+            "title": "Order amount",
+            "purpose": "The money committed or received by the order.",
+            "computation": "Buy at a contribution: share of the contribution according to the asset’s weight, fees included. Buy at a rebalancing: share of the day’s net sale proceeds, in proportion to the asset’s gap to its target, fees included. Sell: gross proceeds, quantity × price, before fees.",
+            "unit": "{moneyUnit}"
+        },
+        "tradeFee": {
+            "title": "Order fee",
+            "purpose": "What the order cost in fees.",
+            "computation": "Order amount multiplied by the fee rate. Paid on a buy, withheld from the proceeds of a sell.",
+            "formula": "fee = amount × fee rate",
+            "unit": "{moneyUnit}"
+        },
+        "executionRule": {
+            "title": "Execution rule",
+            "purpose": "Say at what price orders are simulated, to avoid using a price that could not have been known (look-ahead bias).",
+            "computation": "Each contribution is scheduled: it is executed at the closing price of its due date.",
+            "unit": "Named rule."
+        },
+        "dataSource": {
+            "title": "Data source",
+            "purpose": "Know where the replayed prices come from and what type of price they are.",
+            "computation": "Price provider (Yahoo Finance) and price type: close adjusted for stock splits, dividends not reinvested.",
+            "unit": "Provider · price type."
+        },
+        "dataFingerprint": {
+            "title": "Data fingerprint",
+            "purpose": "Identify exactly the prices used: two executions with the same fingerprint replayed the same data.",
+            "computation": "SHA-256 fingerprint of the price series, independent of the order of symbols: it changes as soon as a price, a date or a symbol changes. Only the first characters are shown; hovering shows the full fingerprint.",
+            "unit": "Hexadecimal (64 characters).",
+            "readingTip": "Two different results with the same fingerprint come from the parameters, not from the data."
+        },
+        "plannedContributions": {
+            "title": "Planned contributions",
+            "purpose": "Know how many times money will enter the portfolio before launching the backtest.",
+            "computation": "Estimate over the working days of the period (Monday to Friday): 1 for a lump sum; with DCA, one contribution per month, the first day also receiving the initial capital. Public holidays are unknown until prices are loaded.",
+            "unit": "Number of contribution days."
+        },
+        "plannedRebalances": {
+            "title": "Planned rebalances",
+            "purpose": "Estimate how many times the portfolio will be brought back to its target weights.",
+            "computation": "Number of rebalancing periods (month, quarter, year) over the working days of the period, minus the first. High estimate: at execution, a rebalancing without a large enough gap is not counted.",
+            "unit": "Number of rebalances."
+        },
+        "completedRate": {
+            "title": "Success rate",
+            "purpose": "The share of your backtests whose latest execution finished with a result.",
+            "computation": "Backtests whose latest execution completed, divided by the total number of backtests (0 with no backtest).",
+            "formula": "rate = completed / total",
+            "unit": "Ratio displayed as a percentage."
+        },
+        "failedRate": {
+            "title": "Failure rate",
+            "purpose": "The share of your backtests whose latest execution failed (missing data, engine error).",
+            "computation": "Backtests whose latest execution failed, divided by the total number of backtests (0 with no backtest).",
+            "formula": "rate = failed / total",
+            "unit": "Ratio displayed as a percentage."
+        },
+        "executionDuration": {
+            "title": "Execution duration",
+            "purpose": "The calculation time of the latest execution, from its start by the engine to its result.",
+            "computation": "Difference between the end time and the start time of the execution (or its creation time if it has no start time). Absent until the execution is finished.",
+            "unit": "Duration in minutes and seconds."
+        },
+        "comparisonDelta": {
+            "title": "Gap A − B",
+            "purpose": "Measure at a glance by how much A does better or worse than B on each metric.",
+            "computation": "A’s metric minus B’s same metric. Green if the gap favours A (more return, less volatility, a shallower drawdown), red if it is unfavourable, neutral if zero.",
+            "formula": "gap = metric(A) − metric(B)",
+            "unit": "Percentage points for ratios (pp), no unit for the Sharpe.",
+            "readingTip": "+4.4 pp of CAGR: A earns 4.4% more per year than B."
+        },
+        "investmentMode": {
+            "title": "Investment mode",
+            "purpose": "Choose how money enters the portfolio: all on the first day, or through regular contributions (DCA).",
+            "computation": "Lump sum: the initial capital is invested on the first day. Monthly contributions (DCA): the first day receives the initial capital and the first monthly contribution, then one contribution on the first trading day of each following month.",
+            "unit": "Mode.",
+            "readingTip": "With DCA, the result also shows what the same total invested in one go would have produced."
+        },
+        "allocation": {
+            "title": "Assets and weights",
+            "purpose": "Define the target split of the portfolio among its assets.",
+            "computation": "Each contribution is split among the assets according to their weight; the weights add up to 100%. Rebalancing brings the portfolio back to these weights.",
+            "unit": "Weight as a percentage, sum = 100%."
+        },
+        "feeRate": {
+            "title": "Fee per order",
+            "purpose": "Simulate brokerage cost, which reduces performance on every buy and sell.",
+            "computation": "Percentage charged on the amount of each order, buy or sell.",
+            "formula": "fee = order amount × fee rate",
+            "unit": "Percentage of the order amount."
+        },
+        "rebalanceFrequency": {
+            "title": "Rebalancing",
+            "purpose": "Regularly bring the portfolio back to its target weights, so the asset that rose the most does not take over.",
+            "computation": "On the first trading day of each period, the engine sells the holdings above their target and buys back those below it, with no new money. Each order pays fees. “None”: never sells.",
+            "unit": "Frequency (none, monthly, quarterly, yearly)."
+        },
+        "price": {
+            "title": "Price",
+            "purpose": "The asset’s last known price.",
+            "computation": "Market price of the current session, or closing price if the market is closed, provided by Yahoo Finance.",
+            "unit": "{marketMoneyUnit}"
+        },
+        "change24h": {
+            "title": "24h change",
+            "purpose": "How much the asset has moved since the last close.",
+            "computation": "Change of the current price relative to the previous close, provided by Yahoo Finance.",
+            "formula": "change = (price − previous close) / previous close",
+            "unit": "Percentage."
+        },
+        "volume24h": {
+            "title": "24h volume",
+            "purpose": "Activity on the asset: a high volume signals heavy trading, hence a more reliable price.",
+            "computation": "Number of shares traded during the current session, provided by Yahoo Finance.",
+            "unit": "Number of shares, abbreviated (K, M, B)."
+        },
+        "trend": {
+            "title": "Trend",
+            "purpose": "See at a glance how the price moved over the last 24 hours.",
+            "computation": "Hourly closing prices over the last 24 hours; green if the change is positive or zero, red if it is negative.",
+            "unit": "Mini-chart without axes."
+        },
+        "priceChart": {
+            "title": "Price chart",
+            "purpose": "Follow the asset’s price over the chosen period.",
+            "computation": "Closing prices provided by Yahoo Finance, one point per interval (5 min over 1 day, 1 h over 1 week, 1 day over 1 month, 1 week over 1 year, 1 month beyond). An interval without a close (market closed) is omitted.",
+            "unit": "{marketMoneyUnit}"
+        }
     }
 }
