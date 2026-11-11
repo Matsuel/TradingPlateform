@@ -190,7 +190,7 @@ Primitives shadcn (base-ui), voir la doc shadcn. Seule base des briques d'interf
 ### InfoHint
 
 - **Import** : `import { InfoHint } from "@/components/info-hint"`.
-- **Rôle** : libellé d'une donnée calculée, souligné en pointillés (`Button variant="hint" size="inline"`, focusable, maquette 15.1), qui ouvre dans un `AppSheet` son entrée de `constants/glossary.ts` : « À quoi ça sert », « Comment c’est calculé », formule en `font-mono`, « Unité », « Comment le lire », valeur affichée, source (maquette 15). Le clic, y compris dans le panneau, n'atteint pas le parent (ligne de `DataTable` cliquable, libellé de champ). Garde la typographie du parent.
+- **Rôle** : libellé d'une donnée calculée, souligné en pointillés (`Button variant="hint" size="inline"`, focusable, maquette 15.1), qui ouvre dans un `AppSheet` son entrée du glossaire (textes `glossary.<entrée>` des dictionnaires, dans la langue active ; `source` dans `constants/glossary.ts`) : « À quoi ça sert », « Comment c’est calculé », formule en `font-mono`, « Unité », « Comment le lire », valeur affichée, source (maquette 15). Le clic, y compris dans le panneau, n'atteint pas le parent (ligne de `DataTable` cliquable, libellé de champ). Garde la typographie du parent.
 - **Props** :
   - `entry` (optionnel) : Clé de `GLOSSARY` ; absente, `children` est rendu seul (libellé sans aide), ce qui évite un test chez l'appelant.
   - `value` (optionnel) : Valeur déjà formatée par l'écran, rappelée dans le panneau sous « Valeur affichée » ; jamais recalculée.
@@ -812,11 +812,11 @@ Source : `src/constants/theme.ts`.
 
 | Export | Rôle |
 | --- | --- |
-| `GlossaryEntry` | Explication d'une donnée (D3, feature 09) ; `source` = fichier et symbole qui la calculent. |
-| `GLOSSARY` | Une entrée par donnée calculée affichée : résultat (`finalValue`, `cagr`, `maxDrawdown`, `lumpSum`, `equityCurve`, ordres, positions…), hypothèses, récapitulatif du formulaire (`plannedContributions`, `plannedRebalances`), liste, comparaison (`comparisonDelta`), paramètres du formulaire, marché. |
+| `GlossaryEntry` | `{ source }` : fichier et symbole qui calculent la donnée (D3, feature 09). Les textes ne sont plus ici : `messages/fr.json` et `messages/en.json`, namespace `glossary.<clé>` (`title`, `purpose`, `computation`, `formula` et `readingTip` facultatifs, `unit`). |
+| `GLOSSARY` | Une entrée (sa `source`) par donnée calculée affichée, dont la clé est aussi celle du dictionnaire : résultat (`finalValue`, `cagr`, `maxDrawdown`, `lumpSum`, `equityCurve`, ordres, positions…), hypothèses, récapitulatif du formulaire (`plannedContributions`, `plannedRebalances`), liste, comparaison (`comparisonDelta`), paramètres du formulaire, marché. |
 | `GlossaryKey` | Clé passée à `InfoHint` (`entry`), à un champ, une ligne de `MetricBlock` ou une hypothèse (`hint`). |
 
-Ajouter une donnée calculée à l'écran = ajouter son entrée ici dans le même diff (`AGENTS.md`). Relire le texte contre le symbole cité en `source` quand ce calcul change.
+Ajouter une donnée calculée à l'écran = ajouter sa `source` ici **et** ses textes dans les deux dictionnaires, dans le même diff (`AGENTS.md`) : `bun test` échoue si une clé manque d'un côté. Les phrases communes (montant en euros `{moneyUnit}`, en dollars `{marketMoneyUnit}`, rendement pondéré dans le temps `{twr}`) sont écrites une fois par langue dans `glossary.shared`. Relire les textes contre le symbole cité en `source` quand ce calcul change.
 
 Source : `src/constants/glossary.ts`.
 
