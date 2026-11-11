@@ -6,7 +6,7 @@ import { TableCard } from "@/components/data-table/table-card"
 import { Button } from "@/components/ui/button"
 import { PAGE_SIZE } from "@/constants/pagination"
 import { paginate } from "@/lib/pagination"
-import { tradeColumns } from "./column"
+import { useTradeColumns } from "./column"
 import type { Trade } from "./types"
 
 // Ordres affichés avant « Voir les N ordres » : les plus récents
@@ -17,6 +17,7 @@ const RECENT_TRADES = 5
  * du plus récent au plus ancien. `trades` : ordres du moteur, du plus ancien au plus récent.
  */
 export function TradesTable({ trades }: { trades: Trade[] }) {
+    const columns = useTradeColumns()
     const [showAll, setShowAll] = useState(false)
     const [page, setPage] = useState(1)
     const newestFirst = trades.toReversed()
@@ -39,7 +40,7 @@ export function TradesTable({ trades }: { trades: Trade[] }) {
         >
             <DataTable
                 rows={showAll ? paginate(newestFirst, page, PAGE_SIZE) : newestFirst.slice(0, RECENT_TRADES)}
-                columns={tradeColumns}
+                columns={columns}
                 rowKey={(t) => `${t.date}-${t.symbol}-${t.side}-${t.amount}`}
                 emptyMessage="Aucun ordre."
                 pagination={

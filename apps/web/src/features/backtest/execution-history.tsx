@@ -1,12 +1,12 @@
 import { Progress } from "@/components/ui/progress"
-import { formatDate, formatRatio } from "@/lib/format"
+import { type Formatters, useFormatters } from "@/lib/format"
 import { cn } from "@/lib/utils"
 import { statusBadges } from "./constants"
 import { StatusBadge } from "./status-badge"
 import type { BacktestExecution } from "./types"
 import { getExecutionDuration, isActive } from "./utils"
 
-function describe(e: BacktestExecution) {
+function describe(f: Formatters, e: BacktestExecution) {
     switch (e.status) {
         case "PENDING":
             return "En file d’attente"
@@ -16,7 +16,7 @@ function describe(e: BacktestExecution) {
             return e.error ?? "Erreur inconnue"
         case "COMPLETED":
             return e.result
-                ? `${e.result.totalTrades} ordres · ${formatRatio(Number(e.result.totalReturn))}`
+                ? `${e.result.totalTrades} ordres · ${f.formatRatio(Number(e.result.totalReturn))}`
                 : "Terminé"
         default:
             return statusBadges[e.status].label
@@ -30,6 +30,8 @@ function duration(e: BacktestExecution) {
 }
 
 function ExecutionRow({ execution: e }: { execution: BacktestExecution }) {
+    const f = useFormatters()
+
     return (
         <div className="flex items-center justify-between gap-4 border-b py-3 last:border-b-0">
             <div className="flex w-full max-w-165 flex-col gap-1">
@@ -38,7 +40,7 @@ function ExecutionRow({ execution: e }: { execution: BacktestExecution }) {
                     <StatusBadge status={e.status} />
                 </div>
                 <span className={cn("text-small text-muted-foreground", e.status === "FAILED" && "text-destructive")}>
-                    {formatDate(e.createdAt)} · {describe(e)}
+                    {f.formatDate(e.createdAt)} · {describe(f, e)}
                 </span>
                 {isActive(e) && (
                     <Progress

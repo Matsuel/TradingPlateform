@@ -1,7 +1,7 @@
 "use client"
 
 import { AreaSeriesChart, type ChartPoint, type ChartSeries } from "@/components/area-series-chart"
-import { formatMediumDate, formatMonthTick, formatRate, formatRatio } from "@/lib/format"
+import { useFormatters } from "@/lib/format"
 import { formatAmount } from "./utils"
 
 interface ValueDrawdownChartsProps {
@@ -14,6 +14,8 @@ interface ValueDrawdownChartsProps {
  * Sans point de drawdown (résultat antérieur à son calcul), seule la courbe de valeur s'affiche, avec son axe.
  */
 export function ValueDrawdownCharts({ value, drawdown }: ValueDrawdownChartsProps) {
+    const f = useFormatters()
+    const { formatMediumDate, formatMonthTick, formatRate, formatRatio } = f
     const hasDrawdown = drawdown.data.length > 0
 
     return (
@@ -22,7 +24,7 @@ export function ValueDrawdownCharts({ value, drawdown }: ValueDrawdownChartsProp
                 {...value}
                 formatTick={formatMonthTick}
                 formatTooltipDate={formatMediumDate}
-                formatValue={formatAmount}
+                formatValue={(v) => formatAmount(f, v)}
                 hideXAxis={hasDrawdown}
                 className="h-56"
             />

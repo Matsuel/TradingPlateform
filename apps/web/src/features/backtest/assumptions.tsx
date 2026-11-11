@@ -1,6 +1,6 @@
 import { Dash, orDash } from "@/components/dash"
 import { DetailRow } from "@/components/detail-row"
-import { formatDate, formatDayRange, formatPercent } from "@/lib/format"
+import { useFormatters } from "@/lib/format"
 import {
     BACKTEST_CURRENCY,
     BACKTEST_DISCLAIMER,
@@ -21,6 +21,7 @@ const FINGERPRINT_PREVIEW_LENGTH = 12
  * suivie de l'avertissement. Taux sans risque, règle et source absents des résultats antérieurs : `<Dash />`.
  */
 export function BacktestAssumptions({ backtest, result }: { backtest: Backtest; result: BacktestResult }) {
+    const { formatDate, formatDayRange, formatPercent } = useFormatters()
     const { executionRule, dataSource } = result
 
     return (

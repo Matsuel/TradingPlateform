@@ -7,7 +7,7 @@ import { EmptyCard } from "@/components/empty-card"
 import { PageHeader } from "@/components/page-layout"
 import { ErrorState, LoadingState } from "@/components/query-status"
 import { Button } from "@/components/ui/button"
-import { formatDayRange, formatPercent } from "@/lib/format"
+import { type Formatters, useFormatters } from "@/lib/format"
 import { routes } from "@/lib/routes"
 import { ComparisonMetrics } from "./comparison-metrics"
 import { ComparisonOverview } from "./comparison-overview"
@@ -18,17 +18,18 @@ import { useBacktestComparison } from "./hook"
 import type { BacktestComparison, ComparisonParameter } from "./types"
 
 // Une phrase par paramètre qui diffère, valeurs de A puis de B
-const differenceDetails: Record<ComparisonParameter, (c: BacktestComparison) => string> = {
-    period: ({ a, b }) =>
-        `A couvre ${formatDayRange(a.startDate, a.endDate)}, B ${formatDayRange(b.startDate, b.endDate)}.`,
-    feeRate: ({ a, b }) =>
-        `A paie ${formatPercent(Number(a.feeRate))} par ordre, B ${formatPercent(Number(b.feeRate))}.`,
+const differenceDetails: Record<ComparisonParameter, (c: BacktestComparison, f: Formatters) => string> = {
+    period: ({ a, b }, f) =>
+        `A couvre ${f.formatDayRange(a.startDate, a.endDate)}, B ${f.formatDayRange(b.startDate, b.endDate)}.`,
+    feeRate: ({ a, b }, f) =>
+        `A paie ${f.formatPercent(Number(a.feeRate))} par ordre, B ${f.formatPercent(Number(b.feeRate))}.`,
     benchmarkSymbol: ({ a, b }) =>
         `Benchmark de A : ${a.benchmarkSymbol ?? NO_BENCHMARK_LABEL}, de B : ${b.benchmarkSymbol ?? NO_BENCHMARK_LABEL}.`,
 }
 
 // Bandeau affiché quand le backend signale une comparaison non homogène
 function HeterogeneityBanner({ comparison }: { comparison: BacktestComparison }) {
+    const f = useFormatters()
     const { differences } = comparison
     return (
         <div role="status" className="flex items-start gap-3 rounded-md border bg-muted px-4 py-3.5">
@@ -38,7 +39,7 @@ function HeterogeneityBanner({ comparison }: { comparison: BacktestComparison })
                     Comparaison non homogène : {differences.map((d) => comparisonParameterLabels[d]).join(", ")}
                 </p>
                 <p className="text-small text-muted-foreground">
-                    {differences.map((d) => differenceDetails[d](comparison)).join(" ")} Les écarts restent calculés,
+                    {differences.map((d) => differenceDetails[d](comparison, f)).join(" ")} Les écarts restent calculés,
                     mais ne mesurent plus seulement l’effet de l’allocation.
                 </p>
             </div>

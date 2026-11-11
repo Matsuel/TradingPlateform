@@ -6,7 +6,7 @@ import { Dash } from "@/components/dash"
 import { InfoHint } from "@/components/info-hint"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
-import { formatRatio } from "@/lib/format"
+import { useFormatters } from "@/lib/format"
 import { type Trend, trendOf, trendStyles } from "@/lib/trend"
 import type { BacktestResult } from "./types"
 import { benchmarkLabel, formatAmount, fromDecimal } from "./utils"
@@ -14,9 +14,10 @@ import { ValueDrawdownCharts } from "./value-drawdown-charts"
 
 // Valeur finale et rendement total
 function ResultHeadline({ result }: { result: BacktestResult }) {
+    const f = useFormatters()
     const finalValue = fromDecimal(result.finalValue)
     const totalReturn = fromDecimal(result.totalReturn)
-    const finalValueText = finalValue == null ? undefined : formatAmount(finalValue)
+    const finalValueText = finalValue == null ? undefined : formatAmount(f, finalValue)
 
     return (
         <>
@@ -28,7 +29,7 @@ function ResultHeadline({ result }: { result: BacktestResult }) {
             <div className="flex flex-wrap items-center gap-3">
                 <span className="text-h1">{finalValueText ?? <Dash />}</span>
                 {totalReturn != null && (
-                    <Badge variant={trendStyles[trendOf(totalReturn)].badge}>{formatRatio(totalReturn)}</Badge>
+                    <Badge variant={trendStyles[trendOf(totalReturn)].badge}>{f.formatRatio(totalReturn)}</Badge>
                 )}
             </div>
         </>
@@ -37,6 +38,7 @@ function ResultHeadline({ result }: { result: BacktestResult }) {
 
 // Plus-value sur le montant investi et, avec un benchmark, son rendement ; rien pour un résultat antérieur
 function ProfitLine({ result }: { result: BacktestResult }) {
+    const f = useFormatters()
     const { benchmark } = result
     const profit = fromDecimal(result.profit)
     const invested = fromDecimal(result.totalInvested)
@@ -44,14 +46,14 @@ function ProfitLine({ result }: { result: BacktestResult }) {
 
     return (
         <p className="text-body text-muted-foreground">
-            <InfoHint entry="profit" value={formatAmount(profit)}>
+            <InfoHint entry="profit" value={formatAmount(f, profit)}>
                 Plus-value
             </InfoHint>{" "}
-            {formatAmount(profit)} sur{" "}
-            <InfoHint entry="totalInvested" value={formatAmount(invested)}>
-                {formatAmount(invested)} investis
+            {formatAmount(f, profit)} sur{" "}
+            <InfoHint entry="totalInvested" value={formatAmount(f, invested)}>
+                {formatAmount(f, invested)} investis
             </InfoHint>
-            {benchmark && ` · ${benchmark.symbol} sur la même période : ${formatRatio(benchmark.totalReturn)}`}
+            {benchmark && ` · ${benchmark.symbol} sur la même période : ${f.formatRatio(benchmark.totalReturn)}`}
         </p>
     )
 }

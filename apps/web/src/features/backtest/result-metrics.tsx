@@ -1,6 +1,6 @@
 import { Dash, orDash } from "@/components/dash"
 import { type HintDetail, InfoHint } from "@/components/info-hint"
-import { formatDay, formatPercent } from "@/lib/format"
+import { type Formatters, useFormatters } from "@/lib/format"
 import { rebalanceFrequencyLabels } from "./constants"
 import { MetricBlock, type MetricColumn, type MetricRow } from "./metric-block"
 import {
@@ -25,75 +25,81 @@ const columnsOf = ({ benchmark }: BacktestResult): MetricColumn[] =>
     withBenchmark([{ label: "Portefeuille" }], benchmark, (bm) => ({ label: bm.symbol }))
 
 // Ligne d'une métrique : valeur du portefeuille puis, avec un benchmark, la sienne
-function metricRow(result: BacktestResult, metric: Metric, details?: HintDetail[]): MetricRow {
+function metricRow(f: Formatters, result: BacktestResult, metric: Metric, details?: HintDetail[]): MetricRow {
     const { label, hint } = metricDefinitions[metric]
-    const values = withBenchmark([resultValue(result, metric)], result.benchmark, (bm) => benchmarkValue(bm, metric))
+    const values = withBenchmark([resultValue(f, result, metric)], result.benchmark, (bm) =>
+        benchmarkValue(f, bm, metric),
+    )
     return { label, hint, details, values }
 }
 
-function recoveryRow(result: BacktestResult): MetricRow {
+function recoveryRow(f: Formatters, result: BacktestResult): MetricRow {
     return {
         ...recoveryDefinition,
-        values: withBenchmark([resultRecovery(result)], result.benchmark, benchmarkRecovery),
+        values: withBenchmark([resultRecovery(f, result)], result.benchmark, (bm) => benchmarkRecovery(f, bm)),
     }
 }
 
 // Note du bloc Performance en DCA : valeur d'un investissement unique et écart avec le DCA
 function LumpSumNote({ lumpSum }: { lumpSum: NonNullable<BacktestResult["lumpSumComparison"]> }) {
+    const f = useFormatters()
     const { finalValue, dcaAdvantage } = lumpSum
     return (
         <>
             <InfoHint
                 entry="lumpSum"
                 details={[
-                    { label: "Investissement unique", value: formatAmount(finalValue) },
-                    { label: "Écart du DCA", value: formatAmount(dcaAdvantage) },
+                    { label: "Investissement unique", value: formatAmount(f, finalValue) },
+                    { label: "Écart du DCA", value: formatAmount(f, dcaAdvantage) },
                 ]}
             >
                 Investi en une fois au 1er jour
             </InfoHint>
-            {` : ${formatAmount(finalValue)}, soit ${formatAmount(Math.abs(dcaAdvantage))} de ${dcaAdvantage >= 0 ? "moins" : "mieux"} que le DCA`}
+            {` : ${formatAmount(f, finalValue)}, soit ${formatAmount(f, Math.abs(dcaAdvantage))} de ${dcaAdvantage >= 0 ? "moins" : "mieux"} que le DCA`}
         </>
     )
 }
 
 function PerformanceBlock({ result }: { result: BacktestResult }) {
+    const f = useFormatters()
     const { lumpSumComparison } = result
     return (
         <MetricBlock
             title="Performance"
             description="Rendement, hors versements"
             columns={columnsOf(result)}
-            rows={performanceMetrics.map((metric) => metricRow(result, metric))}
+            rows={performanceMetrics.map((metric) => metricRow(f, result, metric))}
             note={lumpSumComparison && <LumpSumNote lumpSum={lumpSumComparison} />}
         />
     )
 }
 
 function RiskBlock({ result }: { result: BacktestResult }) {
+    const f = useFormatters()
     const { maxDrawdownDate, maxDrawdownPeakDate } = result
     const riskFreeRate = fromDecimal(result.riskFreeRate)
-    const troughDetails = maxDrawdownDate ? [{ label: "Creux atteint le", value: formatDay(maxDrawdownDate) }] : []
+    const troughDetails = maxDrawdownDate ? [{ label: "Creux atteint le", value: f.formatDay(maxDrawdownDate) }] : []
 
     return (
         <MetricBlock
             title="Risque"
             description={
-                riskFreeRate == null ? "Annualisé" : `Annualisé, taux sans risque ${formatPercent(riskFreeRate)}`
+                riskFreeRate == null ? "Annualisé" : `Annualisé, taux sans risque ${f.formatPercent(riskFreeRate)}`
             }
             columns={columnsOf(result)}
             rows={[
                 ...riskMetrics.map((metric) =>
-                    metricRow(result, metric, metric === "maxDrawdown" ? troughDetails : undefined),
+                    metricRow(f, result, metric, metric === "maxDrawdown" ? troughDetails : undefined),
                 ),
-                recoveryRow(result),
+                recoveryRow(f, result),
             ]}
-            note={maxDrawdownPeakDate && `Baisse maximale depuis le plus haut du ${formatDay(maxDrawdownPeakDate)}`}
+            note={maxDrawdownPeakDate && `Baisse maximale depuis le plus haut du ${f.formatDay(maxDrawdownPeakDate)}`}
         />
     )
 }
 
 function CostsBlock({ result, rebalanceFrequency }: ResultMetricsProps) {
+    const f = useFormatters()
     const rebalancing =
         rebalanceFrequency === "NONE"
             ? "Sans rebalancement"
@@ -108,7 +114,7 @@ function CostsBlock({ result, rebalanceFrequency }: ResultMetricsProps) {
                 {
                     label: "Frais payés",
                     hint: "totalFees",
-                    values: [orDash(fromDecimal(result.totalFees), formatAmount)],
+                    values: [orDash(fromDecimal(result.totalFees), (v) => formatAmount(f, v))],
                 },
                 { label: "Ordres", hint: "totalTrades", values: [result.totalTrades] },
                 { label: "Rebalancements", hint: "rebalanceCount", values: [result.rebalanceCount ?? <Dash />] },

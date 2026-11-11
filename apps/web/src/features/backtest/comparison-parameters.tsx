@@ -1,6 +1,6 @@
 import type { ReactNode } from "react"
 import { Badge } from "@/components/ui/badge"
-import { formatDayRange, formatPercent, formatRate } from "@/lib/format"
+import { useFormatters } from "@/lib/format"
 import { NO_BENCHMARK_LABEL, rebalanceFrequencyLabels, strategyLabels } from "./constants"
 import { MetricBlock } from "./metric-block"
 import type { BacktestComparison, ComparedBacktest, ComparisonParameter } from "./types"
@@ -10,6 +10,7 @@ import type { BacktestComparison, ComparedBacktest, ComparisonParameter } from "
  * badge « diffère » sur les paramètres que le backend signale dans `differences`.
  */
 export function ComparisonParameters({ comparison }: { comparison: BacktestComparison }) {
+    const { formatDayRange, formatPercent, formatRate } = useFormatters()
     const { a, b, differences } = comparison
     const values = (value: (backtest: ComparedBacktest) => ReactNode) => [value(a), value(b)]
     const differs = (parameter: ComparisonParameter) =>

@@ -6,7 +6,7 @@ import { FilterTabs } from "@/components/filter-tabs"
 import { InfoHint } from "@/components/info-hint"
 import { ErrorState, LoadingState } from "@/components/query-status"
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { formatPrice, LOCALE } from "@/lib/format"
+import { useFormatters } from "@/lib/format"
 import { trendOf, trendStyles } from "@/lib/trend"
 import { cn } from "@/lib/utils"
 import { MARKET_CURRENCY, periodOptions } from "./constants"
@@ -21,11 +21,11 @@ const tickFormats: Record<Period, Intl.DateTimeFormatOptions> = {
     max: { year: "numeric" },
 }
 
-const formatTick = (date: string, period: Period) =>
-    new Intl.DateTimeFormat(LOCALE, tickFormats[period]).format(new Date(date))
+const formatTick = (locale: string, date: string, period: Period) =>
+    new Intl.DateTimeFormat(locale, tickFormats[period]).format(new Date(date))
 
-const formatTooltipDate = (date: string, period: Period) =>
-    new Intl.DateTimeFormat(LOCALE, {
+const formatTooltipDate = (locale: string, date: string, period: Period) =>
+    new Intl.DateTimeFormat(locale, {
         dateStyle: "medium",
         ...(period === "1d" || period === "1w" ? { timeStyle: "short" } : {}),
     }).format(new Date(date))
@@ -36,6 +36,7 @@ const trendOfPeriod = (points: { price: number }[]) =>
     points.length < 2 ? "neutral" : trendOf(points[points.length - 1].price - points[0].price)
 
 export function PriceChart({ symbol }: { symbol: string }) {
+    const { formatPrice, locale } = useFormatters()
     const [period, setPeriod] = useState<Period>("1d")
     const { data, isPending, isError, error, refetch, isPlaceholderData } = useMarketDetails(symbol, period)
     const interval = periodOptions.find((p) => p.value === period)!.interval
@@ -69,8 +70,8 @@ export function PriceChart({ symbol }: { symbol: string }) {
                         series={[
                             { key: "price", label: "Prix", color: trendStyles[trendOfPeriod(data)].color, fill: true },
                         ]}
-                        formatTick={(d) => formatTick(d, period)}
-                        formatTooltipDate={(d) => formatTooltipDate(d, period)}
+                        formatTick={(d) => formatTick(locale, d, period)}
+                        formatTooltipDate={(d) => formatTooltipDate(locale, d, period)}
                         formatValue={(v) => formatPrice(v, MARKET_CURRENCY)}
                         className={cn("transition-opacity", isPlaceholderData && "opacity-50")}
                     />

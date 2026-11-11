@@ -5,9 +5,9 @@ import type { ReactNode } from "react"
 import { DataTable } from "@/components/data-table/data-table"
 import { Card, CardContent } from "@/components/ui/card"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
-import { formatPrice } from "@/lib/format"
+import { useFormatters } from "@/lib/format"
 import { BacktestAssumptions } from "./assumptions"
-import { holdingColumns } from "./column"
+import { useHoldingColumns } from "./column"
 import { BACKTEST_CURRENCY } from "./constants"
 import { ExecutionList } from "./execution-history"
 import type { BacktestDetails } from "./types"
@@ -46,6 +46,8 @@ function DetailSection({
  * Sans résultat, l'historique est déplié : c'est la seule information disponible.
  */
 export function ResultDetails({ backtest }: { backtest: BacktestDetails }) {
+    const { formatPrice } = useFormatters()
+    const holdingColumns = useHoldingColumns()
     const { result, executions } = backtest
 
     return (

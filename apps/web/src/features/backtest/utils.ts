@@ -1,5 +1,5 @@
 import type { ChartPoint } from "@/components/area-series-chart"
-import { formatDuration, formatPrice, formatRate } from "@/lib/format"
+import type { Formatters } from "@/lib/format"
 import { activeStatuses, BACKTEST_CURRENCY } from "./constants"
 import type {
     AllocationInput,
@@ -35,25 +35,26 @@ export function getExecutionDuration(e: BacktestExecution) {
 }
 
 /** Allocation lisible : « AAPL 60 % · MSFT 40 % » (poids en ratio, au pourcent entier, D2). */
-export const formatAllocation = (allocations: Backtest["allocations"]) =>
-    allocations.map(({ symbol, weight }) => `${symbol} ${formatRate(Number(weight))}`).join(" · ")
+export const formatAllocation = (f: Formatters, allocations: Backtest["allocations"]) =>
+    allocations.map(({ symbol, weight }) => `${symbol} ${f.formatRate(Number(weight))}`).join(" · ")
 
 /** Decimal sérialisé en string par l'API → number ; null ou absent → null (champ absent des résultats antérieurs). */
 export const fromDecimal = (value: string | null | undefined) => (value == null ? null : Number(value))
 
 /** Montant en `BACKTEST_CURRENCY`. */
-export const formatAmount = (v: number) => formatPrice(v, BACKTEST_CURRENCY)
+export const formatAmount = (f: Formatters, v: number) => f.formatPrice(v, BACKTEST_CURRENCY)
 
 /**
  * Durée de récupération ; `recoveryDays` null : « Aucune baisse » sans baisse, « Non récupéré » si la baisse a un plus haut
  * daté par le moteur (`peakDated`), `null` sinon (l'écran affiche `<Dash />`) : résultat antérieur au calcul, où l'API renvoie aussi null.
  */
 export function formatRecovery(
+    f: Formatters,
     recoveryDays: number | null | undefined,
     maxDrawdown: number | null,
     peakDated: boolean,
 ): string | null {
-    if (recoveryDays != null) return formatDuration(recoveryDays)
+    if (recoveryDays != null) return f.formatDuration(recoveryDays)
     if (maxDrawdown == null) return null
     if (maxDrawdown === 0) return "Aucune baisse"
     return peakDated ? "Non récupéré" : null

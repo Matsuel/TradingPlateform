@@ -2,18 +2,17 @@
 
 import { useWatch } from "react-hook-form"
 import { DateField, FieldRow, FormSection, NumberField, SelectField, SymbolsField, TextField } from "@/components/form"
-import { currencySymbol } from "@/lib/format"
+import { useFormatters } from "@/lib/format"
 import { AllocationField } from "./allocation-field"
 import { BACKTEST_CURRENCY, investmentModeOptions, rebalanceFrequencyOptions } from "./constants"
 import type { InvestmentMode } from "./types"
-
-const currency = currencySymbol(BACKTEST_CURRENCY)
 
 // Champs communs au formulaire « Nouveau backtest » et au test rapide, sous `FormProvider`
 
 /** Mode d'investissement et, en `RECURRING` seulement, le versement mensuel. */
 export function InvestmentModeFields() {
     // Partagé par deux formulaires : seul `investmentMode` est lu, typé ici
+    const currency = useFormatters().currencySymbol(BACKTEST_CURRENCY)
     const investmentMode = useWatch<{ investmentMode: InvestmentMode }>({ name: "investmentMode" })
 
     return (
@@ -33,6 +32,8 @@ export function InvestmentModeFields() {
 
 /** Période (début, fin), puis capital initial et frais par ordre. */
 export function PeriodAndCapitalFields() {
+    const currency = useFormatters().currencySymbol(BACKTEST_CURRENCY)
+
     return (
         <>
             <FieldRow>

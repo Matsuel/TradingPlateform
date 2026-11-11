@@ -1,11 +1,12 @@
 import { Dash } from "@/components/dash"
 import { InfoHint } from "@/components/info-hint"
 import { StatCard } from "@/components/stat-card"
-import { formatRate } from "@/lib/format"
+import { useFormatters } from "@/lib/format"
 import type { BacktestListStats } from "./types"
 
 /** Compteurs et taux de la liste, calculés par le backend ; `stats` undefined pendant le chargement. */
 export function BacktestStats({ stats }: { stats: BacktestListStats | undefined }) {
+    const { formatRate } = useFormatters()
     const completedRate = stats && formatRate(stats.completedRate)
     const failedRate = stats && formatRate(stats.failedRate)
 

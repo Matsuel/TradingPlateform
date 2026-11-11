@@ -4,7 +4,7 @@ import { EmptyCard } from "@/components/empty-card"
 import { PageHeader } from "@/components/page-layout"
 import { ErrorState, LoadingState } from "@/components/query-status"
 import { Button } from "@/components/ui/button"
-import { formatDayRange } from "@/lib/format"
+import { type Formatters, useFormatters } from "@/lib/format"
 import { rebalanceFrequencyLabels, strategyLabels } from "./constants"
 import { useBacktest, useRerunBacktest } from "./hook"
 import { ResultDetails } from "./result-details"
@@ -15,16 +15,16 @@ import { TradesTable } from "./trades-table"
 import type { BacktestDetails } from "./types"
 import { formatAllocation, getExecution, getExecutionDuration, isActive } from "./utils"
 
-function describe(backtest: BacktestDetails) {
+function describe(f: Formatters, backtest: BacktestDetails) {
     const e = getExecution(backtest)
     const duration = e?.status === "COMPLETED" && getExecutionDuration(e)
     return [
         strategyLabels[backtest.investmentMode],
-        formatAllocation(backtest.allocations),
+        formatAllocation(f, backtest.allocations),
         backtest.rebalanceFrequency !== "NONE" &&
             `rebalancement ${rebalanceFrequencyLabels[backtest.rebalanceFrequency].toLowerCase()}`,
         backtest.benchmarkSymbol && `benchmark ${backtest.benchmarkSymbol}`,
-        formatDayRange(backtest.startDate, backtest.endDate),
+        f.formatDayRange(backtest.startDate, backtest.endDate),
         duration && `exécuté en ${duration}`,
     ]
         .filter(Boolean)
@@ -47,6 +47,7 @@ function NoResult({ backtest }: { backtest: BacktestDetails }) {
  * Rafraîchi tant qu'une exécution est active.
  */
 export function BacktestDetail({ id }: { id: string }) {
+    const f = useFormatters()
     const query = useBacktest(id)
     const rerun = useRerunBacktest(id)
     const { data: backtest, isPending, isError, error, refetch } = query
@@ -65,7 +66,7 @@ export function BacktestDetail({ id }: { id: string }) {
             <PageHeader
                 title={backtest.name}
                 badge={execution && <StatusBadge status={execution.status} />}
-                description={describe(backtest)}
+                description={describe(f, backtest)}
                 actions={
                     <Button onClick={() => rerun.mutate()} disabled={!canRerun}>
                         Relancer
