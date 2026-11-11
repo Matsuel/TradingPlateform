@@ -94,7 +94,7 @@ bun run dev:backtest   # backtest-engine seul
 
 Chaque point est vérifié, pas supposé :
 
-1. `bunx tsc --noEmit` passe dans chaque app/package touché ; `bun run lint` et `bun run format:check` dans `apps/web` si le front change ; `bun test` dans `apps/backtest-engine` si l'engine change.
+1. `bunx tsc --noEmit` passe dans chaque app/package touché ; `bun run lint` et `bun run format:check` dans `apps/web` si le front change ; `bun test` dans `apps/backtest-engine` si l'engine change, dans `apps/web` si `messages/*.json` change (clés FR et EN identiques).
 2. Responsabilités : le diff web ne contient que de l'affichage ; tout nouveau calcul vit chez son propriétaire.
 3. Rangement : aucune constante, helper ou type dupliqué introduit (`grep` les nouveaux noms et littéraux).
 4. Catalogues : chaque route ou composant catalogué créé, modifié ou supprimé a son entrée à jour.

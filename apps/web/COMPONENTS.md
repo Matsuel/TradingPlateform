@@ -529,12 +529,12 @@ Props communes `BaseProps<T>` (exportées par `field.tsx`), répétées dans cha
 
   | Nom | Type | Requis | Défaut | Description |
   | --- | --- | --- | --- | --- |
-  | `options` | `SelectOption[]` (`{ value: string; label: string }`) | oui | — | Options (ex. `investmentModeOptions`). |
+  | `options` | `SelectOption[]` (`{ value: string; label: string }`) | oui | — | Options, libellés traduits par l'appelant (ex. `investmentModes.map((value) => ({ value, label: t(value) }))`). |
   | `placeholder` | `string` | non | `"Sélectionner…"` | Sans valeur. |
 
 - **Exemple** (tiré de `src/features/backtest/sections.tsx`) :
   ```tsx
-  <SelectField name="investmentMode" label="Mode d’investissement" options={investmentModeOptions} />
+  <SelectField name="investmentMode" label="Mode d’investissement" options={investmentModes.map((value) => ({ value, label: t(value) }))} />
   ```
 - **Source** : `src/components/form/fields/select-field.tsx`.
 
@@ -913,33 +913,35 @@ Source : `src/features/auth/schema.ts`.
 ### StatusBadge
 
 - **Import** : `import { StatusBadge } from "@/features/backtest/status-badge"`.
-- **Rôle** : badge du statut d'une exécution, libellé et variante de `statusBadges` (liste, détail, historique).
+- **Rôle** : badge du statut d'une exécution, libellé `backtest.status.<statut>` et variante de `statusVariants` (liste, détail, historique).
 - **Props** : `status: ExecutionStatus`.
 - **Source** : `src/features/backtest/status-badge.tsx`.
 
 ### NewBacktestForm
 
 - **Import** : `import { NewBacktestForm } from "@/features/backtest/new-backtest-form"`.
-- **Rôle** : formulaire « Nouveau backtest » (maquette 12.1, `backtestSchema`, sections `GeneralSection` + `AllocationSection`, benchmark proposé `DEFAULT_BENCHMARK_SYMBOL`, `BacktestPreviewSummary` à droite à partir de `lg`, empilé dessous sinon) ; « Lancer le backtest » désactivé tant que `allocationTotal` ≠ 100 ; un `400` du backend place chaque issue sous le champ de son chemin (`setFormIssues`) ; redirige vers le détail créé.
+- **Rôle** : formulaire « Nouveau backtest » (maquette 12.1, `createBacktestFormSchema`, sections `GeneralSection` + `AllocationSection`, benchmark proposé `DEFAULT_BENCHMARK_SYMBOL`, `BacktestPreviewSummary` à droite à partir de `lg`, empilé dessous sinon) ; « Lancer le backtest » désactivé tant que `allocationTotal` ≠ 100 ; un `400` du backend place chaque issue sous le champ de son chemin (`setFormIssues`) ; redirige vers le détail créé.
 - **Props** : aucune.
 - **Source** : `src/features/backtest/new-backtest-form.tsx`.
 
 ### BacktestPreviewSummary
 
 - **Import** : `import { BacktestPreviewSummary } from "@/features/backtest/preview-summary"`.
-- **Rôle** : carte « Récapitulatif » du formulaire « Nouveau backtest » (maquette 12.1), sous `FormProvider` d'un formulaire `BacktestValues` : étapes Données / Simulation / Métriques (`previewSteps`), puis « Rebalancements prévus », « Versements prévus » et « Source des données » (`dataProviderLabels` · `priceTypeLabels`) renvoyés par `useBacktestPreview` (estimations calendaires du backend, aucun calcul côté web) et mention « Estimation calendaire ». Valeurs validées par `backtestSchema.safeParse` dans `useWatch({ compute })`, appel débouncé de 500 ms (`useDebouncedValue`) ; `<Dash />` tant que le formulaire est invalide ou la réponse absente. Les trois libellés sont des `InfoHint` (`plannedRebalances`, `plannedContributions`, `dataSource`).
+- **Rôle** : carte « Récapitulatif » du formulaire « Nouveau backtest » (maquette 12.1), sous `FormProvider` d'un formulaire `BacktestValues` : étapes Données / Simulation / Métriques (`previewSteps`, textes `backtest.preview.steps.*`), puis « Rebalancements prévus », « Versements prévus » et « Source des données » (`dataProviderLabels` · `backtest.priceType.<type>`) renvoyés par `useBacktestPreview` (estimations calendaires du backend, aucun calcul côté web) et mention « Estimation calendaire ». Valeurs validées par `createBacktestFormSchema(t).safeParse` dans `useWatch({ compute })`, appel débouncé de 500 ms (`useDebouncedValue`) ; `<Dash />` tant que le formulaire est invalide ou la réponse absente. Les trois libellés sont des `InfoHint` (`plannedRebalances`, `plannedContributions`, `dataSource`).
 - **Props** : aucune.
 - **Source** : `src/features/backtest/preview-summary.tsx`.
 
 ### QuickBacktestForm
 
 - **Import** : `import { QuickBacktestForm } from "@/features/backtest/quick-backtest-form"`.
-- **Rôle** : test rapide sur un seul symbole (`quickBacktestSchema`, nom `Test rapide <symbol>`, allocation `[{ symbol, weight: 100 }]`, défauts `DEFAULT_INVESTMENT_MODE`, `DEFAULT_INITIAL_AMOUNT`, `DEFAULT_FEE_PERCENT`, 1 an jusqu'à aujourd'hui ; champs `InvestmentModeFields` et `PeriodAndCapitalFields` partagés avec le formulaire complet ; récapitulatif `QuickTestSummary` et boutons `QuickTestActions` internes) ; un `400` du backend place chaque issue sous le champ de son chemin (`setFormIssues`) ; redirige vers le détail créé.
+- **Rôle** : test rapide sur un seul symbole (`createQuickBacktestFormSchema`, nom `backtest.quick.name`, allocation `[{ symbol, weight: 100 }]`, défauts `DEFAULT_INVESTMENT_MODE`, `DEFAULT_INITIAL_AMOUNT`, `DEFAULT_FEE_PERCENT`, 1 an jusqu'à aujourd'hui ; champs `InvestmentModeFields` et `PeriodAndCapitalFields` partagés avec le formulaire complet ; récapitulatif `QuickTestSummary` et boutons `QuickTestActions` internes) ; un `400` du backend place chaque issue sous le champ de son chemin (`setFormIssues`) ; redirige vers le détail créé.
 - **Props** :
   - `symbol` : Symbole testé.
 - **Source** : `src/features/backtest/quick-backtest-form.tsx`.
 
 ### AllocationField
+
+_Ligne et pied du champ : `allocation-row.tsx` (`AllocationRow`, `AllocationFooter`, internes à la feature)._
 
 - **Import** : `import { AllocationField } from "@/features/backtest/allocation-field"` (seul domaine utilisateur, d'où sa place dans la feature).
 - **Rôle** : allocation d'un portefeuille (`AllocationInput[]`) : une ligne par actif (symbole, nom, barre proportionnelle au poids, champ `%` entier de 1 à 100 au pas de 1, bouton de retrait), ajout via `SymbolPicker` (symbole déjà présent masqué et ignoré ; le nouvel actif reçoit le reste jusqu'à 100 %, vide s'il n'en reste pas), badge « Total » vert à 100 %, rouge sinon. Le total n'est qu'un affichage de la saisie : la somme = 100 se valide dans le schéma zod du formulaire.
@@ -1045,7 +1047,7 @@ Source : `src/features/auth/schema.ts`.
 - **Props** :
   - `result` : Résultat complet (ratios en fraction, montants en string).
   - `rebalanceFrequency` : Description du bloc « Coûts et activité ».
-- **Source** : `src/features/backtest/result-metrics.tsx` (`PerformanceBlock`, `RiskBlock`, `CostsBlock` internes). Valeurs des lignes : [`features/backtest/metrics.tsx`](#featuresbacktestmetricstsx).
+- **Source** : `src/features/backtest/result-metrics.tsx` (`PerformanceBlock` interne ; `RiskBlock` et `CostsBlock` dans `result-blocks.tsx`). Valeurs des lignes : [`features/backtest/metrics.tsx`](#featuresbacktestmetricstsx).
 
 ### `features/backtest/metrics.tsx`
 
@@ -1055,12 +1057,13 @@ Source : `src/features/auth/schema.ts`.
 | Export | Rôle |
 | --- | --- |
 | `Metric` | Métriques d'un résultat et de son benchmark. |
-| `metricDefinitions` | CAGR, rendement total et max drawdown en `formatRatio`, volatilité en `formatPercent`, Sharpe en `formatSharpe`, valeur finale en `formatAmount`. |
+| `metricDefinitions` | Aide et format de chaque métrique (libellé `backtest.metrics.<métrique>`) : CAGR, rendement total et max drawdown en `formatRatio`, volatilité en `formatPercent`, Sharpe en `formatSharpe`, valeur finale en `formatAmount`. |
 | `resultValue(f, result, metric)` | Métrique d'un résultat (Decimal sérialisé), formatée ; `<Dash />` si absente (résultat antérieur). |
 | `withBenchmark` | `withBenchmark(cells, benchmark, benchmarkCell)` : `cells`, suivies avec un benchmark de `benchmarkCell(benchmark)` (colonnes et valeurs d'un tableau d'indicateurs). |
 | `benchmarkValue(f, benchmark, metric)` | Métrique d'un benchmark (nombre du moteur), formatée ; `<Dash />` si `null`. |
-| `recoveryDefinition` | Libellé « Récupération » et aide `recovery` de la ligne, sans format. |
-| `resultRecovery(f, result)`, `benchmarkRecovery(f, benchmark)` | Récupération via `formatRecovery` ; `<Dash />` pour un résultat antérieur au calcul. |
+| `metricHead(t, metric)`, `recoveryHead(t)` | Libellé traduit et aide d'une ligne de métrique, de la ligne « Récupération ». |
+| `resultColumns(t, result)`, `metricRow(f, t, result, metric, details?)`, `recoveryRow(f, t, result)` | Colonnes (portefeuille, benchmark) et lignes d'un bloc d'indicateurs. |
+| `resultRecovery(f, t, result)`, `benchmarkRecovery(f, t, benchmark)` | Récupération via `formatRecovery` ; `<Dash />` pour un résultat antérieur au calcul. |
 
 Source : `src/features/backtest/metrics.tsx`.
 
@@ -1100,7 +1103,7 @@ Source : `src/features/backtest/metrics.tsx`.
   | --- | --- | --- | --- | --- |
   | `comparison` | `BacktestComparison` | oui | — | Réponse de `GET /api/backtest/compare`. |
 
-- **Source** : `src/features/backtest/comparison-metrics.tsx` (lignes construites depuis `metricDefinitions`, écart coloré par `Delta`), `src/features/backtest/comparison-parameters.tsx`.
+- **Source** : `src/features/backtest/comparison-metrics.tsx` (lignes construites depuis `metricHead`, écart coloré par `Delta`), `src/features/backtest/comparison-parameters.tsx`.
 
 ### `features/backtest/api.ts`
 
@@ -1136,45 +1139,38 @@ Source : `src/features/backtest/hook.ts`.
 
 ### `features/backtest/schema.ts`
 
-- **Import** : `import { backtestSchema, type BacktestValues } from "@/features/backtest/schema"`.
+- **Import** : `import { createBacktestFormSchema, type BacktestValues } from "@/features/backtest/schema"`.
 
 | Export | Rôle (et unité) |
 | --- | --- |
-| `backtestSchema` | Formulaire complet, miroir de `createBacktestSchema`. `weight` en **pourcent entier** (`NaN` rejeté) ; montants en devise de saisie ; `fee` en **pourcentage** par ordre. Body de `POST /api/backtest`. |
+| `createBacktestFormSchema(t)` | `t` = `useTranslations("backtest")` : messages dans la langue active. Formulaire complet, miroir de `createBacktestSchema` du backend. `weight` en **pourcent entier** (`NaN` rejeté) ; montants en devise de saisie ; `fee` en **pourcentage** par ordre. Body de `POST /api/backtest`. |
 | `BacktestValues` | Type des valeurs. |
-| `quickBacktestSchema` | Test rapide : `name` et `allocations` (100 % sur le symbole) ajoutés par `QuickBacktestForm`. |
+| `createQuickBacktestFormSchema(t)` | Même `t`. Test rapide : `name` et `allocations` (100 % sur le symbole) ajoutés par `QuickBacktestForm`. |
 | `QuickBacktestValues` | Type des valeurs. |
 
 Source : `src/features/backtest/schema.ts`.
 
 ### `features/backtest/constants.ts`
 
-- **Import** : `import { statusBadges } from "@/features/backtest/constants"`.
+- **Import** : `import { statusVariants } from "@/features/backtest/constants"`.
 
 | Export | Rôle |
 | --- | --- |
 | `BACKTEST_CURRENCY` | Devise d'affichage des montants (cours non convertis). |
 | `activeStatuses` | Statuts d'une exécution qui peut encore évoluer (miroir de `ACTIVE_STATUSES` backend). |
-| `investmentModeOptions` | Options du `SelectField` `investmentMode`. |
-| `rebalanceFrequencyLabels` | Libellé de la fréquence de rebalancement d'un backtest stocké. |
+| `investmentModes` | Modes d'investissement du `SelectField` ; libellés `backtest.investmentMode.<mode>`. |
+| `rebalanceFrequencies` | Fréquences de rebalancement (select et backtest stocké) ; libellés `backtest.rebalanceFrequency.<fréquence>`. |
 | `DEFAULT_INVESTMENT_MODE`, `DEFAULT_INITIAL_AMOUNT`, `DEFAULT_FEE_PERCENT` | Valeurs initiales du formulaire et du test rapide : `LUMP_SUM`, 10 000 en `BACKTEST_CURRENCY`, 0,1 % par ordre. |
-| `DEFAULT_REBALANCE_FREQUENCY` | Fréquence par défaut du formulaire complet et du test rapide (même défaut que `createBacktestSchema`). |
-| `rebalanceFrequencyOptions` | Options du `SelectField` `rebalanceFrequency`. |
+| `DEFAULT_REBALANCE_FREQUENCY` | Fréquence par défaut du formulaire complet et du test rapide (même défaut que le schéma du backend). |
 | `DEFAULT_BENCHMARK_SYMBOL` | Benchmark proposé par le formulaire complet (D9), retirable. |
-| `NO_BENCHMARK_LABEL` | Hypothèse « Benchmark » d'un backtest sans benchmark. |
-| `strategyLabels` | Libellé de stratégie d'un backtest stocké. |
-| `executionRuleLabels` | Libellé de la règle d'exécution d'un résultat. |
-| `dataProviderLabels` | Libellé du fournisseur de cours. |
-| `priceTypeLabels` | Libellé du type de cours. |
-| `previewSteps` | Étapes d'une exécution affichées par le récapitulatif du formulaire. |
-| `BACKTEST_DISCLAIMER` | Avertissement affiché avec tout résultat. |
-| `statusBadges` | Badge de statut d'exécution. |
-| `tradeSideBadges` | Badge du côté d'un ordre ; `side` absent (résultat antérieur) lu comme `BUY` (D10). |
-| `statusFilters` | Onglets de filtre de la liste ; `statuses` envoyés en `status` à `getBacktests` (`all` = vide, aucun filtre). |
+| `dataProviderLabels` | Nom du fournisseur de cours (nom propre, non traduit). Les autres libellés du domaine (stratégie, règle d'exécution, type de cours, avertissement, benchmark absent, titres de comparaison) sont dans `messages/*.json`, namespace `backtest`. |
+| `previewSteps` | Clés des étapes affichées par le récapitulatif ; textes `backtest.preview.steps.<étape>`. |
+| `statusVariants` | Variante du badge de chaque statut d'exécution (libellé `backtest.status.<statut>`). |
+| `tradeSideVariants` | Variante du badge du côté d'un ordre (libellé `backtest.tradeSide.<côté>`) ; `side` absent (résultat antérieur) lu comme `BUY` (D10). |
+| `statusFilters` | Onglets de filtre de la liste (libellés `backtest.filters.<filtre>`) ; `statuses` envoyés en `status` à `getBacktests` (`all` = vide, aucun filtre). |
 | `StatusFilter` | Type de l'onglet actif. |
 | `COMPARABLE_LIMIT` | Nombre de backtests proposés au choix de la comparaison (`MAX_PAGE_SIZE` du contrat, `pageSize` maximal de `GET /api/backtest`). |
 | `comparisonSideColors` |2)", className: "bg-chart-1|2" }` | Couleur de A et B : courbes, légende, pastilles de sélection. |
-| `comparisonParameterLabels` | Titre du bandeau « Comparaison non homogène ». |
 | `comparedMetricHigherIsBetter` | Sens favorable d'un écart A − B, pour sa couleur (affichage seulement). |
 
 Source : `src/features/backtest/constants.ts`.
@@ -1188,13 +1184,14 @@ Source : `src/features/backtest/constants.ts`.
 | `getExecution` | Dernière exécution (`executions[0]`). |
 | `hasStatus` | Statut de la dernière exécution dans la liste. |
 | `isActive` | Exécution `PENDING` ou `RUNNING`. |
-| `getExecutionDuration` | Durée `finishedAt − (startedAt ?? createdAt)`, « 2 min 5 s » ou « 12 s » (minimum 1 s) ; `null` si non terminée. |
+| `getExecutionDuration(t, e)` | Durée `finishedAt − (startedAt ?? createdAt)`, « 2 min 5 s » ou « 12 s » (minimum 1 s) ; `null` si non terminée. |
 | `fromDecimal` | `Decimal` sérialisé → `number`, `null` ou absent → `null`. |
 | `formatAllocation(f, allocations)` | Allocation lisible : « AAPL 60 % · MSFT 40 % » (`formatRate` du poids). |
 | `alignCurves` | Courbes de A et B sur l'union de leurs dates triées : séries `a` et `b` (absentes hors de leur période) et, avec `benchmarkSide`, `benchmark` = `benchmarkValue` de ce côté ; `value` choisit la série (valeur, drawdown). |
 | `formatAmount(f, v)` | Montant en `BACKTEST_CURRENCY`, au format de la langue active. |
-| `formatRecovery(f, …)` | Durée `formatDuration` ; si `recoveryDays` est null : « Aucune baisse » sans baisse, « Non récupéré » si `peakDated` (`maxDrawdownPeakDate` non null ; `true` pour un benchmark), sinon `null`, affiché `<Dash />` par l'écran (résultat antérieur, que l'API renvoie aussi à null). |
-| `benchmarkLabel` | Nom de la série du benchmark : `benchmarkLabel("URTH")` → « Benchmark URTH ». |
+| `formatRecovery(f, t, …)` | Durée `formatDuration` ; si `recoveryDays` est null : « Aucune baisse » sans baisse, « Non récupéré » si `peakDated` (`maxDrawdownPeakDate` non null ; `true` pour un benchmark), sinon `null`, affiché `<Dash />` par l'écran (résultat antérieur, que l'API renvoie aussi à null). |
+| `benchmarkLabel(t, symbol)` | Nom de la série du benchmark : « Benchmark URTH ». |
+| `BacktestTranslator` | Type du traducteur `useTranslations("backtest")`, passé aux helpers qui produisent du texte (`getExecutionDuration`, `formatRecovery`, `benchmarkLabel`). |
 | `comparisonLabel` | « A · 60/40 » : colonnes, légende et infobulles de la comparaison. |
 | `getComparisonBenchmark` | Benchmark affiché : celui de A, sinon celui de B ; `benchmark` null si aucun. |
 
@@ -1207,7 +1204,7 @@ Source : `src/features/backtest/utils.ts`. Helpers purs : aucun JSX (`<Dash />` 
 | Export | Type | Colonnes |
 | --- | --- | --- |
 | `useBacktestColumns()` | `Column<Backtest>[]` | Nom, Stratégie, Allocation (`formatAllocation`, tronquée, texte complet en `title`), Période, Rendement (`totalReturn` × 100 via `ChangeCell`), CAGR (`cagr` du résumé × 100 via `ChangeCell`, `<Dash />` si non terminé ou résultat antérieur), Statut (badge), Durée. En-têtes Rendement, CAGR et Durée en `InfoHint`. |
-| `useTradeColumns()` | `Column<Trade>[]` | Date, Symbole (`SymbolCell`), Côté (badge `tradeSideBadges`, « Achat » si `side` absent), Prix (2 décimales, sans devise), Quantité (jusqu'à 6 décimales), Montant et Frais (`formatPrice` en `BACKTEST_CURRENCY`) ; `Dash` si absents (résultats antérieurs). En-têtes Côté, Prix, Quantité, Montant, Frais en `InfoHint`. |
+| `useTradeColumns()` | `Column<Trade>[]` | Date, Symbole (`SymbolCell`), Côté (badge `tradeSideVariants`, « Achat » si `side` absent), Prix (2 décimales, sans devise), Quantité (jusqu'à 6 décimales), Montant et Frais (`formatPrice` en `BACKTEST_CURRENCY`) ; `Dash` si absents (résultats antérieurs). En-têtes Côté, Prix, Quantité, Montant, Frais en `InfoHint`. |
 | `useHoldingColumns()` | `Column<Holding>[]` | Symbole (`SymbolCell`), Quantité (jusqu'à 6 décimales), Valeur au dernier cours (`formatPrice` en `BACKTEST_CURRENCY`). En-têtes Quantité et Valeur en `InfoHint`. |
 
 Source : `src/features/backtest/column.tsx`.
