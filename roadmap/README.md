@@ -61,7 +61,7 @@ Planification : **toutes les features 10 à 24 sont planifiées** (dossiers `roa
 
 | # | Feature | Mois | Dépend de | Pourquoi à cette place |
 | --- | --- | --- | --- | --- |
-| 10 | Internationalisation du web (FR / EN) | 5 · urgente | 09 | Toute nouvelle page doit naître traduite ; retrofit coûteux sinon. |
+| 10 | Internationalisation et apparence du web (FR / EN, thème) | 5 · urgente | 09 | Toute nouvelle page doit naître traduite ; retrofit coûteux sinon. Inclut l’onglet Paramètres > Apparence (thème, langue). |
 | 11 | Dividendes, splits et effet devise | 5 | 08 | Change tous les rendements (rendement total). Le forward des options en a besoin. |
 | 12 | Robustesse : dates de départ et métriques glissantes | 5 | 11 | Sensibilité à la date d’entrée, sur des rendements corrects. |
 | 13 | Risk Engine | 6 | 11 | Corrélations, expositions, concentration, VaR/CVaR, contraintes. Gel fonctionnel du moteur de simulation à la fin. |
