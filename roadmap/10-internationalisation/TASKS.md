@@ -11,16 +11,16 @@
 | T-03 | Carte « Langue et région » (sélecteur de langue) | US-01 | web | MUST | 2 | T-01, T-08 | 3 | `810b276` |
 | T-04 | Formatage selon la locale active | US-02 | web | MUST | 3 | T-01 | 5 | `e1b85ae` |
 | T-05 | Traduction des écrans backtest | US-01 | web | MUST | 8 | T-02 | 13 | `e2e1742`, `de57c33`, `d2d98eb`, `7c8cfcf` |
-| T-06 | Traduction du marché | US-01 | web | SHOULD | 3 | T-02 | — | — |
+| T-06 | Traduction du marché | US-01 | web | SHOULD | 3 | T-02 | 3 | `09fe659`, `6f95fad` |
 | T-07 | Test de cohérence des dictionnaires | US-03 | web | MUST | 2 | T-02 | 2 | `c308167`, `06b48cb` |
 | T-08 | Paramètres : onglet Apparence et carte « Thème » | US-04 | web | MUST | 3 | T-01 | 5 | `810b276` |
-| T-09 | Traduction du glossaire (aide contextuelle) | US-01 | web | SHOULD | 8 | T-02 | — | — |
+| T-09 | Traduction du glossaire (aide contextuelle) | US-01 | web | SHOULD | 8 | T-02 | 8 | `1362977`, `30540f7`, `215a7ea` |
 | T-10 | Traduction de la page d’accueil et des pages `/app/*` à venir | US-01 | web | MUST | 3 | T-02 | — | — |
 | T-11 | Erreurs de l’API en code stable, traduites par le web | US-05 | backend, web | SHOULD | 5 | T-02 | — | — |
 
-**Total** : 45 points prévus — MUST 29, SHOULD 16 ; 36 réalisés sur T-01 à T-05, T-07 et T-08 (28 prévus).
+**Total** : 45 points prévus — MUST 29, SHOULD 16 ; 47 réalisés sur T-01 à T-09 (39 prévus).
 
-Écarts réalisés : T-04 3 → 5, 20 fichiers adaptés (colonnes devenues des hooks, helpers qui reçoivent les formatters) ; T-05 8 → 13, traduction de 50 composants et helpers, schémas zod en fabriques, découpe de `result-metrics.tsx` et `allocation-field.tsx` sous les seuils ; T-08 3 → 5, cartes ajustées à la maquette 06.2 et correction de l’hydratation du thème ; T-03 2 → 3, Server Action `setLocale`. T-06 5 → 3 : le glossaire, qui en faisait partie, devient T-09. Les textes d’aide (`InfoHint`) restent en français tant que T-09 n’est pas livrée.
+Écarts réalisés : T-04 3 → 5, 20 fichiers adaptés (colonnes devenues des hooks, helpers qui reçoivent les formatters) ; T-05 8 → 13, traduction de 50 composants et helpers, schémas zod en fabriques, découpe de `result-metrics.tsx` et `allocation-field.tsx` sous les seuils ; T-08 3 → 5, cartes ajustées à la maquette 06.2 et correction de l’hydratation du thème ; T-03 2 → 3, Server Action `setLocale`. T-06 5 → 3 : le glossaire, qui en faisait partie, devient T-09. T-06 et T-09 réalisés par deux sous-agents en parallèle (un worktree chacun), fusionnés le 2026-11-11 (`fefb857`) ; `GLOSSARY` ne porte plus que la `source` de chaque entrée, les textes sont dans `messages/*.json`.
 
 | Lot | Tâches | Points |
 | --- | --- | --- |
@@ -28,7 +28,7 @@
 | 2. Écrans | T-05 → T-07 | 13 |
 | 3. Écrans restants | T-09 → T-11 | 16 |
 
-**Chemin critique** (16 points) : T-01 → T-02 → T-05 (livré). Reste à faire : T-09 (8 points), la plus longue, car chaque texte du glossaire se retraduit en gardant sa formule et son unité.
+**Chemin critique** (16 points) : T-01 → T-02 → T-05 (livré). Reste à faire : T-10 (3 points) et T-11 (5 points).
 
 **Parallélisable** : T-06, T-09, T-10 et T-11 après T-02, sans dépendance entre elles.
 
@@ -126,13 +126,13 @@ Critères d’acceptation :
 
 ### T-06 · Traduction du marché
 
-- **US** : US-01 · **Priorité** : SHOULD · **Points** : 3 · **Dépend de** : T-02 · **Commits** : —
+- **US** : US-01 · **Priorité** : SHOULD · **Points** : 3 · **Dépend de** : T-02 · **Commits** : `09fe659`, `6f95fad`
 - **Fichiers** : `apps/web/src/features/market/*`, `apps/web/src/app/app/market/**`, `apps/web/messages/*.json`
 
 Critères d’acceptation :
-- [ ] Liste, fiche, graphique de prix (périodes, « Aucune donnée »), en-têtes de colonnes et recherche traduits.
-- [ ] Le test de cohérence des dictionnaires (T-07) passe.
-- [ ] Aucun libellé FR visible en locale EN sur le parcours marché, hors textes d’aide (T-09).
+- [x] Liste, fiche, graphique de prix (périodes, « Aucune donnée »), en-têtes de colonnes et recherche traduits.
+- [x] Le test de cohérence des dictionnaires (T-07) passe.
+- [x] Aucun libellé FR visible en locale EN sur le parcours marché, hors textes d’aide (T-09).
 
 
 ### T-07 · Test de cohérence des dictionnaires
@@ -148,15 +148,15 @@ Critères d’acceptation :
 
 ### T-09 · Traduction du glossaire (aide contextuelle)
 
-- **US** : US-01 · **Priorité** : SHOULD · **Points** : 8 · **Dépend de** : T-02 · **Commits** : —
+- **US** : US-01 · **Priorité** : SHOULD · **Points** : 8 · **Dépend de** : T-02 · **Commits** : `1362977`, `30540f7`, `215a7ea`
 - **Fichiers** : `apps/web/src/constants/glossary.ts`, `apps/web/messages/*.json`, `apps/web/src/components/info-hint.tsx`
 
 Critères d’acceptation :
-- [ ] Chaque entrée du glossaire existe en FR et en EN ; formule, unité et `source` restent identiques.
-- [ ] `GLOSSARY` ne porte plus de texte : titre, objectif, calcul, lecture et unité sont lus dans les dictionnaires par clé d’entrée.
-- [ ] Les phrases communes (`MONEY_UNIT`, `TWR_SENTENCE`) restent écrites une seule fois par langue.
-- [ ] Le test de cohérence des dictionnaires (T-07) passe.
-- [ ] La règle « Aide sur les données » d’`apps/web/AGENTS.md` dit où écrire le texte d’une nouvelle entrée.
+- [x] Chaque entrée du glossaire existe en FR et en EN ; formule, unité et `source` restent identiques.
+- [x] `GLOSSARY` ne porte plus de texte : titre, objectif, calcul, lecture et unité sont lus dans les dictionnaires par clé d’entrée.
+- [x] Les phrases communes (`MONEY_UNIT`, `TWR_SENTENCE`) restent écrites une seule fois par langue.
+- [x] Le test de cohérence des dictionnaires (T-07) passe.
+- [x] La règle « Aide sur les données » d’`apps/web/AGENTS.md` dit où écrire le texte d’une nouvelle entrée.
 
 ### T-10 · Traduction de la page d’accueil et des pages `/app/*` à venir
 

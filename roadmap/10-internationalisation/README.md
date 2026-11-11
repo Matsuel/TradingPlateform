@@ -4,7 +4,7 @@
 - **Roadmap** : Mois 5 · urgente — hors roadmap annuelle, demande du 2026-11-03 : interface traduisible avant toute nouvelle page ; demande du 2026-11-11 : onglet Apparence des Paramètres, comme sur la maquette
 - **Période** : à fixer au démarrage de la feature
 - **Branche / PR** : `feat/internationalisation` — PR à ouvrir
-- **Points** : 45 (MUST 29, SHOULD 16) — prévus ; 36 réalisés sur 7 tâches (T-06, T-09, T-10 et T-11 restent)
+- **Points** : 45 (MUST 29, SHOULD 16) — prévus ; 47 réalisés sur 9 tâches (T-10 et T-11 restent)
 - **Maquettes** : `06.2 · Paramètres · Apparence` (node `129:2996` ; carte « Thème » et carte « Langue et région »). Ancienne `30 · Sélecteur de langue` (node `447:11464`) remplacée par la carte « Langue et région ».
 - **Dépend de** : 09 (livrée). Passe avant 11 pour que les nouvelles pages naissent traduites.
 
