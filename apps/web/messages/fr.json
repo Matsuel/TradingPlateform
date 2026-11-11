@@ -767,5 +767,58 @@
             "computation": "Cours de clôture fournis par Yahoo Finance, un point par intervalle (5 min sur 1 jour, 1 h sur 1 semaine, 1 jour sur 1 mois, 1 semaine sur 1 an, 1 mois au-delà). Un intervalle sans clôture (marché fermé) est omis.",
             "unit": "{marketMoneyUnit}"
         }
+    },
+    "pages": {
+        "dashboard": {
+            "description": "Vue d’ensemble de vos backtests, portefeuilles et signaux récents."
+        },
+        "notifications": {
+            "description": "Résultats de simulation et signaux reçus, lus ou non lus."
+        },
+        "paperTrading": {
+            "description": "Stratégies suivies à partir d’aujourd’hui sur un portefeuille virtuel."
+        },
+        "risk": {
+            "description": "Corrélations, concentration, VaR/CVaR et contribution au risque d’un portefeuille."
+        },
+        "projection": {
+            "description": "Futurs plausibles d’un portefeuille par simulation Monte Carlo."
+        },
+        "optimization": {
+            "description": "Explorateur d’allocations et frontière efficiente."
+        },
+        "reports": {
+            "description": "Rapports de gestion générés à partir de vos simulations."
+        },
+        "monitoring": {
+            "description": "État des microservices, lag Kafka et exécutions en cours."
+        },
+        "users": {
+            "description": "Gérez les comptes, les rôles et les accès à la plateforme."
+        },
+        "referenceData": {
+            "description": "Instruments importés, historiques de cours et versions du jeu de données."
+        }
+    },
+    "home": {
+        "metaTitle": "MarketFlow — Simulateur de marché",
+        "metaDescription": "Explorez les marchés, testez vos stratégies et gérez un portefeuille virtuel, sans argent réel.",
+        "intro": "Une plateforme de marché financier simulée pour apprendre à investir sans risque : explorez les cours, testez vos stratégies sur le passé et entraînez-vous avec un portefeuille virtuel.",
+        "cta": "Accéder à l’app",
+        "disclaimer": "Projet pédagogique : aucune transaction réelle, aucun conseil financier.",
+        "features": {
+            "market": {
+                "title": "Marché",
+                "description": "Recherchez un symbole, consultez son cours et son historique de prix sur graphique."
+            },
+            "backtests": {
+                "title": "Backtests",
+                "description": "Rejouez une stratégie (achat unique ou DCA mensuel) sur l’historique et mesurez rendement et drawdown."
+            },
+            "portfolio": {
+                "title": "Portefeuille virtuel",
+                "description": "Bientôt : passez des ordres avec un solde fictif et suivez vos positions en temps réel."
+            }
+        }
     }
 }

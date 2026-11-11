@@ -767,5 +767,58 @@
             "computation": "Closing prices provided by Yahoo Finance, one point per interval (5 min over 1 day, 1 h over 1 week, 1 day over 1 month, 1 week over 1 year, 1 month beyond). An interval without a close (market closed) is omitted.",
             "unit": "{marketMoneyUnit}"
         }
+    },
+    "pages": {
+        "dashboard": {
+            "description": "Overview of your backtests, portfolios and recent signals."
+        },
+        "notifications": {
+            "description": "Simulation results and signals received, read or unread."
+        },
+        "paperTrading": {
+            "description": "Strategies followed from today on a virtual portfolio."
+        },
+        "risk": {
+            "description": "Correlations, concentration, VaR/CVaR and risk contribution of a portfolio."
+        },
+        "projection": {
+            "description": "Plausible futures of a portfolio through Monte Carlo simulation."
+        },
+        "optimization": {
+            "description": "Allocation explorer and efficient frontier."
+        },
+        "reports": {
+            "description": "Management reports generated from your simulations."
+        },
+        "monitoring": {
+            "description": "Microservice status, Kafka lag and running executions."
+        },
+        "users": {
+            "description": "Manage accounts, roles and access to the platform."
+        },
+        "referenceData": {
+            "description": "Imported instruments, price histories and dataset versions."
+        }
+    },
+    "home": {
+        "metaTitle": "MarketFlow — Market simulator",
+        "metaDescription": "Explore the markets, test your strategies and manage a virtual portfolio, with no real money.",
+        "intro": "A simulated financial market platform to learn to invest without risk: explore prices, test your strategies on the past and practise with a virtual portfolio.",
+        "cta": "Open the app",
+        "disclaimer": "Educational project: no real transactions, no financial advice.",
+        "features": {
+            "market": {
+                "title": "Market",
+                "description": "Search for a symbol, see its price and its price history on a chart."
+            },
+            "backtests": {
+                "title": "Backtests",
+                "description": "Replay a strategy (lump sum or monthly DCA) on historical data and measure return and drawdown."
+            },
+            "portfolio": {
+                "title": "Virtual portfolio",
+                "description": "Coming soon: place orders with a fictional balance and follow your positions in real time."
+            }
+        }
     }
 }
