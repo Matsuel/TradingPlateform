@@ -1,5 +1,6 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import { useState } from "react"
 import { AreaSeriesChart } from "@/components/area-series-chart"
 import { FilterTabs } from "@/components/filter-tabs"
@@ -9,7 +10,7 @@ import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle }
 import { useFormatters } from "@/lib/format"
 import { trendOf, trendStyles } from "@/lib/trend"
 import { cn } from "@/lib/utils"
-import { MARKET_CURRENCY, periodOptions } from "./constants"
+import { MARKET_CURRENCY, periods } from "./constants"
 import { useMarketDetails } from "./hook"
 import type { Period } from "./types"
 
@@ -37,18 +38,19 @@ const trendOfPeriod = (points: { price: number }[]) =>
 
 export function PriceChart({ symbol }: { symbol: string }) {
     const { formatPrice, locale } = useFormatters()
+    const t = useTranslations("market")
     const [period, setPeriod] = useState<Period>("1d")
     const { data, isPending, isError, error, refetch, isPlaceholderData } = useMarketDetails(symbol, period)
-    const interval = periodOptions.find((p) => p.value === period)!.interval
+    const periodOptions = periods.map((value) => ({ value, label: t(`periods.${value}`) }))
 
     return (
         <Card size="compact">
             <CardHeader>
                 <CardTitle>
-                    <InfoHint entry="priceChart">Prix</InfoHint>
+                    <InfoHint entry="priceChart">{t("chart.title")}</InfoHint>
                 </CardTitle>
                 <CardDescription>
-                    {symbol} · points toutes les {interval}
+                    {t("chart.description", { symbol, interval: t(`intervals.${period}`) })}
                 </CardDescription>
                 <CardAction>
                     <FilterTabs value={period} onChange={setPeriod} options={periodOptions} />
@@ -62,13 +64,18 @@ export function PriceChart({ symbol }: { symbol: string }) {
                     <ErrorState message={error.message} onRetry={refetch} className="h-82.5" />
                 ) : data.length === 0 ? (
                     <p className="flex h-82.5 items-center justify-center text-body text-muted-foreground">
-                        Aucune donnée pour cette période.
+                        {t("chart.empty")}
                     </p>
                 ) : (
                     <AreaSeriesChart
                         data={data}
                         series={[
-                            { key: "price", label: "Prix", color: trendStyles[trendOfPeriod(data)].color, fill: true },
+                            {
+                                key: "price",
+                                label: t("chart.title"),
+                                color: trendStyles[trendOfPeriod(data)].color,
+                                fill: true,
+                            },
                         ]}
                         formatTick={(d) => formatTick(locale, d, period)}
                         formatTooltipDate={(d) => formatTooltipDate(locale, d, period)}

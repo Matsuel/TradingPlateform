@@ -440,5 +440,42 @@
                 "benchmarkSymbol": "A’s benchmark: {a}, B’s: {b}."
             }
         }
+    },
+    "market": {
+        "title": "Market",
+        "description": "Real-time prices via Yahoo Finance",
+        "search": {
+            "placeholder": "Search for a symbol…"
+        },
+        "sheet": {
+            "title": "Quick test · {symbol}",
+            "trigger": "Test"
+        },
+        "columns": {
+            "symbol": "Symbol",
+            "price": "Price",
+            "change24h": "24h change",
+            "volume24h": "24h volume",
+            "trend": "Trend"
+        },
+        "chart": {
+            "title": "Price",
+            "description": "{symbol} · one point every {interval}",
+            "empty": "No data for this period."
+        },
+        "periods": {
+            "1d": "1D",
+            "1w": "1W",
+            "1m": "1M",
+            "1y": "1Y",
+            "max": "Max"
+        },
+        "intervals": {
+            "1d": "5 min",
+            "1w": "1 h",
+            "1m": "1 day",
+            "1y": "1 week",
+            "max": "1 month"
+        }
     }
 }
