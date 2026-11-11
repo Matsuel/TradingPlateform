@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl"
 import type { MouseEvent, ReactNode } from "react"
 import { AppSheet } from "@/components/app-sheet"
 import { Button } from "@/components/ui/button"
-import { GLOSSARY, type GlossaryEntry, type GlossaryKey } from "@/constants/glossary"
+import { GLOSSARY, type GlossaryKey } from "@/constants/glossary"
 
 function HintSection({ title, children }: { title: string; children: ReactNode }) {
     return (
@@ -22,23 +22,45 @@ const stopPropagation = (e: MouseEvent) => e.stopPropagation()
 // Ligne du bloc de valeurs du panneau (ex. « Creux atteint le », ou une colonne d'un tableau : « Portefeuille »)
 export type HintDetail = { label: string; value: ReactNode }
 
-interface InfoHintProps {
-    entry?: GlossaryKey // absent : libellé rendu tel quel, sans aide
+// Textes d'une entrée, lus dans `glossary.<entrée>` de la langue active
+function useGlossaryTexts(entry: GlossaryKey) {
+    const t = useTranslations("glossary")
+    // Phrases communes à plusieurs entrées, écrites une fois par langue et insérées dans leurs textes
+    const shared = {
+        moneyUnit: t("shared.moneyUnit"),
+        marketMoneyUnit: t("shared.marketMoneyUnit"),
+        twr: t("shared.twr"),
+    }
+    // `formula` et `readingTip` n'existent que pour certaines entrées : le dictionnaire dit lesquelles
+    // (traducteur non typé : `has` écarte l'absence, que le typage des clés ne connaît pas)
+    const optional = (field: "formula" | "readingTip") => {
+        const key = `${entry}.${field}`
+        const untyped = t as unknown as { (key: string, values: typeof shared): string; has(key: string): boolean }
+        return untyped.has(key) ? untyped(key, shared) : undefined
+    }
+
+    return {
+        title: t(`${entry}.title`),
+        purpose: t(`${entry}.purpose`, shared),
+        computation: t(`${entry}.computation`, shared),
+        unit: t(`${entry}.unit`, shared),
+        formula: optional("formula"),
+        readingTip: optional("readingTip"),
+    }
+}
+
+interface GlossaryHintProps {
+    entry: GlossaryKey
     value?: ReactNode
-    details?: HintDetail[]
+    details: HintDetail[]
     children: ReactNode
 }
 
-/**
- * Libellé souligné en pointillés qui ouvre l'explication d'une donnée du glossaire dans un panneau à droite (maquettes 15 et 15.1).
- * `value` (« Valeur affichée ») puis `details` : valeurs déjà formatées par l'écran, rappelées dans le panneau, jamais recalculées.
- * Le clic n'atteint pas le parent (ligne cliquable, formulaire). Sans `entry`, rend `children` seul.
- */
-export function InfoHint({ entry, value, details = [], children }: InfoHintProps) {
+// Déclencheur et panneau d'une entrée du glossaire
+function GlossaryHint({ entry, value, details, children }: GlossaryHintProps) {
     const t = useTranslations("components.infoHint")
-    if (!entry) return children
+    const { title, purpose, computation, formula, unit, readingTip } = useGlossaryTexts(entry)
     const shown = value == null ? details : [{ label: t("shownValue"), value }, ...details]
-    const { title, purpose, computation, formula, unit, readingTip, source }: GlossaryEntry = GLOSSARY[entry]
 
     return (
         <span onClick={stopPropagation} className="contents">
@@ -81,9 +103,32 @@ export function InfoHint({ entry, value, details = [], children }: InfoHintProps
                             <p>{readingTip}</p>
                         </HintSection>
                     )}
-                    <p className="text-small">{t("source", { source })}</p>
+                    <p className="text-small">{t("source", { source: GLOSSARY[entry].source })}</p>
                 </div>
             </AppSheet>
         </span>
+    )
+}
+
+interface InfoHintProps {
+    entry?: GlossaryKey // absent : libellé rendu tel quel, sans aide
+    value?: ReactNode
+    details?: HintDetail[]
+    children: ReactNode
+}
+
+/**
+ * Libellé souligné en pointillés qui ouvre l'explication d'une donnée du glossaire dans un panneau à droite (maquettes 15 et 15.1).
+ * Textes de l'explication dans la langue active (`glossary.<entrée>` des dictionnaires), `source` dans `GLOSSARY`.
+ * `value` (« Valeur affichée ») puis `details` : valeurs déjà formatées par l'écran, rappelées dans le panneau, jamais recalculées.
+ * Le clic n'atteint pas le parent (ligne cliquable, formulaire). Sans `entry`, rend `children` seul.
+ */
+export function InfoHint({ entry, value, details = [], children }: InfoHintProps) {
+    if (!entry) return children
+
+    return (
+        <GlossaryHint entry={entry} value={value} details={details}>
+            {children}
+        </GlossaryHint>
     )
 }
