@@ -19,6 +19,8 @@ const buttonVariants = cva(
         link: "text-primary underline-offset-4 hover:underline",
         // Ajout du projet : libellé d'une donnée qui ouvre son aide (InfoHint), souligné en pointillés
         hint: "rounded-sm text-left font-[inherit] text-[length:inherit] leading-[inherit] whitespace-normal underline decoration-muted-foreground decoration-dotted underline-offset-4 active:not-aria-[haspopup]:translate-y-0",
+        // Ajout du projet : tuile cliquable sans fond ni survol, contenu libre (aperçu de thème), avec la taille inline
+        tile: "rounded-md text-left whitespace-normal active:not-aria-[haspopup]:translate-y-0",
       },
       size: {
         default:

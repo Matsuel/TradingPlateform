@@ -74,5 +74,21 @@
             "hasAccount": "Already have an account?",
             "login": "Log in"
         }
+    },
+    "settings": {
+        "title": "Settings",
+        "description": "Manage your profile and your virtual portfolio.",
+        "tabs": {
+            "appearance": "Appearance"
+        },
+        "theme": {
+            "title": "Theme",
+            "description": "Choose how the interface looks."
+        },
+        "language": {
+            "title": "Language and region",
+            "description": "Display format for text, dates and numbers.",
+            "label": "Language"
+        }
     }
 }

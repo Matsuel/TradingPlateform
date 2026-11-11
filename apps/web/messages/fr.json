@@ -74,5 +74,21 @@
             "hasAccount": "Déjà un compte ?",
             "login": "Se connecter"
         }
+    },
+    "settings": {
+        "title": "Paramètres",
+        "description": "Gérez votre profil et votre portefeuille virtuel.",
+        "tabs": {
+            "appearance": "Apparence"
+        },
+        "theme": {
+            "title": "Thème",
+            "description": "Choisissez l’apparence de l’interface."
+        },
+        "language": {
+            "title": "Langue et région",
+            "description": "Format d’affichage des textes, dates et nombres.",
+            "label": "Langue"
+        }
     }
 }
