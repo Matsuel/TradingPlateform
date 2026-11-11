@@ -1,10 +1,10 @@
 # 10 · Internationalisation et apparence du web (FR / EN, thème)
 
-- **Statut** : Planifiée
+- **Statut** : En cours
 - **Roadmap** : Mois 5 · urgente — hors roadmap annuelle, demande du 2026-11-03 : interface traduisible avant toute nouvelle page ; demande du 2026-11-11 : onglet Apparence des Paramètres, comme sur la maquette
 - **Période** : à fixer au démarrage de la feature
 - **Branche / PR** : `feat/internationalisation` — PR à ouvrir
-- **Points** : 31 (MUST 26, SHOULD 5) — prévus
+- **Points** : 45 (MUST 29, SHOULD 16) — prévus ; 36 réalisés sur 7 tâches (T-06, T-09, T-10 et T-11 restent)
 - **Maquettes** : `06.2 · Paramètres · Apparence` (node `129:2996` ; carte « Thème » et carte « Langue et région »). Ancienne `30 · Sélecteur de langue` (node `447:11464`) remplacée par la carte « Langue et région ».
 - **Dépend de** : 09 (livrée). Passe avant 11 pour que les nouvelles pages naissent traduites.
 
@@ -14,7 +14,7 @@ L'utilisateur peut lire l'application en français ou en anglais, avec nombres e
 
 ## Comment
 
-Web uniquement. `next-intl` (D1) fournit dictionnaires, cookie et formats ICU (pluriels, nombres). Langue lue dans `cookies()` côté serveur, pas de segment d'URL (D2). `lib/format.ts` reçoit la locale en paramètre au lieu de `LOCALE = "fr-FR"`. Le thème reste géré par `next-themes` (déjà en place) ; l'onglet Apparence remplace le `ThemeToggle` isolé comme point de réglage et y ajoute la langue (D4). Aucun changement de contrat ni de base.
+Web uniquement. `next-intl` (D1) fournit dictionnaires, cookie et formats ICU (pluriels, nombres). Langue lue dans `cookies()` côté serveur, pas de segment d'URL (D2). `lib/format.ts` reçoit la locale en paramètre au lieu de `LOCALE = "fr-FR"`. Le thème reste géré par `next-themes` (déjà en place) ; l'onglet Apparence remplace le `ThemeToggle` isolé comme point de réglage et y ajoute la langue (D4). Aucun changement de contrat ni de base, sauf T-11 (codes d'erreur, D5).
 
 ## Décisions
 
@@ -24,10 +24,13 @@ Web uniquement. `next-intl` (D1) fournit dictionnaires, cookie et formats ICU (p
 | D2 | **Stockage de la langue** : Cookie `locale`, pas de colonne en base | Préférence d'affichage, pas une donnée métier : pas de migration, pas de route API. | `US.md` (à valider) |
 | D3 | **Périmètre** : Interface web seulement | Les messages d'erreur du backend restent en français ; les données (noms d'actifs) ne sont pas traduites. | `US.md` (à valider) |
 | D4 | **Thème** : `next-themes` conservé, réglé depuis l'onglet Apparence | Déjà en place et persistant (navigateur) ; préférence d'affichage comme la langue : ni base ni route. Le `ThemeToggle` de la barre latérale reste en raccourci. | `US.md` (à valider) |
+| D5 | **Erreurs de l'API** : code stable dans le corps, traduit par le web | Pas de paramètre ni d'en-tête de langue : le backend reste sans langue (T-11). | `US.md` (à valider) |
 
 ## Écarts au plan
 
-Aucun : feature planifiée, rien de livré.
+- 2026-11-11 : T-06 coupée en deux. Le glossaire (T-09) devient une tâche à part, car `InfoHint` lit 417 lignes de texte français sur presque tous les écrans backtest. Ajout de T-10 (accueil et pages `/app/*` à venir) et T-11 (erreurs de l'API, D5), qui lève D3 pour les erreurs.
+- 2026-11-11 : les formats (T-04) passent par `useFormatters()` plutôt qu'une locale globale, et les colonnes de tableau deviennent des hooks.
+- Livré : T-01 à T-05, T-07, T-08 (`9999fd5` … `55fc201`). Parcours backtest entièrement traduit, hors textes d'aide.
 
 ## Bilan
 
