@@ -20,7 +20,7 @@ import {
     FULL_PERCENT,
 } from "./constants"
 import { useCreateBacktest } from "./hook"
-import { createQuickBacktestSchema, type QuickBacktestValues } from "./schema"
+import { createQuickBacktestFormSchema, type QuickBacktestValues } from "./schema"
 import { InvestmentModeFields, PeriodAndCapitalFields } from "./sections"
 
 // Récapitulatif : symbole testé et nombre de jours calendaires de la période saisie
@@ -66,7 +66,7 @@ export function QuickBacktestForm({ symbol }: { symbol: string }) {
     const router = useRouter()
     const { mutateAsync, error } = useCreateBacktest()
     const form = useForm<QuickBacktestValues>({
-        resolver: zodResolver(createQuickBacktestSchema(t)),
+        resolver: zodResolver(createQuickBacktestFormSchema(t)),
         defaultValues: {
             investmentMode: DEFAULT_INVESTMENT_MODE,
             start: subYears(new Date(), 1),

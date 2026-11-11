@@ -46,6 +46,22 @@ function useDeltaFormat(t: BacktestTranslator) {
     return (metric: ComparedMetric) => (metric === "sharpeRatio" ? formatChange : formatPoints)
 }
 
+// Colonnes : A, B, l'écart puis, avec un benchmark, son symbole
+const comparisonColumns = (
+    t: BacktestTranslator,
+    { a, b }: BacktestComparison,
+    benchmark: Parameters<typeof withBenchmark>[1],
+): MetricColumn[] =>
+    withBenchmark<MetricColumn>(
+        [
+            { label: comparisonLabel("A", a.name) },
+            { label: comparisonLabel("B", b.name) },
+            { label: t("compare.metrics.delta"), hint: "comparisonDelta" },
+        ],
+        benchmark,
+        (bm) => ({ label: bm.symbol }),
+    )
+
 // Lignes qui ont un écart, dans l'ordre de la maquette ; récupération et valeur finale suivent, sans écart
 const metricsWithDelta: ComparedMetric[] = ["cagr", "totalReturn", "volatility", "sharpeRatio", "maxDrawdown"]
 
@@ -61,15 +77,7 @@ export function ComparisonMetrics({ comparison }: { comparison: BacktestComparis
     const deltaFormat = useDeltaFormat(t)
     const { a, b, deltas } = comparison
     const { benchmark } = getComparisonBenchmark(comparison)
-    const columns: MetricColumn[] = withBenchmark<MetricColumn>(
-        [
-            { label: comparisonLabel("A", a.name) },
-            { label: comparisonLabel("B", b.name) },
-            { label: t("compare.metrics.delta"), hint: "comparisonDelta" },
-        ],
-        benchmark,
-        (bm) => ({ label: bm.symbol }),
-    )
+    const columns = comparisonColumns(t, comparison, benchmark)
     // Valeur de A, de B, écart puis, avec un benchmark, la sienne
     const row = (
         { label, hint }: Pick<MetricRow, "label" | "hint">,

@@ -18,7 +18,7 @@ import {
 } from "./constants"
 import { useCreateBacktest } from "./hook"
 import { BacktestPreviewSummary } from "./preview-summary"
-import { type BacktestValues, createBacktestSchema } from "./schema"
+import { type BacktestValues, createBacktestFormSchema } from "./schema"
 import { AllocationSection, GeneralSection } from "./sections"
 import { allocationTotal } from "./utils"
 
@@ -27,7 +27,7 @@ export function NewBacktestForm() {
     const router = useRouter()
     const { mutateAsync, error } = useCreateBacktest()
     const form = useForm<BacktestValues>({
-        resolver: zodResolver(createBacktestSchema(t)),
+        resolver: zodResolver(createBacktestFormSchema(t)),
         defaultValues: {
             name: "",
             investmentMode: DEFAULT_INVESTMENT_MODE,

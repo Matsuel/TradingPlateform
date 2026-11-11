@@ -72,7 +72,7 @@ function fields(t: BacktestTranslator) {
 }
 
 /** Schéma du formulaire « Nouveau backtest » : un seul schéma, les règles croisées se déclarent ici. */
-export function createBacktestSchema(t: BacktestTranslator) {
+export function createBacktestFormSchema(t: BacktestTranslator) {
     const { general, market, refinements } = fields(t)
     return z
         .object({ ...general, ...market })
@@ -82,10 +82,10 @@ export function createBacktestSchema(t: BacktestTranslator) {
         .transform(dropHiddenRecurringAmount)
 }
 
-export type BacktestValues = z.infer<ReturnType<typeof createBacktestSchema>>
+export type BacktestValues = z.infer<ReturnType<typeof createBacktestFormSchema>>
 
 /** Test rapide depuis la page marché : allocation à 100 % sur le symbole de la page, ajoutée à l'envoi. */
-export function createQuickBacktestSchema(t: BacktestTranslator) {
+export function createQuickBacktestFormSchema(t: BacktestTranslator) {
     const { general, market, refinements } = fields(t)
     return z
         .object({
@@ -102,4 +102,4 @@ export function createQuickBacktestSchema(t: BacktestTranslator) {
         .transform(dropHiddenRecurringAmount)
 }
 
-export type QuickBacktestValues = z.infer<ReturnType<typeof createQuickBacktestSchema>>
+export type QuickBacktestValues = z.infer<ReturnType<typeof createQuickBacktestFormSchema>>

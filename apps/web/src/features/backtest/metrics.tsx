@@ -1,7 +1,9 @@
 import { Dash, orDash } from "@/components/dash"
+import type { HintDetail } from "@/components/info-hint"
 import type { GlossaryKey } from "@/constants/glossary"
 import type { Formatters } from "@/lib/format"
-import type { Benchmark } from "./types"
+import { type MetricColumn, type MetricRow } from "./metric-block"
+import type { BacktestResult, Benchmark } from "./types"
 import { type BacktestTranslator, formatAmount, formatRecovery, fromDecimal } from "./utils"
 
 export type Metric = "cagr" | "totalReturn" | "finalValue" | "volatility" | "sharpeRatio" | "maxDrawdown"
@@ -59,3 +61,29 @@ export const resultRecovery = (f: Formatters, t: BacktestTranslator, result: Res
 /** Récupération d'un benchmark : son plus haut est toujours daté par le moteur. */
 export const benchmarkRecovery = (f: Formatters, t: BacktestTranslator, benchmark: Benchmark) =>
     formatRecovery(f, t, benchmark.recoveryDays, benchmark.maxDrawdown, true) ?? <Dash />
+
+/** Colonnes d'un bloc d'indicateurs : le portefeuille puis, avec un benchmark, son symbole. */
+export const resultColumns = (t: BacktestTranslator, { benchmark }: BacktestResult): MetricColumn[] =>
+    withBenchmark([{ label: t("result.portfolio") }], benchmark, (bm) => ({ label: bm.symbol }))
+
+/** Ligne d'une métrique : valeur du portefeuille puis, avec un benchmark, la sienne. */
+export function metricRow(
+    f: Formatters,
+    t: BacktestTranslator,
+    result: BacktestResult,
+    metric: Metric,
+    details?: HintDetail[],
+): MetricRow {
+    const values = withBenchmark([resultValue(f, result, metric)], result.benchmark, (bm) =>
+        benchmarkValue(f, bm, metric),
+    )
+    return { ...metricHead(t, metric), details, values }
+}
+
+/** Ligne « Récupération » : portefeuille puis, avec un benchmark, le sien. */
+export function recoveryRow(f: Formatters, t: BacktestTranslator, result: BacktestResult): MetricRow {
+    return {
+        ...recoveryHead(t),
+        values: withBenchmark([resultRecovery(f, t, result)], result.benchmark, (bm) => benchmarkRecovery(f, t, bm)),
+    }
+}

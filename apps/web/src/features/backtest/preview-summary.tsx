@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { useDebouncedValue } from "@/hooks/use-debounced-value"
 import { dataProviderLabels, previewSteps } from "./constants"
 import { useBacktestPreview } from "./hook"
-import { type BacktestValues, createBacktestSchema } from "./schema"
+import { type BacktestValues, createBacktestFormSchema } from "./schema"
 
 // Attente après la dernière saisie avant de redemander la prévisualisation
 const PREVIEW_DEBOUNCE_MS = 500
@@ -26,7 +26,7 @@ export function BacktestPreviewSummary() {
     const values = useWatch({
         control,
         compute: (current) => {
-            const parsed = createBacktestSchema(t).safeParse(current)
+            const parsed = createBacktestFormSchema(t).safeParse(current)
             return parsed.success ? parsed.data : null
         },
     })
