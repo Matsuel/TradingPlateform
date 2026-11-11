@@ -323,12 +323,12 @@
         "overview": {
             "finalValue": "Valeur finale",
             "profit": "Plus-value",
-            "profitOn": "{profit} sur {invested}",
             "invested": "{amount} investis",
             "benchmarkReturn": "{symbol} sur la même période : {return}",
             "portfolio": "Portefeuille",
             "lumpSum": "Investissement unique",
-            "drawdown": "Drawdown"
+            "drawdown": "Drawdown",
+            "on": "sur"
         },
         "result": {
             "performance": {

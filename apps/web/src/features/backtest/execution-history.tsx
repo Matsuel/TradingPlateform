@@ -1,36 +1,40 @@
+import { useTranslations } from "next-intl"
 import { Progress } from "@/components/ui/progress"
 import { type Formatters, useFormatters } from "@/lib/format"
 import { cn } from "@/lib/utils"
-import { statusBadges } from "./constants"
 import { StatusBadge } from "./status-badge"
 import type { BacktestExecution } from "./types"
-import { getExecutionDuration, isActive } from "./utils"
+import { type BacktestTranslator, getExecutionDuration, isActive } from "./utils"
 
-function describe(f: Formatters, e: BacktestExecution) {
+function describe(f: Formatters, t: BacktestTranslator, e: BacktestExecution) {
     switch (e.status) {
         case "PENDING":
-            return "En file d’attente"
+            return t("history.pending")
         case "RUNNING":
-            return "Calcul en cours"
+            return t("history.running")
         case "FAILED":
-            return e.error ?? "Erreur inconnue"
+            return e.error ?? t("history.unknownError")
         case "COMPLETED":
             return e.result
-                ? `${e.result.totalTrades} ordres · ${f.formatRatio(Number(e.result.totalReturn))}`
-                : "Terminé"
+                ? t("history.completedSummary", {
+                      count: e.result.totalTrades,
+                      return: f.formatRatio(Number(e.result.totalReturn)),
+                  })
+                : t("history.completed")
         default:
-            return statusBadges[e.status].label
+            return t(`status.${e.status}`)
     }
 }
 
-function duration(e: BacktestExecution) {
-    const d = getExecutionDuration(e)
-    if (e.status === "FAILED" && d) return `Après ${d}`
-    return d ?? statusBadges[e.status].label
+function duration(t: BacktestTranslator, e: BacktestExecution) {
+    const d = getExecutionDuration(t, e)
+    if (e.status === "FAILED" && d) return t("duration.after", { duration: d })
+    return d ?? t(`status.${e.status}`)
 }
 
 function ExecutionRow({ execution: e }: { execution: BacktestExecution }) {
     const f = useFormatters()
+    const t = useTranslations("backtest")
 
     return (
         <div className="flex items-center justify-between gap-4 border-b py-3 last:border-b-0">
@@ -40,11 +44,11 @@ function ExecutionRow({ execution: e }: { execution: BacktestExecution }) {
                     <StatusBadge status={e.status} />
                 </div>
                 <span className={cn("text-small text-muted-foreground", e.status === "FAILED" && "text-destructive")}>
-                    {f.formatDate(e.createdAt)} · {describe(f, e)}
+                    {f.formatDate(e.createdAt)} · {describe(f, t, e)}
                 </span>
                 {isActive(e) && (
                     <Progress
-                        aria-label={e.status === "RUNNING" ? "Calcul en cours" : "En file d’attente"}
+                        aria-label={e.status === "RUNNING" ? t("history.running") : t("history.pending")}
                         value={e.status === "RUNNING" ? 100 : 0}
                         variant="running"
                         size="md"
@@ -52,7 +56,7 @@ function ExecutionRow({ execution: e }: { execution: BacktestExecution }) {
                     />
                 )}
             </div>
-            <span className="shrink-0 text-small text-muted-foreground">{duration(e)}</span>
+            <span className="shrink-0 text-small text-muted-foreground">{duration(t, e)}</span>
         </div>
     )
 }

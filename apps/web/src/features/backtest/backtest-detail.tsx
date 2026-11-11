@@ -1,11 +1,11 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import { EmptyCard } from "@/components/empty-card"
 import { PageHeader } from "@/components/page-layout"
 import { ErrorState, LoadingState } from "@/components/query-status"
 import { Button } from "@/components/ui/button"
 import { type Formatters, useFormatters } from "@/lib/format"
-import { rebalanceFrequencyLabels, strategyLabels } from "./constants"
 import { useBacktest, useRerunBacktest } from "./hook"
 import { ResultDetails } from "./result-details"
 import { ResultMetrics } from "./result-metrics"
@@ -13,30 +13,30 @@ import { ResultOverview } from "./result-overview"
 import { StatusBadge } from "./status-badge"
 import { TradesTable } from "./trades-table"
 import type { BacktestDetails } from "./types"
-import { formatAllocation, getExecution, getExecutionDuration, isActive } from "./utils"
+import { type BacktestTranslator, formatAllocation, getExecution, getExecutionDuration, isActive } from "./utils"
 
-function describe(f: Formatters, backtest: BacktestDetails) {
+function describe(f: Formatters, t: BacktestTranslator, backtest: BacktestDetails) {
     const e = getExecution(backtest)
-    const duration = e?.status === "COMPLETED" && getExecutionDuration(e)
+    const duration = e?.status === "COMPLETED" && getExecutionDuration(t, e)
     return [
-        strategyLabels[backtest.investmentMode],
+        t(`strategy.${backtest.investmentMode}`),
         formatAllocation(f, backtest.allocations),
         backtest.rebalanceFrequency !== "NONE" &&
-            `rebalancement ${rebalanceFrequencyLabels[backtest.rebalanceFrequency].toLowerCase()}`,
-        backtest.benchmarkSymbol && `benchmark ${backtest.benchmarkSymbol}`,
+            t("detail.rebalancing", {
+                frequency: t(`rebalanceFrequency.${backtest.rebalanceFrequency}`).toLowerCase(),
+            }),
+        backtest.benchmarkSymbol && t("detail.benchmark", { symbol: backtest.benchmarkSymbol }),
         f.formatDayRange(backtest.startDate, backtest.endDate),
-        duration && `exécuté en ${duration}`,
+        duration && t("detail.executedIn", { duration }),
     ]
         .filter(Boolean)
         .join(" · ")
 }
 
 function NoResult({ backtest }: { backtest: BacktestDetails }) {
+    const t = useTranslations("backtest.detail")
     const e = getExecution(backtest)
-    const message =
-        e?.status === "FAILED"
-            ? `Le backtest a échoué : ${e.error ?? "erreur inconnue"}`
-            : "Les résultats s’afficheront à la fin du calcul."
+    const message = e?.status === "FAILED" ? t("failed", { error: e.error ?? t("unknownError") }) : t("pending")
 
     return <EmptyCard>{message}</EmptyCard>
 }
@@ -48,6 +48,7 @@ function NoResult({ backtest }: { backtest: BacktestDetails }) {
  */
 export function BacktestDetail({ id }: { id: string }) {
     const f = useFormatters()
+    const t = useTranslations("backtest")
     const query = useBacktest(id)
     const rerun = useRerunBacktest(id)
     const { data: backtest, isPending, isError, error, refetch } = query
@@ -66,10 +67,10 @@ export function BacktestDetail({ id }: { id: string }) {
             <PageHeader
                 title={backtest.name}
                 badge={execution && <StatusBadge status={execution.status} />}
-                description={describe(f, backtest)}
+                description={describe(f, t, backtest)}
                 actions={
                     <Button onClick={() => rerun.mutate()} disabled={!canRerun}>
-                        Relancer
+                        {t("detail.rerun")}
                     </Button>
                 }
             />

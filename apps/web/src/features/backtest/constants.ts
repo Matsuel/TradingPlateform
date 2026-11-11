@@ -75,6 +75,19 @@ export const previewSteps = [
 export const BACKTEST_DISCLAIMER =
     "Les performances passées ne préjugent pas des performances futures. Simulation pédagogique, pas un conseil en investissement."
 
+// Couleur du badge de chaque statut ; le libellé vient de `backtest.status.<statut>`
+export const statusVariants: Record<ExecutionStatus, "outline" | "destructive" | "secondary" | "success"> = {
+    DRAFT: "secondary",
+    PENDING: "outline",
+    RUNNING: "outline",
+    COMPLETED: "success",
+    FAILED: "destructive",
+    CANCELLED: "secondary",
+}
+
+// Couleur du badge de chaque côté d'un ordre ; le libellé vient de `backtest.tradeSide.<côté>`
+export const tradeSideVariants: Record<TradeSide, "success" | "destructive"> = { BUY: "success", SELL: "destructive" }
+
 export const statusBadges: Record<
     ExecutionStatus,
     { label: string; variant: "outline" | "destructive" | "secondary" | "success" }

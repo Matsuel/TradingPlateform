@@ -1,5 +1,6 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import { useState } from "react"
 import { DataTable } from "@/components/data-table/data-table"
 import { TableCard } from "@/components/data-table/table-card"
@@ -17,6 +18,7 @@ const RECENT_TRADES = 5
  * du plus récent au plus ancien. `trades` : ordres du moteur, du plus ancien au plus récent.
  */
 export function TradesTable({ trades }: { trades: Trade[] }) {
+    const t = useTranslations("backtest.trades")
     const columns = useTradeColumns()
     const [showAll, setShowAll] = useState(false)
     const [page, setPage] = useState(1)
@@ -24,16 +26,16 @@ export function TradesTable({ trades }: { trades: Trade[] }) {
 
     return (
         <TableCard
-            title="Ordres"
+            title={t("title")}
             description={
                 showAll
-                    ? "Achats et ventes, du plus récent au plus ancien"
-                    : `${Math.min(RECENT_TRADES, trades.length)} plus récents sur ${trades.length}`
+                    ? t("all")
+                    : t("recent", { shown: Math.min(RECENT_TRADES, trades.length), total: trades.length })
             }
             actions={
                 trades.length > RECENT_TRADES && (
                     <Button variant="outline" size="sm" onClick={() => setShowAll(!showAll)}>
-                        {showAll ? "Afficher les plus récents" : `Voir les ${trades.length} ordres`}
+                        {showAll ? t("showRecent") : t("seeAll", { count: trades.length })}
                     </Button>
                 )
             }
@@ -42,7 +44,7 @@ export function TradesTable({ trades }: { trades: Trade[] }) {
                 rows={showAll ? paginate(newestFirst, page, PAGE_SIZE) : newestFirst.slice(0, RECENT_TRADES)}
                 columns={columns}
                 rowKey={(t) => `${t.date}-${t.symbol}-${t.side}-${t.amount}`}
-                emptyMessage="Aucun ordre."
+                emptyMessage={t("empty")}
                 pagination={
                     showAll ? { page, pageSize: PAGE_SIZE, count: trades.length, onPageChange: setPage } : undefined
                 }

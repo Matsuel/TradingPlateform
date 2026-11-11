@@ -1,3 +1,4 @@
+import type { useTranslations } from "next-intl"
 import type { ChartPoint } from "@/components/area-series-chart"
 import type { Formatters } from "@/lib/format"
 import { activeStatuses, BACKTEST_CURRENCY } from "./constants"
@@ -9,6 +10,9 @@ import type {
     EquityPoint,
     ExecutionStatus,
 } from "./types"
+
+/** Traducteur du namespace `backtest` des dictionnaires, passé aux helpers qui produisent du texte. */
+export type BacktestTranslator = ReturnType<typeof useTranslations<"backtest">>
 
 /** Somme des poids saisis, en pourcent ; un poids vidé (`NaN`) compte 0 (le schéma du formulaire le rejette à part). */
 export const allocationTotal = (rows: AllocationInput[]) =>
@@ -27,11 +31,13 @@ export function hasStatus(b: Backtest, statuses: readonly ExecutionStatus[]) {
 export const isActive = (e: BacktestExecution) => (activeStatuses as readonly ExecutionStatus[]).includes(e.status)
 
 /** Durée lisible d'une exécution terminée (« 1 min 5 s »), depuis son démarrage ; null tant qu'elle n'est pas finie. */
-export function getExecutionDuration(e: BacktestExecution) {
+export function getExecutionDuration(t: BacktestTranslator, e: BacktestExecution) {
     if (!e.finishedAt) return null
     const seconds = Math.max(1, Math.round((+new Date(e.finishedAt) - +new Date(e.startedAt ?? e.createdAt)) / 1000))
     const minutes = Math.floor(seconds / 60)
-    return minutes ? `${minutes} min ${seconds % 60} s` : `${seconds} s`
+    return minutes
+        ? t("duration.minutesSeconds", { minutes, seconds: seconds % 60 })
+        : t("duration.seconds", { seconds })
 }
 
 /** Allocation lisible : « AAPL 60 % · MSFT 40 % » (poids en ratio, au pourcent entier, D2). */
@@ -50,18 +56,19 @@ export const formatAmount = (f: Formatters, v: number) => f.formatPrice(v, BACKT
  */
 export function formatRecovery(
     f: Formatters,
+    t: BacktestTranslator,
     recoveryDays: number | null | undefined,
     maxDrawdown: number | null,
     peakDated: boolean,
 ): string | null {
     if (recoveryDays != null) return f.formatDuration(recoveryDays)
     if (maxDrawdown == null) return null
-    if (maxDrawdown === 0) return "Aucune baisse"
-    return peakDated ? "Non récupéré" : null
+    if (maxDrawdown === 0) return t("recovery.noDrawdown")
+    return peakDated ? t("recovery.notRecovered") : null
 }
 
 /** Nom de la série du benchmark dans un graphique : « Benchmark URTH ». */
-export const benchmarkLabel = (symbol: string) => `Benchmark ${symbol}`
+export const benchmarkLabel = (t: BacktestTranslator, symbol: string) => t("benchmarkLabel", { symbol })
 
 /** Libellé d'un côté de la comparaison : « A · 60/40 ». */
 export const comparisonLabel = (side: "A" | "B", name: string) => `${side} · ${name}`

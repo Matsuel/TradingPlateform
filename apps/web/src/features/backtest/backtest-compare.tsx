@@ -2,6 +2,7 @@
 
 import { TriangleAlert } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { useTranslations } from "next-intl"
 import { useState } from "react"
 import { EmptyCard } from "@/components/empty-card"
 import { PageHeader } from "@/components/page-layout"
@@ -13,34 +14,49 @@ import { ComparisonMetrics } from "./comparison-metrics"
 import { ComparisonOverview } from "./comparison-overview"
 import { ComparisonParameters } from "./comparison-parameters"
 import { ComparisonSelection } from "./comparison-selection"
-import { comparisonParameterLabels, NO_BENCHMARK_LABEL } from "./constants"
 import { useBacktestComparison } from "./hook"
 import type { BacktestComparison, ComparisonParameter } from "./types"
+import type { BacktestTranslator } from "./utils"
 
 // Une phrase par paramètre qui diffère, valeurs de A puis de B
-const differenceDetails: Record<ComparisonParameter, (c: BacktestComparison, f: Formatters) => string> = {
-    period: ({ a, b }, f) =>
-        `A couvre ${f.formatDayRange(a.startDate, a.endDate)}, B ${f.formatDayRange(b.startDate, b.endDate)}.`,
-    feeRate: ({ a, b }, f) =>
-        `A paie ${f.formatPercent(Number(a.feeRate))} par ordre, B ${f.formatPercent(Number(b.feeRate))}.`,
-    benchmarkSymbol: ({ a, b }) =>
-        `Benchmark de A : ${a.benchmarkSymbol ?? NO_BENCHMARK_LABEL}, de B : ${b.benchmarkSymbol ?? NO_BENCHMARK_LABEL}.`,
+const differenceDetails: Record<
+    ComparisonParameter,
+    (c: BacktestComparison, f: Formatters, t: BacktestTranslator) => string
+> = {
+    period: ({ a, b }, f, t) =>
+        t("compare.details.period", {
+            a: f.formatDayRange(a.startDate, a.endDate),
+            b: f.formatDayRange(b.startDate, b.endDate),
+        }),
+    feeRate: ({ a, b }, f, t) =>
+        t("compare.details.feeRate", {
+            a: f.formatPercent(Number(a.feeRate)),
+            b: f.formatPercent(Number(b.feeRate)),
+        }),
+    benchmarkSymbol: ({ a, b }, _f, t) =>
+        t("compare.details.benchmarkSymbol", {
+            a: a.benchmarkSymbol ?? t("noBenchmark"),
+            b: b.benchmarkSymbol ?? t("noBenchmark"),
+        }),
 }
 
 // Bandeau affiché quand le backend signale une comparaison non homogène
 function HeterogeneityBanner({ comparison }: { comparison: BacktestComparison }) {
     const f = useFormatters()
+    const t = useTranslations("backtest")
     const { differences } = comparison
     return (
         <div role="status" className="flex items-start gap-3 rounded-md border bg-muted px-4 py-3.5">
             <TriangleAlert className="mt-0.5 size-4 shrink-0" />
             <div className="flex flex-col gap-0.5">
                 <p className="text-body-semibold">
-                    Comparaison non homogène : {differences.map((d) => comparisonParameterLabels[d]).join(", ")}
+                    {t("compare.banner.title", {
+                        differences: differences.map((d) => t(`compare.differences.${d}`)).join(", "),
+                    })}
                 </p>
                 <p className="text-small text-muted-foreground">
-                    {differences.map((d) => differenceDetails[d](comparison, f)).join(" ")} Les écarts restent calculés,
-                    mais ne mesurent plus seulement l’effet de l’allocation.
+                    {differences.map((d) => differenceDetails[d](comparison, f, t)).join(" ")}{" "}
+                    {t("compare.banner.note")}
                 </p>
             </div>
         </div>
@@ -53,6 +69,7 @@ function HeterogeneityBanner({ comparison }: { comparison: BacktestComparison })
  * Écarts et homogénéité viennent de `GET /api/backtest/compare` ; `ids` : valeur brute du paramètre de l'URL.
  */
 export function BacktestCompare({ ids }: { ids: string | string[] | undefined }) {
+    const t = useTranslations("backtest.compare")
     const router = useRouter()
     const parts = String(ids ?? "").split(",")
     // Lien modifié à la main (`?ids=x,x`, trois ids) : traité comme sans sélection, la requête n'étant pas lancée
@@ -69,13 +86,7 @@ export function BacktestCompare({ ids }: { ids: string | string[] | undefined })
 
     let content
     if (!a || !b) {
-        content = (
-            <EmptyCard>
-                {invalidLink
-                    ? "Ce lien ne désigne pas deux backtests différents : choisissez-en deux."
-                    : "Choisissez deux backtests terminés à comparer."}
-            </EmptyCard>
-        )
+        content = <EmptyCard>{invalidLink ? t("invalidLink") : t("choose")}</EmptyCard>
     } else if (isError) {
         content = <ErrorState message={error.message} onRetry={refetch} className="h-64" />
     } else if (isPending) {
@@ -96,11 +107,11 @@ export function BacktestCompare({ ids }: { ids: string | string[] | undefined })
     return (
         <>
             <PageHeader
-                title="Comparaison"
-                description="Deux backtests terminés, mêmes métriques côte à côte"
+                title={t("title")}
+                description={t("description")}
                 actions={
                     <Button variant="outline" onClick={copyLink} disabled={!comparison}>
-                        {copied ? "Lien copié" : "Copier le lien"}
+                        {copied ? t("copied") : t("copy")}
                     </Button>
                 }
             />

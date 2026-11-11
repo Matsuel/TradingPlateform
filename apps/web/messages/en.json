@@ -323,12 +323,12 @@
         "overview": {
             "finalValue": "Final value",
             "profit": "Profit",
-            "profitOn": "{profit} on {invested}",
             "invested": "{amount} invested",
             "benchmarkReturn": "{symbol} over the same period: {return}",
             "portfolio": "Portfolio",
             "lumpSum": "Lump sum",
-            "drawdown": "Drawdown"
+            "drawdown": "Drawdown",
+            "on": "on"
         },
         "result": {
             "performance": {

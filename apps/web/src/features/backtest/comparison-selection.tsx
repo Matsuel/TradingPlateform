@@ -1,5 +1,6 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import { OptionSelect, type SelectOption } from "@/components/option-select"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -48,6 +49,7 @@ export function ComparisonSelection({
     b: string
     onChange: (a: string, b: string) => void
 }) {
+    const t = useTranslations("backtest.compare.selection")
     const { data } = useBacktests({ page: 1, pageSize: COMPARABLE_LIMIT, status: [], hasResult: true })
     const options = (data?.data ?? []).map((t) => ({
         value: t.id,
@@ -60,27 +62,25 @@ export function ComparisonSelection({
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
                     <BacktestSelect
                         id="backtest-a"
-                        label="Backtest A"
+                        label={t("a")}
                         dotClassName={comparisonSideColors.a.className}
                         value={a}
                         options={options.filter((o) => o.value !== b)}
                         onChange={(v) => onChange(v, b)}
                     />
                     <Button variant="ghost" onClick={() => onChange(b, a)} disabled={!a && !b}>
-                        Échanger
+                        {t("swap")}
                     </Button>
                     <BacktestSelect
                         id="backtest-b"
-                        label="Backtest B"
+                        label={t("b")}
                         dotClassName={comparisonSideColors.b.className}
                         value={b}
                         options={options.filter((o) => o.value !== a)}
                         onChange={(v) => onChange(a, v)}
                     />
                 </div>
-                <p className="text-small text-muted-foreground">
-                    Seuls vos backtests terminés sont proposés. Le lien de la page garde la sélection.
-                </p>
+                <p className="text-small text-muted-foreground">{t("hint")}</p>
             </CardContent>
         </Card>
     )

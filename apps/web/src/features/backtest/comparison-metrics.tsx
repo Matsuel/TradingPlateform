@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl"
 import type { ReactNode } from "react"
 import { Dash } from "@/components/dash"
 import { useFormatters } from "@/lib/format"
@@ -7,14 +8,14 @@ import { MetricBlock, type MetricColumn, type MetricRow } from "./metric-block"
 import {
     benchmarkRecovery,
     benchmarkValue,
-    metricDefinitions,
-    recoveryDefinition,
+    metricHead,
+    recoveryHead,
     resultRecovery,
     resultValue,
     withBenchmark,
 } from "./metrics"
 import type { BacktestComparison, Benchmark, ComparedBacktest, ComparedMetric } from "./types"
-import { comparisonLabel, getComparisonBenchmark } from "./utils"
+import { type BacktestTranslator, comparisonLabel, getComparisonBenchmark } from "./utils"
 
 // Écart A − B de l'API, vert s'il est favorable à A, rouge sinon
 function Delta({
@@ -33,14 +34,14 @@ function Delta({
 }
 
 // Format de l'écart A − B : points de ratio (0.044 → « +4,4 pts »), sauf le Sharpe, sans unité
-function useDeltaFormat() {
+function useDeltaFormat(t: BacktestTranslator) {
     const { locale, formatChange } = useFormatters()
     const formatPointChange = new Intl.NumberFormat(locale, {
         minimumFractionDigits: 1,
         maximumFractionDigits: 1,
         signDisplay: "always",
     }).format
-    const formatPoints = (ratio: number) => `${formatPointChange(ratio * 100)} pts`
+    const formatPoints = (ratio: number) => t("compare.metrics.points", { value: formatPointChange(ratio * 100) })
 
     return (metric: ComparedMetric) => (metric === "sharpeRatio" ? formatChange : formatPoints)
 }
@@ -56,14 +57,15 @@ type ComparedResult = ComparedBacktest["result"]
  */
 export function ComparisonMetrics({ comparison }: { comparison: BacktestComparison }) {
     const f = useFormatters()
-    const deltaFormat = useDeltaFormat()
+    const t = useTranslations("backtest")
+    const deltaFormat = useDeltaFormat(t)
     const { a, b, deltas } = comparison
     const { benchmark } = getComparisonBenchmark(comparison)
     const columns: MetricColumn[] = withBenchmark<MetricColumn>(
         [
             { label: comparisonLabel("A", a.name) },
             { label: comparisonLabel("B", b.name) },
-            { label: "Écart", hint: "comparisonDelta" },
+            { label: t("compare.metrics.delta"), hint: "comparisonDelta" },
         ],
         benchmark,
         (bm) => ({ label: bm.symbol }),
@@ -83,20 +85,20 @@ export function ComparisonMetrics({ comparison }: { comparison: BacktestComparis
     const rows = [
         ...metricsWithDelta.map((metric) =>
             row(
-                metricDefinitions[metric],
+                metricHead(t, metric),
                 (r) => resultValue(f, r, metric),
                 <Delta metric={metric} value={deltas[metric]} format={deltaFormat(metric)} />,
                 (bm) => benchmarkValue(f, bm, metric),
             ),
         ),
         row(
-            recoveryDefinition,
-            (r) => resultRecovery(f, r),
+            recoveryHead(t),
+            (r) => resultRecovery(f, t, r),
             <Dash />,
-            (bm) => benchmarkRecovery(f, bm),
+            (bm) => benchmarkRecovery(f, t, bm),
         ),
         row(
-            metricDefinitions.finalValue,
+            metricHead(t, "finalValue"),
             (r) => resultValue(f, r, "finalValue"),
             <Dash />,
             (bm) => benchmarkValue(f, bm, "finalValue"),
@@ -105,9 +107,9 @@ export function ComparisonMetrics({ comparison }: { comparison: BacktestComparis
 
     return (
         <MetricBlock
-            title="Métriques comparées"
-            description="Écart = A − B, en points (Sharpe sans unité)"
-            rowHeader="Indicateur"
+            title={t("compare.metrics.title")}
+            description={t("compare.metrics.description")}
+            rowHeader={t("metrics.rowHeader")}
             columns={columns}
             boldColumns={2}
             rows={rows}

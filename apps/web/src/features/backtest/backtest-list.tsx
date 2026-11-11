@@ -1,6 +1,7 @@
 "use client"
 
 import { useRouter } from "next/navigation"
+import { useTranslations } from "next-intl"
 import { useState } from "react"
 
 import { DataTable } from "@/components/data-table/data-table"
@@ -13,18 +14,19 @@ import { type StatusFilter, statusFilters } from "./constants"
 import { useBacktestStats, useBacktests } from "./hook"
 import { BacktestStats } from "./stats"
 
-const filterOptions = (Object.keys(statusFilters) as StatusFilter[]).map((value) => ({
-    value,
-    label: statusFilters[value].label,
-}))
-
 export function BacktestList() {
+    const t = useTranslations("backtest")
     const router = useRouter()
     const columns = useBacktestColumns()
     const [filter, setFilter] = useState<StatusFilter>("all")
     const [page, setPage] = useState(1)
     const query = useBacktests({ page, pageSize: PAGE_SIZE, status: statusFilters[filter].statuses })
     const stats = useBacktestStats()
+
+    const filterOptions = (Object.keys(statusFilters) as StatusFilter[]).map((value) => ({
+        value,
+        label: t(`filters.${value}`),
+    }))
 
     const changeFilter = (value: StatusFilter) => {
         setFilter(value)
@@ -36,8 +38,8 @@ export function BacktestList() {
             <BacktestStats stats={stats.data} />
 
             <TableCard
-                title="Tous les backtests"
-                description="Triés par date de lancement"
+                title={t("list.tableTitle")}
+                description={t("list.tableDescription")}
                 actions={<FilterTabs value={filter} onChange={changeFilter} options={filterOptions} />}
             >
                 <DataTable
@@ -45,7 +47,7 @@ export function BacktestList() {
                     columns={columns}
                     rowKey={(b) => b.id}
                     onRowClick={(b) => router.push(routes.backtest(b.id))}
-                    emptyMessage="Aucun backtest."
+                    emptyMessage={t("list.empty")}
                     pagination={{ page, pageSize: PAGE_SIZE, count: query.data?.count ?? 0, onPageChange: setPage }}
                 />
             </TableCard>
