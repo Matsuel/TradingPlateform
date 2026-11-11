@@ -1,0 +1,78 @@
+{
+    "metadata": {
+        "description": "Simulated portfolio lab: backtests, risk and optimisation, with no real money."
+    },
+    "common": {
+        "retry": "Retry",
+        "error": "Something went wrong."
+    },
+    "notFound": {
+        "title": "Page not found",
+        "description": "The page you are looking for does not exist or has been moved.",
+        "backToDashboard": "Back to dashboard",
+        "viewMarket": "View the market"
+    },
+    "navigation": {
+        "sections": {
+            "overview": "Overview",
+            "market": "Market",
+            "strategyLab": "Strategy Lab",
+            "analysis": "Analysis",
+            "administration": "Administration"
+        },
+        "tabs": {
+            "dashboard": "Dashboard",
+            "notifications": "Notifications",
+            "market": "Market",
+            "backtests": "Backtests",
+            "newBacktest": "New backtest",
+            "compare": "Comparison",
+            "paperTrading": "Paper trading",
+            "risk": "Risk",
+            "projection": "Projection",
+            "optimization": "Optimisation",
+            "reports": "Reports",
+            "monitoring": "Monitoring",
+            "users": "Users",
+            "referenceData": "Reference data"
+        },
+        "account": "Account",
+        "logout": "Log out"
+    },
+    "theme": {
+        "toggle": "Change theme",
+        "light": "Light",
+        "dark": "Dark",
+        "system": "System"
+    },
+    "auth": {
+        "fields": {
+            "name": "Name",
+            "email": "Email",
+            "password": "Password"
+        },
+        "validation": {
+            "required": "Required",
+            "invalidEmail": "Invalid email",
+            "minLength": "At least {count} characters",
+            "maxLength": "At most {count} characters"
+        },
+        "login": {
+            "title": "Log in",
+            "description": "Log in with your email and password",
+            "submit": "Log in",
+            "failed": "Invalid credentials",
+            "noAccount": "No account yet?",
+            "createAccount": "Create an account"
+        },
+        "register": {
+            "metaTitle": "Sign up",
+            "title": "Create an account",
+            "description": "Fill in your details to create your account",
+            "submit": "Create account",
+            "failed": "Sign-up failed",
+            "hasAccount": "Already have an account?",
+            "login": "Log in"
+        }
+    }
+}

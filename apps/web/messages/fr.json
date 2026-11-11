@@ -1,0 +1,78 @@
+{
+    "metadata": {
+        "description": "Laboratoire de portefeuille simulé : backtests, risque et optimisation, sans argent réel."
+    },
+    "common": {
+        "retry": "Réessayer",
+        "error": "Une erreur est survenue."
+    },
+    "notFound": {
+        "title": "Page introuvable",
+        "description": "La page que vous cherchez n’existe pas ou a été déplacée.",
+        "backToDashboard": "Retour au dashboard",
+        "viewMarket": "Voir le marché"
+    },
+    "navigation": {
+        "sections": {
+            "overview": "Vue d’ensemble",
+            "market": "Marché",
+            "strategyLab": "Strategy Lab",
+            "analysis": "Analyse",
+            "administration": "Administration"
+        },
+        "tabs": {
+            "dashboard": "Dashboard",
+            "notifications": "Notifications",
+            "market": "Marché",
+            "backtests": "Backtests",
+            "newBacktest": "Nouveau backtest",
+            "compare": "Comparaison",
+            "paperTrading": "Paper trading",
+            "risk": "Risque",
+            "projection": "Projection",
+            "optimization": "Optimisation",
+            "reports": "Rapports",
+            "monitoring": "Monitoring",
+            "users": "Utilisateurs",
+            "referenceData": "Données de référence"
+        },
+        "account": "Compte",
+        "logout": "Se déconnecter"
+    },
+    "theme": {
+        "toggle": "Changer de thème",
+        "light": "Clair",
+        "dark": "Sombre",
+        "system": "Système"
+    },
+    "auth": {
+        "fields": {
+            "name": "Nom",
+            "email": "Email",
+            "password": "Mot de passe"
+        },
+        "validation": {
+            "required": "Requis",
+            "invalidEmail": "Email invalide",
+            "minLength": "Au moins {count} caractères",
+            "maxLength": "Au plus {count} caractères"
+        },
+        "login": {
+            "title": "Connexion",
+            "description": "Connectez-vous avec votre email et votre mot de passe",
+            "submit": "Se connecter",
+            "failed": "Identifiants invalides",
+            "noAccount": "Pas encore de compte ?",
+            "createAccount": "Créer un compte"
+        },
+        "register": {
+            "metaTitle": "Inscription",
+            "title": "Créer un compte",
+            "description": "Renseignez vos informations pour créer votre compte",
+            "submit": "Créer le compte",
+            "failed": "Inscription impossible",
+            "hasAccount": "Déjà un compte ?",
+            "login": "Se connecter"
+        }
+    }
+}

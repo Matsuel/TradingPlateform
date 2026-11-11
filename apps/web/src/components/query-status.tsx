@@ -1,6 +1,7 @@
 "use client"
 
 import { Loader2 } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
@@ -19,11 +20,13 @@ interface ErrorStateProps {
 }
 
 export function ErrorState({ message, onRetry, className }: ErrorStateProps) {
+    const t = useTranslations("common")
+
     return (
         <div className={cn("flex flex-col items-center justify-center gap-3 text-center", className)}>
             <p className="text-body text-destructive">{message}</p>
             <Button variant="outline" size="sm" onClick={() => onRetry()}>
-                Réessayer
+                {t("retry")}
             </Button>
         </div>
     )

@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { useTranslations } from "next-intl"
 import {
     Breadcrumb,
     BreadcrumbItem,
@@ -19,6 +20,7 @@ import { findActiveTab } from "@/lib/navigation"
  * Sur une sous-page (détail d'un backtest), l'onglet devient un lien vers sa liste ; hors du menu, pas de fil.
  */
 export function AppHeader() {
+    const t = useTranslations("navigation")
     const pathname = usePathname()
     const tab = findActiveTab(pathname)
 
@@ -29,13 +31,13 @@ export function AppHeader() {
             {tab && (
                 <Breadcrumb>
                     <BreadcrumbList>
-                        <BreadcrumbItem className="hidden md:block">{tab.section}</BreadcrumbItem>
+                        <BreadcrumbItem className="hidden md:block">{t(`sections.${tab.section}`)}</BreadcrumbItem>
                         <BreadcrumbSeparator className="hidden md:block" />
                         <BreadcrumbItem>
                             {pathname === tab.url ? (
-                                <BreadcrumbPage>{tab.name}</BreadcrumbPage>
+                                <BreadcrumbPage>{t(`tabs.${tab.key}`)}</BreadcrumbPage>
                             ) : (
-                                <BreadcrumbLink render={<Link href={tab.url} />}>{tab.name}</BreadcrumbLink>
+                                <BreadcrumbLink render={<Link href={tab.url} />}>{t(`tabs.${tab.key}`)}</BreadcrumbLink>
                             )}
                         </BreadcrumbItem>
                     </BreadcrumbList>

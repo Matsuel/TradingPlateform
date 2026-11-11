@@ -42,7 +42,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
             </SidebarHeader>
             <SidebarContent>
                 {sections.map((section) => (
-                    <SidebarNav key={section.name} section={section} />
+                    <SidebarNav key={section.key} section={section} />
                 ))}
             </SidebarContent>
             <SidebarFooter className="flex-row items-center group-data-[collapsible=icon]:flex-col">
