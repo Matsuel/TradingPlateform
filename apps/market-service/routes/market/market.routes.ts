@@ -21,6 +21,11 @@ const createMarketRoutes = (): RouteDescriptor[] => {
         },
         {
             method: "get",
+            path: `${prefix}/closes`,
+            handler: asyncHandler(controller.getDailyCloses)
+        },
+        {
+            method: "get",
             path: `${prefix}/defaults`,
             handler: asyncHandler(controller.getDefaultsAssets)
         },

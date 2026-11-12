@@ -1,6 +1,6 @@
 # API market-service
 
-Catalogue des routes internes de market-service (port 8001, données yahoo-finance2). Elles ne sont **jamais appelées directement** : le web passe par le proxy `ALL /api/market/{*path}` de core-backend (voir [`apps/core-backend/API.md`](../core-backend/API.md#market-proxy)), qui vérifie la session et transmet l'utilisateur dans l'en-tête `x-user-id`. Toute création, modification ou suppression de route met à jour son entrée **dans le même diff que le code**, selon le gabarit ci-dessous. En cas d'écart, le code fait foi : corrige l'entrée.
+Catalogue des routes internes de market-service (port 8001, données yahoo-finance2). Le web ne les appelle **jamais directement** : il passe par le proxy `ALL /api/market/{*path}` de core-backend (voir [`apps/core-backend/API.md`](../core-backend/API.md#market-proxy)), qui vérifie la session et transmet l'utilisateur dans l'en-tête `x-user-id`. Toute création, modification ou suppression de route met à jour son entrée **dans le même diff que le code**, selon le gabarit ci-dessous. En cas d'écart, le code fait foi : corrige l'entrée.
 
 ## Gabarit d'entrée
 
@@ -28,6 +28,7 @@ Catalogue des routes internes de market-service (port 8001, données yahoo-finan
 - [`GET /api/market/search`](#get-apimarketsearch)
 - [`GET /api/market/details/:id`](#get-apimarketdetailsid)
 - [`GET /api/market/defaults`](#get-apimarketdefaults)
+- [`GET /api/market/closes`](#get-apimarketcloses)
 
 ## Conventions communes
 
@@ -92,3 +93,18 @@ Catalogue des routes internes de market-service (port 8001, données yahoo-finan
 - **Effets** : aucun.
 - **Appelant** : `getDefaultAssets(params)` de `apps/web/src/features/market/api.ts`, hook `useDefaultAssets(params)` (clé `["market", "list", params]`, `keepPreviousData`, rafraîchi toutes les 30 s) ; utilisé par `MarketList` (`features/market/market-list.tsx`).
 - **Source** : `routes/market/market.routes.ts`, `controller/market.controller.ts` (`getDefaultsAssets`), `services/market.service.ts` (`getDefaultsMarketAssets`, découpage de la page), `repositories/market.repository.ts` (`getAssets`), `constants/market.constants.ts`.
+
+### GET /api/market/closes
+
+- **Auth** : `x-internal-key` (comme toute route). Appelée par **backtest-engine** directement, pas par le web ni le proxy.
+- **Entrée** :
+  - query : `symbols` (liste séparée par des virgules, 1 à `MAX_CLOSES_SYMBOLS` = 50, doublons retirés), `start` et `end` (ISO UTC avec `Z`, `start` < `end`).
+- **Réponse** : `200`, `DailyCloses` : pour chaque symbole demandé, ses clôtures journalières triées par date, dans la devise de cotation. `date` = jour de cotation dans le fuseau de la place (`YYYY-MM-DD`), jamais en UTC ; clôtures ajustées des splits, pas des dividendes ; jours sans clôture omis. Jamais mis en cache.
+  ```json
+  // GET /api/market/closes?symbols=AAPL&start=2024-01-02T00:00:00.000Z&end=2024-01-10T00:00:00.000Z
+  { "AAPL": [{ "date": "2024-01-02", "close": 185.64 }, { "date": "2024-01-03", "close": 184.25 }] }
+  ```
+- **Erreurs** : `400 { "error": "Invalid query", "code": "INVALID_QUERY", "issues": [ZodIssue] }` → `symbols` vide ou trop long, date non ISO, `start` ≥ `end` ; `500` → symbole inconnu ou erreur yahoo-finance2.
+- **Effets** : aucun.
+- **Appelant** : `MarketRepository.getDailyCloses` de `apps/backtest-engine/repositories/market.repository.ts`.
+- **Source** : `routes/market/market.routes.ts`, `controller/market.controller.ts` (`getDailyCloses`), `services/market.service.ts`, `repositories/market.repository.ts` (`getDailyCloses`), `interfaces/market.interface.ts` (`dailyClosesQuerySchema`).

@@ -1,6 +1,7 @@
-import YahooFinance from "yahoo-finance2";
-import { PRICE_DATA_SOURCE, type DataSource } from "@trading-plateform/contracts";
-import type { PricePoint, PriceSeries } from "../interfaces/backtest.interface";
+import { dailyClosesSchema, INTERNAL_KEY_HEADER, PRICE_DATA_SOURCE, type DataSource } from "@trading-plateform/contracts";
+import { MARKET_SERVICE_TIMEOUT_MS } from "../constants/market.constants";
+import { env } from "../env";
+import type { PriceSeries } from "../interfaces/backtest.interface";
 
 export interface IMarketRepository {
     // Fournisseur et type de cours renvoyés par getDailyCloses, publiés avec le résultat
@@ -10,37 +11,28 @@ export interface IMarketRepository {
 
 class MarketRepository implements IMarketRepository {
 
-    private static yahooFinance = new YahooFinance({ suppressNotices: ["yahooSurvey"] });
-
     readonly source = PRICE_DATA_SOURCE;
 
     /**
-     * Cours de clôture journaliers de chaque symbole entre `start` et `end` (yahoo-finance2), triés par date.
-     * Clôtures ajustées des splits, pas des dividendes ; jours sans clôture écartés.
+     * Cours de clôture journaliers de chaque symbole entre `start` et `end`, lus auprès de market-service (`GET /api/market/closes`),
+     * seul service qui appelle le fournisseur. Triés par date, ajustés des splits, pas des dividendes ; jours sans clôture écartés.
+     * Lève une erreur si market-service est injoignable ou répond hors 2xx (symbole inconnu compris).
      */
     async getDailyCloses(symbols: string[], start: Date, end: Date): Promise<PriceSeries> {
-        const series = await Promise.all(
-            symbols.map(async (symbol) => {
-                const chart = await MarketRepository.yahooFinance.chart(symbol, {
-                    period1: start,
-                    period2: end,
-                    interval: "1d",
-                });
+        const url = new URL("/api/market/closes", env.MARKET_SERVICE_URL);
+        url.search = new URLSearchParams({
+            symbols: symbols.join(","),
+            start: start.toISOString(),
+            end: end.toISOString(),
+        }).toString();
 
-                // Jour de cotation dans le fuseau de la place : en UTC, Tokyo ou Sydney tomberaient la veille
-                const toDay = new Intl.DateTimeFormat("en-CA", { timeZone: chart.meta.exchangeTimezoneName });
-                const points: PricePoint[] = chart.quotes
-                    .filter((quote) => quote.close != null)
-                    .map((quote) => ({
-                        date: toDay.format(quote.date),
-                        close: quote.close!,
-                    }));
+        const response = await fetch(url, {
+            headers: { [INTERNAL_KEY_HEADER]: env.INTERNAL_API_KEY },
+            signal: AbortSignal.timeout(MARKET_SERVICE_TIMEOUT_MS),
+        });
+        if (!response.ok) throw new Error(`Market data unavailable (market-service responded ${response.status})`);
 
-                return [symbol, points] as const;
-            }),
-        );
-
-        return Object.fromEntries(series);
+        return dailyClosesSchema.parse(await response.json());
     }
 }
 

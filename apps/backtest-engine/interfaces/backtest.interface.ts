@@ -1,10 +1,7 @@
-import type { BacktestCompletedPayload, BacktestRequestedPayload } from "@trading-plateform/contracts";
+import type { BacktestCompletedPayload, BacktestRequestedPayload, DailyClose } from "@trading-plateform/contracts";
 
-export interface PricePoint {
-    // YYYY-MM-DD
-    date: string;
-    close: number;
-}
+// Clôture d'un jour de cotation (`YYYY-MM-DD`), devise de cotation
+export type PricePoint = DailyClose;
 
 // Cours de clôture journaliers par symbole, triés par date
 export type PriceSeries = Record<string, PricePoint[]>;

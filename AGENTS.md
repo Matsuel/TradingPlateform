@@ -18,8 +18,8 @@ Ces règles sont **strictes** : un écart doit être justifié dans le résumé 
 | Chemin | Rôle |
 | --- | --- |
 | `apps/core-backend` | API Express 5 + Prisma + better-auth (port 8000). **Référence d'architecture backend**, seul accès à la base. |
-| `apps/backtest-engine` | Worker Kafka sans HTTP ni base : consomme `backtest.requested`, calcule, publie le résultat. |
-| `apps/market-service` | API de données de marché (yahoo-finance2, port 8001), appelée uniquement via le proxy de core-backend. |
+| `apps/backtest-engine` | Worker Kafka sans serveur HTTP ni base : consomme `backtest.requested`, lit les cours auprès de market-service, calcule, publie le résultat. |
+| `apps/market-service` | **Seul service qui appelle yahoo-finance2** (port 8001, cache mémoire) : appelé via le proxy de core-backend pour le web, directement par backtest-engine pour les cours d'un backtest. |
 | `apps/web` | Next.js 16 (App Router) + React 19 + Tailwind 4 + shadcn/base-ui. N'appelle que core-backend. |
 | `packages/contracts` | Schémas zod et topics partagés entre services. |
 | `packages/kafka` | `KafkaClient`, `KafkaProducer`, `KafkaConsumer`, `createKafkaEvent`. |

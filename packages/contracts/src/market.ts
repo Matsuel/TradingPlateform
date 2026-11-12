@@ -34,7 +34,21 @@ export const marketAssetSchema = z.object({
     history: z.array(marketDetailsSchema),
 });
 
+// Nombre maximal de symboles d'une requête de cours journaliers (GET /api/market/closes)
+export const MAX_CLOSES_SYMBOLS = 50;
+
+// Clôture journalière d'un symbole, devise de cotation ; `date` = jour de cotation dans le fuseau de la place (`YYYY-MM-DD`)
+export const dailyCloseSchema = z.object({
+    date: z.iso.date(),
+    close: z.number(),
+});
+
+// Réponse de GET /api/market/closes : séries triées par date, par symbole demandé
+export const dailyClosesSchema = z.record(z.string(), z.array(dailyCloseSchema));
+
 export type Period = z.infer<typeof periodSchema>;
 export type MarketData = z.infer<typeof marketDataSchema>;
 export type MarketDetails = z.infer<typeof marketDetailsSchema>;
+export type DailyClose = z.infer<typeof dailyCloseSchema>;
+export type DailyCloses = z.infer<typeof dailyClosesSchema>;
 export type MarketAsset = z.infer<typeof marketAssetSchema>;

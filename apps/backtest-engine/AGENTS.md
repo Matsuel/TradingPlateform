@@ -1,12 +1,13 @@
 # backtest-engine
 
-Worker Kafka sans HTTP **et sans base de données**. Consomme `backtest.requested` (publié par core-backend, contient tous les paramètres), récupère les cours via yahoo-finance2, calcule, puis publie `backtest.started` puis `backtest.completed` (résultat) ou `backtest.failed` (cause). **Calqué sur `apps/core-backend`** : lis `../core-backend/AGENTS.md` et reprends ses règles de couches. Respecte `../../AGENTS.md`.
+Worker Kafka sans serveur HTTP **et sans base de données**. Consomme `backtest.requested` (publié par core-backend, contient tous les paramètres), lit les cours auprès de market-service (`GET /api/market/closes`, clé interne `INTERNAL_API_KEY`, **jamais** de fournisseur en direct), calcule, puis publie `backtest.started` puis `backtest.completed` (résultat) ou `backtest.failed` (cause). **Calqué sur `apps/core-backend`** : lis `../core-backend/AGENTS.md` et reprends ses règles de couches. Respecte `../../AGENTS.md`.
 
 S'il manque une donnée pour calculer, ajoute-la au contrat `backtest.requested` : seul core-backend lit et écrit la base.
 
 ## Structure (à respecter, crée un dossier seulement quand un fichier en a besoin)
 
 ```
+env.ts             variables validées par zod (MARKET_SERVICE_URL, INTERNAL_API_KEY)
 index.ts           bootstrap : instancie Kafka, câble publisher → service → consumer, abonne. Aucune logique.
 consumers/         <domaine>.consumer.ts : valide l'événement (zod), appelle le service    (≈ controller)
 services/          <domaine>.service.ts : orchestre repository + engine + publisher          (≈ service)
@@ -15,7 +16,7 @@ engine/            calcul pur et déterministe
                    <domaine>.portfolio.ts : état du portefeuille simulé (lignes, ordres, frais)
 test/              <sujet>.test.ts : tests de l'engine (<domaine>.engine.test.ts, <domaine>.utils.test.ts) et du service
                    <domaine>.fixture.ts : jeux de cours déterministes partagés par les tests
-repositories/      I<X>Repository + classe : sources externes en lecture (cours de marché)
+repositories/      I<X>Repository + classe : sources externes en lecture (cours de marché, via market-service)
 publishers/        I<X>Publisher + classe : publication des événements de sortie
 interfaces/        types du domaine (<domaine>.interface.ts), dérivés des contrats
 errors/            erreurs métier (<nom>.error.ts)
@@ -32,7 +33,7 @@ constants/         constantes (<domaine>.constants.ts)
 - **Aperçu avant exécution** : l'estimation des versements et rebalancements (`estimateSchedule`, `packages/utils`) suit les règles de l'engine et utilise le même `periodKey` que la simulation ; core-backend l'appelle sans recalculer. Une règle de calendrier qui change se modifie dans `periodKey`/`estimateSchedule` et son test.
 - **services/** orchestre : publie `started`, charge les cours, appelle l'engine, publie `completed`. Toute erreur (données, calcul, publication) → `failed` avec la cause. Seul endroit où l'horloge (`new Date()`) est lue. Ne connaît pas `kafkajs`.
 - **consumers/** valide le message avec le schéma de `@trading-plateform/contracts`, appelle **une** méthode de service. Message invalide → `logger.warn` et retour.
-- **repositories/** lit les sources externes et normalise leur format (une date de cotation = jour dans le fuseau de la place, `chart.meta.exchangeTimezoneName`, jamais en UTC). Aucun calcul métier.
+- **repositories/** lit les sources externes et valide leur format avec le contrat (`dailyClosesSchema`). Le jour de cotation est déjà normalisé par market-service (fuseau de la place, jamais UTC). Aucun calcul métier.
 - **publishers/** publie avec `createKafkaEvent`, clé Kafka = `executionId` (tous les événements d'une exécution sur la même partition).
 - Types internes dérivés des contrats (`Pick<BacktestCompletedPayload, ...>`), jamais redéfinis.
 

@@ -14,7 +14,6 @@
     "@trading-plateform/kafka": "workspace:*",
     "@trading-plateform/utils": "workspace:*",
     "kafkajs": "^2.2.4",
-    "yahoo-finance2": "^4.0.4",
     "zod": "^4.6.7"
   }
 }

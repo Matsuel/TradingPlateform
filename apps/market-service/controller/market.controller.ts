@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 import MarketService from "../services/market.service";
 import { BadRequestError } from "@trading-plateform/http";
-import { marketIdSchema, searchMarketSchema } from "../interfaces/market.interface";
+import { dailyClosesQuerySchema, marketIdSchema, searchMarketSchema } from "../interfaces/market.interface";
 import { API_ERROR_CODES, paginationQuerySchema, periodSchema } from "@trading-plateform/contracts";
 import { Logger } from "@trading-plateform/utils";
 
@@ -34,6 +34,16 @@ class MarketController {
 
         const result = await this.marketService.getMarketDetails(parsedId.data, parsedPeriod.data)
         res.json(result)
+    }
+
+    getDailyCloses = async(req: Request, res: Response) => {
+        logger.info(`Handling daily closes request ${req.method} ${req.originalUrl}`)
+
+        const parsed = dailyClosesQuerySchema.safeParse(req.query)
+        if (!parsed.success) throw new BadRequestError(API_ERROR_CODES.INVALID_QUERY, { issues: parsed.error.issues })
+
+        const { symbols, start, end } = parsed.data
+        res.json(await this.marketService.getDailyCloses(symbols, start, end))
     }
 
     getDefaultsAssets = async(req: Request, res: Response) => {

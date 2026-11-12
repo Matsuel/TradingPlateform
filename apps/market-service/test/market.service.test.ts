@@ -20,3 +20,42 @@ test("la liste par défaut n'interroge le fournisseur que pour les symboles de l
     expect(page).toMatchObject({ count: DEFAULT_TICKERS.length, page: 2, pageSize: 3 })
     expect(page.data).toHaveLength(3)
 })
+
+// Repository factice qui compte les appels au fournisseur
+function countingRepo() {
+    const calls = { search: 0, details: 0, assets: 0, closes: 0 }
+    const repo = {
+        search: async () => (calls.search++, []),
+        getDetails: async () => (calls.details++, []),
+        getAssets: async () => (calls.assets++, []),
+        getDailyCloses: async () => (calls.closes++, {}),
+    } as unknown as IMarketRepository
+    return { repo, calls }
+}
+
+test("recherche, détails et liste par défaut sont gardés en cache", async () => {
+    const { repo, calls } = countingRepo()
+    const service = new MarketService()
+    service.repo = repo
+
+    await service.searchMarket("Apple")
+    await service.searchMarket("apple")
+    await service.getMarketDetails("AAPL", "1y")
+    await service.getMarketDetails("AAPL", "1y")
+    await service.getMarketDetails("AAPL", "1m")
+    await service.getDefaultsMarketAssets({ page: 1, pageSize: 3 })
+    await service.getDefaultsMarketAssets({ page: 1, pageSize: 3 })
+
+    expect(calls).toEqual({ search: 1, details: 2, assets: 1, closes: 0 })
+})
+
+test("les cours d'un backtest ne sont jamais gardés en cache", async () => {
+    const { repo, calls } = countingRepo()
+    const service = new MarketService()
+    service.repo = repo
+
+    await service.getDailyCloses(["AAPL"], new Date("2024-01-01"), new Date("2024-02-01"))
+    await service.getDailyCloses(["AAPL"], new Date("2024-01-01"), new Date("2024-02-01"))
+
+    expect(calls.closes).toBe(2)
+})

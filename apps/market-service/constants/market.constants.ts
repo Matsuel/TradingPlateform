@@ -1,3 +1,5 @@
+import type { Period } from "@trading-plateform/contracts";
+
 export const DEFAULT_TICKERS = [
     "AAPL",    // Apple
     "MSFT",    // Microsoft
@@ -15,3 +17,15 @@ export const DEFAULT_TICKERS = [
     "TTE.PA",  // TotalEnergies
     "^GSPC",   // S&P 500
 ];
+const MINUTE_MS = 60_000;
+
+// Durée de garde en cache des réponses du fournisseur : la recherche change peu, un historique court se périme plus vite qu'un long
+export const SEARCH_CACHE_TTL_MS = 10 * MINUTE_MS;
+export const ASSETS_CACHE_TTL_MS = MINUTE_MS;
+export const DETAILS_CACHE_TTL_MS: Record<Period, number> = {
+    "1d": MINUTE_MS,
+    "1w": 5 * MINUTE_MS,
+    "1m": 30 * MINUTE_MS,
+    "1y": 60 * MINUTE_MS,
+    max: 6 * 60 * MINUTE_MS,
+};
