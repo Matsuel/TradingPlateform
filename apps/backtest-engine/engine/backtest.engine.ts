@@ -54,10 +54,8 @@ function buildCalendar(prices: PriceSeries, strategySymbols: string[], alignedSy
  */
 function simulate(params: BacktestParams, prices: PriceSeries, dates: string[]): Simulation {
     const { investmentMode, initialAmount, recurringAmount, investmentFrequency, rebalanceFrequency } = params;
-
     const portfolio = createPortfolio(params, prices);
     const equityCurve: EquityPoint[] = [];
-    const recurring = investmentMode === "RECURRING" ? recurringAmount ?? 0 : 0;
     const drawdown = createDrawdownTracker(dates[0]);
     const twr: TwrPoint[] = [];
     // Cumuls non arrondis : seules les valeurs publiées le sont
@@ -77,9 +75,8 @@ function simulate(params: BacktestParams, prices: PriceSeries, dates: string[]):
 
         const period = periodKey(date, investmentFrequency);
         const isFirstDay = previousPeriod === null;
-        const contribution =
-            (isFirstDay ? initialAmount : 0) +
-            (period !== previousPeriod ? recurring : 0);
+        const recurring = investmentMode === "RECURRING" && period !== previousPeriod ? recurringAmount ?? 0 : 0;
+        const contribution = (isFirstDay ? initialAmount : 0) + recurring;
         previousPeriod = period;
 
         if (contribution > 0) {
@@ -110,6 +107,16 @@ function simulate(params: BacktestParams, prices: PriceSeries, dates: string[]):
         totalReturn: round((finalValue - invested) / invested, 6),
         totalTrades: portfolio.trades.length,
         rebalanceCount: rebalances,
+        ...riskMetrics(drawdown, twr),
+        equityCurve,
+        trades: portfolio.trades,
+        holdings: portfolio.holdings(),
+    };
+}
+
+/** Métriques de risque et de rendement annualisé, calculées sur l'indice TWR (D3 à D6) et le suivi de drawdown. */
+function riskMetrics(drawdown: ReturnType<typeof createDrawdownTracker>, twr: TwrPoint[]) {
+    return {
         maxDrawdown: round(drawdown.maxDrawdown, 6),
         maxDrawdownDate: drawdown.maxDrawdownDate,
         maxDrawdownPeakDate: drawdown.maxDrawdownPeakDate,
@@ -118,9 +125,6 @@ function simulate(params: BacktestParams, prices: PriceSeries, dates: string[]):
         cagr: roundOrNull(annualizedReturn(twr)),
         volatility: roundOrNull(annualizedVolatility(twr)),
         sharpeRatio: roundOrNull(sharpeRatio(twr)),
-        equityCurve,
-        trades: portfolio.trades,
-        holdings: portfolio.holdings(),
     };
 }
 
