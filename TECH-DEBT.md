@@ -38,4 +38,4 @@ Registre de la dette connue, à corriger avant qu'elle ne grossisse. La règle q
 | TD-18 | 2026-11-12 | `44f5bc9` |
 | TD-19 | 2026-11-12 | `31a6edc` |
 | TD-20 | 2026-11-12 | `e390fcf` |
-| TD-22 | 2026-11-12 | à renseigner |
+| TD-22 | 2026-11-12 | `ec588af` |
