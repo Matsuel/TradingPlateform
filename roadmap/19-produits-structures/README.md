@@ -6,6 +6,7 @@
 - **Branche / PR** : `feat/produits-structures` — PR à ouvrir
 - **Points** : 29 (MUST 29, SHOULD 0) — prévus
 - **Maquettes** : `39 · Constructeur de produit` (créée, node `465:13338`)
+- **Écrans modifiés** : aucun (page `Structuration` de la sidebar existante)
 - **Dépend de** : 15 (obligation), 17 (grecques, IV), 18 (Monte Carlo, barrière).
 
 ## Objectif

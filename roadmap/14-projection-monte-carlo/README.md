@@ -6,6 +6,7 @@
 - **Branche / PR** : `feat/projection-monte-carlo` — PR à ouvrir
 - **Points** : 26 (MUST 25, SHOULD 1) — prévus
 - **Maquettes** : `34 · Projection Monte Carlo` (créée, node `455:12320`)
+- **Écrans modifiés** : `13 · Résultat d’un backtest` (node `350:7214`) : point d’entrée vers la projection d’une allocation (non précisé dans les US, la maquette 34 est une page à part) — à trancher puis dessiner
 - **Dépend de** : 12 (robustesse). Le moteur est réutilisé en 18 pour le pricing.
 
 ## Objectif

@@ -6,6 +6,7 @@
 - **Branche / PR** : `feat/pricing-monte-carlo-barriere` — PR à ouvrir
 - **Points** : 22 (MUST 19, SHOULD 3) — prévus
 - **Maquettes** : `38 · Pricing Monte Carlo` (créée, node `462:13129`)
+- **Écrans modifiés** : `36 · Calculateur d’option` (node `459:12719`) : méthode, erreur standard et comparaison à Black-Scholes (T-07) — à mettre à jour
 - **Dépend de** : 14 (moteur Monte Carlo, PRNG) ; 16 (Black-Scholes sert de référence).
 
 ## Objectif

@@ -6,6 +6,7 @@
 - **Branche / PR** : `feat/cicd-et-images` — PR à ouvrir
 - **Points** : 26 (MUST 22, SHOULD 4) — prévus
 - **Maquettes** : aucune (infrastructure)
+- **Écrans modifiés** : aucun (infrastructure)
 - **Dépend de** : aucune dépendance fonctionnelle : peut être avancée (voir note de `roadmap/README.md`).
 
 ## Objectif

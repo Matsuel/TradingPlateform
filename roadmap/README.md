@@ -5,6 +5,7 @@ Trace de ce qui a été fait, comment, et de ce qui est prévu. Un dossier par f
 La vision et la roadmap annuelle restent dans le [`README.md`](../README.md) racine. Ce dossier en est le suivi d’exécution. Il est maintenu avec le skill `feature-roadmap` (`.claude/skills/feature-roadmap/`) : planification d’une nouvelle feature, rétro d’une feature livrée, clôture.
 
 - **Maquettes** : Figma `Trading`, clé `DmpvF0SdUJGCBfA6GsdErm`, page `0:1`. Une section par feature ou par mois, écrans numérotés dans l’ordre des features.
+- **Écrans modifiés** : la ligne du même nom du `README.md` de chaque feature liste les cadres Figma existants qu'elle change (bouton, bloc, lien), avec leur état : `à dessiner`, `à mettre à jour` ou `mise à jour faite`.
 
 ### Renumérotation des maquettes (2026-11-01)
 

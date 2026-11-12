@@ -6,6 +6,7 @@
 - **Branche / PR** : `feat/risk-engine` — PR à ouvrir
 - **Points** : 25 (MUST 18, SHOULD 7) — prévus
 - **Maquettes** : `33 · Risque` (créée, node `454:12126`)
+- **Écrans modifiés** : `13 · Résultat d’un backtest` (node `350:7214`) : T-06 prévoit un bloc Risque dans le résultat alors que la maquette 33 est une page `Risque` à part ; à trancher (bloc, lien, ou les deux) puis dessiner
 - **Dépend de** : 11 (rendements corrects). Gèle le moteur de simulation à la fin de cette feature.
 
 ## Objectif

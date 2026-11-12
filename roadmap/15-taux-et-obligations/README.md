@@ -6,6 +6,7 @@
 - **Branche / PR** : `feat/taux-et-obligations` — PR à ouvrir
 - **Points** : 27 (MUST 21, SHOULD 6) — prévus
 - **Maquettes** : `35 · Taux et obligations` (créée, node `456:12522`)
+- **Écrans modifiés** : aucun (page `Taux` de la sidebar existante)
 - **Dépend de** : 08 (livrée). Introduit le pipeline `pricing.*` réutilisé par 16 à 20.
 
 ## Objectif

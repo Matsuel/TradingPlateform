@@ -6,6 +6,7 @@
 - **Branche / PR** : `feat/<slug>` — #<n> (ou « commits directs sur `develop` »)
 - **Points** : <total> (MUST <n>, SHOULD <n>) — prévus | estimés a posteriori | réalisés <n>
 - **Maquettes** : `<NN · Nom de l’écran>`, … (ou « aucune »)
+- **Écrans modifiés** : `<NN · Nom>` (node `<id>`) : <ce qui change> — <à dessiner | à mettre à jour | mise à jour faite>, … (ou « aucun »)
 
 ## Objectif
 

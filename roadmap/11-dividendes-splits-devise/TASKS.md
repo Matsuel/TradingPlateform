@@ -81,7 +81,7 @@ Critères d’acceptation :
 - **Fichiers** : `apps/core-backend/prisma/schema.prisma`, `prisma/migrations/`, `services/backtest.service.ts`
 
 Critères d’acceptation :
-- [ ] Colonnes `dividendTotal` et `fxContribution` nullables : les résultats anciens restent valides, sans recalcul.
+- [ ] Colonnes `priceReturn`, `dividendTotal`, `dividendGain`, `dividendEvents` et `returnBreakdown` nullables : les résultats anciens restent valides, sans recalcul.
 - [ ] Le mapping entrée → DTO est dans le service.
 
 ## Lot 3 — Moteur
@@ -103,17 +103,17 @@ Critères d’acceptation :
 
 Critères d’acceptation :
 - [ ] Un actif en USD est converti au cours EUR/USD du jour (D3).
-- [ ] Le résultat donne `fxContribution` = rendement local − rendement EUR.
+- [ ] Le résultat donne `returnBreakdown.fx` = rendement EUR − rendement local (local + contribution = EUR, critère d'US-02).
 
 ## Lot 4 — Écrans
 
 ### T-06 · Affichage : rendement total, dividendes, contribution du change
 
 - **US** : US-01, US-02 · **Priorité** : MUST · **Points** : 3 · **Dépend de** : T-05 · **Commits** : —
-- **Fichiers** : `apps/web/src/features/backtest/result-metrics.tsx`, `backtest-assumptions.tsx`
+- **Fichiers** : `apps/web/src/app/app/backtest/[id]/dividends/page.tsx`, `features/backtest/backtest-dividends.tsx`, `return-breakdown.tsx`, `dividends-table.tsx`, `backtest-detail.tsx`
 
 Critères d’acceptation :
-- [ ] Ligne « Dividendes perçus » et « Rendement total » visibles.
+- [ ] Page `/app/backtest/<id>/dividends` (maquette 31) : cartes de rendement, décomposition, courbe avec et sans dividendes, tableau des dividendes ; bouton « Dividendes et change » sur le détail.
 - [ ] Les résultats antérieurs (champs null) masquent ces lignes ; aucune valeur recalculée côté web.
 
 ### T-07 · Catalogue API mis à jour

@@ -10,8 +10,8 @@
 | `apps/market-service` | Seul appelant de yahoo-finance2 ; `GET /api/market/closes` (clôtures ajustées des splits, pas des dividendes). | Route des dividendes (`chart` avec `events: 'div'`). La paire `EURUSD=X` passe par `closes` existante. |
 | `apps/backtest-engine/repositories/market.repository.ts` | Lit `closes` auprès de market-service ; jamais Yahoo en direct. | Lecture des dividendes et de la paire EUR/USD, via market-service. |
 | `apps/backtest-engine/engine/backtest.engine.ts` | `runBacktest(params, prices)` : achats, ventes, rebalancement, TWR. | Traitement des dividendes et du change. |
-| `apps/core-backend/prisma/schema.prisma` | `BacktestResult` sans colonne dividendes ni change. | `dividendTotal`, `fxContribution` nullables. |
-| `apps/web/src/features/backtest/result-metrics.tsx` | Métriques de performance et de risque. | Deux lignes conditionnelles. |
+| `apps/core-backend/prisma/schema.prisma` | `BacktestResult` sans colonne dividendes ni change. | `priceReturn`, `dividendTotal`, `dividendGain`, `dividendEvents`, `returnBreakdown` nullables. |
+| `apps/web/src/features/backtest/` | Détail du résultat (maquette 13). | Page « Dividendes et change » (maquette 31) et son bouton. |
 
 ## Hors périmètre
 
@@ -41,7 +41,7 @@
 
 Critères d’acceptation :
 - [ ] Les dividendes sont réinvestis au cours de l'ex-date, sans frais.
-- [ ] Le résultat affiche le total des dividendes perçus et le rendement total.
+- [ ] Le résultat affiche le total des dividendes perçus, le rendement total et le rendement hors dividendes.
 - [ ] Les backtests antérieurs n'affichent pas de valeur inventée (champ null masqué).
 
 Tâches : T-01, T-02, T-03, T-05, T-06, T-07 (détail dans `TASKS.md`).

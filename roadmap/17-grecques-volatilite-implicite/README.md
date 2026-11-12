@@ -6,6 +6,7 @@
 - **Branche / PR** : `feat/grecques-volatilite-implicite` — PR à ouvrir
 - **Points** : 24 (MUST 19, SHOULD 5) — prévus
 - **Maquettes** : `37 · Grecques et smile` (créée, node `461:12922`)
+- **Écrans modifiés** : `36 · Calculateur d’option` (node `459:12719`) : grecques affichées dans le calculateur (T-07) et smile par échéance (T-06) — à mettre à jour
 - **Dépend de** : 16 (options vanilles).
 
 ## Objectif

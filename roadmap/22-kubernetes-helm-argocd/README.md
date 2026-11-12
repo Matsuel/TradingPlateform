@@ -6,6 +6,7 @@
 - **Branche / PR** : `feat/kubernetes-helm-argocd` — PR à ouvrir
 - **Points** : 34 (MUST 29, SHOULD 5) — prévus
 - **Maquettes** : aucune (infrastructure)
+- **Écrans modifiés** : aucun (infrastructure)
 - **Dépend de** : 21 (images publiées).
 
 ## Objectif
