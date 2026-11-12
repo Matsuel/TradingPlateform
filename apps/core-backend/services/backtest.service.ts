@@ -16,7 +16,7 @@ import {
     type ComparisonParameter,
     type Paginated,
 } from "@trading-plateform/contracts";
-import { ACTIVE_STATUSES, COMPARABLE_STATUSES } from "../constants/backtest.constants";
+import { ACTIVE_STATUSES, COMPARABLE_STATUSES, EXECUTION_TIMEOUT_MS } from "../constants/backtest.constants";
 import BadRequestError from "../errors/badrequest.error";
 import ConflictError from "../errors/conflict.error";
 import ForbiddenError from "../errors/forbidden.error";
@@ -220,13 +220,31 @@ class BacktestService {
     }
 
     /** `backtest.failed` : exécution active → `FAILED` avec sa cause. */
-    async fail({ executionId, finishedAt, error }: BacktestFailedPayload) {
+    async fail({ executionId, finishedAt, error, errorCode }: BacktestFailedPayload) {
         const updated = await this.repo.updateExecution(executionId, ACTIVE_STATUSES, {
             status: "FAILED",
             finishedAt: new Date(finishedAt),
             error,
+            errorCode,
         })
         logger.info(updated ? "Backtest execution failed" : "Backtest failed event ignored", { executionId, error })
+    }
+
+    /**
+     * Passe en `FAILED` (`EXECUTION_TIMEOUT`) les exécutions actives créées il y a plus de `EXECUTION_TIMEOUT_MS` : sans cela
+     * un engine tombé laisse le backtest bloqué et chaque relance répond `409`. Un résultat tardif est ensuite ignoré
+     * (transitions gardées par statut). Renvoie le nombre d'exécutions expirées.
+     */
+    async failStaleExecutions(): Promise<number> {
+        const now = new Date()
+        const count = await this.repo.failStaleExecutions(ACTIVE_STATUSES, new Date(now.getTime() - EXECUTION_TIMEOUT_MS), {
+            status: "FAILED",
+            finishedAt: now,
+            error: "Execution timed out",
+            errorCode: "EXECUTION_TIMEOUT",
+        })
+        if (count > 0) logger.warn("Stale executions failed", { count })
+        return count
     }
 
     private assertOwner<T extends Backtest>(backtest: T | null, userId: string): T {

@@ -26,7 +26,7 @@ const MIN_REBALANCE_ORDER = 0.01;
 function buildCalendar(prices: PriceSeries, strategySymbols: string[], alignedSymbols: string[]): string[] {
     const firstDates = [...strategySymbols, ...alignedSymbols].map((symbol) => {
         const first = prices[symbol]?.[0];
-        if (!first) throw new BacktestError(`No market data for ${symbol}`);
+        if (!first) throw new BacktestError("NO_MARKET_DATA", `No market data for ${symbol}`);
         return first.date;
     });
     const start = firstDates.sort().at(-1)!;
@@ -148,7 +148,7 @@ function simulate(params: BacktestParams, prices: PriceSeries, dates: string[]):
         equityCurve.push({ date, value: round(previousValue, 2), invested: round(invested, 2), drawdown: round(currentDrawdown, 6) });
     }
 
-    if (invested === 0) throw new BacktestError("Nothing was invested");
+    if (invested === 0) throw new BacktestError("NOTHING_INVESTED", "Nothing was invested");
 
     const finalValue = equityCurve.at(-1)!.value;
 

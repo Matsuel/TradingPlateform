@@ -12,10 +12,14 @@ import { Logger, onShutdown } from '@trading-plateform/utils';
 import { BACKTEST_TOPICS } from '@trading-plateform/contracts';
 import { consumer, kafkaClient, producer } from './lib/kafka';
 import BacktestConsumer from './consumers/backtest.consumer';
+import BacktestService from './services/backtest.service';
+import { STALE_SWEEP_INTERVAL_MS } from './constants/backtest.constants';
 import { JSON_BODY_LIMIT } from './constants/http.constants';
 import { env } from './env';
 
 const logger = Logger.here()
+
+const backtestService = new BacktestService();
 
 const app = express();
 
@@ -59,6 +63,12 @@ async function main(): Promise<void> {
     await consumer.subscribe(BACKTEST_TOPICS.completed);
     await consumer.subscribe(BACKTEST_TOPICS.failed);
     await consumer.consume(new BacktestConsumer().handle);
+
+    // Une exécution que l'engine n'a jamais terminée ne doit pas bloquer son backtest
+    const sweeper = setInterval(() => {
+        backtestService.failStaleExecutions().catch((error) => logger.error('Stale sweep failed', { error: String(error) }));
+    }, STALE_SWEEP_INTERVAL_MS);
+    onShutdown(() => clearInterval(sweeper));
 
     const server = app.listen(env.PORT, () => logger.info(`Server is running on port ${env.PORT}`));
 

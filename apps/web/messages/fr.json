@@ -188,6 +188,12 @@
             "executedIn": "exécuté en {duration}"
         },
         "noBenchmark": "Aucun",
+        "executionErrors": {
+            "NO_MARKET_DATA": "aucun cours disponible pour un des symboles",
+            "NOTHING_INVESTED": "aucun montant n’a été investi sur la période",
+            "ENGINE_FAILED": "le calcul a rencontré une erreur",
+            "EXECUTION_TIMEOUT": "le calcul n’a pas abouti à temps, relancez le backtest"
+        },
         "disclaimer": "Les performances passées ne préjugent pas des performances futures. Simulation pédagogique, pas un conseil en investissement.",
         "investmentMode": {
             "LUMP_SUM": "Investissement unique",

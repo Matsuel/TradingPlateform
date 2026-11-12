@@ -188,6 +188,12 @@
             "executedIn": "ran in {duration}"
         },
         "noBenchmark": "None",
+        "executionErrors": {
+            "NO_MARKET_DATA": "no market data for one of the symbols",
+            "NOTHING_INVESTED": "nothing was invested over the period",
+            "ENGINE_FAILED": "the calculation hit an error",
+            "EXECUTION_TIMEOUT": "the calculation did not finish in time, run the backtest again"
+        },
         "disclaimer": "Past performance does not predict future results. Educational simulation, not investment advice.",
         "investmentMode": {
             "LUMP_SUM": "Lump sum",

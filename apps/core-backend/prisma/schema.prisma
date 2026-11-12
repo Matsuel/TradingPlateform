@@ -197,6 +197,8 @@ model BacktestExecution {
   startedAt  DateTime?
   finishedAt DateTime?
   error      String?
+  // ExecutionErrorCode (contrat) ; null pour les échecs antérieurs
+  errorCode  String?
   createdAt  DateTime       @default(now())
 
   backtest Backtest        @relation("BacktestExecutions", fields: [backtestId], references: [id], onDelete: Cascade)

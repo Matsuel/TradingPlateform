@@ -14,7 +14,14 @@ import { ResultOverview } from "./result-overview"
 import { StatusBadge } from "./status-badge"
 import { TradesTable } from "./trades-table"
 import type { BacktestDetails } from "./types"
-import { type BacktestTranslator, formatAllocation, getExecution, getExecutionDuration, isActive } from "./utils"
+import {
+    type BacktestTranslator,
+    executionErrorLabel,
+    formatAllocation,
+    getExecution,
+    getExecutionDuration,
+    isActive,
+} from "./utils"
 
 function describe(f: Formatters, t: BacktestTranslator, backtest: BacktestDetails) {
     const e = getExecution(backtest)
@@ -36,8 +43,12 @@ function describe(f: Formatters, t: BacktestTranslator, backtest: BacktestDetail
 
 function NoResult({ backtest }: { backtest: BacktestDetails }) {
     const t = useTranslations("backtest.detail")
+    const tBacktest = useTranslations("backtest")
     const e = getExecution(backtest)
-    const message = e?.status === "FAILED" ? t("failed", { error: e.error ?? t("unknownError") }) : t("pending")
+    const message =
+        e?.status === "FAILED"
+            ? t("failed", { error: executionErrorLabel(tBacktest, e, t("unknownError")) })
+            : t("pending")
 
     return <EmptyCard>{message}</EmptyCard>
 }

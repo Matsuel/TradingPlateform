@@ -49,7 +49,8 @@ core-backend est **le seul service qui écrit en base** : les autres services pu
 | --- | --- |
 | `backtest.started` | `PENDING` → `RUNNING` |
 | `backtest.completed` | `PENDING`/`RUNNING` → `COMPLETED` + `BacktestResult`, dans une transaction |
-| `backtest.failed` | `PENDING`/`RUNNING` → `FAILED` |
+| `backtest.failed` | `PENDING`/`RUNNING` → `FAILED` (+ `errorCode`) |
+| balayage périodique | `PENDING`/`RUNNING` créée depuis plus de `EXECUTION_TIMEOUT_MS` → `FAILED` (`EXECUTION_TIMEOUT`) |
 
 Invariant : une seule exécution active (`ACTIVE_STATUSES`) par backtest ; une relance pendant une exécution active lève `ConflictError`.
 

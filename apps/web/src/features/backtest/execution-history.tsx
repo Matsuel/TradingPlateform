@@ -4,7 +4,7 @@ import { type Formatters, useFormatters } from "@/lib/format"
 import { cn } from "@/lib/utils"
 import { StatusBadge } from "./status-badge"
 import type { BacktestExecution } from "./types"
-import { type BacktestTranslator, getExecutionDuration, isActive } from "./utils"
+import { type BacktestTranslator, executionErrorLabel, getExecutionDuration, isActive } from "./utils"
 
 function describe(f: Formatters, t: BacktestTranslator, e: BacktestExecution) {
     switch (e.status) {
@@ -13,7 +13,7 @@ function describe(f: Formatters, t: BacktestTranslator, e: BacktestExecution) {
         case "RUNNING":
             return t("history.running")
         case "FAILED":
-            return e.error ?? t("history.unknownError")
+            return executionErrorLabel(t, e, t("history.unknownError"))
         case "COMPLETED":
             return e.result
                 ? t("history.completedSummary", {

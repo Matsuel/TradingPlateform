@@ -14,6 +14,12 @@ import type {
 /** Traducteur du namespace `backtest` des dictionnaires, passé aux helpers qui produisent du texte. */
 export type BacktestTranslator = ReturnType<typeof useTranslations<"backtest">>
 
+/** Cause traduite d'un échec d'exécution (`backtest.executionErrors.<code>`) ; `fallback` pour un échec antérieur au code ou un code inconnu. */
+export function executionErrorLabel(t: BacktestTranslator, e: BacktestExecution, fallback: string) {
+    const key = `executionErrors.${e.errorCode}` as Parameters<typeof t>[0]
+    return e.errorCode && t.has(key) ? t(key) : fallback
+}
+
 /** Somme des poids saisis, en pourcent ; un poids vidé (`NaN`) compte 0 (le schéma du formulaire le rejette à part). */
 export const allocationTotal = (rows: AllocationInput[]) =>
     rows.reduce((sum, r) => sum + (Number.isNaN(r.weight) ? 0 : r.weight), 0)

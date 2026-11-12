@@ -14,6 +14,7 @@ export interface IBacktestRepository {
     createExecution(backtestId: string, attempt: number): Promise<BacktestExecution>
     updateExecution(id: string, from: BacktestStatus[], data: Prisma.BacktestExecutionUpdateManyMutationInput): Promise<boolean>
     completeExecution(id: string, from: BacktestStatus[], data: CompleteExecutionDTO): Promise<boolean>
+    failStaleExecutions(from: BacktestStatus[], createdBefore: Date, data: Prisma.BacktestExecutionUpdateManyMutationInput): Promise<number>
 }
 
 const executionSummary = {
@@ -162,6 +163,14 @@ class BacktestRepository implements IBacktestRepository {
             data,
         })
         return count > 0
+    }
+
+    async failStaleExecutions(from: BacktestStatus[], createdBefore: Date, data: Prisma.BacktestExecutionUpdateManyMutationInput): Promise<number> {
+        const { count } = await prisma.backtestExecution.updateMany({
+            where: { status: { in: from }, createdAt: { lt: createdBefore } },
+            data,
+        })
+        return count
     }
 
     async completeExecution(id: string, from: BacktestStatus[], { finishedAt, ...result }: CompleteExecutionDTO): Promise<boolean> {
