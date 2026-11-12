@@ -1,4 +1,4 @@
-import { Logger, periodKey } from "@trading-plateform/utils";
+import { estimateSchedule, Logger } from "@trading-plateform/utils";
 import { createKafkaEvent } from "@trading-plateform/kafka";
 import {
     API_ERROR_CODES,
@@ -32,27 +32,6 @@ import type {
 } from "../interfaces/backtest.interface";
 
 const logger = Logger.here()
-
-const DAY_MS = 24 * 60 * 60 * 1000
-
-/**
- * Jours ouvrés (lundi–vendredi, `YYYY-MM-DD`) de `start` inclus à `end` exclu, comme l'intervalle de cours demandé
- * par l'engine. Les dates du formulaire sont un minuit local sérialisé en UTC : l'arrondi au minuit UTC le plus proche
- * retrouve le jour saisi pour tout fuseau à ±12 h. Jours fériés inconnus avant le chargement des cours : estimation.
- */
-const businessDays = (start: Date, end: Date) => {
-    const days: string[] = []
-    for (let day = Math.round(start.getTime() / DAY_MS); day < Math.round(end.getTime() / DAY_MS); day++) {
-        const date = new Date(day * DAY_MS)
-        const weekday = date.getUTCDay()
-        if (weekday !== 0 && weekday !== 6) days.push(date.toISOString().slice(0, 10))
-    }
-    return days
-}
-
-/** Nombre de périodes distinctes rencontrées dans `days` (triés) : chacune commence à son premier jour. */
-const countPeriods = (days: string[], frequency: Exclude<CreateBacktestInput["rebalanceFrequency"], "NONE">) =>
-    new Set(days.map((day) => periodKey(day, frequency))).size
 
 /** Remonte le résultat de la dernière exécution `COMPLETED` ; `NotFoundError` si le backtest ou son résultat a disparu entre les deux lectures. */
 const toCompared = (record: ComparedBacktestRecord | undefined): ComparedBacktestDTO => {
@@ -102,10 +81,7 @@ class BacktestService {
      */
     preview(userId: string, input: CreateBacktestInput): BacktestPreview {
         logger.info("Previewing backtest", { userId })
-        const days = businessDays(input.start, input.end)
-        const contributionCount = input.investmentMode === "RECURRING" ? countPeriods(days, "MONTHLY") : Math.min(days.length, 1)
-        const rebalanceCount = input.rebalanceFrequency === "NONE" ? 0 : Math.max(countPeriods(days, input.rebalanceFrequency) - 1, 0)
-        return { contributionCount, rebalanceCount, dataSource: PRICE_DATA_SOURCE }
+        return { ...estimateSchedule(input.start, input.end, input.investmentMode, input.rebalanceFrequency), dataSource: PRICE_DATA_SOURCE }
     }
 
     /**
