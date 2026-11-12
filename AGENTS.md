@@ -70,6 +70,8 @@ Chaque app qui expose quelque chose de réutilisable tient un **catalogue** : co
 
 ## Conventions communes
 
+- **Tests** : dossier `test/` à la racine de chaque app, fichiers `<sujet>.test.ts`, lancés par `bun test` depuis l'app. Variables d'env factices dans `test/setup.ts` (préchargé par `bunfig.toml`) : un test n'ouvre aucune connexion (base, Kafka). Un service se teste avec un faux repository assigné à `service.repo`. Un comportement ajouté ou une transition modifiée a son test dans le même diff.
+
 - **Bun partout** : `bun install`, `bun run <script>`, `bun <file>`, `bun test`, `bunx`. Bun charge `.env` : pas de `dotenv`.
 - TypeScript `strict`, ESM. `import type` pour les types (`verbatimModuleSyntax`). Pas de `any` dans le nouveau code.
 - Indentation 4 espaces dans les apps backend et packages ; `web` est formaté par Biome (`bun run format` dans `apps/web`).
@@ -105,7 +107,7 @@ bun run dev:backtest   # backtest-engine seul
 
 Chaque point est vérifié, pas supposé :
 
-1. `bunx tsc --noEmit` passe dans chaque app/package touché ; `bun run lint` et `bun run format:check` dans `apps/web` si le front change ; `bun test` dans `apps/backtest-engine` si l'engine change, dans `apps/web` si `messages/*.json` change (clés FR et EN identiques).
+1. `bunx tsc --noEmit` passe dans chaque app/package touché ; `bun run lint` et `bun run format:check` dans `apps/web` si le front change ; `bun test` dans chaque app touchée (les tests vivent dans son dossier `test/`) ; dans `apps/web`, `messages/*.json` doit garder les mêmes clés FR et EN.
 2. Responsabilités : le diff web ne contient que de l'affichage ; tout nouveau calcul vit chez son propriétaire.
 3. Rangement : aucune constante, helper ou type dupliqué introduit (`grep` les nouveaux noms et littéraux).
 4. Catalogues : chaque route ou composant catalogué créé, modifié ou supprimé a son entrée à jour.

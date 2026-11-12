@@ -64,7 +64,10 @@ for (const ws of workspaces.filter((ws) => toCheck.has(ws.name))) {
     // contracts n'a pas de tsconfig : il est vérifié à travers les apps qui l'importent
     if (existsSync(join(ws.dir, "tsconfig.json"))) await run(`tsc ${ws.dir}`, ws.dir, ["bunx", "tsc", "--noEmit"]);
 }
-if (toCheck.has("backtest-engine")) await run("bun test apps/backtest-engine", "apps/backtest-engine", ["bun", "test"]);
+// Tests : le dossier `test/` de chaque app touchée (ou dont une dépendance a changé)
+for (const ws of workspaces.filter((ws) => toCheck.has(ws.name) && existsSync(join(ws.dir, "test")))) {
+    await run(`bun test ${ws.dir}`, ws.dir, ["bun", "test"]);
+}
 if (touched(/^apps\/web\//)) await run("lint apps/web", "apps/web", ["bun", "run", "lint"]);
 if (touched(/^apps\/web\//)) await run("format apps/web", "apps/web", ["bun", "run", "format:check"]);
 
