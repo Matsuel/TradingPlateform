@@ -1,8 +1,9 @@
+import type { ApiErrorCode } from "@trading-plateform/contracts";
 import AppError from "../models/error.model";
 
 class ConflictError extends AppError {
-    constructor(message = "Conflict", data?: Record<string, unknown>) {
-        super(message, 409, data);
+    constructor(code: ApiErrorCode, message = "Conflict", data?: Record<string, unknown>) {
+        super(code, message, 409, data);
     }
 }
 

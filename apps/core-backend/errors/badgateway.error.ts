@@ -1,8 +1,9 @@
+import { API_ERROR_CODES, type ApiErrorCode } from "@trading-plateform/contracts";
 import AppError from "../models/error.model";
 
 class BadGatewayError extends AppError {
-    constructor(message = "Service unavailable", data?: Record<string, unknown>) {
-        super(message, 502, data);
+    constructor(code: ApiErrorCode = API_ERROR_CODES.SERVICE_UNAVAILABLE, message = "Service unavailable", data?: Record<string, unknown>) {
+        super(code, message, 502, data);
     }
 }
 

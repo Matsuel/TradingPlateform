@@ -1,8 +1,9 @@
+import type { ApiErrorCode } from "@trading-plateform/contracts";
 import AppError from "../models/error.model";
 
 class NotFoundError extends AppError {
-    constructor(message = "Not found", data?: Record<string, unknown>) {
-        super(message, 404, data);
+    constructor(code: ApiErrorCode, message = "Not found", data?: Record<string, unknown>) {
+        super(code, message, 404, data);
     }
 }
 
