@@ -7,7 +7,8 @@
 | Couche | Existant | Manque |
 | --- | --- | --- |
 | `packages/contracts/src/backtest.ts` | `dataSourceSchema.priceType` = `CLOSE_SPLIT_ADJUSTED` seul ; `PRICE_DATA_SOURCE`. | Valeur `TOTAL_RETURN`, champs de résultat. |
-| `apps/backtest-engine/repositories/market.repository.ts` | `chart` en `interval: '1d'`, clôtures seules ; aucun `events`. | Dividendes, paire EUR/USD. |
+| `apps/market-service` | Seul appelant de yahoo-finance2 ; `GET /api/market/closes` (clôtures ajustées des splits, pas des dividendes). | Route des dividendes (`chart` avec `events: 'div'`). La paire `EURUSD=X` passe par `closes` existante. |
+| `apps/backtest-engine/repositories/market.repository.ts` | Lit `closes` auprès de market-service ; jamais Yahoo en direct. | Lecture des dividendes et de la paire EUR/USD, via market-service. |
 | `apps/backtest-engine/engine/backtest.engine.ts` | `runBacktest(params, prices)` : achats, ventes, rebalancement, TWR. | Traitement des dividendes et du change. |
 | `apps/core-backend/prisma/schema.prisma` | `BacktestResult` sans colonne dividendes ni change. | `dividendTotal`, `fxContribution` nullables. |
 | `apps/web/src/features/backtest/result-metrics.tsx` | Métriques de performance et de risque. | Deux lignes conditionnelles. |
@@ -17,7 +18,7 @@
 - Dividendes encaissés en cash (D1, option future).
 - Conversion des comptes et du ledger en devise autre que EUR.
 - Taxes sur dividendes ou retenue à la source.
-- Changement du repository engine vers `market-service` : écart existant à traiter dans un chantier séparé (le moteur appelle Yahoo directement).
+- Autre fournisseur que Yahoo Finance (source de dividendes ou de change officielle) : Yahoo suffit, via `market-service` seul.
 
 ## Décisions à valider
 
@@ -26,6 +27,7 @@
 | D1 | Dividendes | Réinvestis au cours de l'ex-date, sans frais | Un réinvestissement est un rachat ; le frais par ordre (D8 de 08) s'applique aux ordres de stratégie, pas aux dividendes. Option « encaissés en cash » reportée. |
 | D2 | Type de cours | Ajout de `TOTAL_RETURN` à `priceType` | Ajout pur : les résultats `CLOSE_SPLIT_ADJUSTED` restent lisibles, sans recalcul. |
 | D3 | Devise de référence | EUR ; conversion au cours du jour | Cohérent avec le hors périmètre (comptes mono-devise EUR). Pas de conversion au cours de départ (non demandé). |
+| D4 | Source des données | Yahoo Finance seul, appelé par `market-service` uniquement | `chart` fournit dividendes (`events`) et paire `EURUSD=X`. Le moteur lit tout via market-service. Dividendes pris dans `events`, pas dans `adjclose` (qui mélange splits et dividendes). Limite : données non officielles, à signaler dans `dataSource`. |
 
 ---
 
@@ -60,6 +62,8 @@ Tâches : T-01 (détail dans `TASKS.md`).
 
 ### Lot 2 — Données
 
+Pas d'US propre : T-02 (route market-service des dividendes, lecture côté moteur) sert US-01 et US-02.
+
 ### Lot 3 — Moteur
 
 #### US-02 · Mesurer l'effet du change sur un actif étranger — SHOULD
@@ -80,6 +84,6 @@ Tâches : T-04, T-05, T-06 (détail dans `TASKS.md`).
 
 | US | Titre | Priorité | Lot | Couches |
 | --- | --- | --- | --- | --- |
-| US-01 | Voir le rendement réel de mon investissement | MUST | 1 | contracts, backtest-engine, core-backend, web, docs |
+| US-01 | Voir le rendement réel de mon investissement | MUST | 1 | contracts, market-service, backtest-engine, core-backend, web, docs |
 | US-02 | Mesurer l'effet du change sur un actif étranger | SHOULD | 3 | backtest-engine, core-backend, web |
 | US-03 | Garder un contrat de données compatible | MUST | 1 | contracts |

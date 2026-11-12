@@ -4,7 +4,7 @@
 - **Roadmap** : Mois 5 — Mois 5 — Robustesse (dividendes, splits, effet devise)
 - **Période** : à fixer au démarrage de la feature
 - **Branche / PR** : `feat/dividendes-splits-devise` — PR à ouvrir
-- **Points** : 22 (MUST 16, SHOULD 6) — prévus
+- **Points** : 24 (MUST 18, SHOULD 6) — prévus
 - **Maquettes** : `31 · Résultat avec dividendes` (créée, node `452:11711`)
 - **Dépend de** : 08 (livrée) ; 10 (i18n) pour les nouveaux libellés.
 
