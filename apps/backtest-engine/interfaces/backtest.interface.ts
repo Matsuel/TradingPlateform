@@ -18,6 +18,15 @@ export interface MarketInput {
     dividends: DividendSeries;
 }
 
+// Données d'entrée facultatives de `runBacktest` : sans elles, les cours sont déjà en euros et sans dividende
+export interface MarketExtras {
+    dividends?: DividendSeries;
+    // Devise de cotation de chaque symbole de `prices` ; un symbole absent cote en euros
+    currencies?: Currencies;
+    // Séries journalières des paires `EURxxx=X` (unités de devise pour 1 €), une par devise étrangère
+    fxRates?: PriceSeries;
+}
+
 // Point de l'indice de performance pondérée dans le temps (TWR, hors versements), chaîné jour après jour
 export interface TwrPoint {
     // YYYY-MM-DD

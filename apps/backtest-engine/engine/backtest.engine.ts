@@ -3,7 +3,7 @@ import { periodKey } from "@trading-plateform/utils";
 import { foreignCurrencies, toReferenceCurrency } from "./backtest.fx";
 import { createPortfolio } from "./backtest.portfolio";
 import BacktestError from "../errors/backtest.error";
-import type { BacktestOutcome, BacktestParams, Currencies, DividendSeries, MarketInput, PriceSeries, TwrPoint } from "../interfaces/backtest.interface";
+import type { BacktestOutcome, BacktestParams, MarketExtras, MarketInput, PriceSeries, TwrPoint } from "../interfaces/backtest.interface";
 import { annualizedReturn, annualizedVolatility, createDrawdownTracker, RISK_FREE_RATE, round, sharpeRatio } from "./backtest.utils";
 
 type Simulation = Omit<BacktestOutcome, "lumpSumComparison" | "benchmark" | "executionRule" | "riskFreeRate" | "returnBreakdown" | "priceReturn" | "dividendGain">;
@@ -207,15 +207,6 @@ function runOnMarket(params: BacktestParams, market: MarketInput): Omit<Backtest
             excessSharpe: excess(outcome.sharpeRatio, benchmark.sharpeRatio),
         },
     };
-}
-
-/** Données d'entrée facultatives de `runBacktest` : sans elles, les cours sont déjà en euros et sans dividende. */
-export interface MarketExtras {
-    dividends?: DividendSeries;
-    // Devise de cotation de chaque symbole de `prices` ; un symbole absent cote en euros
-    currencies?: Currencies;
-    // Séries journalières des paires `EURxxx=X` (unités de devise pour 1 €), une par devise étrangère
-    fxRates?: PriceSeries;
 }
 
 /**

@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl"
 import { useState } from "react"
 import { DataTable } from "@/components/data-table/data-table"
 import { TableCard } from "@/components/data-table/table-card"
+import { InfoHint } from "@/components/info-hint"
 import { PAGE_SIZE } from "@/constants/pagination"
 import { useFormatters } from "@/lib/format"
 import { paginate } from "@/lib/pagination"
@@ -33,7 +34,9 @@ export function DividendsTable({ events, total }: { events: DividendEvent[]; tot
             />
             {totalAmount != null && (
                 <p className="text-small text-muted-foreground">
-                    {t("total", { total: formatAmount(f, totalAmount), count: events.length })}
+                    <InfoHint entry="dividendTotal">
+                        {t("total", { total: formatAmount(f, totalAmount), count: events.length })}
+                    </InfoHint>
                 </p>
             )}
         </TableCard>

@@ -2,13 +2,13 @@ import type { DividendEvent, Trade, TradeSide } from "@trading-plateform/contrac
 import type { BacktestParams, DividendSeries, PriceSeries } from "../interfaces/backtest.interface";
 import { round } from "./backtest.utils";
 
-// Écart minimal à la cible, devise saisie, pour passer un ordre de rebalancement : un ordre arrondi à 0 € serait invalide (amount > 0)
+// Écart minimal à la cible, EUR, pour passer un ordre de rebalancement : un ordre arrondi à 0 € serait invalide (amount > 0)
 const MIN_REBALANCE_ORDER = 0.01;
 
 /**
  * Portefeuille simulé : lignes, derniers cours connus, ordres et frais. Les règles d'exécution (achat réparti selon
  * `weight`, frais `amount × feeRate`, rebalancement par vente des lignes surpondérées) sont décrites sur `simulate`.
- * Les montants sont dans la devise saisie ; les cumuls (`fees`) ne sont pas arrondis, seules les valeurs publiées le sont.
+ * Les montants sont dans la EUR ; les cumuls (`fees`) ne sont pas arrondis, seules les valeurs publiées le sont.
  */
 export function createPortfolio({ allocations, feeRate }: Pick<BacktestParams, "allocations" | "feeRate">, prices: PriceSeries, dividends: DividendSeries) {
     const symbols = allocations.map((allocation) => allocation.symbol);
@@ -103,7 +103,7 @@ export function createPortfolio({ allocations, feeRate }: Pick<BacktestParams, "
          */
         rebalance(date: string): boolean {
             const total = value();
-            // Écart à la cible, devise saisie : > 0 ligne surpondérée, < 0 sous-pondérée
+            // Écart à la cible, EUR : > 0 ligne surpondérée, < 0 sous-pondérée
             const gaps = allocations.map(({ symbol, weight }) => ({ symbol, gap: lineValue(symbol) - weight * total }));
             const overweight = gaps.filter(({ gap }) => gap >= MIN_REBALANCE_ORDER);
             const underweight = gaps.filter(({ gap }) => -gap >= MIN_REBALANCE_ORDER);
