@@ -23,7 +23,7 @@ Ces règles sont **strictes** : un écart doit être justifié dans le résumé 
 | `apps/web` | Next.js 16 (App Router) + React 19 + Tailwind 4 + shadcn/base-ui. N'appelle que core-backend. |
 | `packages/contracts` | Schémas zod et topics partagés entre services. |
 | `packages/kafka` | `KafkaClient`, `KafkaProducer`, `KafkaConsumer`, `createKafkaEvent`. |
-| `packages/utils` | `Logger` partagé, `onShutdown`, `periodKey`. |
+| `packages/utils` | `Logger` partagé, `onShutdown`, `DAY_MS`, calendrier de simulation (`periodKey`, `businessDays`, `estimateSchedule`). |
 | `packages/http` | Socle des services Express : `AppError` et sous-classes, `RouteDescriptor`/`registerRoutes`, `errorMiddleware`. |
 | `roadmap/` | Suivi des features : un dossier par feature (`README.md`, `US.md`, `TASKS.md`), maintenu avec le skill `feature-roadmap`. |
 

@@ -46,6 +46,8 @@ test("GET /api/market/closes invalide : 400 INVALID_QUERY", async () => {
 })
 
 test("GET /api/market/search trop court : 400 INVALID_QUERY, sinon 200", async () => {
-    expect((await app.request("/api/market/search?query=a", { headers: withKey })).status).toBe(400)
+    const tooShort = await app.request("/api/market/search?query=a", { headers: withKey })
+    expect(tooShort.status).toBe(400)
+    expect(((await tooShort.json()) as { issues: unknown[] }).issues).toHaveLength(1)
     expect((await app.request("/api/market/search?query=apple", { headers: withKey })).status).toBe(200)
 })

@@ -41,7 +41,7 @@ class BacktestService {
         } catch (error) {
             const message = error instanceof Error ? error.message : String(error);
             logger.error("Backtest failed", { executionId, error: message });
-            // Hors erreur métier de l'engine (réseau Yahoo, bug) : cause générique
+            // Hors erreur métier de l'engine (market-service injoignable, bug) : cause générique
             const errorCode = error instanceof BacktestError ? error.code : "ENGINE_FAILED";
             await this.publisher.failed({ executionId, finishedAt: new Date().toISOString(), error: message, errorCode });
         }

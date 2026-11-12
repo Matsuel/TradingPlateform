@@ -33,10 +33,31 @@ test("lit les cours auprès de market-service avec la clé interne", async () =>
     expect(calls[0]!.headers.get("x-internal-key")).toBe(process.env.INTERNAL_API_KEY!)
 })
 
-test("une réponse hors 2xx lève une erreur (le service publie alors backtest.failed)", async () => {
-    stubFetch(() => new Response("boom", { status: 500 }))
+test("une réponse hors 2xx lève une erreur avec son code (le service publie alors backtest.failed)", async () => {
+    const calls = stubFetch(() => Response.json({ error: "Internal server error", code: "INTERNAL_ERROR" }, { status: 500 }))
 
-    expect(new MarketRepository().getDailyCloses(["AAA"], start, end)).rejects.toThrow("market-service responded 500")
+    await expect(new MarketRepository().getDailyCloses(["AAA"], start, end)).rejects.toThrow("market-service responded 500 INTERNAL_ERROR")
+    // Un 500 (symbole inconnu) ne se rejoue pas
+    expect(calls).toHaveLength(1)
+})
+
+test("un 503 puis un succès : une seconde tentative réussit", async () => {
+    let attempt = 0
+    const calls = stubFetch(() => (++attempt === 1 ? new Response("down", { status: 503 }) : Response.json({ AAA: [] })))
+
+    expect(await new MarketRepository().getDailyCloses(["AAA"], start, end)).toEqual({ AAA: [] })
+    expect(calls).toHaveLength(2)
+})
+
+test("market-service injoignable deux fois de suite : l'erreur remonte après deux tentatives", async () => {
+    let attempts = 0
+    globalThis.fetch = (async () => {
+        attempts++
+        throw new TypeError("fetch failed")
+    }) as unknown as typeof fetch
+
+    await expect(new MarketRepository().getDailyCloses(["AAA"], start, end)).rejects.toThrow("fetch failed")
+    expect(attempts).toBe(2)
 })
 
 test("une réponse qui ne respecte pas le contrat est refusée", async () => {

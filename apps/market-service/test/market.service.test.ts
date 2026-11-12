@@ -27,7 +27,7 @@ function countingRepo() {
     const repo = {
         search: async () => (calls.search++, []),
         getDetails: async () => (calls.details++, []),
-        getAssets: async () => (calls.assets++, []),
+        getAssets: async (symbols: string[]) => (calls.assets++, symbols.map((symbol) => ({ symbol }) as MarketAsset)),
         getDailyCloses: async () => (calls.closes++, {}),
     } as unknown as IMarketRepository
     return { repo, calls }
@@ -58,4 +58,17 @@ test("les cours d'un backtest ne sont jamais gardés en cache", async () => {
     await service.getDailyCloses(["AAPL"], new Date("2024-01-01"), new Date("2024-02-01"))
 
     expect(calls.closes).toBe(2)
+})
+
+test("une liste par défaut incomplète (actif indisponible) n'est pas gardée en cache", async () => {
+    let calls = 0
+    const service = new MarketService()
+    service.repo = {
+        getAssets: async (symbols: string[]) => (calls++, symbols.slice(1).map((symbol) => ({ symbol }) as MarketAsset)),
+    } as unknown as IMarketRepository
+
+    await service.getDefaultsMarketAssets({ page: 1, pageSize: 3 })
+    await service.getDefaultsMarketAssets({ page: 1, pageSize: 3 })
+
+    expect(calls).toBe(2)
 })

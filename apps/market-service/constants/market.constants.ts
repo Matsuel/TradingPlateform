@@ -19,6 +19,9 @@ export const DEFAULT_TICKERS = [
 ];
 const MINUTE_MS = 60_000;
 
+// Nombre maximal d'entrées du cache mémoire
+export const CACHE_MAX_ENTRIES = 500;
+
 // Durée de garde en cache des réponses du fournisseur : la recherche change peu, un historique court se périme plus vite qu'un long
 export const SEARCH_CACHE_TTL_MS = 10 * MINUTE_MS;
 export const ASSETS_CACHE_TTL_MS = MINUTE_MS;

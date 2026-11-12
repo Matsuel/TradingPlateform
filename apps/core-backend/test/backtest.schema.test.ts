@@ -1,5 +1,6 @@
 import { expect, test } from "bun:test"
 import type { ZodSafeParseResult } from "zod"
+import { MAX_CLOSES_SYMBOLS } from "@trading-plateform/contracts"
 import { backtestCompareQuerySchema, createBacktestSchema } from "../interfaces/backtest.interface"
 
 const valid = {
@@ -53,4 +54,10 @@ test("comparaison : deux ids distincts exigés", () => {
     expect(issueCodes(backtestCompareQuerySchema.safeParse({ ids: "a,a" }))).toContain("IDS_NOT_DISTINCT")
     expect(backtestCompareQuerySchema.safeParse({ ids: "a" }).success).toBe(false)
     expect(backtestCompareQuerySchema.safeParse({ ids: "a,b,c" }).success).toBe(false)
+})
+
+test("plus d'allocations que market-service n'accepte de symboles (benchmark compris) : refusé", () => {
+    const allocations = (count: number) => Array.from({ length: count }, (_, i) => ({ symbol: `S${i}`, weight: 1 }))
+
+    expect(createBacktestSchema.safeParse({ ...valid, allocations: allocations(MAX_CLOSES_SYMBOLS) }).success).toBe(false)
 })

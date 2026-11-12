@@ -15,7 +15,7 @@ class MarketController {
         logger.info(`Handling search market request ${req.method} ${req.originalUrl}`)
 
         const parsed = searchMarketSchema.safeParse(req.query)
-        if (!parsed.success) throw new BadRequestError(API_ERROR_CODES.INVALID_QUERY)
+        if (!parsed.success) throw new BadRequestError(API_ERROR_CODES.INVALID_QUERY, { issues: parsed.error.issues })
 
         const result = await this.marketService.searchMarket(parsed.data.query)
         res.json(result)
@@ -28,7 +28,7 @@ class MarketController {
         logger.info(`Handling market details request ${req.method} ${req.originalUrl} ${id} for period ${period}`)
 
         const parsedId = marketIdSchema.safeParse(id)
-        if (!parsedId.success) throw new BadRequestError(API_ERROR_CODES.INVALID_QUERY)
+        if (!parsedId.success) throw new BadRequestError(API_ERROR_CODES.INVALID_QUERY, { issues: parsedId.error.issues })
         const parsedPeriod = periodSchema.safeParse(period)
         if (!parsedPeriod.success) throw new BadRequestError(API_ERROR_CODES.INVALID_QUERY, { issues: parsedPeriod.error.issues })
 

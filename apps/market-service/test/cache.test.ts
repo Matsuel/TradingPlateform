@@ -47,3 +47,29 @@ test("un échec n'est pas gardé : l'appel suivant réessaie", async () => {
     await expect(cache.getOrLoad("k", 60_000, load)).rejects.toThrow("yahoo down")
     expect(await cache.getOrLoad("k", 60_000, load)).toBe("ok")
 })
+
+test("l'échec d'un appel ne supprime pas l'entrée plus récente de la même clé", async () => {
+    const cache = new TtlCache()
+    const failing = cache.getOrLoad("k", 1, async () => {
+        await Bun.sleep(5)
+        throw new Error("lent puis en échec")
+    })
+    failing.catch(() => {})
+    await Bun.sleep(2)
+    // L'entrée a expiré : un second appel la remplace avant l'échec du premier
+    let calls = 0
+    await cache.getOrLoad("k", 60_000, async () => ++calls)
+    await failing.catch(() => {})
+
+    expect(await cache.getOrLoad("k", 60_000, async () => ++calls)).toBe(1)
+})
+
+test("delete oublie une entrée", async () => {
+    const cache = new TtlCache()
+    let calls = 0
+    await cache.getOrLoad("k", 60_000, async () => ++calls)
+
+    cache.delete("k")
+
+    expect(await cache.getOrLoad("k", 60_000, async () => ++calls)).toBe(2)
+})

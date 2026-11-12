@@ -1,6 +1,4 @@
-import { periodKey, type PeriodFrequency } from "./period";
-
-const DAY_MS = 24 * 60 * 60 * 1000;
+import { DAY_MS, periodKey, type PeriodFrequency } from "./period";
 
 /**
  * Jours ouvrés (lundi–vendredi, `YYYY-MM-DD`) de `start` inclus à `end` exclu, comme l'intervalle de cours demandé

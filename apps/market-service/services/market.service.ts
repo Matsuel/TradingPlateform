@@ -12,7 +12,7 @@ class MarketService {
     private cache = new TtlCache()
 
     async searchMarket(query: string) {
-        return this.cache.getOrLoad(`search:${query.toLowerCase()}`, SEARCH_CACHE_TTL_MS, () => this.repo.search(query))
+        return this.cache.getOrLoad(`search:${query.trim().toLowerCase()}`, SEARCH_CACHE_TTL_MS, () => this.repo.search(query))
     }
 
     async getMarketDetails(id: string, period: Period) {
@@ -24,7 +24,10 @@ class MarketService {
         const start = (page - 1) * pageSize
         const symbols = DEFAULT_TICKERS.slice(start, start + pageSize)
 
-        const data = await this.cache.getOrLoad(`assets:${symbols.join(",")}`, ASSETS_CACHE_TTL_MS, () => this.repo.getAssets(symbols))
+        const key = `assets:${symbols.join(",")}`
+        const data = await this.cache.getOrLoad(key, ASSETS_CACHE_TTL_MS, () => this.repo.getAssets(symbols))
+        // Un actif manquant (échec passager du fournisseur) ne doit pas rester une minute en cache
+        if (data.length < symbols.length) this.cache.delete(key)
 
         return { data, count: DEFAULT_TICKERS.length, page, pageSize }
     }

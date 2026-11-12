@@ -1,4 +1,5 @@
-const DAY_MS = 24 * 60 * 60 * 1000;
+/** Millisecondes dans un jour calendaire. */
+export const DAY_MS = 24 * 60 * 60 * 1000;
 
 /** Fréquence calendaire d'un versement ou d'un rebalancement ; `DAILY` ou null : chaque jour est sa propre période. */
 export type PeriodFrequency = "DAILY" | "WEEKLY" | "MONTHLY" | "QUARTERLY" | "YEARLY" | null;

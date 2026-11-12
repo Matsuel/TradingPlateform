@@ -2,6 +2,7 @@ import { z } from "zod";
 import {
     API_ERROR_CODES,
     API_ERROR_MESSAGES,
+    MAX_CLOSES_SYMBOLS,
     allocationSchema,
     backtestRequestedPayloadSchema,
     paginationQuerySchema,
@@ -18,6 +19,8 @@ const FULL_PERCENT = 100;
 const allocationInputsSchema = z
     .array(z.object({ symbol: allocationSchema.shape.symbol, weight: z.number().int().min(1).max(FULL_PERCENT) }))
     .min(1)
+    // Le benchmark prend un symbole de plus dans la requête de cours (GET /api/market/closes, MAX_CLOSES_SYMBOLS)
+    .max(MAX_CLOSES_SYMBOLS - 1)
     .refine((allocations) => new Set(allocations.map((a) => a.symbol)).size === allocations.length, {
         message: API_ERROR_MESSAGES.SYMBOLS_NOT_UNIQUE,
         params: { code: API_ERROR_CODES.SYMBOLS_NOT_UNIQUE },
