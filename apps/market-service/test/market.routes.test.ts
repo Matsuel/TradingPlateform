@@ -7,6 +7,7 @@ import { env } from "../env"
 import { startApp } from "@trading-plateform/http/testing"
 
 const closes = spyOn(MarketService.prototype, "getDailyCloses").mockResolvedValue({ AAPL: [{ date: "2024-01-02", close: 185.64 }] })
+const dividends = spyOn(MarketService.prototype, "getDividends").mockResolvedValue({ AAPL: { currency: "USD", dividends: [] } })
 const search = spyOn(MarketService.prototype, "searchMarket").mockResolvedValue([])
 
 let app: Awaited<ReturnType<typeof startApp>>
@@ -17,6 +18,7 @@ beforeAll(async () => {
 afterAll(async () => {
     await app.close()
     closes.mockRestore()
+    dividends.mockRestore()
     search.mockRestore()
 })
 
@@ -36,6 +38,20 @@ test("GET /api/market/closes : 200 avec les séries et les symboles découpés p
     expect(response.status).toBe(200)
     expect(await response.json()).toEqual({ AAPL: [{ date: "2024-01-02", close: 185.64 }] })
     expect(closes.mock.calls.at(-1)).toEqual([["AAPL"], new Date("2024-01-02T00:00:00.000Z"), new Date("2024-01-10T00:00:00.000Z")])
+})
+
+test("GET /api/market/dividends : 200, un titre sans dividende donne une liste vide", async () => {
+    const response = await app.request(`/api/market/dividends?${closesQuery}`, { headers: withKey })
+
+    expect(response.status).toBe(200)
+    expect(await response.json()).toEqual({ AAPL: { currency: "USD", dividends: [] } })
+    expect(dividends.mock.calls.at(-1)).toEqual([["AAPL"], new Date("2024-01-02T00:00:00.000Z"), new Date("2024-01-10T00:00:00.000Z")])
+})
+
+test("GET /api/market/dividends invalide : 400 INVALID_QUERY", async () => {
+    const response = await app.request("/api/market/dividends?symbols=AAPL", { headers: withKey })
+
+    expect(response.status).toBe(400)
 })
 
 test("GET /api/market/closes invalide : 400 INVALID_QUERY", async () => {

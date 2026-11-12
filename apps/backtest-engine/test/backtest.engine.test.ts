@@ -470,6 +470,11 @@ describe("runBacktest", () => {
                 totalFees: 2.4,
                 profit: 49.7,
                 totalReturn: 0.020708,
+                priceReturn: 0.020708,
+                dividendTotal: 0,
+                dividendGain: 0,
+                dividendEvents: [],
+                returnBreakdown: { price: 0.020708, dividends: 0, local: 0.020708, fx: null },
                 totalTrades: 48,
                 rebalanceCount: 0,
                 maxDrawdown: -0.295875,
@@ -524,3 +529,109 @@ describe("runBacktest", () => {
         else expect(result.recoveryDays!).toBeGreaterThan(0);
     });
 });
+
+describe("dividendes réinvestis (D1)", () => {
+    const flat = (symbol: string, close: number) => ({ [symbol]: ["2024-01-02", "2024-01-03", "2024-01-04"].map((date) => ({ date, close })) });
+
+    test("1,595 par titre sur 100 titres : 159,50 réinvestis au cours de l'ex-date, sans frais", () => {
+        const result = runBacktest({ ...lumpSum, initialAmount: 1000 }, flat("AAA", 10), {
+            dividends: { AAA: [{ date: "2024-01-03", amount: 1.595 }] },
+        });
+
+        expect(result.dividendTotal).toBe(159.5);
+        // 100 titres + 159,5 / 10 = 115,95 titres
+        expect(result.holdings).toEqual([{ symbol: "AAA", quantity: 115.95, value: 1159.5 }]);
+        expect(result.totalFees).toBe(0);
+        expect(result.totalTrades).toBe(1);
+        expect(result.totalReturn).toBe(0.1595);
+    });
+
+    test("chaque dividende est publié avec son montant et les titres rachetés, la courbe garde la valeur sans dividende", () => {
+        const result = runBacktest(lumpSum, flat("AAA", 10), { dividends: { AAA: [{ date: "2024-01-03", amount: 1.595 }] } });
+
+        expect(result.dividendEvents).toEqual([{ date: "2024-01-03", symbol: "AAA", amount: 159.5, quantity: 15.95 }]);
+        expect(result.equityCurve.map((point) => point.priceOnlyValue)).toEqual([1000, 1000, 1000]);
+        expect(result.equityCurve.map((point) => point.value)).toEqual([1000, 1159.5, 1159.5]);
+        expect(result.priceReturn).toBe(0);
+        expect(result.dividendGain).toBe(159.5);
+        expect(result.returnBreakdown).toEqual({ price: 0, dividends: 0.1595, local: 0.1595, fx: null });
+    });
+
+    test("sans dividende, la courbe n'a pas de priceOnlyValue", () => {
+        const result = runBacktest(lumpSum, flat("AAA", 10));
+
+        expect(result.equityCurve.every((point) => !("priceOnlyValue" in point))).toBe(true);
+    });
+
+    test("le rendement total dépasse le rendement cours seul", () => {
+        const prices = { AAA: [{ date: "2024-01-02", close: 10 }, { date: "2024-01-03", close: 11 }, { date: "2024-01-04", close: 12 }] };
+        const priceOnly = runBacktest(lumpSum, prices);
+        const total = runBacktest(lumpSum, prices, { dividends: { AAA: [{ date: "2024-01-03", amount: 0.5 }] } });
+
+        expect(total.totalReturn).toBeGreaterThan(priceOnly.totalReturn);
+        // priceReturn de l'exécution avec dividendes = rendement de l'exécution sans dividende
+        expect(total.priceReturn).toBe(priceOnly.totalReturn);
+        expect(priceOnly.priceReturn).toBe(priceOnly.totalReturn);
+        expect(priceOnly.dividendTotal).toBe(0);
+    });
+
+    test("un dividende détaché avant le premier achat n'est pas perçu", () => {
+        const result = runBacktest(lumpSum, flat("AAA", 10), { dividends: { AAA: [{ date: "2023-12-15", amount: 1 }] } });
+
+        expect(result.dividendTotal).toBe(0);
+    });
+
+    test("parité avec un calcul à la main sur 2 ans (dividende trimestriel de 0,25)", () => {
+        const prices = { AAA: syntheticSeries(42, "2022-01-03", 520, 10_000) };
+        const exDates = ["2022-03-15", "2022-06-15", "2022-09-15", "2022-12-15", "2023-03-15", "2023-06-15", "2023-09-15", "2023-12-15"]
+            .map((wanted) => prices.AAA.find((point) => point.date >= wanted)!.date);
+
+        // Calcul à la main : 1000 / cours initial titres, chaque dividende ajoute (titres × 0,25) / cours de l'ex-date
+        let shares = 1000 / prices.AAA[0]!.close;
+        let received = 0;
+        for (const date of exDates) {
+            const cash = shares * 0.25;
+            received += cash;
+            shares += cash / prices.AAA.find((point) => point.date === date)!.close;
+        }
+        const result = runBacktest(lumpSum, prices, { dividends: { AAA: exDates.map((date) => ({ date, amount: 0.25 })) } });
+
+        expect(result.dividendTotal).toBe(Math.round(received * 100) / 100);
+        expect(result.finalValue).toBe(Math.round(shares * prices.AAA.at(-1)!.close * 100) / 100);
+    });
+});
+
+describe("effet du change (D3)", () => {
+    const usd = { AAA: [{ date: "2024-01-02", close: 100 }, { date: "2024-01-03", close: 110 }] };
+    // 1 € = 1,25 $ puis 1,10 $ : le dollar gagne face à l'euro
+    const fxRates = { "EURUSD=X": [{ date: "2024-01-02", close: 1.25 }, { date: "2024-01-03", close: 1.1 }] };
+
+    test("un actif en USD est converti au taux du jour ; returnBreakdown.fx = rendement EUR − rendement local", () => {
+        const result = runBacktest(lumpSum, usd, { currencies: { AAA: "USD" }, fxRates });
+
+        // 1000 / (100 / 1,25) = 12,5 titres, puis 12,5 × 110 / 1,1 = 1250 €
+        expect(result.finalValue).toBe(1250);
+        expect(result.totalReturn).toBe(0.25);
+        // Rendement local : +10 % ; contribution du change : 25 % − 10 %
+        expect(result.returnBreakdown).toEqual({ price: 0.1, dividends: 0, local: 0.1, fx: 0.15 });
+    });
+
+    test("un actif en EUR n'a pas de contribution du change", () => {
+        const result = runBacktest(lumpSum, usd, { currencies: { AAA: "EUR" } });
+
+        expect(result.returnBreakdown.fx).toBeNull();
+        expect(result.totalReturn).toBe(0.1);
+    });
+
+    test("le dividende en dollars est converti au taux de son ex-date", () => {
+        const result = runBacktest(lumpSum, usd, { currencies: { AAA: "USD" }, fxRates, dividends: { AAA: [{ date: "2024-01-03", amount: 1.1 }] } });
+
+        // 12,5 titres × 1,1 $ / 1,1 = 12,5 €
+        expect(result.dividendTotal).toBe(12.5);
+    });
+
+    test("taux manquant : NO_MARKET_DATA sur la paire", () => {
+        expect(() => runBacktest(lumpSum, usd, { currencies: { AAA: "USD" } })).toThrow("No market data for EURUSD=X");
+    });
+});
+

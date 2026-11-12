@@ -1,5 +1,5 @@
-import type { Trade, TradeSide } from "@trading-plateform/contracts";
-import type { BacktestParams, PriceSeries } from "../interfaces/backtest.interface";
+import type { DividendEvent, Trade, TradeSide } from "@trading-plateform/contracts";
+import type { BacktestParams, DividendSeries, PriceSeries } from "../interfaces/backtest.interface";
 import { round } from "./backtest.utils";
 
 // Écart minimal à la cible, devise saisie, pour passer un ordre de rebalancement : un ordre arrondi à 0 € serait invalide (amount > 0)
@@ -10,14 +10,18 @@ const MIN_REBALANCE_ORDER = 0.01;
  * `weight`, frais `amount × feeRate`, rebalancement par vente des lignes surpondérées) sont décrites sur `simulate`.
  * Les montants sont dans la devise saisie ; les cumuls (`fees`) ne sont pas arrondis, seules les valeurs publiées le sont.
  */
-export function createPortfolio({ allocations, feeRate }: Pick<BacktestParams, "allocations" | "feeRate">, prices: PriceSeries) {
+export function createPortfolio({ allocations, feeRate }: Pick<BacktestParams, "allocations" | "feeRate">, prices: PriceSeries, dividends: DividendSeries) {
     const symbols = allocations.map((allocation) => allocation.symbol);
     // Prochain cours non lu de chaque symbole (séries triées par date)
     const cursors = new Map<string, number>(symbols.map((symbol) => [symbol, 0]));
+    // Prochain dividende non crédité de chaque symbole (séries triées par date)
+    const dividendCursors = new Map<string, number>(symbols.map((symbol) => [symbol, 0]));
     const lastClose = new Map<string, number>();
     const shares = new Map<string, number>(symbols.map((symbol) => [symbol, 0]));
     const trades: Trade[] = [];
+    const dividendEvents: DividendEvent[] = [];
     let fees = 0;
+    let dividendTotal = 0;
 
     const lineValue = (symbol: string) => shares.get(symbol)! * lastClose.get(symbol)!;
     const value = () => symbols.reduce((sum, symbol) => sum + lineValue(symbol), 0);
@@ -43,19 +47,50 @@ export function createPortfolio({ allocations, feeRate }: Pick<BacktestParams, "
 
     return {
         trades,
+        /** Dividendes perçus et réinvestis, dans l'ordre de leur crédit. */
+        dividendEvents,
         /** Valeur de marché du portefeuille aux derniers cours lus. */
         value,
         /** Total des frais prélevés depuis le début, non arrondi. */
         get fees() {
             return fees;
         },
-        /** Lit les cours jusqu'à `date` (inclus) ; un symbole sans cours ce jour garde son dernier cours connu. */
+        /** Total des dividendes perçus depuis le début, non arrondi. */
+        get dividendTotal() {
+            return dividendTotal;
+        },
+        /**
+         * Lit les cours jusqu'à `date` (inclus) ; un symbole sans cours ce jour garde son dernier cours connu.
+         * Crédite ensuite les dividendes détachés jusqu'à `date` sur les titres détenus à la veille (avant les ordres du jour),
+         * réinvestis au cours de l'ex-date, sans frais (D1).
+         */
         advance(date: string) {
             for (const symbol of symbols) {
                 const series = prices[symbol]!;
                 let cursor = cursors.get(symbol)!;
                 while (cursor < series.length && series[cursor]!.date <= date) lastClose.set(symbol, series[cursor++]!.close);
                 cursors.set(symbol, cursor);
+            }
+            for (const symbol of symbols) {
+                const pending = dividends[symbol] ?? [];
+                let cursor = dividendCursors.get(symbol)!;
+                while (cursor < pending.length && pending[cursor]!.date <= date) {
+                    const held = shares.get(symbol)!;
+                    const close = lastClose.get(symbol);
+                    if (held > 0 && close !== undefined) {
+                        const cash = held * pending[cursor]!.amount;
+                        dividendTotal += cash;
+                        shares.set(symbol, held + cash / close);
+                        dividendEvents.push({
+                            date: pending[cursor]!.date,
+                            symbol,
+                            amount: round(cash, 2),
+                            quantity: round(cash / close, 6),
+                        });
+                    }
+                    cursor++;
+                }
+                dividendCursors.set(symbol, cursor);
             }
         },
         /** Investit `contribution` (frais compris) selon les `weight` de l'allocation. */

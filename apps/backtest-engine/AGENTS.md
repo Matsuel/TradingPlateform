@@ -2,6 +2,8 @@
 
 Worker Kafka sans serveur HTTP **et sans base de données**. Consomme `backtest.requested` (publié par core-backend, contient tous les paramètres), lit les cours auprès de market-service (`GET /api/market/closes`, clé interne `INTERNAL_API_KEY`, **jamais** de fournisseur en direct), calcule, puis publie `backtest.started` puis `backtest.completed` (résultat) ou `backtest.failed` (cause). **Calqué sur `apps/core-backend`** : lis `../core-backend/AGENTS.md` et reprends ses règles de couches. Respecte `../../AGENTS.md`.
 
+Les cours cotés hors euros sont convertis en euros par l'engine (`engine/backtest.fx.ts`, taux `EURxxx=X` lus comme des cours) et les dividendes réinvestis à l'ex-date (`backtest.portfolio.ts`) ; `runBacktest` reçoit ces données en entrée, jamais d'I/O.
+
 S'il manque une donnée pour calculer, ajoute-la au contrat `backtest.requested` : seul core-backend lit et écrit la base.
 
 ## Structure (à respecter, crée un dossier seulement quand un fichier en a besoin)

@@ -32,3 +32,11 @@ export const DETAILS_CACHE_TTL_MS: Record<Period, number> = {
     "1y": 60 * MINUTE_MS,
     max: 6 * 60 * MINUTE_MS,
 };
+
+// Devises cotées en sous-unité par Yahoo (pence, agorot, cents) : devise principale et nombre de sous-unités qu'elle contient
+export const CURRENCY_SUBUNITS: Record<string, { currency: string; divisor: number }> = {
+    GBp: { currency: "GBP", divisor: 100 },
+    GBX: { currency: "GBP", divisor: 100 },
+    ILA: { currency: "ILS", divisor: 100 },
+    ZAc: { currency: "ZAR", divisor: 100 },
+};

@@ -1,11 +1,12 @@
 import type { EquityPoint } from "@trading-plateform/contracts";
 import { periodKey } from "@trading-plateform/utils";
+import { foreignCurrencies, toReferenceCurrency } from "./backtest.fx";
 import { createPortfolio } from "./backtest.portfolio";
 import BacktestError from "../errors/backtest.error";
-import type { BacktestOutcome, BacktestParams, PriceSeries, TwrPoint } from "../interfaces/backtest.interface";
+import type { BacktestOutcome, BacktestParams, Currencies, DividendSeries, MarketInput, PriceSeries, TwrPoint } from "../interfaces/backtest.interface";
 import { annualizedReturn, annualizedVolatility, createDrawdownTracker, RISK_FREE_RATE, round, sharpeRatio } from "./backtest.utils";
 
-type Simulation = Omit<BacktestOutcome, "lumpSumComparison" | "benchmark" | "executionRule" | "riskFreeRate">;
+type Simulation = Omit<BacktestOutcome, "lumpSumComparison" | "benchmark" | "executionRule" | "riskFreeRate" | "returnBreakdown" | "priceReturn" | "dividendGain">;
 
 const roundOrNull = (ratio: number | null) => (ratio === null ? null : round(ratio, 6));
 
@@ -47,14 +48,16 @@ function buildCalendar(prices: PriceSeries, strategySymbols: string[], alignedSy
  *   `NONE` : aucune vente.
  * - Frais (D8) : `amount × feeRate` sur chaque ordre. Achat : `amount` payé frais compris, titres = (amount − fee) / cours.
  *   Vente : `amount` = produit brut (titres × cours), encaissé net de `fee`.
+ * - Dividendes (D1) : crédités à l'ex-date sur les titres détenus, réinvestis au cours de l'ex-date sans frais ;
+ *   le total perçu est publié (`dividendTotal`), la valeur du portefeuille et `totalReturn` les incluent.
  * - Métriques de risque (D3 à D6) et `drawdown` de chaque point : sur l'indice TWR chaîné jour après jour,
  *   rendement du jour mesuré avant le versement, donc hors apports.
  *
  * Lève `BacktestError` si rien n'a été investi (calendrier vide).
  */
-function simulate(params: BacktestParams, prices: PriceSeries, dates: string[]): Simulation {
+function simulate(params: BacktestParams, { prices, dividends }: MarketInput, dates: string[]): Simulation {
     const { investmentMode, initialAmount, recurringAmount, investmentFrequency, rebalanceFrequency } = params;
-    const portfolio = createPortfolio(params, prices);
+    const portfolio = createPortfolio(params, prices, dividends);
     const equityCurve: EquityPoint[] = [];
     const drawdown = createDrawdownTracker(dates[0]);
     const twr: TwrPoint[] = [];
@@ -105,6 +108,8 @@ function simulate(params: BacktestParams, prices: PriceSeries, dates: string[]):
         totalFees: round(portfolio.fees, 2),
         profit: round(finalValue - invested, 2),
         totalReturn: round((finalValue - invested) / invested, 6),
+        dividendTotal: round(portfolio.dividendTotal, 2),
+        dividendEvents: portfolio.dividendEvents,
         totalTrades: portfolio.trades.length,
         rebalanceCount: rebalances,
         ...riskMetrics(drawdown, twr),
@@ -143,10 +148,11 @@ function riskMetrics(drawdown: ReturnType<typeof createDrawdownTracker>, twr: Tw
  * dans `benchmark`. Sans benchmark, `benchmark` vaut null et la courbe n'a pas de `benchmarkValue`.
  * Lève `BacktestError` « No market data for <symbol> » si le benchmark n'a aucun cours.
  */
-export default function runBacktest(params: BacktestParams, prices: PriceSeries): BacktestOutcome {
+function runOnMarket(params: BacktestParams, market: MarketInput): Omit<BacktestOutcome, "returnBreakdown" | "priceReturn" | "dividendGain"> {
+    const { prices } = market;
     const { benchmarkSymbol } = params;
     const calendar = buildCalendar(prices, params.allocations.map((allocation) => allocation.symbol), benchmarkSymbol ? [benchmarkSymbol] : []);
-    const outcome = simulate(params, prices, calendar);
+    const outcome = simulate(params, market, calendar);
     // Seule règle du MVP : chaque versement est planifié, donc exécuté à la clôture du jour de l'échéance (README, look-ahead bias)
     const executionRule = "CLOSE_ON_SCHEDULED_DAY";
 
@@ -160,13 +166,13 @@ export default function runBacktest(params: BacktestParams, prices: PriceSeries)
                       recurringAmount: null,
                       investmentFrequency: null,
                   },
-                  prices,
+                  market,
                   calendar,
               )
             : null;
 
     const benchmark = benchmarkSymbol
-        ? simulate({ ...params, allocations: [{ symbol: benchmarkSymbol, weight: 1 }], rebalanceFrequency: "NONE" }, prices, calendar)
+        ? simulate({ ...params, allocations: [{ symbol: benchmarkSymbol, weight: 1 }], rebalanceFrequency: "NONE" }, market, calendar)
         : null;
 
     return {
@@ -198,6 +204,52 @@ export default function runBacktest(params: BacktestParams, prices: PriceSeries)
             excessVolatility: excess(outcome.volatility, benchmark.volatility),
             excessMaxDrawdown: round(outcome.maxDrawdown - benchmark.maxDrawdown, 6),
             excessSharpe: excess(outcome.sharpeRatio, benchmark.sharpeRatio),
+        },
+    };
+}
+
+/** Données d'entrée facultatives de `runBacktest` : sans elles, les cours sont déjà en euros et sans dividende. */
+export interface MarketExtras {
+    dividends?: DividendSeries;
+    // Devise de cotation de chaque symbole de `prices` ; un symbole absent cote en euros
+    currencies?: Currencies;
+    // Séries journalières des paires `EURxxx=X` (unités de devise pour 1 €), une par devise étrangère
+    fxRates?: PriceSeries;
+}
+
+/**
+ * Point d'entrée de l'engine : simule le backtest sur des cours convertis en euros au taux du jour (D3), dividendes
+ * réinvestis (D1) ; voir `runOnMarket` pour le calendrier, la comparaison DCA et le benchmark.
+ *
+ * Rejoue la simulation sans dividendes (`priceReturn`, `priceOnlyValue` de chaque point, publié seulement si un dividende a été
+ * perçu) et, hors euro, en devise locale (cours non convertis) : `returnBreakdown` passe du rendement du cours seul au rendement
+ * en euros, avec `fx` = rendement en euros − rendement local (null si aucun symbole de l'allocation ne cote hors euro).
+ * Lève `BacktestError` « No market data for EURxxx=X » si le taux d'une devise étrangère manque.
+ */
+export default function runBacktest(params: BacktestParams, prices: PriceSeries, { dividends = {}, currencies = {}, fxRates = {} }: MarketExtras = {}): BacktestOutcome {
+    const local: MarketInput = { prices, dividends };
+    const foreign = foreignCurrencies(params.allocations.map((allocation) => allocation.symbol), currencies).length > 0;
+    const converted = toReferenceCurrency(local, currencies, fxRates);
+    const withoutDividends = (market: MarketInput): MarketInput => ({ ...market, dividends: {} });
+    const outcome = runOnMarket(params, converted);
+    const priceOnly = runOnMarket(params, withoutDividends(converted));
+    // Sans devise étrangère, le local est l'euro : pas de simulation de plus
+    const localOutcome = foreign ? runOnMarket(params, local) : outcome;
+    const localPriceOnly = foreign ? runOnMarket(params, withoutDividends(local)) : priceOnly;
+
+    return {
+        ...outcome,
+        priceReturn: priceOnly.totalReturn,
+        dividendGain: round(outcome.finalValue - priceOnly.finalValue, 2),
+        equityCurve:
+            outcome.dividendTotal > 0
+                ? outcome.equityCurve.map((point, i) => ({ ...point, priceOnlyValue: priceOnly.equityCurve[i]!.value }))
+                : outcome.equityCurve,
+        returnBreakdown: {
+            price: localPriceOnly.totalReturn,
+            dividends: round(localOutcome.totalReturn - localPriceOnly.totalReturn, 6),
+            local: localOutcome.totalReturn,
+            fx: foreign ? round(outcome.totalReturn - localOutcome.totalReturn, 6) : null,
         },
     };
 }

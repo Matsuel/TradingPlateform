@@ -46,9 +46,27 @@ export const dailyCloseSchema = z.object({
 // Réponse de GET /api/market/closes : séries triées par date, par symbole demandé
 export const dailyClosesSchema = z.record(z.string(), z.array(dailyCloseSchema));
 
+// Dividende détaché : `date` = ex-date dans le fuseau de la place (`YYYY-MM-DD`), `amount` par titre, devise de cotation
+export const dividendSchema = z.object({
+    date: z.iso.date(),
+    amount: z.number().positive(),
+});
+
+// Dividendes d'un symbole et sa devise de cotation (code ISO 4217 : "USD", "EUR")
+export const symbolDividendsSchema = z.object({
+    currency: z.string().min(1),
+    dividends: z.array(dividendSchema),
+});
+
+// Réponse de GET /api/market/dividends : dividendes triés par date, par symbole demandé
+export const dividendsSchema = z.record(z.string(), symbolDividendsSchema);
+
 export type Period = z.infer<typeof periodSchema>;
 export type MarketData = z.infer<typeof marketDataSchema>;
 export type MarketDetails = z.infer<typeof marketDetailsSchema>;
 export type DailyClose = z.infer<typeof dailyCloseSchema>;
 export type DailyCloses = z.infer<typeof dailyClosesSchema>;
 export type MarketAsset = z.infer<typeof marketAssetSchema>;
+export type Dividend = z.infer<typeof dividendSchema>;
+export type SymbolDividends = z.infer<typeof symbolDividendsSchema>;
+export type Dividends = z.infer<typeof dividendsSchema>;
