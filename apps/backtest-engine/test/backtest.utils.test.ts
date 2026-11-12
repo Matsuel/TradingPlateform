@@ -8,7 +8,7 @@ import {
     fingerprintPrices,
     round,
     sharpeRatio,
-} from "./backtest.utils";
+} from "../engine/backtest.utils";
 
 describe("round", () => {
     test("arrondit au nombre de décimales demandé", () => {

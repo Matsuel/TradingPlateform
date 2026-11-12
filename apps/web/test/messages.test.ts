@@ -1,10 +1,10 @@
 import { expect, test } from "bun:test"
 import { API_ERROR_CODES } from "@trading-plateform/contracts"
 import { createTranslator } from "next-intl"
+import en from "../messages/en.json"
+import fr from "../messages/fr.json"
 import { GLOSSARY } from "../src/constants/glossary"
 import type { Locale } from "../src/i18n/config"
-import en from "./en.json"
-import fr from "./fr.json"
 
 // Clés d'un dictionnaire sous forme de chemins (`backtest.status.PENDING`)
 const keysOf = (value: object, prefix = ""): string[] =>

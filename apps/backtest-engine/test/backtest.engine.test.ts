@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import runBacktest from "./backtest.engine";
+import runBacktest from "../engine/backtest.engine";
 import { referencePrices, syntheticSeries } from "./backtest.fixture";
 import type { BacktestParams } from "../interfaces/backtest.interface";
 
