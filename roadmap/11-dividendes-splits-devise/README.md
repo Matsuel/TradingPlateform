@@ -1,10 +1,10 @@
 # 11 · Dividendes, splits et effet devise
 
-- **Statut** : En cours (code livré sur la branche, PR à ouvrir)
+- **Statut** : Livrée
 - **Roadmap** : Mois 5 — Mois 5 — Robustesse (dividendes, splits, effet devise)
-- **Période** : à fixer au démarrage de la feature
+- **Période** : 2026-11-12
 - **Branche / PR** : `feat/dividendes-splits-devise` — PR à ouvrir
-- **Points** : 24 (MUST 18, SHOULD 6) — prévus
+- **Points** : 24 prévus (MUST 18, SHOULD 6) ; 36 réalisés
 - **Maquettes** : `31 · Résultat avec dividendes` (node `452:11711`) = page « Dividendes et change », ouverte par un bouton ajouté au cadre `13` (node `350:7231`)
 - **Écrans modifiés** : `13 · Résultat d’un backtest` (node `350:7214`) : bouton « Dividendes et change » vers la page 31 — mise à jour faite
 - **Dépend de** : 08 (livrée) ; 10 (i18n) pour les nouveaux libellés.
@@ -40,7 +40,9 @@ Moteur : `chart` avec `events: 'div|split'`, réinvestissement dans `runBacktest
 
 ## Bilan
 
-À écrire à la clôture de la feature.
+Un résultat de backtest distingue maintenant le rendement du cours seul, l'apport des dividendes réinvestis à l'ex-date et l'effet du change EUR. Le moteur convertit les titres hors euro au taux du jour, réinvestit les dividendes sans frais et publie la décomposition (`returnBreakdown`), les dividendes versés un par un (`dividendEvents`) et la courbe sans dividendes (`priceOnlyValue`). market-service expose `GET /api/market/dividends` et ramène les sous-unités (GBp, ILA, ZAc) à leur devise principale (TD-26, fermée). Le web affiche tout cela sur une page dédiée, `/app/backtest/<id>/dividends` (maquette 31), ouverte par un bouton du détail ; les anciens résultats gardent leurs champs absents. Commits : `19d4e4b` (backend), `360bb9d` (web).
+
+36 points réalisés pour 24 prévus : la page dédiée, demandée en cours de route, et la décomposition du rendement ont plus que doublé le web et le moteur (voir « Écarts » dans `TASKS.md`). Reste : la page n'a pas été comparée à une capture de l'app lancée (« non comparé »), les splits n'ont pas de traitement propre (Yahoo les ajuste déjà), les dividendes réels de Yahoo n'ont pas été testés en ligne (seuls l'utilitaire de devise et la route sont testés), et la PR est à ouvrir. Redémarrer market-service, backtest-engine et core-backend, puis appliquer la migration `20261112140000_backtest_result_dividends_fx`.
 
 ## Fichiers
 

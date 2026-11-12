@@ -40,9 +40,9 @@
 **En tant que** utilisateur, **je veux** voir le rendement incluant les dividendes réinvestis **afin de** comparer honnêtement une action qui verse des dividendes à une autre..
 
 Critères d’acceptation :
-- [ ] Les dividendes sont réinvestis au cours de l'ex-date, sans frais.
-- [ ] Le résultat affiche le total des dividendes perçus, le rendement total et le rendement hors dividendes.
-- [ ] Les backtests antérieurs n'affichent pas de valeur inventée (champ null masqué).
+- [x] Les dividendes sont réinvestis au cours de l'ex-date, sans frais.
+- [x] Le résultat affiche le total des dividendes perçus, le rendement total et le rendement hors dividendes.
+- [x] Les backtests antérieurs n'affichent pas de valeur inventée (champ null masqué).
 
 Tâches : T-01, T-02, T-03, T-05, T-06, T-07 (détail dans `TASKS.md`).
 
@@ -53,8 +53,8 @@ Tâches : T-01, T-02, T-03, T-05, T-06, T-07 (détail dans `TASKS.md`).
 **En tant que** développeur, **je veux** ajouter les nouveaux types de cours sans casser les résultats stockés **afin de** ne pas invalider les backtests déjà calculés..
 
 Critères d’acceptation :
-- [ ] Le type `CLOSE_SPLIT_ADJUSTED` reste valide en lecture.
-- [ ] Producteur (engine) et consommateur (core-backend) changent dans le même diff.
+- [x] Le type `CLOSE_SPLIT_ADJUSTED` reste valide en lecture.
+- [x] Producteur (engine) et consommateur (core-backend) changent dans le même diff.
 
 Tâches : T-01 (détail dans `TASKS.md`).
 
@@ -71,8 +71,8 @@ Pas d'US propre : T-02 (route market-service des dividendes, lecture côté mote
 **En tant que** utilisateur, **je veux** voir la part de la performance due à la variation EUR/USD **afin de** comprendre qu'une action US peut gagner en cours et perdre en euros..
 
 Critères d’acceptation :
-- [ ] La contribution du change est affichée à côté du rendement en devise locale.
-- [ ] La somme rendement local + contribution = rendement en EUR, à 0,1 point près.
+- [x] La contribution du change est affichée à côté du rendement en devise locale.
+- [x] La somme rendement local + contribution = rendement en EUR, à 0,1 point près.
 
 Tâches : T-04, T-05, T-06 (détail dans `TASKS.md`).
 

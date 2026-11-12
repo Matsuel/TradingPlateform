@@ -43,6 +43,7 @@ Les dossiers des features 02 à 08 citent les anciens numéros ; cette table les
 | 07 | [Clôture du Strategy Lab](07-strategy-lab-cloture/) | 3 | 2026-10-29 → 2026-10-30 | #3 | Livrée | 24 ᵃ |
 | 08 | [Portfolio Management V1](08-portfolio-v1/) | 4 | 2026-10-30 → 2026-10-31 | — | Livrée | 104 |
 | 09 | [Aide contextuelle sur les données](09-aide-contextuelle/) | 4–5 ᵇ | 2026-11-01 | — | Livrée | 28 |
+| 11 | [Dividendes, splits et effet devise](11-dividendes-splits-devise/) | 5 | 2026-11-12 | — | Livrée | 36 |
 
 ᵃ estimés a posteriori d’après les diffs.
 ᵇ hors « Roadmap annuelle » : demande du 2026-10-30, après le lot 3 de la feature 08.
