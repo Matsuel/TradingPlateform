@@ -90,6 +90,16 @@ bun run dev:web        # web seul
 bun run dev:backtest   # backtest-engine seul
 ```
 
+## Dette technique
+
+`TECH-DEBT.md` (racine) est le registre de la dette connue. **Tu l'écris toi-même, sans attendre qu'on te le demande** : dès que tu repères une dette que ton diff ne règle pas, tu ajoutes une ligne dans le même diff.
+
+- **Est une dette** : un contournement ou un `TODO` que tu laisses, un test ou une doc que tu n'écris pas faute de périmètre, une duplication ou un écart aux règles de ce fichier que tu constates hors de ton périmètre, un risque (sécurité, perte de données, blocage) que tu aperçois, un seuil de taille dépassé que tu ne découpes pas.
+- **N'est pas une dette** : ce que ton diff corrige, une préférence de style, une idée de feature (elle va dans `roadmap/`).
+- **Format** : `TD-NN` suivant, gravité (`haute`, `moyenne`, `basse`), zone, ce qui est faux et pourquoi ça coûte, `fichier:ligne`, correction proposée, effort (S, M, L). Cherche d'abord une ligne existante (`grep` du fichier ou du symbole) : complète-la plutôt que d'en ouvrir une seconde.
+- **Une dette corrigée** passe dans le tableau « Fermée » (id, date, commit) dans le diff qui la corrige. Une ligne devenue fausse est corrigée ou supprimée.
+- Le résumé rendu à l'utilisateur liste les `TD-NN` ajoutés ou fermés.
+
 ## Avant de rendre la main
 
 Chaque point est vérifié, pas supposé :
@@ -99,3 +109,4 @@ Chaque point est vérifié, pas supposé :
 3. Rangement : aucune constante, helper ou type dupliqué introduit (`grep` les nouveaux noms et littéraux).
 4. Catalogues : chaque route ou composant catalogué créé, modifié ou supprimé a son entrée à jour.
 5. Diff relu : rien hors périmètre, aucun fichier généré ou de debug oublié.
+6. Dette : toute dette repérée et non corrigée a sa ligne dans `TECH-DEBT.md` ; toute dette corrigée y est fermée.
