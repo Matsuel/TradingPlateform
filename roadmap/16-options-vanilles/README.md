@@ -6,7 +6,7 @@
 - **Branche / PR** : `feat/options-vanilles` — PR à ouvrir
 - **Points** : 24 (MUST 19, SHOULD 5) — prévus
 - **Maquettes** : `36 · Calculateur d’option` (créée, node `459:12719`)
-- **Écrans modifiés** : `08 · Détail d’un symbole` (node `13:1466`) : accès au calculateur, spot et dividende pré-remplis (T-07) — à dessiner
+- **Écrans modifiés** : `08 · Détail d’un symbole` (node `13:1466`) : bouton « Pricer une option », spot et dividende pré-remplis (T-07) — mise à jour faite
 - **Dépend de** : 11 (dividendes) ; 15 (taux, pipeline pricing).
 
 ## Objectif

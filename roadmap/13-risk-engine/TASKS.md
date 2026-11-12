@@ -11,7 +11,7 @@
 | T-03 | Engine : contribution au risque et concentration | US-01, US-03 | backtest-engine | MUST | 5 | T-01 | — |
 | T-04 | Contrat : résultat de risque et contraintes | US-03 | contracts | MUST | 2 | — | — |
 | T-05 | Évaluation des contraintes et stockage | US-03 | core-backend | MUST | 5 | T-04 | — |
-| T-06 | Bloc Risque du résultat | US-01, US-02 | web | SHOULD | 5 | T-04 | — |
+| T-06 | Page Risque et bouton depuis le résultat | US-01, US-02 | web | SHOULD | 5 | T-04 | — |
 | T-07 | Indicateur de contrainte | US-03 | web | SHOULD | 2 | T-05 | — |
 
 **Total** : 25 points — MUST 18, SHOULD 7.
@@ -36,7 +36,7 @@ flowchart LR
     T03[T-03 Engine  contribution au risque et concentration]
     T04[T-04 Contrat  résultat de risque et contraintes]
     T05[T-05 Évaluation des contraintes et stockage]
-    T06[T-06 Bloc Risque du résultat]
+    T06[T-06 Page Risque et bouton depuis le résultat]
     T07[T-07 Indicateur de contrainte]
     T01 --> T03
     T04 --> T05
@@ -99,10 +99,10 @@ Critères d’acceptation :
 
 ## Lot 4 — Écrans
 
-### T-06 · Bloc Risque du résultat
+### T-06 · Page Risque et bouton depuis le résultat
 
 - **US** : US-01, US-02 · **Priorité** : SHOULD · **Points** : 5 · **Dépend de** : T-04 · **Commits** : —
-- **Fichiers** : `apps/web/src/features/backtest/` (nouveau bloc risque)
+- **Fichiers** : `apps/web/src/features/backtest/` (bouton « Risque » du détail), `apps/web/src/features/risk/` (page, maquette 33)
 
 Critères d’acceptation :
 - [ ] Matrice de corrélation en carte de chaleur, VaR et CVaR, contributions au risque.
