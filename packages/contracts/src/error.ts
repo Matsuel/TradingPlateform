@@ -1,0 +1,27 @@
+// Codes d'erreur stables de core-backend : renvoyés dans `code` du corps d'erreur et, pour une issue de validation,
+// dans `params.code` ; le web les traduit via `errors.<code>`. Le message anglais (`error`) ne sert qu'aux logs.
+export const API_ERROR_CODES = {
+    // Erreurs d'une requête
+    UNAUTHORIZED: "UNAUTHORIZED",
+    ACCESS_DENIED: "ACCESS_DENIED",
+    SERVICE_UNAVAILABLE: "SERVICE_UNAVAILABLE",
+    INTERNAL_ERROR: "INTERNAL_ERROR",
+    INVALID_QUERY: "INVALID_QUERY",
+    INVALID_BACKTEST: "INVALID_BACKTEST",
+    NAME_REQUIRED: "NAME_REQUIRED",
+    PORTFOLIO_NOT_FOUND: "PORTFOLIO_NOT_FOUND",
+    BACKTEST_NOT_FOUND: "BACKTEST_NOT_FOUND",
+    BACKTEST_NO_RESULT: "BACKTEST_NO_RESULT",
+    EXECUTION_IN_PROGRESS: "EXECUTION_IN_PROGRESS",
+    BACKTEST_QUEUE_FAILED: "BACKTEST_QUEUE_FAILED",
+    // Issues de validation personnalisées (refine)
+    SYMBOLS_NOT_UNIQUE: "SYMBOLS_NOT_UNIQUE",
+    WEIGHTS_NOT_100: "WEIGHTS_NOT_100",
+    END_BEFORE_START: "END_BEFORE_START",
+    RECURRING_AMOUNT_REQUIRED: "RECURRING_AMOUNT_REQUIRED",
+    RECURRING_AMOUNT_NOT_ALLOWED: "RECURRING_AMOUNT_NOT_ALLOWED",
+    INITIAL_AMOUNT_NOT_POSITIVE: "INITIAL_AMOUNT_NOT_POSITIVE",
+    IDS_NOT_DISTINCT: "IDS_NOT_DISTINCT",
+} as const;
+
+export type ApiErrorCode = (typeof API_ERROR_CODES)[keyof typeof API_ERROR_CODES];
