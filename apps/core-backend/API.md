@@ -37,8 +37,25 @@ Catalogue des routes HTTP exposées par core-backend (port 8000) et appelées pa
 
 - **Base** : `http://localhost:8000`. Le web appelle via `apiFetch(path)` (`apps/web/src/lib/api.ts`) avec `NEXT_PUBLIC_API_URL=http://localhost:8000/api` : `apiFetch("/backtest")` → `GET /api/backtest`. Cookies envoyés (`credentials: "include"`), CORS limité à `env.WEB_URL` (défaut `http://localhost:3000`, `env.ts`).
 - **Ordre d'enregistrement** (`index.ts`) : `authRouter`, `marketRouter` (avant `express.json()` pour garder le body brut), puis `express.json()`, `portfolioRouter`, `backtestRouter`, `errorMiddleware`.
-- **Auth** : `authMiddleware` lit la session better-auth depuis les en-têtes (cookie, ou `Authorization: Bearer` via le plugin `bearer`) et pose `req.userId`. Sans session : `401 { "error": "Unauthorized" }`.
-- **Erreurs** : toute `AppError` est rendue par `error.middleware` en `{ "error": "<message>", ...data }` avec son statut. Toute autre exception : `500 { "error": "Internal server error" }`. Côté web, `apiFetch` lève `ApiError` (`status`, `body` = ce corps d'erreur) ; `apiIssues(error)` extrait les `issues` d'un `400` pour les afficher sous les champs.
+- **Auth** : `authMiddleware` lit la session better-auth depuis les en-têtes (cookie, ou `Authorization: Bearer` via le plugin `bearer`) et pose `req.userId`. Sans session : `401 { "error": "Unauthorized", "code": "UNAUTHORIZED" }`.
+- **Erreurs** : toute `AppError` est rendue par `error.middleware` en `{ "error": "<message anglais>", "code": "<CODE>", ...data }` avec son statut. Toute autre exception : `500 { "error": "Internal server error", "code": "INTERNAL_ERROR" }`. Le backend ne connaît pas la langue : `error` sert aux logs, le web traduit `code` (`errors.<code>` des dictionnaires, repli `errors.generic`). Les exemples ci-dessous omettent `code` ; il vaut :
+
+  | Code | Statut | Cas |
+  | --- | --- | --- |
+  | `UNAUTHORIZED` | 401 | pas de session |
+  | `ACCESS_DENIED` | 403 | ressource d'un autre utilisateur |
+  | `SERVICE_UNAVAILABLE` | 502 | market-service injoignable |
+  | `INTERNAL_ERROR` | 500 | exception inattendue |
+  | `INVALID_QUERY` | 400 | query invalide |
+  | `INVALID_BACKTEST` | 400 | body de backtest invalide |
+  | `NAME_REQUIRED` | 400 | `name` de portefeuille absent ou vide |
+  | `PORTFOLIO_NOT_FOUND` | 404 | portefeuille inexistant |
+  | `BACKTEST_NOT_FOUND` | 404 | backtest inexistant |
+  | `BACKTEST_NO_RESULT` | 400 | aucune exécution `COMPLETED` (comparaison) |
+  | `EXECUTION_IN_PROGRESS` | 409 | dernière exécution `PENDING`/`RUNNING` |
+  | `BACKTEST_QUEUE_FAILED` | 500 | publication Kafka impossible |
+
+  Une issue zod personnalisée porte son code dans `params.code` (à côté de `code: "custom"`, `path`, `message`) : `SYMBOLS_NOT_UNIQUE`, `WEIGHTS_NOT_100`, `END_BEFORE_START`, `RECURRING_AMOUNT_REQUIRED`, `RECURRING_AMOUNT_NOT_ALLOWED`, `INITIAL_AMOUNT_NOT_POSITIVE`, `IDS_NOT_DISTINCT`. Une issue zod native (`too_small`…) n'a pas de `params.code`. Les codes sont dans `API_ERROR_CODES` (`packages/contracts/src/error.ts`). Côté web, `apiFetch` lève `ApiError` (`status`, `body`, `code`) ; `apiIssues(error)` extrait `{ path, code }` des `issues` d'un `400`.
 - **Sérialisation** : `Decimal` Prisma → string (`"0.001"`), `DateTime` → ISO 8601 (`"2026-01-31T00:00:00.000Z"`). Ratios en fraction (`0.342` = 34,2 %).
 - **Propriété** : une ressource d'un autre utilisateur → `403 { "error": "Access denied" }` ; inexistante → `404`. Exception : `GET /api/backtest/compare` répond `404` dans les deux cas.
 

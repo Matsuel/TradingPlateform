@@ -46,7 +46,7 @@ Module de fonctions, hooks, constantes ou types (`lib/*.ts`, `features/<domaine>
 - [Graphiques](#graphiques) : `AreaSeriesChart` (`ChartPoint`, `ChartSeries`, `referenceSeries`), `ChartLegend`, `Sparkline`
 - [Symboles](#symboles) : `SymbolPicker`
 - [Formulaires (`components/form`)](#formulaires-componentsform) : `AppField`, `TextField`, `NumberField`, `TextareaField`, `SelectField`, `DateField`, `CheckboxField`, `SwitchField`, `SymbolsField`, `FormSection`, `FieldRow`
-- [`lib`](#lib) : `format.ts`, `api.ts`, `pagination.ts`, `routes.ts`, `navigation.ts`, `env.ts`, `utils.ts`, `auth.ts`, `session.ts`
+- [`lib`](#lib) : `format.ts`, `api.ts`, `api-error.ts`, `pagination.ts`, `routes.ts`, `navigation.ts`, `env.ts`, `utils.ts`, `auth.ts`, `session.ts`
 - [`constants`](#constants) : `pagination.ts`, `sidebar.tsx`, `theme.ts`, `glossary.ts`
 - [`hooks`](#hooks) : `use-debounced-value.ts`
 - [`features/auth`](#featuresauth)
@@ -603,7 +603,7 @@ Props communes `BaseProps<T>` (exportées par `field.tsx`), répétées dans cha
 
 | Export | Rôle (et unité) |
 | --- | --- |
-| `setFormIssues` | `setFormIssues(error, form.setError)` dans le `catch` d'une mutation : chaque issue zod d'un `400` va sous le champ de son chemin ; toute autre erreur est ignorée ici, l'écran l'affiche depuis la mutation. |
+| `setFormIssues` | `setFormIssues(error, form.setError, issueMessage)` (`issueMessage` de `useApiErrorMessages`) dans le `catch` d'une mutation : chaque issue zod d'un `400` va sous le champ de son chemin, message traduit ; toute autre erreur est ignorée ici, l'écran l'affiche depuis la mutation. |
 
 Source : `src/components/form/form-issues.ts`.
 
@@ -670,13 +670,14 @@ Source : `src/lib/format.ts`.
 
 ### `lib/api.ts`
 
-- **Import** : `import { apiFetch, apiIssues } from "@/lib/api"`.
+- **Import** : `import { apiFetch, apiIssues } from "@/lib/api"` ; `import { useApiErrorMessages } from "@/lib/api-error"`.
 
 | Export | Rôle |
 | --- | --- |
 | `apiFetch` | Seul point d'appel HTTP : préfixe `path` par `env.NEXT_PUBLIC_API_URL`, envoie les cookies, ajoute `Accept: application/json`. Statut non 2xx → `ApiError` (message `"Erreur API : <status> <statusText>"`) ; `204` → `undefined`. Routes : `apps/core-backend/API.md`. |
-| `ApiError` | Erreur levée par `apiFetch` : `body` = corps JSON d'erreur (`{ error, ...data }`), `null` s'il n'est pas du JSON. |
-| `apiIssues` | Issues zod d'un `400` (`{ error, issues }`), chemin joint par des points (`"allocations.0.weight"`) ; `[]` pour toute autre erreur. Dans un formulaire, passer par `setFormIssues` (`components/form/form-issues.ts`). |
+| `useApiErrorMessages` | Hook : `{ errorMessage(error), issueMessage(code) }` traduisent une erreur de core-backend en `errors.<code>` (langue active) ; code inconnu ou erreur qui n'est pas une `ApiError` → `errors.generic`. À utiliser à la place de `error.message` pour toute erreur d'API affichée (`lib/api-error.ts`). |
+| `ApiError` | Erreur levée par `apiFetch` : `body` = corps JSON d'erreur (`{ error, code, ...data }`), `null` s'il n'est pas du JSON ; `code` = code stable (`ApiErrorCode`), `null` s'il est absent. |
+| `apiIssues` | Issues zod d'un `400` (`{ error, issues }`), `{ path, code }` avec le chemin joint par des points (`"allocations.0.weight"`) et `code` = `params.code` de l'issue (`null` si zod natif) ; `[]` pour toute autre erreur. Dans un formulaire, passer par `setFormIssues` (`components/form/form-issues.ts`). |
 
 Source : `src/lib/api.ts`.
 

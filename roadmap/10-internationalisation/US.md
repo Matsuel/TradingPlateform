@@ -96,8 +96,8 @@ Tâches : T-08 (détail dans `TASKS.md`).
 **En tant que** utilisateur, **je veux** que les erreurs renvoyées par le serveur s'affichent dans la langue de l'interface **afin de** comprendre ce qui a échoué.
 
 Critères d’acceptation :
-- [ ] Une erreur de l'API (backtest introuvable, exécution en cours, validation) s'affiche dans la langue choisie.
-- [ ] Une erreur sans traduction connue affiche un message générique traduit.
+- [x] Une erreur de l'API (backtest introuvable, exécution en cours, validation) s'affiche dans la langue choisie.
+- [x] Une erreur sans traduction connue affiche un message générique traduit.
 
 Tâches : T-11 (détail dans `TASKS.md`).
 

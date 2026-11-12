@@ -1,6 +1,6 @@
 # 10 · Internationalisation et apparence du web (FR / EN, thème)
 
-- **Statut** : En cours
+- **Statut** : Terminée
 - **Roadmap** : Mois 5 · urgente — hors roadmap annuelle, demande du 2026-11-03 : interface traduisible avant toute nouvelle page ; demande du 2026-11-11 : onglet Apparence des Paramètres, comme sur la maquette
 - **Période** : à fixer au démarrage de la feature
 - **Branche / PR** : `feat/internationalisation` — PR à ouvrir

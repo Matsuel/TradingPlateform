@@ -16,9 +16,9 @@
 | T-08 | Paramètres : onglet Apparence et carte « Thème » | US-04 | web | MUST | 3 | T-01 | 5 | `810b276` |
 | T-09 | Traduction du glossaire (aide contextuelle) | US-01 | web | SHOULD | 8 | T-02 | 8 | `1362977`, `30540f7`, `215a7ea` |
 | T-10 | Traduction de la page d’accueil et des pages `/app/*` à venir | US-01 | web | MUST | 3 | T-02 | 3 | `f346219` |
-| T-11 | Erreurs de l’API en code stable, traduites par le web | US-05 | backend, web | SHOULD | 5 | T-02 | — | — |
+| T-11 | Erreurs de l’API en code stable, traduites par le web | US-05 | backend, web | SHOULD | 5 | T-02 | 5 | — |
 
-**Total** : 45 points prévus — MUST 29, SHOULD 16 ; 50 réalisés sur T-01 à T-10 (42 prévus).
+**Total** : 45 points prévus — MUST 29, SHOULD 16 ; 55 réalisés sur T-01 à T-11 (45 prévus).
 
 Écarts réalisés : T-04 3 → 5, 20 fichiers adaptés (colonnes devenues des hooks, helpers qui reçoivent les formatters) ; T-05 8 → 13, traduction de 50 composants et helpers, schémas zod en fabriques, découpe de `result-metrics.tsx` et `allocation-field.tsx` sous les seuils ; T-08 3 → 5, cartes ajustées à la maquette 06.2 et correction de l’hydratation du thème ; T-03 2 → 3, Server Action `setLocale`. T-06 5 → 3 : le glossaire, qui en faisait partie, devient T-09. T-06 et T-09 réalisés par deux sous-agents en parallèle (un worktree chacun), fusionnés le 2026-11-11 (`fefb857`) ; `GLOSSARY` ne porte plus que la `source` de chaque entrée, les textes sont dans `messages/*.json`.
 
@@ -28,7 +28,7 @@
 | 2. Écrans | T-05 → T-07 | 13 |
 | 3. Écrans restants | T-09 → T-11 | 16 |
 
-**Chemin critique** (16 points) : T-01 → T-02 → T-05 (livré). Reste à faire : T-11 (5 points).
+**Chemin critique** (16 points) : T-01 → T-02 → T-05 (livré). Toutes les tâches sont livrées.
 
 **Parallélisable** : T-06, T-09, T-10 et T-11 après T-02, sans dépendance entre elles.
 
@@ -174,8 +174,8 @@ Critères d’acceptation :
 - **Fichiers** : `apps/core-backend/errors/*`, `apps/core-backend/middleware/error.middleware.ts`, `apps/core-backend/services/*`, `apps/core-backend/API.md`, `apps/web/src/lib/api.ts`, `apps/web/messages/*.json`
 
 Critères d’acceptation :
-- [ ] Chaque `AppError` porte un `code` stable (`BACKTEST_NOT_FOUND`, `EXECUTION_IN_PROGRESS`…), renvoyé dans le corps d’erreur à côté de `error`.
-- [ ] Les messages zod personnalisés du backend portent un code ; les issues gardent `path` et `code`.
-- [ ] `ApiError` du web expose `code` ; les écrans affichent `errors.<code>` des dictionnaires, avec repli sur un message générique traduit.
-- [ ] Aucun en-tête de langue ni paramètre de requête : le backend reste sans langue.
-- [ ] `API.md` documente les codes ; producteur et consommateur changent dans le même diff.
+- [x] Chaque `AppError` porte un `code` stable (`BACKTEST_NOT_FOUND`, `EXECUTION_IN_PROGRESS`…), renvoyé dans le corps d’erreur à côté de `error`.
+- [x] Les messages zod personnalisés du backend portent un code ; les issues gardent `path` et `code`.
+- [x] `ApiError` du web expose `code` ; les écrans affichent `errors.<code>` des dictionnaires, avec repli sur un message générique traduit.
+- [x] Aucun en-tête de langue ni paramètre de requête : le backend reste sans langue.
+- [x] `API.md` documente les codes ; producteur et consommateur changent dans le même diff.
