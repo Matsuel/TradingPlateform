@@ -6,7 +6,7 @@
 - **Branche / PR** : `feat/pricing-monte-carlo-barriere` — PR à ouvrir
 - **Points** : 22 (MUST 19, SHOULD 3) — prévus
 - **Maquettes** : `38 · Pricing Monte Carlo` (créée, node `462:13129`)
-- **Écrans modifiés** : `36 · Calculateur d’option` (node `459:12719`) : bouton « Pricing Monte Carlo » vers la page 38 — mise à jour faite
+- **Écrans modifiés** : `36 · Calculateur d’option` (node `459:12719`) : bouton « Pricing Monte Carlo » vers la page 38 — dessiné dans la copie `à modifier (F18)` ; l’original est mis à jour au codage
 - **Dépend de** : 14 (moteur Monte Carlo, PRNG) ; 16 (Black-Scholes sert de référence).
 
 ## Objectif
