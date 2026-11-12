@@ -13,6 +13,10 @@ export const BACKTEST_CURRENCY = "EUR"
 // Total des poids d'une allocation, en pourcent entier (D2)
 export const FULL_PERCENT = 100
 
+// Actifs d'une allocation au plus : market-service accepte 50 symboles par requête de cours (`MAX_CLOSES_SYMBOLS` des contrats,
+// non importable ici : le front n'embarque pas zod) et le benchmark en prend un
+export const MAX_ALLOCATIONS = 49
+
 // Une exécution dans ces statuts peut encore évoluer
 export const activeStatuses = ["PENDING", "RUNNING"] as const satisfies readonly ExecutionStatus[]
 

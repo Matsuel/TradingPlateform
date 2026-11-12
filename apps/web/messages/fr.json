@@ -323,6 +323,7 @@
             "integer": "Pourcent entier",
             "minWeight": "Au moins 1 %",
             "atLeastOne": "Ajoute au moins un actif",
+            "maxAllocations": "Au plus {max} actifs",
             "total": "Le total doit faire {total} %",
             "endAfterStart": "Doit être après la date de début",
             "greaterThanZero": "Doit être supérieur à 0"

@@ -8,13 +8,13 @@ Registre de la dette connue, à corriger avant qu'elle ne grossisse. La règle q
 
 | ID | Gravité | Zone | Dette | Où | Correction | Effort |
 | --- | --- | --- | --- | --- | --- | --- |
-| TD-02 | moyenne | tous | **Couverture de tests : restent les repositories et les composants web.** Services, consumers, schémas, routes HTTP (core-backend, market-service), `KafkaConsumer`, middlewares, client de cours de l'engine, hooks et `ErrorState` web sont testés. Sans test : les repositories Prisma (il faut une base de test jetable) et la majorité des composants et écrans web. | `apps/core-backend/repositories`, `apps/web/src/{components,features}` | Une base PostgreSQL de test (conteneur) pour les repositories ; un test par composant partagé de `COMPONENTS.md`. | L |
+| TD-02 | basse | web | **Composants web : couverture partielle.** Services, consumers, routes HTTP, repositories (base `trading_test`), `KafkaConsumer`, middlewares, client de cours, hooks d'erreur et `ErrorState` sont testés. La plupart des composants partagés et des écrans de `COMPONENTS.md` n'ont pas de test. | `apps/web/src/{components,features}` | Un test par composant partagé (`DataTable`, `StatCard`, `FilterTabs`, formulaires). | M |
 | TD-03 | haute | dépôt | **Ni CI, ni image, ni gabarit d'env.** Aucun `.github/workflows`, aucun `Dockerfile`, aucun `.env.example` : `verify` ne tourne qu'en local, une variable manquante ne se découvre qu'au démarrage. Prévu par les features 21 et 22 de la roadmap. | racine | Un workflow qui lance `verify` ; un `.env.example` par app, aligné sur chaque `env.ts`. | M |
-| TD-21 | basse | core-backend | **Limites de débit locales au process.** Les compteurs `express-rate-limit` sont en mémoire et par IP, sans `trust proxy` ni `keyGenerator` : derrière un reverse proxy tous les utilisateurs partagent un compteur, et avec plusieurs instances chaque instance compte à part. | `core-backend/middleware/rate-limit.middleware.ts`, `core-backend/index.ts` | `app.set('trust proxy', …)` selon le déploiement (feature 22) et un store partagé si plusieurs instances. | S |
-| TD-22 | basse | web | **Le formulaire ne plafonne pas les allocations.** Le backend refuse plus de 49 symboles (50 pour market-service moins le benchmark) ; le formulaire n'a pas la même limite et affiche alors l'erreur générique. | `web/src/features/backtest/schema.ts` | Plafond dans `createBacktestFormSchema` avec un message traduit. | S |
+| TD-21 | basse | core-backend | **Limites de débit locales au process.** Les compteurs `express-rate-limit` sont en mémoire : avec plusieurs instances de core-backend, chaque instance compte à part (`TRUST_PROXY` règle déjà le cas d'un reverse proxy unique). | `core-backend/middleware/rate-limit.middleware.ts` | Un store partagé (Redis) quand l'API tourne en plusieurs instances (feature 22). | S |
 | TD-23 | basse | backtest-engine | **Chaque exécution rappelle Yahoo.** Les cours d'un backtest ne sont pas mis en cache (l'empreinte `fingerprintPrices` hache les données, mais `fetchedAt` et la fraîcheur de la dernière clôture se perdraient). Un backtest relancé 10 fois fait 10 appels par symbole. | `market-service/services/market.service.ts` (`getDailyCloses`) | Cache des clôtures antérieures à la veille (immuables), publié avec le `fetchedAt` réel de la lecture. | M |
+| TD-24 | basse | web | **TypeScript 6.0 dans le web seulement.** `typescript-eslint` ne supporte pas TypeScript 7 (`>=4.8.4 <6.1.0`) : le web reste en `~6.0.3`, le reste du dépôt en `^7`. | `apps/web/package.json` | Passer le web en `^7` quand `typescript-eslint` le supporte (issue typescript-eslint#10940). | S |
 
-**Hors périmètre de cette passe** : TD-03 (CI, image, gabarit d'env).
+**Hors périmètre de cette passe** : TD-03 (CI, image, gabarit d'env). **Gardée volontairement** : TD-23 (cache des cours d'un backtest) tant que la provenance (`fetchedAt`) ne peut pas être publiée exacte.
 
 ## Fermée
 
@@ -38,3 +38,4 @@ Registre de la dette connue, à corriger avant qu'elle ne grossisse. La règle q
 | TD-18 | 2026-11-12 | `44f5bc9` |
 | TD-19 | 2026-11-12 | `31a6edc` |
 | TD-20 | 2026-11-12 | `e390fcf` |
+| TD-22 | 2026-11-12 | à renseigner |

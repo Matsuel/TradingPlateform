@@ -9,6 +9,8 @@ const envSchema = z.object({
     // Partagée avec market-service : prouve que l'appel passe par le proxy de core-backend
     INTERNAL_API_KEY: z.string().min(16),
     PORT: z.coerce.number().int().default(8000),
+    // Nombre de reverse proxies devant l'API (0 : aucun) : sans lui, `req.ip` est celui du proxy et les limites de débit sont communes
+    TRUST_PROXY: z.coerce.number().int().min(0).default(0),
     WEB_URL: z.url().default("http://localhost:3000"),
     MARKET_SERVICE_URL: z.url().default("http://localhost:8001"),
 });

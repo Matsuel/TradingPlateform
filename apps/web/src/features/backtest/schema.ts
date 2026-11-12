@@ -1,6 +1,6 @@
 import { z } from "zod"
 
-import { FULL_PERCENT } from "./constants"
+import { FULL_PERCENT, MAX_ALLOCATIONS } from "./constants"
 import type { InvestmentMode, RebalanceFrequency } from "./types"
 import { allocationTotal, type BacktestTranslator } from "./utils"
 
@@ -46,6 +46,7 @@ function fields(t: BacktestTranslator) {
                     }),
                 )
                 .min(1, t("validation.atLeastOne"))
+                .max(MAX_ALLOCATIONS, t("validation.maxAllocations", { max: MAX_ALLOCATIONS }))
                 .refine(
                     (rows) => allocationTotal(rows) === FULL_PERCENT,
                     t("validation.total", { total: FULL_PERCENT }),
