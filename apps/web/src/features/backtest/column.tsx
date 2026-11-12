@@ -118,11 +118,15 @@ export function useDividendColumns(): Column<NonNullable<BacktestResult["dividen
         { header: t("exDate"), cell: (event) => formatDay(event.date) },
         { header: t("symbol"), cell: (event) => <SymbolCell symbol={event.symbol} /> },
         {
-            header: t("amount"),
+            header: <InfoHint entry="dividendAmount">{t("amount")}</InfoHint>,
             className: "text-right",
             cell: (event) => formatPrice(event.amount, BACKTEST_CURRENCY),
         },
-        { header: t("quantity"), className: "text-right", cell: (event) => formatQuantity(event.quantity) },
+        {
+            header: <InfoHint entry="dividendQuantity">{t("quantity")}</InfoHint>,
+            className: "text-right",
+            cell: (event) => formatQuantity(event.quantity),
+        },
     ]
 }
 

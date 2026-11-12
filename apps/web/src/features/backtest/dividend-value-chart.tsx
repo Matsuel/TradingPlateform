@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl"
 import { type ChartSeries, referenceSeries } from "@/components/area-series-chart"
 import { ChartLegend } from "@/components/chart-legend"
+import { InfoHint } from "@/components/info-hint"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useFormatters } from "@/lib/format"
 import type { BacktestResult } from "./types"
@@ -39,7 +40,9 @@ export function DividendValueChart({ result }: { result: BacktestResult }) {
                 <ChartLegend series={series} />
                 <ValueDrawdownCharts value={{ data: points, series }} drawdown={{ data: [], series: [] }} />
                 {gap != null && (
-                    <p className="text-small text-muted-foreground">{t("gap", { amount: formatAmount(f, gap) })}</p>
+                    <p className="text-small text-muted-foreground">
+                        <InfoHint entry="dividendGain">{t("gap", { amount: formatAmount(f, gap) })}</InfoHint>
+                    </p>
                 )}
             </CardContent>
         </Card>

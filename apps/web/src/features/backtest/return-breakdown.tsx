@@ -1,6 +1,8 @@
 "use client"
 
 import { useTranslations } from "next-intl"
+import type { ReactNode } from "react"
+import { InfoHint } from "@/components/info-hint"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useFormatters } from "@/lib/format"
 import type { BacktestResult } from "./types"
@@ -8,7 +10,7 @@ import type { BacktestResult } from "./types"
 type Breakdown = NonNullable<BacktestResult["returnBreakdown"]>
 
 // Une ligne : libellé, valeur et barre dont la longueur est proportionnelle à |valeur| (la plus grande ligne = piste pleine)
-type Row = { key: string; label: string; ratio: number; points: boolean; color: string }
+type Row = { key: string; label: ReactNode; ratio: number; points: boolean; color: string }
 
 /**
  * Carte « Décomposition du rendement » (maquette 31) : du rendement du cours seul au rendement en EUR. Les composantes
@@ -21,15 +23,45 @@ export function ReturnBreakdownCard({ breakdown, totalReturn }: { breakdown: Bre
     const { price, dividends, local, fx } = breakdown
 
     const rows: Row[] = [
-        { key: "price", label: t("breakdown.price"), ratio: price, points: true, color: "bg-chart-1" },
-        { key: "dividends", label: t("breakdown.dividends"), ratio: dividends, points: true, color: "bg-success" },
+        {
+            key: "price",
+            label: <InfoHint entry="localPriceReturn">{t("breakdown.price")}</InfoHint>,
+            ratio: price,
+            points: true,
+            color: "bg-chart-1",
+        },
+        {
+            key: "dividends",
+            label: <InfoHint entry="dividendContribution">{t("breakdown.dividends")}</InfoHint>,
+            ratio: dividends,
+            points: true,
+            color: "bg-success",
+        },
         ...(fx == null
             ? []
             : [
-                  { key: "local", label: t("breakdown.local"), ratio: local, points: false, color: "bg-foreground" },
-                  { key: "fx", label: t("breakdown.fx"), ratio: fx, points: true, color: "bg-chart-4" },
+                  {
+                      key: "local",
+                      label: <InfoHint entry="localReturn">{t("breakdown.local")}</InfoHint>,
+                      ratio: local,
+                      points: false,
+                      color: "bg-foreground",
+                  },
+                  {
+                      key: "fx",
+                      label: <InfoHint entry="fxContribution">{t("breakdown.fx")}</InfoHint>,
+                      ratio: fx,
+                      points: true,
+                      color: "bg-chart-4",
+                  },
               ]),
-        { key: "total", label: t("breakdown.total"), ratio: totalReturn, points: false, color: "bg-foreground" },
+        {
+            key: "total",
+            label: <InfoHint entry="totalReturn">{t("breakdown.total")}</InfoHint>,
+            ratio: totalReturn,
+            points: false,
+            color: "bg-foreground",
+        },
     ]
     const scale = Math.max(...rows.map((row) => Math.abs(row.ratio)))
 
