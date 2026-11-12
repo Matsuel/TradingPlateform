@@ -4,7 +4,6 @@ process.env.BETTER_AUTH_SECRET ??= "test-secret-test-secret-test-secret-0000"
 process.env.INTERNAL_API_KEY ??= "test-internal-key-0000"
 process.env.KAFKA_BROKERS ??= "localhost:9094"
 process.env.KAFKA_CLIENT_ID ??= "core-backend-test"
-process.env.KAFKAJS_NO_PARTITIONER_WARNING ??= "1"
 
 // Base jetable des tests de repositories : TOUJOURS une base à part, jamais DATABASE_URL (celle du .env est la base de dev)
 const TEST_DATABASE_URL = process.env.TEST_DATABASE_URL ?? "postgresql://trading:trading@localhost:5432/trading_test"
