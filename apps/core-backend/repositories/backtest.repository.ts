@@ -20,7 +20,7 @@ export interface IBacktestRepository {
 const executionSummary = {
     // Dernière exécution en premier ; attempt départage deux createdAt identiques
     orderBy: [{ createdAt: "desc" }, { attempt: "desc" }],
-    include: { result: { omit: { equityCurve: true, trades: true, holdings: true, lumpSumComparison: true, benchmark: true } } },
+    include: { result: { omit: { equityCurve: true, trades: true, holdings: true, dividendEvents: true, lumpSumComparison: true, benchmark: true } } },
 } satisfies Prisma.Backtest$executionsArgs
 
 // Allocation persistée : relue pour republier `backtest.requested` et renvoyée au web

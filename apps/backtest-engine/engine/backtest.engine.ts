@@ -48,7 +48,8 @@ function buildCalendar(prices: PriceSeries, strategySymbols: string[], alignedSy
  *   `NONE` : aucune vente.
  * - Frais (D8) : `amount × feeRate` sur chaque ordre. Achat : `amount` payé frais compris, titres = (amount − fee) / cours.
  *   Vente : `amount` = produit brut (titres × cours), encaissé net de `fee`.
- * - Dividendes (D1) : crédités à l'ex-date sur les titres détenus, réinvestis au cours de l'ex-date sans frais ;
+ * - Dividendes (D1) : crédités à l'ex-date sur les titres détenus, réinvestis au cours de l'ex-date sans frais (ex-date hors calendrier :
+ *   créditée au premier jour de cotation suivant, à son cours) ;
  *   le total perçu est publié (`dividendTotal`), la valeur du portefeuille et `totalReturn` les incluent.
  * - Métriques de risque (D3 à D6) et `drawdown` de chaque point : sur l'indice TWR chaîné jour après jour,
  *   rendement du jour mesuré avant le versement, donc hors apports.
