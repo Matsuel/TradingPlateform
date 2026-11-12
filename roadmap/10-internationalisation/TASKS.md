@@ -16,7 +16,7 @@
 | T-08 | Paramètres : onglet Apparence et carte « Thème » | US-04 | web | MUST | 3 | T-01 | 5 | `810b276` |
 | T-09 | Traduction du glossaire (aide contextuelle) | US-01 | web | SHOULD | 8 | T-02 | 8 | `1362977`, `30540f7`, `215a7ea` |
 | T-10 | Traduction de la page d’accueil et des pages `/app/*` à venir | US-01 | web | MUST | 3 | T-02 | 3 | `f346219` |
-| T-11 | Erreurs de l’API en code stable, traduites par le web | US-05 | backend, web | SHOULD | 5 | T-02 | 5 | — |
+| T-11 | Erreurs de l’API en code stable, traduites par le web | US-05 | backend, web | SHOULD | 5 | T-02 | 5 | `a61cbfb`, `cd9cb0e`, `e71566e`, `fb0bd25` |
 
 **Total** : 45 points prévus — MUST 29, SHOULD 16 ; 55 réalisés sur T-01 à T-11 (45 prévus).
 
