@@ -10,26 +10,26 @@
   "devDependencies": {
     "@types/bun": "^1.4.4",
     "@types/pg": "^8.23.1",
-    "prisma": "^6.19.3"
+    "prisma": "^7.10.1"
   },
   "peerDependencies": {
-    "typescript": "^5"
+    "typescript": "^7.0.2"
   },
   "dependencies": {
-    "@better-auth/prisma-adapter": "^1.7.7",
-    "@prisma/adapter-pg": "^7.10.0",
-    "@prisma/client": "^6.19.3",
+    "@better-auth/prisma-adapter": "^1.7.22",
+    "@prisma/adapter-pg": "^7.10.1",
+    "@prisma/client": "^7.10.1",
     "@trading-plateform/contracts": "workspace:*",
     "@trading-plateform/http": "workspace:*",
     "@trading-plateform/kafka": "workspace:*",
     "@trading-plateform/utils": "workspace:*",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
-    "better-auth": "^1.7.7",
+    "better-auth": "^1.7.22",
     "cors": "^2.8.6",
-    "express": "^5.2.1",
-    "express-rate-limit": "^8",
-    "helmet": "^8",
+    "express": "^5.3.0",
+    "express-rate-limit": "^8.7.4",
+    "helmet": "^8.3.0",
     "http-proxy-middleware": "^4.2.1",
     "pg": "^8.23.1",
     "z": "^1.0.9",
