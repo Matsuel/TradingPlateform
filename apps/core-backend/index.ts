@@ -56,6 +56,11 @@ app.use(errorMiddleware);
 async function main(): Promise<void> {
     await dbHealthCheck();
 
+    // L'API écoute avant Kafka : l'entrée dans le groupe du consumer peut durer des dizaines de secondes après un redémarrage
+    // (l'ancien membre doit expirer) et le web ne doit pas tomber en `fetch failed` pendant ce temps.
+    const server = app.listen(env.PORT, () => logger.info(`Server is running on port ${env.PORT}`));
+    onShutdown(() => new Promise<void>((resolve) => server.close(() => resolve())));
+
     await kafkaClient.ensureTopics(Object.values(BACKTEST_TOPICS));
     await producer.connect();
     await consumer.connect();
@@ -63,21 +68,18 @@ async function main(): Promise<void> {
     await consumer.subscribe(BACKTEST_TOPICS.completed);
     await consumer.subscribe(BACKTEST_TOPICS.failed);
     await consumer.consume(new BacktestConsumer().handle);
+    onShutdown(() => consumer.disconnect());
+    onShutdown(() => producer.disconnect());
 
     // Une exécution que l'engine n'a jamais terminée ne doit pas bloquer son backtest
     const sweeper = setInterval(() => {
         backtestService.failStaleExecutions().catch((error) => logger.error('Stale sweep failed', { error: String(error) }));
     }, STALE_SWEEP_INTERVAL_MS);
     onShutdown(() => clearInterval(sweeper));
-
-    const server = app.listen(env.PORT, () => logger.info(`Server is running on port ${env.PORT}`));
-
-    onShutdown(() => new Promise<void>((resolve) => server.close(() => resolve())));
-    onShutdown(() => consumer.disconnect());
-    onShutdown(() => producer.disconnect());
 }
 
+// Sans Kafka le backtest ne fonctionne pas : on s'arrête franchement (le serveur et les connexions gardent sinon le process en vie)
 main().catch((error) => {
     logger.error('Failed to start core-backend', error);
-    process.exitCode = 1;
+    process.exit(1);
 });

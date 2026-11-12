@@ -81,7 +81,7 @@ Chaque app qui expose quelque chose de réutilisable tient un **catalogue** : co
 - Validation des entrées, messages et env avec `zod`.
 - **Base de données : Prisma Client uniquement** (`findMany`, `count`, `groupBy`, `$transaction`…), jamais de SQL écrit à la main (`$queryRaw`, `$executeRaw`, `Prisma.sql` et leurs variantes `Unsafe`). Une requête que l'API Prisma ne sait pas exprimer se règle par le modèle (relation ou champ dénormalisé, maintenu dans le repository), pas par du SQL. Seule exception : le SQL des fichiers de migration (`prisma/migrations/`), y compris un backfill de données.
 - Ne commit jamais de `.env` ni de secret. `process.env` ne se lit que dans `env.ts` de l'app ; exception : les packages sans app hôte (`packages/utils` : `LOG_LEVEL`, `NODE_ENV` ; `packages/kafka` : `KAFKA_*`).
-- **Cycle de vie** : chaque process lit son port dans `env.ts`, démarre dans un `main().catch(…)` qui met `process.exitCode = 1`, et enregistre ses fermetures avec `onShutdown` de `@trading-plateform/utils` (`SIGTERM`/`SIGINT`). Un service HTTP expose `GET /health`.
+- **Cycle de vie** : chaque process lit son port dans `env.ts`, démarre dans un `main().catch(…)` qui met `process.exitCode = 1` (`process.exit(1)` si le serveur écoute déjà : sinon il garde le process en vie à moitié démarré), et enregistre ses fermetures avec `onShutdown` de `@trading-plateform/utils` (`SIGTERM`/`SIGINT`). Un service HTTP expose `GET /health`.
 
 ## Commandes
 
