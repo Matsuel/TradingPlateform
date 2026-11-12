@@ -51,12 +51,12 @@ export function getExecutionDuration(t: BacktestTranslator, e: BacktestExecution
 export const formatAllocation = (f: Formatters, allocations: Backtest["allocations"]) =>
     allocations.map(({ symbol, weight }) => `${symbol} ${f.formatRate(Number(weight))}`).join(" · ")
 
-/** Decimal sérialisé en string par l'API → number ; null ou absent → null (champ absent des résultats antérieurs). */
 /** Un résultat a-t-il des dividendes perçus ou un effet de change à détailler ? Faux pour un résultat antérieur. */
 export const hasDividendDetails = (result: BacktestResult) =>
     result.returnBreakdown != null &&
     ((fromDecimal(result.dividendTotal) ?? 0) > 0 || result.returnBreakdown.fx != null)
 
+/** Decimal sérialisé en string par l'API → number ; null ou absent → null (champ absent des résultats antérieurs). */
 export const fromDecimal = (value: string | null | undefined) => (value == null ? null : Number(value))
 
 /** Montant en `BACKTEST_CURRENCY`. */

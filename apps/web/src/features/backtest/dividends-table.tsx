@@ -8,16 +8,14 @@ import { PAGE_SIZE } from "@/constants/pagination"
 import { useFormatters } from "@/lib/format"
 import { paginate } from "@/lib/pagination"
 import { useDividendColumns } from "./column"
-import type { BacktestResult } from "./types"
+import type { DividendEvent } from "./types"
 import { formatAmount, fromDecimal } from "./utils"
-
-type DividendEvents = NonNullable<BacktestResult["dividendEvents"]>
 
 /**
  * Table « Dividendes perçus » (maquette 31) : tous les versements, du plus récent au plus ancien, paginés côté client,
  * puis le total de la période. `events` : versements du moteur, du plus ancien au plus récent.
  */
-export function DividendsTable({ events, total }: { events: DividendEvents; total: string | null }) {
+export function DividendsTable({ events, total }: { events: DividendEvent[]; total: string | null }) {
     const f = useFormatters()
     const t = useTranslations("backtest.dividends.table")
     const columns = useDividendColumns()

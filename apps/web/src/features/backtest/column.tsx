@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { useFormatters } from "@/lib/format"
 import { BACKTEST_CURRENCY, tradeSideVariants } from "./constants"
 import { StatusBadge } from "./status-badge"
-import type { Backtest, BacktestResult, Holding, Trade } from "./types"
+import type { Backtest, DividendEvent, Holding, Trade } from "./types"
 import { formatAllocation, getExecution, getExecutionDuration } from "./utils"
 
 // Titres fractionnaires (DCA) : jusqu'à 6 décimales
@@ -109,7 +109,7 @@ export function useTradeColumns(): Column<Trade>[] {
     ]
 }
 
-export function useDividendColumns(): Column<NonNullable<BacktestResult["dividendEvents"]>[number]>[] {
+export function useDividendColumns(): Column<DividendEvent>[] {
     const { formatDay, formatPrice } = useFormatters()
     const t = useTranslations("backtest.dividends.table")
     const formatQuantity = useFormatQuantity()

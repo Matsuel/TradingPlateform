@@ -45,7 +45,11 @@ function DividendStats({ result }: { result: BacktestResult }) {
             <StatCard
                 label={<InfoHint entry="totalReturn">{t("totalReturn")}</InfoHint>}
                 value={totalReturn == null ? <Dash /> : f.formatRatio(totalReturn)}
-                delta={returnBreakdown && points(returnBreakdown.dividends)}
+                delta={
+                    returnBreakdown && (
+                        <InfoHint entry="dividendContribution">{points(returnBreakdown.dividends)}</InfoHint>
+                    )
+                }
                 trend={trendOf(returnBreakdown?.dividends ?? 0)}
                 caption={
                     priceReturn == null ? undefined : (
@@ -64,7 +68,11 @@ function DividendStats({ result }: { result: BacktestResult }) {
                     label={<InfoHint entry="fxContribution">{t("fx")}</InfoHint>}
                     value={points(returnBreakdown.fx)}
                     trend={trendOf(returnBreakdown.fx)}
-                    caption={t("fxCaption", { value: f.formatRatio(returnBreakdown.local) })}
+                    caption={
+                        <InfoHint entry="localReturn">
+                            {t("fxCaption", { value: f.formatRatio(returnBreakdown.local) })}
+                        </InfoHint>
+                    }
                 />
             )}
         </div>
@@ -86,6 +94,7 @@ export function BacktestDividends({ id }: { id: string }) {
 
     const execution = getExecution(backtest)
     const { result } = backtest
+    const totalReturn = fromDecimal(result?.totalReturn)
     const back = (
         <Button variant="outline" nativeButton={false} render={<Link href={routes.backtest(id)} />}>
             {t("back")}
@@ -100,14 +109,11 @@ export function BacktestDividends({ id }: { id: string }) {
                 description={t("description")}
                 actions={back}
             />
-            {result?.returnBreakdown && hasDividendDetails(result) ? (
+            {result?.returnBreakdown && totalReturn != null && hasDividendDetails(result) ? (
                 <>
                     <DividendStats result={result} />
                     <div className="grid gap-4 lg:grid-cols-2">
-                        <ReturnBreakdownCard
-                            breakdown={result.returnBreakdown}
-                            totalReturn={fromDecimal(result.totalReturn) ?? 0}
-                        />
+                        <ReturnBreakdownCard breakdown={result.returnBreakdown} totalReturn={totalReturn} />
                         <DividendValueChart result={result} />
                     </div>
                     {result.dividendEvents && result.dividendEvents.length > 0 && (
