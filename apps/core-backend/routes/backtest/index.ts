@@ -1,5 +1,5 @@
 import express from "express";
-import { registerRoutes } from "../../builder/route";
+import { registerRoutes } from "@trading-plateform/http";
 import createBacktestRoutes from "./backtest.routes";
 
 const backtestRouter = express.Router();

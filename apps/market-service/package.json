@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@trading-plateform/contracts": "workspace:*",
+    "@trading-plateform/http": "workspace:*",
     "@trading-plateform/utils": "workspace:*",
     "@types/express": "^5.0.6",
     "express": "^5.2.1",

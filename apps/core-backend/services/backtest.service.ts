@@ -17,11 +17,7 @@ import {
     type Paginated,
 } from "@trading-plateform/contracts";
 import { ACTIVE_STATUSES, COMPARABLE_STATUSES, EXECUTION_TIMEOUT_MS } from "../constants/backtest.constants";
-import BadRequestError from "../errors/badrequest.error";
-import ConflictError from "../errors/conflict.error";
-import ForbiddenError from "../errors/forbidden.error";
-import InternalError from "../errors/internal.error";
-import NotFoundError from "../errors/notfound.error";
+import { BadRequestError, ConflictError, ForbiddenError, InternalError, NotFoundError } from "@trading-plateform/http";
 import { producer } from "../lib/kafka";
 import BacktestRepository, { type IBacktestRepository } from "../repositories/backtest.repository";
 import type { Backtest, BacktestStatus, Prisma } from "../generated/prisma/client";

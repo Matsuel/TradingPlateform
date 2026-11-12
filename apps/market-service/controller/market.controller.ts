@@ -1,9 +1,8 @@
 import type { Request, Response } from "express";
 import MarketService from "../services/market.service";
-import BadRequestError from "../errors/badrequest.error";
-import { periodSchema } from "@trading-plateform/contracts";
+import { BadRequestError } from "@trading-plateform/http";
 import { marketIdSchema, searchMarketSchema } from "../interfaces/market.interface";
-import { paginationQuerySchema } from "@trading-plateform/contracts";
+import { API_ERROR_CODES, paginationQuerySchema, periodSchema } from "@trading-plateform/contracts";
 import { Logger } from "@trading-plateform/utils";
 
 const logger = Logger.here();
@@ -16,7 +15,7 @@ class MarketController {
         logger.info(`Handling search market request ${req.method} ${req.originalUrl}`)
 
         const parsed = searchMarketSchema.safeParse(req.query)
-        if (!parsed.success) throw new BadRequestError("Query must be at least 2 characters")
+        if (!parsed.success) throw new BadRequestError(API_ERROR_CODES.INVALID_QUERY)
 
         const result = await this.marketService.searchMarket(parsed.data.query)
         res.json(result)
@@ -29,9 +28,9 @@ class MarketController {
         logger.info(`Handling market details request ${req.method} ${req.originalUrl} ${id} for period ${period}`)
 
         const parsedId = marketIdSchema.safeParse(id)
-        if (!parsedId.success) throw new BadRequestError("Id must be provided")
+        if (!parsedId.success) throw new BadRequestError(API_ERROR_CODES.INVALID_QUERY)
         const parsedPeriod = periodSchema.safeParse(period)
-        if (!parsedPeriod.success) throw new BadRequestError("Invalid period", { issues: parsedPeriod.error.issues })
+        if (!parsedPeriod.success) throw new BadRequestError(API_ERROR_CODES.INVALID_QUERY, { issues: parsedPeriod.error.issues })
 
         const result = await this.marketService.getMarketDetails(parsedId.data, parsedPeriod.data)
         res.json(result)
@@ -41,7 +40,7 @@ class MarketController {
         logger.info(`Handling defaults market request ${req.method} ${req.originalUrl}`)
 
         const parsed = paginationQuerySchema.safeParse(req.query)
-        if (!parsed.success) throw new BadRequestError("Invalid pagination", { issues: parsed.error.issues })
+        if (!parsed.success) throw new BadRequestError(API_ERROR_CODES.INVALID_QUERY, { issues: parsed.error.issues })
 
         const result = await this.marketService.getDefaultsMarketAssets(parsed.data)
         res.json(result)

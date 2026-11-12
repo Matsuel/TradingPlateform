@@ -9,11 +9,11 @@ routes/<domaine>/   →  controller/  →  services/  →  repositories/  →  y
  (descripteurs)        (HTTP)          (métier)       (sources externes)
 ```
 
-Mêmes dossiers que core-backend (`builder/`, `models/`, `errors/`, `middleware/`, `utils/`, `constants/`, `interfaces/`) ; crée un dossier uniquement quand un fichier en a besoin.
+Mêmes dossiers que core-backend (`middleware/`, `utils/`, `constants/`, `interfaces/`) ; erreurs, `RouteDescriptor`/`registerRoutes` et `errorMiddleware` viennent de `@trading-plateform/http` ; crée un dossier uniquement quand un fichier en a besoin.
 
 ## Conventions
 
-- Identiques à core-backend : nommage `<domaine>.<couche>.ts`, `export default`, controllers en méthodes fléchées, erreurs lancées (`AppError`) et formatées par `error.middleware`, handlers enveloppés par `asyncHandler`.
+- Identiques à core-backend : nommage `<domaine>.<couche>.ts`, `export default`, controllers en méthodes fléchées, erreurs lancées (`AppError`) et formatées par `errorMiddleware`, handlers enveloppés par `asyncHandler`.
 - Routes : préfixe `/api/market`, chacune documentée dans `API.md` dès sa création.
 - Env via `env.ts` (zod).
 - Logs : `Logger.here()` de `@trading-plateform/utils`, pas de `console.log`.

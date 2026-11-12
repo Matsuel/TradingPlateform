@@ -19,9 +19,9 @@ routes/<domaine>/   →  controller/  →  services/  →  repositories/  →  p
 | `repositories/` | Interface `I<Domaine>Repository` + classe : seul lieu où vit `prisma`. |
 | `interfaces/` | Schémas zod d'entrée et types/DTO du domaine (`<domaine>.interface.ts`). |
 | `constants/` | Constantes métier (`<domaine>.constants.ts`) : statuts, valeurs fixes. |
-| `errors/` | Sous-classes de `AppError` (statut HTTP fixe). |
+| `errors/` | Absent : les erreurs (`AppError` et sous-classes par statut) viennent de `@trading-plateform/http`. |
 | `middleware/` | `auth`, `error`. |
-| `models/`, `builder/`, `utils/` | `AppError`/`RouteDescriptor`, `registerRoutes`, helpers techniques (`asyncHandler`, `db`, `proxyTo`). |
+| `utils/` | Helpers techniques (`db`, `proxyTo`). `RouteDescriptor`, `registerRoutes` et `errorMiddleware` viennent de `@trading-plateform/http`. |
 | `lib/`, `types/` | Config better-auth, `kafkaClient`/`producer`/`consumer` (`lib/kafka.ts`), augmentations Express. |
 | `prisma/`, `generated/` | Schéma et migrations ; `generated/` ne s'édite jamais. |
 
@@ -39,7 +39,7 @@ Chaque couche fait **exactement** son travail ; une ligne qui relève d'une autr
 
 - DTO dérivés de Prisma (`Prisma.XUncheckedCreateInput`, `Prisma.XGetPayload<{ include }>`) ou des contrats (`Omit<Payload, ...> & {...}`). Les `include`/`omit` réutilisés sont des constantes `satisfies Prisma.XInclude` en tête du repository.
 - Décimaux : `Decimal` Prisma (`@db.Decimal`), convertis en `number` uniquement pour construire un payload Kafka. Ratios stockés en fraction (`0.342`), jamais en pourcentage.
-- Erreurs disponibles : `BadRequest` 400, `Unauthorized` 401, `Forbidden` 403, `NotFound` 404, `Conflict` 409, `Internal` 500, `BadGateway` 502. Nouvelle erreur → `errors/<nom>.error.ts`.
+- Erreurs (`@trading-plateform/http`, constructeur `(code, data?)`) : `BadRequest` 400, `Unauthorized` 401, `Forbidden` 403, `NotFound` 404, `Conflict` 409, `Internal` 500, `BadGateway` 502. Un nouveau statut s'ajoute dans `packages/http`, un nouveau code dans `packages/contracts/src/error.ts`.
 
 ## Événements consommés : transitions gardées
 

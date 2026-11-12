@@ -1,6 +1,6 @@
 import { API_ERROR_CODES } from "@trading-plateform/contracts"
 import type { Request, Response } from "express"
-import BadRequestError from "../errors/badrequest.error"
+import { BadRequestError } from "@trading-plateform/http";
 import { backtestCompareQuerySchema, backtestListQuerySchema, createBacktestSchema } from "../interfaces/backtest.interface"
 import BacktestService from "../services/backtest.service"
 

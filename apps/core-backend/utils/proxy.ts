@@ -2,7 +2,7 @@ import type { NextFunction, Request, RequestHandler, Response } from "express";
 import { createProxyMiddleware } from "http-proxy-middleware";
 import { Logger } from "@trading-plateform/utils";
 import { INTERNAL_KEY_HEADER } from "@trading-plateform/contracts";
-import BadGatewayError from "../errors/badgateway.error";
+import { BadGatewayError } from "@trading-plateform/http";
 import { env } from "../env";
 
 const logger = Logger.here();

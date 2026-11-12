@@ -1,5 +1,4 @@
-import NotFoundError from "../errors/notfound.error"
-import ForbiddenError from "../errors/forbidden.error"
+import { ForbiddenError, NotFoundError } from "@trading-plateform/http";
 import PortfolioRepository, { type IPortfolioRepository } from "../repositories/portfolio.repository"
 import { API_ERROR_CODES, type Paginated, type PaginationQuery } from "@trading-plateform/contracts"
 import type { Portfolio } from "../generated/prisma/client"

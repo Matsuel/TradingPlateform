@@ -1,6 +1,6 @@
 import type { Request, Response } from "express"
 import { API_ERROR_CODES, paginationQuerySchema } from "@trading-plateform/contracts"
-import BadRequestError from "../errors/badrequest.error"
+import { BadRequestError } from "@trading-plateform/http";
 import { portfolioSchema } from "../interfaces/portfolio.interface"
 import PortfolioService from "../services/portfolio.service"
 

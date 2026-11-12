@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
-import errorMiddleware from './middleware/error.middleware';
+import { errorMiddleware } from "@trading-plateform/http";
 import { authRateLimit, backtestCreateRateLimit } from './middleware/rate-limit.middleware';
 import { dbHealthCheck, isDbConnected } from './utils/db';
 import authRouter from './routes/auth';

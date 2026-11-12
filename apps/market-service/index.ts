@@ -1,5 +1,5 @@
 import express from 'express';
-import errorMiddleware from './middleware/error.middleware';
+import { errorMiddleware } from "@trading-plateform/http";
 import internalAuthMiddleware from './middleware/internal-auth.middleware';
 import marketRouter from './routes/market';
 import { Logger, onShutdown } from '@trading-plateform/utils';

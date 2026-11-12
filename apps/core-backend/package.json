@@ -20,6 +20,7 @@
     "@prisma/adapter-pg": "^7.10.0",
     "@prisma/client": "^6.19.3",
     "@trading-plateform/contracts": "workspace:*",
+    "@trading-plateform/http": "workspace:*",
     "@trading-plateform/kafka": "workspace:*",
     "@trading-plateform/utils": "workspace:*",
     "@types/cors": "^2.8.19",
