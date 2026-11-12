@@ -30,11 +30,14 @@ Web uniquement. `next-intl` (D1) fournit dictionnaires, cookie et formats ICU (p
 
 - 2026-11-11 : T-06 coupée en deux. Le glossaire (T-09) devient une tâche à part, car `InfoHint` lit 417 lignes de texte français sur presque tous les écrans backtest. Ajout de T-10 (accueil et pages `/app/*` à venir) et T-11 (erreurs de l'API, D5), qui lève D3 pour les erreurs.
 - 2026-11-11 : les formats (T-04) passent par `useFormatters()` plutôt qu'une locale globale, et les colonnes de tableau deviennent des hooks.
-- Livré : T-01 à T-05, T-07, T-08 (`9999fd5` … `55fc201`). Parcours backtest entièrement traduit, hors textes d'aide.
+- Livré : T-01 à T-11 (`9999fd5` … `fb0bd25`). Parcours backtest, marché, glossaire, accueil et erreurs de l'API traduits ; correctifs de revue dans `5f2563f`.
+- 2026-11-12 : les messages d'erreur du backend passent en anglais (champ `error`, pour les logs) et le web traduit le `code` ; D5 remplace D3 pour les erreurs.
 
 ## Bilan
 
-À écrire à la clôture de la feature.
+Toute l'interface web existe en français et en anglais, la langue vient du cookie `locale` (D2) et se règle dans Paramètres, comme le thème. Les formats (devise, nombres, dates) suivent la langue. Un test impose les mêmes clés dans `fr.json` et `en.json`, et un code d'erreur de l'API sans traduction fait échouer les tests.
+
+55 points réalisés pour 45 prévus : T-04, T-05 et T-08 ont coûté plus (formatters en hooks, 50 composants adaptés, hydratation du thème). Reste hors périmètre : les messages d'authentification de better-auth ne sont traduits que pour les codes connus (`auth.errors`), et les erreurs relayées de market-service n'ont pas de code.
 
 ## Fichiers
 

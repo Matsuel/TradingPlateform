@@ -66,7 +66,7 @@ flowchart LR
 
 ### T-01 · Installer et configurer next-intl (routing par cookie)
 
-- **US** : US-01 · **Priorité** : MUST · **Points** : 3 · **Dépend de** : — · **Commits** : —
+- **US** : US-01 · **Priorité** : MUST · **Points** : 3 · **Dépend de** : — · **Commits** : `9999fd5`
 - **Fichiers** : `apps/web/package.json`, `apps/web/src/i18n/*`, `apps/web/src/app/layout.tsx`
 
 Critères d’acceptation :
@@ -75,7 +75,7 @@ Critères d’acceptation :
 
 ### T-02 · Dictionnaires FR et EN : auth, layout, navigation
 
-- **US** : US-01 · **Priorité** : MUST · **Points** : 5 · **Dépend de** : T-01 · **Commits** : —
+- **US** : US-01 · **Priorité** : MUST · **Points** : 5 · **Dépend de** : T-01 · **Commits** : `9999fd5`
 - **Fichiers** : `apps/web/messages/fr.json`, `apps/web/messages/en.json`
 
 Critères d’acceptation :
@@ -84,7 +84,7 @@ Critères d’acceptation :
 
 ### T-03 · Carte « Langue et région » (sélecteur de langue)
 
-- **US** : US-01 · **Priorité** : MUST · **Points** : 2 · **Dépend de** : T-01, T-08 · **Commits** : —
+- **US** : US-01 · **Priorité** : MUST · **Points** : 2 · **Dépend de** : T-01, T-08 · **Commits** : `810b276`
 - **Fichiers** : `apps/web/src/app/app/settings/page.tsx`, `apps/web/src/features/settings/*`
 
 Critères d’acceptation :
@@ -94,7 +94,7 @@ Critères d’acceptation :
 
 ### T-04 · Formatage selon la locale active
 
-- **US** : US-02 · **Priorité** : MUST · **Points** : 3 · **Dépend de** : T-01 · **Commits** : —
+- **US** : US-02 · **Priorité** : MUST · **Points** : 3 · **Dépend de** : T-01 · **Commits** : `e1b85ae`
 - **Fichiers** : `apps/web/src/lib/format.ts`
 
 Critères d’acceptation :
@@ -103,7 +103,7 @@ Critères d’acceptation :
 
 ### T-08 · Paramètres : onglet Apparence et carte « Thème »
 
-- **US** : US-04 · **Priorité** : MUST · **Points** : 3 · **Dépend de** : T-01 · **Commits** : —
+- **US** : US-04 · **Priorité** : MUST · **Points** : 3 · **Dépend de** : T-01 · **Commits** : `810b276`
 - **Fichiers** : `apps/web/src/app/app/settings/page.tsx`, `apps/web/src/features/settings/*`, `apps/web/src/components/theme-toggle.tsx`
 
 Critères d’acceptation :
@@ -117,7 +117,7 @@ Critères d’acceptation :
 
 ### T-05 · Traduction des écrans backtest
 
-- **US** : US-01 · **Priorité** : MUST · **Points** : 8 · **Dépend de** : T-02 · **Commits** : —
+- **US** : US-01 · **Priorité** : MUST · **Points** : 8 · **Dépend de** : T-02 · **Commits** : `e2e1742`, `de57c33`, `d2d98eb`, `7c8cfcf`
 - **Fichiers** : `apps/web/src/features/backtest/*`
 
 Critères d’acceptation :
@@ -137,7 +137,7 @@ Critères d’acceptation :
 
 ### T-07 · Test de cohérence des dictionnaires
 
-- **US** : US-03 · **Priorité** : MUST · **Points** : 2 · **Dépend de** : T-02 · **Commits** : —
+- **US** : US-03 · **Priorité** : MUST · **Points** : 2 · **Dépend de** : T-02 · **Commits** : `09fe659`, `6f95fad`
 - **Fichiers** : `apps/web/messages/*.test.ts`
 
 Critères d’acceptation :
@@ -170,7 +170,7 @@ Critères d’acceptation :
 
 ### T-11 · Erreurs de l’API en code stable, traduites par le web
 
-- **US** : US-05 · **Priorité** : SHOULD · **Points** : 5 · **Dépend de** : T-02 · **Commits** : —
+- **US** : US-05 · **Priorité** : SHOULD · **Points** : 5 · **Dépend de** : T-02 · **Commits** : `c308167`, `06b48cb`
 - **Fichiers** : `apps/core-backend/errors/*`, `apps/core-backend/middleware/error.middleware.ts`, `apps/core-backend/services/*`, `apps/core-backend/API.md`, `apps/web/src/lib/api.ts`, `apps/web/messages/*.json`
 
 Critères d’acceptation :
