@@ -87,7 +87,7 @@ export function BacktestDividends({ id }: { id: string }) {
     const execution = getExecution(backtest)
     const { result } = backtest
     const back = (
-        <Button variant="outline" render={<Link href={routes.backtest(id)} />}>
+        <Button variant="outline" nativeButton={false} render={<Link href={routes.backtest(id)} />}>
             {t("back")}
         </Button>
     )

@@ -86,7 +86,11 @@ export function BacktestDetail({ id }: { id: string }) {
                 actions={
                     <>
                         {result && (
-                            <Button variant="outline" render={<Link href={routes.backtestDividends(id)} />}>
+                            <Button
+                                variant="outline"
+                                nativeButton={false}
+                                render={<Link href={routes.backtestDividends(id)} />}
+                            >
                                 {t("detail.dividends")}
                             </Button>
                         )}
