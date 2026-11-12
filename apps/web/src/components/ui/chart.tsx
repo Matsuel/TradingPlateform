@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useLocale } from "next-intl"
 import { cn } from "cn"
 import * as RechartsPrimitive from "recharts"
 import type { TooltipValueType } from "recharts"
@@ -143,6 +144,7 @@ function ChartTooltipContent({
     >,
     "accessibilityLayer"
   >) {
+  const locale = useLocale()
   const { config } = useChart()
 
   const tooltipLabel = React.useMemo(() => {
@@ -254,7 +256,7 @@ function ChartTooltipContent({
                       {item.value != null && (
                         <span className="font-mono font-medium text-foreground tabular-nums">
                           {typeof item.value === "number"
-                            ? item.value.toLocaleString()
+                            ? item.value.toLocaleString(locale)
                             : String(item.value)}
                         </span>
                       )}

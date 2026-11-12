@@ -835,7 +835,7 @@ Source : `src/hooks/use-debounced-value.ts`.
 
 ## `features/auth`
 
-Écrans : `LoginForm`, `RegisterForm`. Données : `api.ts`, `hook.ts`, `schema.ts`. Même forme que `features/backtest` : react-hook-form + schéma zod + champs de `components/form`.
+Écrans : `LoginForm`, `RegisterForm`. Données : `api.ts`, `hook.ts`, `schema.ts`. Même forme que `features/backtest` : react-hook-form + schéma zod + champs de `components/form`. Une erreur better-auth est relancée en `AuthError` (`code`) par `api.ts` ; `useAuthErrorMessage()` (`hook.ts`) la traduit via `auth.errors.<code>`, avec repli sur le libellé d'échec du formulaire.
 
 ### LoginForm
 

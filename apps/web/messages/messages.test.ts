@@ -22,10 +22,13 @@ test("fr.json et en.json ont les mêmes clés", () => {
 })
 
 // Un code renvoyé par l'API sans traduction afficherait le message générique : chaque code a sa phrase dans les deux langues
-test("chaque code d'erreur de l'API a une traduction", () => {
+test("chaque code d'erreur de l'API a une traduction, sans clé en trop", () => {
     for (const dictionary of [fr, en]) {
-        const missing = Object.values(API_ERROR_CODES).filter((code) => !(code in dictionary.errors))
+        const codes = new Set<string>(Object.values(API_ERROR_CODES))
+        const missing = [...codes].filter((code) => !(code in dictionary.errors))
+        const orphans = Object.keys(dictionary.errors).filter((key) => key !== "generic" && !codes.has(key))
         expect(missing).toEqual([])
+        expect(orphans).toEqual([])
     }
 })
 

@@ -10,12 +10,13 @@ import { FormSection, TextField } from "@/components/form"
 import { Button } from "@/components/ui/button"
 import { FieldError } from "@/components/ui/field"
 import { routes } from "@/lib/routes"
-import { useRegister } from "./hook"
+import { useAuthErrorMessage, useRegister } from "./hook"
 import { createRegisterSchema, type RegisterValues } from "./schema"
 
 export function RegisterForm() {
     const t = useTranslations("auth")
     const router = useRouter()
+    const authErrorMessage = useAuthErrorMessage()
     const { mutateAsync, error } = useRegister()
     const form = useForm<RegisterValues>({
         resolver: zodResolver(createRegisterSchema(useTranslations("auth.validation"))),
@@ -36,7 +37,7 @@ export function RegisterForm() {
                     <TextField name="email" label={t("fields.email")} type="email" />
                     <TextField name="password" label={t("fields.password")} type="password" />
 
-                    {error && <FieldError>{error.message || t("register.failed")}</FieldError>}
+                    {error && <FieldError>{authErrorMessage(error, t("register.failed"))}</FieldError>}
 
                     <Button type="submit" disabled={form.formState.isSubmitting}>
                         {t("register.submit")}

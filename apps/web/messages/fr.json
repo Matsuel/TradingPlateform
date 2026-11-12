@@ -79,6 +79,16 @@
             "minLength": "Au moins {count} caractères",
             "maxLength": "Au plus {count} caractères"
         },
+        "errors": {
+            "INVALID_EMAIL_OR_PASSWORD": "Email ou mot de passe incorrect.",
+            "USER_ALREADY_EXISTS": "Un compte existe déjà avec cet email.",
+            "USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL": "Un compte existe déjà avec cet email. Utilisez-en un autre.",
+            "INVALID_EMAIL": "Email invalide.",
+            "PASSWORD_TOO_SHORT": "Mot de passe trop court.",
+            "PASSWORD_TOO_LONG": "Mot de passe trop long.",
+            "EMAIL_NOT_VERIFIED": "Email non vérifié.",
+            "FAILED_TO_CREATE_USER": "Le compte n’a pas pu être créé."
+        },
         "login": {
             "title": "Connexion",
             "description": "Connectez-vous avec votre email et votre mot de passe",

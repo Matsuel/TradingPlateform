@@ -10,13 +10,14 @@ import { FormSection, TextField } from "@/components/form"
 import { Button } from "@/components/ui/button"
 import { FieldError } from "@/components/ui/field"
 import { routes } from "@/lib/routes"
-import { useLogin } from "./hook"
+import { useAuthErrorMessage, useLogin } from "./hook"
 import { createLoginSchema, type LoginValues } from "./schema"
 
 /** Formulaire de connexion ; `redirectTo` : page ouverte après succès, déjà validée par `safeRedirect`. */
 export function LoginForm({ redirectTo }: { redirectTo: string }) {
     const t = useTranslations("auth")
     const router = useRouter()
+    const authErrorMessage = useAuthErrorMessage()
     const { mutateAsync, error } = useLogin()
     const form = useForm<LoginValues>({
         resolver: zodResolver(createLoginSchema(useTranslations("auth.validation"))),
@@ -36,7 +37,7 @@ export function LoginForm({ redirectTo }: { redirectTo: string }) {
                     <TextField name="email" label={t("fields.email")} type="email" />
                     <TextField name="password" label={t("fields.password")} type="password" />
 
-                    {error && <FieldError>{error.message || t("login.failed")}</FieldError>}
+                    {error && <FieldError>{authErrorMessage(error, t("login.failed"))}</FieldError>}
 
                     <Button type="submit" disabled={form.formState.isSubmitting}>
                         {t("login.submit")}
