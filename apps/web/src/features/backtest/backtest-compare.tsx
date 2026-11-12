@@ -8,6 +8,7 @@ import { EmptyCard } from "@/components/empty-card"
 import { PageHeader } from "@/components/page-layout"
 import { ErrorState, LoadingState } from "@/components/query-status"
 import { Button } from "@/components/ui/button"
+import { useApiErrorMessages } from "@/lib/api-error"
 import { type Formatters, useFormatters } from "@/lib/format"
 import { routes } from "@/lib/routes"
 import { ComparisonMetrics } from "./comparison-metrics"
@@ -70,6 +71,7 @@ function HeterogeneityBanner({ comparison }: { comparison: BacktestComparison })
  */
 export function BacktestCompare({ ids }: { ids: string | string[] | undefined }) {
     const t = useTranslations("backtest.compare")
+    const { errorMessage } = useApiErrorMessages()
     const router = useRouter()
     const parts = String(ids ?? "").split(",")
     // Lien modifié à la main (`?ids=x,x`, trois ids) : traité comme sans sélection, la requête n'étant pas lancée
@@ -88,7 +90,7 @@ export function BacktestCompare({ ids }: { ids: string | string[] | undefined })
     if (!a || !b) {
         content = <EmptyCard>{invalidLink ? t("invalidLink") : t("choose")}</EmptyCard>
     } else if (isError) {
-        content = <ErrorState message={error.message} onRetry={refetch} className="h-64" />
+        content = <ErrorState message={errorMessage(error)} onRetry={refetch} className="h-64" />
     } else if (isPending) {
         content = <LoadingState className="h-64" />
     } else {

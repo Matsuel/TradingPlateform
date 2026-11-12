@@ -11,6 +11,7 @@ import { DetailRow } from "@/components/detail-row"
 import { setFormIssues } from "@/components/form/form-issues"
 import { Button } from "@/components/ui/button"
 import { FieldError } from "@/components/ui/field"
+import { useApiErrorMessages } from "@/lib/api-error"
 import { routes } from "@/lib/routes"
 import {
     DEFAULT_FEE_PERCENT,
@@ -63,6 +64,7 @@ function QuickTestActions({ submitting }: { submitting: boolean }) {
  */
 export function QuickBacktestForm({ symbol }: { symbol: string }) {
     const t = useTranslations("backtest")
+    const { errorMessage, issueMessage } = useApiErrorMessages()
     const router = useRouter()
     const { mutateAsync, error } = useCreateBacktest()
     const form = useForm<QuickBacktestValues>({
@@ -86,7 +88,7 @@ export function QuickBacktestForm({ symbol }: { symbol: string }) {
             })
             router.push(routes.backtest(backtest.id))
         } catch (e) {
-            setFormIssues(e, form.setError)
+            setFormIssues(e, form.setError, issueMessage)
         }
     }
 
@@ -97,7 +99,7 @@ export function QuickBacktestForm({ symbol }: { symbol: string }) {
                 <PeriodAndCapitalFields />
                 <QuickTestSummary symbol={symbol} />
                 <p className="text-small text-muted-foreground">{t("quick.hint")}</p>
-                {error && <FieldError>{error.message}</FieldError>}
+                {error && <FieldError>{errorMessage(error)}</FieldError>}
                 <QuickTestActions submitting={form.formState.isSubmitting} />
             </form>
         </FormProvider>

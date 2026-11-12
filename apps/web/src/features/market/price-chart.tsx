@@ -7,6 +7,7 @@ import { FilterTabs } from "@/components/filter-tabs"
 import { InfoHint } from "@/components/info-hint"
 import { ErrorState, LoadingState } from "@/components/query-status"
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { useApiErrorMessages } from "@/lib/api-error"
 import { useFormatters } from "@/lib/format"
 import { trendOf, trendStyles } from "@/lib/trend"
 import { cn } from "@/lib/utils"
@@ -39,6 +40,7 @@ const trendOfPeriod = (points: { price: number }[]) =>
 export function PriceChart({ symbol }: { symbol: string }) {
     const { formatPrice, locale } = useFormatters()
     const t = useTranslations("market")
+    const { errorMessage } = useApiErrorMessages()
     const [period, setPeriod] = useState<Period>("1d")
     const { data, isPending, isError, error, refetch, isPlaceholderData } = useMarketDetails(symbol, period)
     const periodOptions = periods.map((value) => ({ value, label: t(`periods.${value}`) }))
@@ -61,7 +63,7 @@ export function PriceChart({ symbol }: { symbol: string }) {
                 {isPending ? (
                     <LoadingState className="h-82.5" />
                 ) : isError ? (
-                    <ErrorState message={error.message} onRetry={refetch} className="h-82.5" />
+                    <ErrorState message={errorMessage(error)} onRetry={refetch} className="h-82.5" />
                 ) : data.length === 0 ? (
                     <p className="flex h-82.5 items-center justify-center text-body text-muted-foreground">
                         {t("chart.empty")}

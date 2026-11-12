@@ -1,4 +1,5 @@
 import { expect, test } from "bun:test"
+import { API_ERROR_CODES } from "@trading-plateform/contracts"
 import { createTranslator } from "next-intl"
 import { GLOSSARY } from "../src/constants/glossary"
 import type { Locale } from "../src/i18n/config"
@@ -18,6 +19,14 @@ test("fr.json et en.json ont les mêmes clés", () => {
 
     expect([...frKeys].filter((key) => !enKeys.has(key))).toEqual([])
     expect([...enKeys].filter((key) => !frKeys.has(key))).toEqual([])
+})
+
+// Un code renvoyé par l'API sans traduction afficherait le message générique : chaque code a sa phrase dans les deux langues
+test("chaque code d'erreur de l'API a une traduction", () => {
+    for (const dictionary of [fr, en]) {
+        const missing = Object.values(API_ERROR_CODES).filter((code) => !(code in dictionary.errors))
+        expect(missing).toEqual([])
+    }
 })
 
 const dictionaries = { fr, en }

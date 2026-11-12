@@ -5,6 +5,7 @@ import { EmptyCard } from "@/components/empty-card"
 import { PageHeader } from "@/components/page-layout"
 import { ErrorState, LoadingState } from "@/components/query-status"
 import { Button } from "@/components/ui/button"
+import { useApiErrorMessages } from "@/lib/api-error"
 import { type Formatters, useFormatters } from "@/lib/format"
 import { useBacktest, useRerunBacktest } from "./hook"
 import { ResultDetails } from "./result-details"
@@ -49,13 +50,14 @@ function NoResult({ backtest }: { backtest: BacktestDetails }) {
 export function BacktestDetail({ id }: { id: string }) {
     const f = useFormatters()
     const t = useTranslations("backtest")
+    const { errorMessage } = useApiErrorMessages()
     const query = useBacktest(id)
     const rerun = useRerunBacktest(id)
     const { data: backtest, isPending, isError, error, refetch } = query
 
     if (isPending) return <LoadingState className="h-64" />
 
-    if (isError) return <ErrorState message={error.message} onRetry={refetch} className="h-64" />
+    if (isError) return <ErrorState message={errorMessage(error)} onRetry={refetch} className="h-64" />
 
     const execution = getExecution(backtest)
     const { result } = backtest

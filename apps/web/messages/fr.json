@@ -6,6 +6,28 @@
         "retry": "Réessayer",
         "error": "Une erreur est survenue."
     },
+    "errors": {
+        "generic": "Une erreur est survenue. Réessayez dans un instant.",
+        "UNAUTHORIZED": "Votre session a expiré. Reconnectez-vous.",
+        "ACCESS_DENIED": "Vous n’avez pas accès à cette ressource.",
+        "SERVICE_UNAVAILABLE": "Le service est momentanément indisponible. Réessayez plus tard.",
+        "INTERNAL_ERROR": "Erreur interne du serveur. Réessayez plus tard.",
+        "INVALID_QUERY": "Les paramètres de la requête sont invalides.",
+        "INVALID_BACKTEST": "Les paramètres du backtest sont invalides.",
+        "NAME_REQUIRED": "Le nom est obligatoire.",
+        "PORTFOLIO_NOT_FOUND": "Portefeuille introuvable.",
+        "BACKTEST_NOT_FOUND": "Backtest introuvable.",
+        "BACKTEST_NO_RESULT": "Ce backtest n’a pas encore de résultat terminé.",
+        "EXECUTION_IN_PROGRESS": "Une exécution est déjà en cours pour ce backtest.",
+        "BACKTEST_QUEUE_FAILED": "Le backtest n’a pas pu être mis en file d’attente. Relancez-le.",
+        "SYMBOLS_NOT_UNIQUE": "Chaque actif ne peut apparaître qu’une fois.",
+        "WEIGHTS_NOT_100": "Les poids doivent totaliser 100 %.",
+        "END_BEFORE_START": "La date de fin doit être postérieure à la date de début.",
+        "RECURRING_AMOUNT_REQUIRED": "Le versement mensuel est obligatoire en mode récurrent.",
+        "RECURRING_AMOUNT_NOT_ALLOWED": "Le versement mensuel n’est autorisé qu’en mode récurrent.",
+        "INITIAL_AMOUNT_NOT_POSITIVE": "Le capital initial doit être positif.",
+        "IDS_NOT_DISTINCT": "Choisissez deux backtests différents."
+    },
     "notFound": {
         "title": "Page introuvable",
         "description": "La page que vous cherchez n’existe pas ou a été déplacée.",

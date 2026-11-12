@@ -7,6 +7,7 @@ import { FormProvider, useForm, useWatch } from "react-hook-form"
 import { setFormIssues } from "@/components/form/form-issues"
 import { Button } from "@/components/ui/button"
 import { FieldError } from "@/components/ui/field"
+import { useApiErrorMessages } from "@/lib/api-error"
 import { routes } from "@/lib/routes"
 import {
     DEFAULT_BENCHMARK_SYMBOL,
@@ -24,6 +25,7 @@ import { allocationTotal } from "./utils"
 
 export function NewBacktestForm() {
     const t = useTranslations("backtest")
+    const { errorMessage, issueMessage } = useApiErrorMessages()
     const router = useRouter()
     const { mutateAsync, error } = useCreateBacktest()
     const form = useForm<BacktestValues>({
@@ -45,7 +47,7 @@ export function NewBacktestForm() {
             const backtest = await mutateAsync(values)
             router.push(routes.backtest(backtest.id))
         } catch (e) {
-            setFormIssues(e, form.setError)
+            setFormIssues(e, form.setError, issueMessage)
         }
     }
 
@@ -56,7 +58,7 @@ export function NewBacktestForm() {
                     <GeneralSection />
                     <AllocationSection />
 
-                    {error && <FieldError>{error.message}</FieldError>}
+                    {error && <FieldError>{errorMessage(error)}</FieldError>}
 
                     <div className="flex justify-end">
                         <Button

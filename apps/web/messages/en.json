@@ -6,6 +6,28 @@
         "retry": "Retry",
         "error": "Something went wrong."
     },
+    "errors": {
+        "generic": "Something went wrong. Try again in a moment.",
+        "UNAUTHORIZED": "Your session has expired. Sign in again.",
+        "ACCESS_DENIED": "You don’t have access to this resource.",
+        "SERVICE_UNAVAILABLE": "The service is temporarily unavailable. Try again later.",
+        "INTERNAL_ERROR": "Internal server error. Try again later.",
+        "INVALID_QUERY": "The request parameters are invalid.",
+        "INVALID_BACKTEST": "The backtest parameters are invalid.",
+        "NAME_REQUIRED": "The name is required.",
+        "PORTFOLIO_NOT_FOUND": "Portfolio not found.",
+        "BACKTEST_NOT_FOUND": "Backtest not found.",
+        "BACKTEST_NO_RESULT": "This backtest has no completed result yet.",
+        "EXECUTION_IN_PROGRESS": "An execution is already in progress for this backtest.",
+        "BACKTEST_QUEUE_FAILED": "The backtest could not be queued. Run it again.",
+        "SYMBOLS_NOT_UNIQUE": "Each asset can only appear once.",
+        "WEIGHTS_NOT_100": "Weights must add up to 100%.",
+        "END_BEFORE_START": "The end date must be after the start date.",
+        "RECURRING_AMOUNT_REQUIRED": "The monthly contribution is required in recurring mode.",
+        "RECURRING_AMOUNT_NOT_ALLOWED": "The monthly contribution is only allowed in recurring mode.",
+        "INITIAL_AMOUNT_NOT_POSITIVE": "The initial capital must be positive.",
+        "IDS_NOT_DISTINCT": "Pick two different backtests."
+    },
     "notFound": {
         "title": "Page not found",
         "description": "The page you are looking for does not exist or has been moved.",
