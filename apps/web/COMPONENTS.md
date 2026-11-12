@@ -112,13 +112,8 @@ Primitives shadcn (base-ui), voir la doc shadcn. Seule base des briques d'interf
 
 ### AppHeader
 
-<<<<<<< Updated upstream
 - **Import** : `import { AppHeader } from "@/components/app-header"`.
 - **Rôle** : barre du haut de l'espace `/app` : bouton de repli de la sidebar et fil d'Ariane « section › onglet » (`findActiveTab`). Sur une sous-page, l'onglet est un lien vers sa liste ; hors du menu (paramètres), pas de fil.
-=======
-- **Import** : `import Header from "@/components/Header"`.
-- **Rôle** : barre du haut de l'espace `/app` : bouton de repli de la sidebar et fil d'Ariane calculé par `getBreadcrumbs(usePathname())` : un lien par niveau parent (`next/link`), la page courante en `BreadcrumbPage`.
->>>>>>> Stashed changes
 - **Props** : aucune.
 - **Source** : `src/components/app-header.tsx`.
 
@@ -700,7 +695,6 @@ Source : `src/lib/pagination.ts`.
 
 ### `lib/routes.ts`
 
-<<<<<<< Updated upstream
 - **Import** : `import { routes, safeRedirect } from "@/lib/routes"`.
 - Seule source des chemins : liens, redirections, sidebar. Jamais d'URL écrite à la main (`` `/app/backtest/${id}` ``) ailleurs. Exception : le `matcher` de `proxy.ts`, que Next lit à la compilation.
 
@@ -709,16 +703,6 @@ Source : `src/lib/pagination.ts`.
 | `prefix` | Préfixe des pages connectées. |
 | `routes` | URL de chaque page ; `symbol` encode le symbole (`^GSPC`). |
 | `safeRedirect` | Destination après connexion : `redirect` s'il commence par `prefix` (et pas `//`), sinon le dashboard. |
-=======
-- **Import** : `import { prefix, authPaths, findActive, getBreadcrumbs } from "@/lib/path"`.
-
-| Export | Signature / valeur | Rôle | Utilisé par |
-| --- | --- | --- | --- |
-| `prefix` | `"/app"` (défini dans `constants/sidebar.tsx`, ré-exporté ici) | Préfixe des routes de l'espace connecté : `` `${prefix}/backtest/${id}` ``. Importer depuis `@/lib/path`. | `app/not-found.tsx`, `app/app/backtest/page.tsx`, `app/app/(admin)/layout.tsx`, `components/nav-user.tsx`, `features/auth/*`, `features/backtest/backtest-list.tsx`, `new-backtest-form.tsx`, `quick-backtest-form.tsx`, `features/market/market-list.tsx`, `symbol-search.tsx` |
-| `authPaths` | `{ login: "/login", register: "/register" }` | Pages publiques d'authentification. `proxy.ts` garde ses littéraux (son `matcher` doit être statique). | `features/auth/*`, `components/nav-user.tsx`, `lib/session.ts` |
-| `findActive` | `(pathname: string) => { name, url, icon, group } \| undefined` | Onglet de `constants/sidebar.tsx` le plus spécifique qui correspond au chemin. | `components/SidebarNav.tsx` |
-| `getBreadcrumbs` | `(pathname: string) => Crumb[]` (`Crumb = { name: string; url: string }`) | Un crumb par segment sous `prefix` (`/app/market/AAPL` → Marché › AAPL) ; `/app` seul donne Dashboard. Libellé : onglet de la sidebar, sinon `pageLabels` (pages hors sidebar), sinon `detailLabels` (id sous une URL), sinon le segment décodé. Une nouvelle page hors sidebar ou un nouvel id dynamique s'y déclare. | `components/Header.tsx` |
->>>>>>> Stashed changes
 
 Source : `src/lib/routes.ts`.
 
