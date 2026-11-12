@@ -11,7 +11,10 @@ const t = createTranslator({ locale: "en", messages: en, namespace: "backtest" }
 const form = (count: number) => ({
     name: "Test",
     investmentMode: "LUMP_SUM",
-    allocations: Array.from({ length: count }, (_, i) => ({ symbol: `S${i}`, weight: i === 0 ? 100 - (count - 1) : 1 })),
+    allocations: Array.from({ length: count }, (_, i) => ({
+        symbol: `S${i}`,
+        weight: i === 0 ? 100 - (count - 1) : 1,
+    })),
     start: new Date("2024-01-01"),
     end: new Date("2024-12-31"),
     initialAmount: 1000,
