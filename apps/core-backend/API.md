@@ -36,7 +36,9 @@ Catalogue des routes HTTP exposées par core-backend (port 8000) et appelées pa
 ## Conventions communes
 
 - **Base** : `http://localhost:8000`. Le web appelle via `apiFetch(path)` (`apps/web/src/lib/api.ts`) avec `NEXT_PUBLIC_API_URL=http://localhost:8000/api` : `apiFetch("/backtest")` → `GET /api/backtest`. Cookies envoyés (`credentials: "include"`), CORS limité à `env.WEB_URL` (défaut `http://localhost:3000`, `env.ts`).
-- **Ordre d'enregistrement** (`index.ts`) : `authRouter`, `marketRouter` (avant `express.json()` pour garder le body brut), puis `express.json()`, `portfolioRouter`, `backtestRouter`, `errorMiddleware`.
+- **Ordre d'enregistrement** (`index.ts`) : `helmet`, `cors`, `GET /health`, limiteur `/api/auth` + `authRouter`, `marketRouter` (avant `express.json()` pour garder le body brut), puis `express.json({ limit: "100kb" })`, `portfolioRouter`, limiteur `/api/backtest` + `backtestRouter`, `errorMiddleware`. Port : `env.PORT` (défaut 8000). Arrêt propre sur `SIGTERM`/`SIGINT` (serveur, consumer et producer Kafka fermés).
+- **Santé** : `GET /health` (sans auth) → `200 { "status": "ok" }`, `503 { "status": "unavailable" }` si la base ne répond pas.
+- **Limites de débit** (par IP, fenêtre 60 s, en-têtes `RateLimit-*`) : `/api/auth/*` 30 requêtes ; `POST /api/backtest*` 20 requêtes (les lectures ne comptent pas). Au-delà : `429`. Body JSON refusé au-delà de 100 ko (`413`).
 - **Auth** : `authMiddleware` lit la session better-auth depuis les en-têtes (cookie, ou `Authorization: Bearer` via le plugin `bearer`) et pose `req.userId`. Sans session : `401 { "error": "Unauthorized", "code": "UNAUTHORIZED" }`.
 - **Erreurs** : toute `AppError` est rendue par `error.middleware` en `{ "error": "<message anglais>", "code": "<CODE>", ...data }` avec son statut. Toute autre exception : `500 { "error": "Internal server error", "code": "INTERNAL_ERROR" }`. Le backend ne connaît pas la langue : `error` sert aux logs, le web traduit `code` (`errors.<code>` des dictionnaires, repli `errors.generic`). Les exemples ci-dessous omettent `code` ; il vaut :
 
@@ -92,7 +94,7 @@ Les routes de liste (`GET /api/portfolio`, `GET /api/backtest`) suivent le contr
 ### ALL /api/market/{*path}
 
 - **Auth** : session requise (`authMiddleware`).
-- **Entrée** : requête relayée telle quelle (méthode, chemin complet `/api/market/...`, query, body) vers `env.MARKET_SERVICE_URL` (défaut `http://localhost:8001`, `env.ts`). L'en-tête `x-user-id` entrant est supprimé puis remplacé par `req.userId` (anti-usurpation).
+- **Entrée** : requête relayée telle quelle (méthode, chemin complet `/api/market/...`, query, body) vers `env.MARKET_SERVICE_URL` (défaut `http://localhost:8001`, `env.ts`). L'en-tête `x-user-id` entrant est supprimé puis remplacé par `req.userId` (anti-usurpation). L'en-tête `x-internal-key` (`INTERNAL_KEY_HEADER`, valeur `INTERNAL_API_KEY`) est ajouté : market-service refuse tout appel qui ne le porte pas.
 - **Réponse** : statut et corps de market-service, inchangés. Routes disponibles : voir [`apps/market-service/API.md`](../market-service/API.md).
 - **Erreurs** : `401` → pas de session ; `502 { "error": "Service unavailable" }` → market-service injoignable ou sans réponse sous 10 s (`proxyTimeout: 10_000`) ; erreurs de market-service relayées avec leur statut.
 - **Effets** : aucun.

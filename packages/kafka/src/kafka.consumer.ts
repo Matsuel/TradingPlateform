@@ -37,7 +37,18 @@ export class KafkaConsumer {
                     return;
                 }
 
-                await handler(message, context);
+                // Rejouer est la politique at-least-once : l'exception repart à kafkajs (reprise avec délai), après un log qui situe le message
+                try {
+                    await handler(message, context);
+                } catch (error) {
+                    logger.error("Kafka handler failed", {
+                        topic: context.topic,
+                        partition: context.partition,
+                        offset: context.message.offset,
+                        error: error instanceof Error ? error.message : String(error),
+                    });
+                    throw error;
+                }
             },
         });
     }

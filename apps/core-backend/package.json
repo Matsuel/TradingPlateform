@@ -27,6 +27,8 @@
     "better-auth": "^1.7.7",
     "cors": "^2.8.6",
     "express": "^5.2.1",
+    "express-rate-limit": "^8",
+    "helmet": "^8",
     "http-proxy-middleware": "^4.2.1",
     "pg": "^8.23.1",
     "z": "^1.0.9",

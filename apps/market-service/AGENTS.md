@@ -1,6 +1,6 @@
 # market-service
 
-API Express 5 de données de marché (yahoo-finance2), port 8001. Sans base de données ni auth. **Jamais appelé par le web** : core-backend (`routes/market/` + `utils/proxy.ts`) relaie `/api/market/*` ici et vérifie la session : pas de CORS ni d'auth ici, l'utilisateur authentifié arrive dans l'en-tête `x-user-id` (de confiance). Ne pas exposer ce service publiquement. **Calqué sur `apps/core-backend`** : même découpage en couches, mêmes conventions. Lis `../core-backend/AGENTS.md` et reprends ses règles.
+API Express 5 de données de marché (yahoo-finance2), port 8001. Sans base de données. **Jamais appelé par le web** : core-backend (`routes/market/` + `utils/proxy.ts`) relaie `/api/market/*` ici et vérifie la session : pas de CORS ni de session ici, l'utilisateur authentifié arrive dans l'en-tête `x-user-id` (de confiance). Chaque appel doit porter `x-internal-key` = `INTERNAL_API_KEY` (`internal-auth.middleware.ts`, sauf `GET /health`) : sans elle, `401`. Ne pas exposer ce service publiquement. **Calqué sur `apps/core-backend`** : même découpage en couches, mêmes conventions. Lis `../core-backend/AGENTS.md` et reprends ses règles.
 
 ## Architecture en couches
 

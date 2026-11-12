@@ -32,7 +32,7 @@ Catalogue des routes internes de market-service (port 8001, données yahoo-finan
 ## Conventions communes
 
 - **Chemin** : identique de bout en bout. Web `apiFetch("/market/search?…")` → core-backend `/api/market/search` → market-service `/api/market/search`.
-- **Auth** : aucune vérification ici ; ne pas exposer ce service publiquement. `x-user-id` est posé par le proxy mais aucune route ne le lit aujourd'hui.
+- **Auth** : pas de session ici, mais `x-internal-key` (valeur `INTERNAL_API_KEY`, posée par le proxy) est exigée sur toutes les routes sauf `GET /health` → sinon `401 { "error": "Unauthorized" }`. Ne pas exposer ce service publiquement. `GET /health` → `200 { "status": "ok" }`. Port : `env.PORT` (défaut 8001). `x-user-id` est posé par le proxy mais aucune route ne le lit aujourd'hui.
 - **Erreurs** : `AppError` → `{ "error": "<message>", ...data }` avec son statut ; toute autre exception (erreur yahoo-finance2) → `500 { "error": "Internal server error" }`. Seules les routes `GET` ci-dessous existent : une autre méthode ou un autre chemin reçoit la 404 par défaut d'Express (HTML).
 - **Types** : schémas zod d'entrée propres au service dans `interfaces/market.interface.ts` (`searchMarketSchema`, `marketIdSchema`) ; `periodSchema` et types de réponse (`MarketData`, `MarketAsset`, `MarketDetails`, `Period`), unités comprises, dans `@trading-plateform/contracts` (`src/market.ts`), partagés avec le web ; pagination (`paginationQuerySchema`, `Paginated<T>`) depuis le même package. Dates sérialisées en ISO 8601. Prix dans la devise de cotation du symbole, sans conversion.
 - **Logos** : `logoUrl` vaut `https://img.logo.dev/ticker/<symbol>?token=…&size=64` si `LOGO_DEV_TOKEN` est défini (`env.ts`), sinon absent.

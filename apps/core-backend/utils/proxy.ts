@@ -1,7 +1,9 @@
 import type { NextFunction, Request, RequestHandler, Response } from "express";
 import { createProxyMiddleware } from "http-proxy-middleware";
 import { Logger } from "@trading-plateform/utils";
+import { INTERNAL_KEY_HEADER } from "@trading-plateform/contracts";
 import BadGatewayError from "../errors/badgateway.error";
+import { env } from "../env";
 
 const logger = Logger.here();
 
@@ -21,6 +23,8 @@ const proxyTo = (target: string): RequestHandler => {
             proxyReq: (proxyReq, req) => {
                 // Anti-spoofing : seule l'identité vérifiée par authMiddleware est transmise.
                 proxyReq.removeHeader("x-user-id");
+                // Preuve d'origine : market-service refuse tout appel qui ne la porte pas
+                proxyReq.setHeader(INTERNAL_KEY_HEADER, env.INTERNAL_API_KEY);
                 if (req.userId) proxyReq.setHeader("x-user-id", req.userId);
 
                 logger.info(`Proxying ${req.method} ${req.originalUrl} to ${target}`, { userId: req.userId });
