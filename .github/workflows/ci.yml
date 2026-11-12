@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [develop]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  biome:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.2
+      - run: bun install --frozen-lockfile
+      - run: bun run format:check
+        working-directory: apps/web
+
+  test:
+    runs-on: ubuntu-latest
+    # PostgreSQL pour les tests de repositories de core-backend (base trading_test, voir test/setup.ts)
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: trading
+          POSTGRES_PASSWORD: trading
+          POSTGRES_DB: trading_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U trading"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [core-backend, market-service, backtest-engine, web]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.2
+      - run: bun install --frozen-lockfile
+      # Le client Prisma n'est pas versionné
+      - run: bun run db:generate
+        if: matrix.app == 'core-backend'
+        working-directory: apps/core-backend
+      - run: bun test
+        working-directory: apps/${{ matrix.app }}
