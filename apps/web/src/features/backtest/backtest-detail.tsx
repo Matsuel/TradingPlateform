@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import { useTranslations } from "next-intl"
 import { EmptyCard } from "@/components/empty-card"
 import { PageHeader } from "@/components/page-layout"
@@ -7,6 +8,7 @@ import { ErrorState, LoadingState } from "@/components/query-status"
 import { Button } from "@/components/ui/button"
 import { useApiErrorMessages } from "@/lib/api-error"
 import { type Formatters, useFormatters } from "@/lib/format"
+import { routes } from "@/lib/routes"
 import { useBacktest, useRerunBacktest } from "./hook"
 import { ResultDetails } from "./result-details"
 import { ResultMetrics } from "./result-metrics"
@@ -20,6 +22,7 @@ import {
     formatAllocation,
     getExecution,
     getExecutionDuration,
+    hasDividendDetails,
     isActive,
 } from "./utils"
 
@@ -82,9 +85,16 @@ export function BacktestDetail({ id }: { id: string }) {
                 badge={execution && <StatusBadge status={execution.status} />}
                 description={describe(f, t, backtest)}
                 actions={
-                    <Button onClick={() => rerun.mutate()} disabled={!canRerun}>
-                        {t("detail.rerun")}
-                    </Button>
+                    <>
+                        {result && hasDividendDetails(result) && (
+                            <Button variant="outline" render={<Link href={routes.backtestDividends(id)} />}>
+                                {t("detail.dividends")}
+                            </Button>
+                        )}
+                        <Button onClick={() => rerun.mutate()} disabled={!canRerun}>
+                            {t("detail.rerun")}
+                        </Button>
+                    </>
                 }
             />
 
