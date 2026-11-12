@@ -61,7 +61,7 @@ const countPeriods = (days: string[], frequency: Exclude<CreateBacktestInput["re
 /** Remonte le résultat de la dernière exécution `COMPLETED` ; `NotFoundError` si le backtest ou son résultat a disparu entre les deux lectures. */
 const toCompared = (record: ComparedBacktestRecord | undefined): ComparedBacktestDTO => {
     const result = record?.executions[0]?.result
-    if (!record || !result) throw new NotFoundError(API_ERROR_CODES.BACKTEST_NOT_FOUND, "Backtest not found")
+    if (!record || !result) throw new NotFoundError(API_ERROR_CODES.BACKTEST_NOT_FOUND)
     const { executions, ...backtest } = record
     return { ...backtest, result }
 }
@@ -121,7 +121,7 @@ class BacktestService {
         const backtest = this.assertOwner(await this.repo.getById(id), userId)
         const latest = backtest.executions[0]
         if (latest && ACTIVE_STATUSES.includes(latest.status)) {
-            throw new ConflictError(API_ERROR_CODES.EXECUTION_IN_PROGRESS, "An execution is already in progress", { executionId: latest.id })
+            throw new ConflictError(API_ERROR_CODES.EXECUTION_IN_PROGRESS, { executionId: latest.id })
         }
         const attempt = (latest?.attempt ?? 0) + 1
         const execution = await this.repo.createExecution(id, attempt)
@@ -153,8 +153,8 @@ class BacktestService {
         const counts = await this.repo.countExecutionsByIds(ids, userId, COMPARABLE_STATUSES)
         for (const id of ids) {
             const backtest = counts.find((count) => count.id === id)
-            if (!backtest) throw new NotFoundError(API_ERROR_CODES.BACKTEST_NOT_FOUND, "Backtest not found", { id })
-            if (backtest._count.executions === 0) throw new BadRequestError(API_ERROR_CODES.BACKTEST_NO_RESULT, "Backtest has no completed result", { id })
+            if (!backtest) throw new NotFoundError(API_ERROR_CODES.BACKTEST_NOT_FOUND, { id })
+            if (backtest._count.executions === 0) throw new BadRequestError(API_ERROR_CODES.BACKTEST_NO_RESULT, { id })
         }
         const records = await this.repo.getComparedByIds(ids, COMPARABLE_STATUSES)
         const [a, b] = ids.map((id) => toCompared(records.find((record) => record.id === id))) as [ComparedBacktestDTO, ComparedBacktestDTO]
@@ -230,7 +230,7 @@ class BacktestService {
     }
 
     private assertOwner<T extends Backtest>(backtest: T | null, userId: string): T {
-        if (!backtest) throw new NotFoundError(API_ERROR_CODES.BACKTEST_NOT_FOUND, "Backtest not found")
+        if (!backtest) throw new NotFoundError(API_ERROR_CODES.BACKTEST_NOT_FOUND)
         if (backtest.userId !== userId) throw new ForbiddenError()
         return backtest
     }
@@ -264,7 +264,7 @@ class BacktestService {
                 finishedAt: new Date(),
                 error: "Backtest could not be queued",
             })
-            throw new InternalError(API_ERROR_CODES.BACKTEST_QUEUE_FAILED, "Backtest could not be queued")
+            throw new InternalError(API_ERROR_CODES.BACKTEST_QUEUE_FAILED)
         }
     }
 }

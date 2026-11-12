@@ -46,7 +46,7 @@ class PortfolioService {
     }
 
     private assertOwner(portfolio: Portfolio | null, userId: string): Portfolio {
-        if (!portfolio) throw new NotFoundError(API_ERROR_CODES.PORTFOLIO_NOT_FOUND, "Portfolio not found")
+        if (!portfolio) throw new NotFoundError(API_ERROR_CODES.PORTFOLIO_NOT_FOUND)
         if (portfolio.userId !== userId) throw new ForbiddenError()
         return portfolio
     }

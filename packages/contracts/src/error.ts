@@ -25,3 +25,26 @@ export const API_ERROR_CODES = {
 } as const;
 
 export type ApiErrorCode = (typeof API_ERROR_CODES)[keyof typeof API_ERROR_CODES];
+
+// Message anglais de chaque code, pour les logs et le champ `error` : l'utilisateur lit la traduction du code, pas ce texte
+export const API_ERROR_MESSAGES: Record<ApiErrorCode, string> = {
+    UNAUTHORIZED: "Unauthorized",
+    ACCESS_DENIED: "Access denied",
+    SERVICE_UNAVAILABLE: "Service unavailable",
+    INTERNAL_ERROR: "Internal server error",
+    INVALID_QUERY: "Invalid query",
+    INVALID_BACKTEST: "Invalid backtest",
+    NAME_REQUIRED: "Name is required",
+    PORTFOLIO_NOT_FOUND: "Portfolio not found",
+    BACKTEST_NOT_FOUND: "Backtest not found",
+    BACKTEST_NO_RESULT: "Backtest has no completed result",
+    EXECUTION_IN_PROGRESS: "An execution is already in progress",
+    BACKTEST_QUEUE_FAILED: "Backtest could not be queued",
+    SYMBOLS_NOT_UNIQUE: "Symbols must be unique",
+    WEIGHTS_NOT_100: "Weights must sum to 100",
+    END_BEFORE_START: "Must be after start",
+    RECURRING_AMOUNT_REQUIRED: "Required for RECURRING",
+    RECURRING_AMOUNT_NOT_ALLOWED: "Only allowed for RECURRING",
+    INITIAL_AMOUNT_NOT_POSITIVE: "Must be positive for LUMP_SUM",
+    IDS_NOT_DISTINCT: "Ids must be distinct",
+};

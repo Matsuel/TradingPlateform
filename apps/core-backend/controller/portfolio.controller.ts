@@ -10,7 +10,7 @@ class PortfolioController {
 
     createPortfolio = async (req: Request, res: Response) => {
         const parsed = portfolioSchema.safeParse(req.body)
-        if (!parsed.success) throw new BadRequestError(API_ERROR_CODES.NAME_REQUIRED, "Name is required")
+        if (!parsed.success) throw new BadRequestError(API_ERROR_CODES.NAME_REQUIRED)
         const portfolio = await this.portfolioService.create(req.userId!, parsed.data)
         res.status(201).json(portfolio)
     }
@@ -22,14 +22,14 @@ class PortfolioController {
 
     getAllPortfolios = async (req: Request, res: Response) => {
         const parsed = paginationQuerySchema.safeParse(req.query)
-        if (!parsed.success) throw new BadRequestError(API_ERROR_CODES.INVALID_QUERY, "Invalid query", { issues: parsed.error.issues })
+        if (!parsed.success) throw new BadRequestError(API_ERROR_CODES.INVALID_QUERY, { issues: parsed.error.issues })
         const result = await this.portfolioService.getAll(req.userId!, parsed.data)
         res.json(result)
     }
 
     updatePortfolio = async (req: Request, res: Response) => {
         const parsed = portfolioSchema.safeParse(req.body)
-        if (!parsed.success) throw new BadRequestError(API_ERROR_CODES.NAME_REQUIRED, "Name is required")
+        if (!parsed.success) throw new BadRequestError(API_ERROR_CODES.NAME_REQUIRED)
         const portfolio = await this.portfolioService.update(req.params.id as string, req.userId!, parsed.data)
         res.json(portfolio)
     }

@@ -1,9 +1,9 @@
-import type { ApiErrorCode } from "@trading-plateform/contracts";
+import { API_ERROR_MESSAGES, type ApiErrorCode } from "@trading-plateform/contracts";
 import AppError from "../models/error.model";
 
 class BadRequestError extends AppError {
-    constructor(code: ApiErrorCode, message = "Bad request", data?: Record<string, unknown>) {
-        super(code, message, 400, data);
+    constructor(code: ApiErrorCode, data?: Record<string, unknown>) {
+        super(code, API_ERROR_MESSAGES[code], 400, data);
     }
 }
 

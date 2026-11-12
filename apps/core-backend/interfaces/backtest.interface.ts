@@ -1,6 +1,7 @@
 import { z } from "zod";
 import {
     API_ERROR_CODES,
+    API_ERROR_MESSAGES,
     allocationSchema,
     backtestRequestedPayloadSchema,
     paginationQuerySchema,
@@ -18,11 +19,11 @@ const allocationInputsSchema = z
     .array(z.object({ symbol: allocationSchema.shape.symbol, weight: z.number().int().min(1).max(FULL_PERCENT) }))
     .min(1)
     .refine((allocations) => new Set(allocations.map((a) => a.symbol)).size === allocations.length, {
-        message: "Symbols must be unique",
+        message: API_ERROR_MESSAGES.SYMBOLS_NOT_UNIQUE,
         params: { code: API_ERROR_CODES.SYMBOLS_NOT_UNIQUE },
     })
     .refine((allocations) => allocations.reduce((sum, a) => sum + a.weight, 0) === FULL_PERCENT, {
-        message: "Weights must sum to 100",
+        message: API_ERROR_MESSAGES.WEIGHTS_NOT_100,
         params: { code: API_ERROR_CODES.WEIGHTS_NOT_100 },
     })
     .transform((allocations) => allocations.map(({ symbol, weight }) => ({ symbol, weight: weight / FULL_PERCENT })));
@@ -45,22 +46,22 @@ export const createBacktestSchema = z
     })
     .refine((v) => v.start < v.end, {
         path: ["end"],
-        message: "Must be after start",
+        message: API_ERROR_MESSAGES.END_BEFORE_START,
         params: { code: API_ERROR_CODES.END_BEFORE_START },
     })
     .refine((v) => v.investmentMode !== "RECURRING" || v.recurringAmount !== undefined, {
         path: ["recurringAmount"],
-        message: "Required for RECURRING",
+        message: API_ERROR_MESSAGES.RECURRING_AMOUNT_REQUIRED,
         params: { code: API_ERROR_CODES.RECURRING_AMOUNT_REQUIRED },
     })
     .refine((v) => v.investmentMode !== "LUMP_SUM" || v.recurringAmount === undefined, {
         path: ["recurringAmount"],
-        message: "Only allowed for RECURRING",
+        message: API_ERROR_MESSAGES.RECURRING_AMOUNT_NOT_ALLOWED,
         params: { code: API_ERROR_CODES.RECURRING_AMOUNT_NOT_ALLOWED },
     })
     .refine((v) => v.investmentMode !== "LUMP_SUM" || v.initialAmount > 0, {
         path: ["initialAmount"],
-        message: "Must be positive for LUMP_SUM",
+        message: API_ERROR_MESSAGES.INITIAL_AMOUNT_NOT_POSITIVE,
         params: { code: API_ERROR_CODES.INITIAL_AMOUNT_NOT_POSITIVE },
     });
 
@@ -88,7 +89,7 @@ export const backtestCompareQuerySchema = z.object({
         .string()
         .transform((v) => v.split(","))
         .pipe(z.tuple([z.string().min(1), z.string().min(1)]))
-        .refine(([a, b]) => a !== b, { message: "Ids must be distinct", params: { code: API_ERROR_CODES.IDS_NOT_DISTINCT } }),
+        .refine(([a, b]) => a !== b, { message: API_ERROR_MESSAGES.IDS_NOT_DISTINCT, params: { code: API_ERROR_CODES.IDS_NOT_DISTINCT } }),
 });
 
 export type BacktestCompareQuery = z.infer<typeof backtestCompareQuerySchema>;
