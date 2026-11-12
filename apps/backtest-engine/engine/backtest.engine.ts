@@ -134,8 +134,8 @@ function riskMetrics(drawdown: ReturnType<typeof createDrawdownTracker>, twr: Tw
 }
 
 /**
- * Point d'entrée de l'engine : simule le backtest demandé, le compare en DCA à un investissement unique
- * et, si `benchmarkSymbol` est renseigné, au benchmark.
+ * Simule le backtest demandé sur un marché déjà en euros (`runBacktest` prépare ce marché), le compare en DCA
+ * à un investissement unique et, si `benchmarkSymbol` est renseigné, au benchmark.
  *
  * La comparaison rejoue le même total versé en un seul achat au premier jour : même capital, même période,
  * mêmes frais, seule la répartition dans le temps change. Sa valeur quotidienne est ajoutée à chaque point

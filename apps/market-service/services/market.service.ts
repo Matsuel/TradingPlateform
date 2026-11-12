@@ -37,7 +37,7 @@ class MarketService {
         return this.repo.getDailyCloses(symbols, start, end)
     }
 
-    // Jamais mis en cache non plus : ils entrent dans la même empreinte de reproductibilité
+    // Jamais mis en cache : les dividendes entrent dans l'empreinte de reproductibilité d'un backtest, comme les cours
     async getDividends(symbols: string[], start: Date, end: Date): Promise<Dividends> {
         return this.repo.getDividends(symbols, start, end)
     }

@@ -126,7 +126,7 @@ export const dividendEventSchema = z.object({
     // Ex-date, YYYY-MM-DD
     date: z.iso.date(),
     symbol: z.string().min(1),
-    // Dividende encaissé : titres détenus × dividende par titre, converti au taux de l'ex-date, arrondi au centime
+    // EUR : dividende encaissé = titres détenus × dividende par titre, converti au taux de l'ex-date, arrondi au centime
     amount: z.number().positive(),
     // Titres rachetés au cours de l'ex-date, sans frais (fractionnaire)
     quantity: z.number().positive(),

@@ -40,4 +40,4 @@ Registre de la dette connue, à corriger avant qu'elle ne grossisse. La règle q
 | TD-19 | 2026-11-12 | `31a6edc` |
 | TD-20 | 2026-11-12 | `e390fcf` |
 | TD-22 | 2026-11-12 | `ec588af` |
-| TD-26 | 2026-11-12 | feat/dividendes-splits-devise (non commité) |
+| TD-26 | 2026-11-12 | `4289a50` |
