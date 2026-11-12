@@ -60,6 +60,10 @@ function tooltipContent(
     )
 }
 
+// Graduation numérique de l'axe Y : 2 décimales sous 10 (cours bas), entier au-delà
+const formatNumberAxis = (locale: string, v: number) =>
+    v.toLocaleString(locale, { maximumFractionDigits: v < 10 ? 2 : 0 })
+
 /** Courbes datées sur un axe commun : une `Area` par série de `series`, infobulle formatée par `formatValue`. */
 export function AreaSeriesChart({
     data,
@@ -72,7 +76,6 @@ export function AreaSeriesChart({
     className,
 }: AreaSeriesChartProps) {
     const { locale } = useFormatters()
-    const formatNumberAxis = (v: number) => v.toLocaleString(locale, { maximumFractionDigits: v < 10 ? 2 : 0 })
     const config = Object.fromEntries(
         series.map((s) => [s.key, { label: s.label, color: s.color }]),
     ) satisfies ChartConfig
@@ -96,7 +99,7 @@ export function AreaSeriesChart({
                     axisLine={false}
                     tickCount={5}
                     domain={["auto", "auto"]}
-                    tickFormatter={formatAxis ?? formatNumberAxis}
+                    tickFormatter={formatAxis ?? ((v: number) => formatNumberAxis(locale, v))}
                 />
                 <ChartTooltip cursor={false} content={tooltipContent(series, formatTooltipDate, formatValue)} />
                 {series.map((s) => (
