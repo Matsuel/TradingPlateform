@@ -71,7 +71,7 @@ Chaque app qui expose quelque chose de réutilisable tient un **catalogue** : co
 
 ## Conventions communes
 
-- **Tests** : dossier `test/` à la racine de chaque app, fichiers `<sujet>.test.ts`, lancés par `bun test` depuis l'app. Variables d'env factices dans `test/setup.ts` (préchargé par `bunfig.toml`) : un test n'ouvre aucune connexion (base, Kafka). Un service se teste avec un faux repository assigné à `service.repo`. Un comportement ajouté ou une transition modifiée a son test dans le même diff.
+- **Tests** : dossier `test/` à la racine de chaque app, fichiers `<sujet>.test.ts`, lancés par `bun test` depuis l'app. Variables d'env factices dans `test/setup.ts` (préchargé par `bunfig.toml`) : un test n'ouvre aucune connexion (base, Kafka). Un service se teste avec un faux repository assigné à `service.repo` ; une route avec `startApp` de `@trading-plateform/http/testing` (vrai Express, service espionné par `spyOn(Service.prototype, …)` restauré en `afterAll`) ; un hook ou composant web avec `@testing-library/react` (`test/render.tsx` fournit le provider de langue). Un comportement ajouté ou une transition modifiée a son test dans le même diff.
 
 - **Bun partout** : `bun install`, `bun run <script>`, `bun <file>`, `bun test`, `bunx`. Bun charge `.env` : pas de `dotenv`.
 - TypeScript `strict`, ESM. `import type` pour les types (`verbatimModuleSyntax`). Pas de `any` dans le nouveau code.
