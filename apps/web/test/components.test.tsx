@@ -29,7 +29,7 @@ test("StatCard sans variation n'affiche pas de badge", () => {
 })
 
 test("FilterTabs marque l'option active et signale le choix d'une autre", () => {
-    const onChange = mock((_value: string) => {})
+    const onChange = mock<(value: string) => void>(() => {})
     render(
         <FilterTabs
             value="1m"
