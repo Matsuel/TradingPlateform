@@ -22,7 +22,6 @@ import {
     formatAllocation,
     getExecution,
     getExecutionDuration,
-    hasDividendDetails,
     isActive,
 } from "./utils"
 
@@ -86,7 +85,7 @@ export function BacktestDetail({ id }: { id: string }) {
                 description={describe(f, t, backtest)}
                 actions={
                     <>
-                        {result && hasDividendDetails(result) && (
+                        {result && (
                             <Button variant="outline" render={<Link href={routes.backtestDividends(id)} />}>
                                 {t("detail.dividends")}
                             </Button>

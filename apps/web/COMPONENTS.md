@@ -899,7 +899,7 @@ Source : `src/features/auth/schema.ts`.
 ### BacktestDetail
 
 - **Import** : `import { BacktestDetail } from "@/features/backtest/backtest-detail"`.
-- **Rôle** : écran détail (maquette 13 v2 · A) : en-tête avec statut, allocation, rebalancement, benchmark, relance et, si le résultat a des dividendes ou un effet de change, lien vers `BacktestDividends` ; `ResultOverview` (valeur finale, courbes de valeur et de drawdown) ; `ResultMetrics` (indicateurs groupés) ; `TradesTable` (ordres) ; `ResultDetails` (positions, hypothèses, historique repliés). Instancie `useBacktest` et `useRerunBacktest`.
+- **Rôle** : écran détail (maquette 13 v2 · A) : en-tête avec statut, allocation, rebalancement, benchmark, relance et, dès qu'il y a un résultat, bouton vers `BacktestDividends` ; `ResultOverview` (valeur finale, courbes de valeur et de drawdown) ; `ResultMetrics` (indicateurs groupés) ; `TradesTable` (ordres) ; `ResultDetails` (positions, hypothèses, historique repliés). Instancie `useBacktest` et `useRerunBacktest`.
 - **Props** :
   - `id` : Id du backtest.
 - **Source** : `src/features/backtest/backtest-detail.tsx`.
@@ -907,7 +907,7 @@ Source : `src/features/auth/schema.ts`.
 ### BacktestDividends
 
 - **Import** : `import { BacktestDividends } from "@/features/backtest/backtest-dividends"`.
-- **Rôle** : écran « Dividendes et change » (maquette 31, route `routes.backtestDividends(id)`), ouvert par le bouton « Dividendes et change » du détail (affiché si `hasDividendDetails(result)`) : quatre `StatCard` (valeur finale, rendement total avec le cours seul, dividendes perçus, effet de change si hors EUR), `ReturnBreakdown`, courbe avec et sans dividendes (`ValueDrawdownCharts` sans drawdown ; absente sans `priceOnlyValue`) et `DividendsTable`. Un résultat antérieur ou sans dividende ni change affiche un `EmptyCard`. Instancie `useBacktest`.
+- **Rôle** : écran « Dividendes et change » (maquette 31, route `routes.backtestDividends(id)`), ouvert par le bouton « Dividendes et change » du détail (toujours affiché avec un résultat) : quatre `StatCard` (valeur finale, rendement total avec le cours seul, dividendes perçus, effet de change si hors EUR), `ReturnBreakdown`, courbe avec et sans dividendes (`ValueDrawdownCharts` sans drawdown ; absente sans `priceOnlyValue`) et `DividendsTable`. Un résultat antérieur ou sans dividende ni change affiche un `EmptyCard`. Instancie `useBacktest`.
 - **Props** :
   - `id` : Id du backtest.
 - **Source** : `src/features/backtest/backtest-dividends.tsx`.
