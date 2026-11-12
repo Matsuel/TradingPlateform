@@ -4,17 +4,16 @@
   "type": "module",
   "private": true,
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "^1.4.4"
   },
   "peerDependencies": {
-    "typescript": "^7"
+    "typescript": "^7.0.2"
   },
   "dependencies": {
     "@trading-plateform/contracts": "workspace:*",
     "@trading-plateform/kafka": "workspace:*",
     "@trading-plateform/utils": "workspace:*",
     "kafkajs": "^2.2.4",
-    "yahoo-finance2": "^4.0.4",
     "zod": "^4.6.7"
   }
 }

@@ -225,10 +225,16 @@ export const backtestCompletedPayloadSchema = z.object({
     dataSource: dataSourceSchema,
 });
 
+// Cause stable d'un échec d'exécution, traduite par le web (`backtest.executionErrors.<code>`)
+export const EXECUTION_ERROR_CODES = ["NO_MARKET_DATA", "NOTHING_INVESTED", "ENGINE_FAILED", "EXECUTION_TIMEOUT"] as const;
+
 export const backtestFailedPayloadSchema = z.object({
     executionId: z.string().min(1),
     finishedAt: z.iso.datetime(),
+    // Message technique anglais, pour les logs
     error: z.string(),
+    // Absent des échecs antérieurs à ce champ
+    errorCode: z.enum(EXECUTION_ERROR_CODES).optional(),
 });
 
 // Métriques comparées par GET /api/backtest/compare ; leur écart A − B est calculé par core-backend
@@ -294,4 +300,5 @@ export type Benchmark = z.infer<typeof benchmarkSchema>;
 export type ExecutionRule = (typeof EXECUTION_RULES)[number];
 export type DataSource = z.infer<typeof dataSourceSchema>;
 export type BacktestCompletedPayload = z.infer<typeof backtestCompletedPayloadSchema>;
+export type ExecutionErrorCode = (typeof EXECUTION_ERROR_CODES)[number];
 export type BacktestFailedPayload = z.infer<typeof backtestFailedPayloadSchema>;

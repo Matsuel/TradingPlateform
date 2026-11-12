@@ -1,4 +1,4 @@
-import type { RouteDescriptor } from "../../models/route.model";
+import type { RouteDescriptor } from "@trading-plateform/http";
 import AuthController from "../../controller/auth.controller";
 
 const createAuthRoutes = (): RouteDescriptor[] => {

@@ -12,6 +12,6 @@
         "dev:backtest": "bun run --cwd apps/backtest-engine index.ts"
     },
     "devDependencies": {
-        "concurrently": "^10.0.6"
+        "concurrently": "^10.0.7"
     }
 }

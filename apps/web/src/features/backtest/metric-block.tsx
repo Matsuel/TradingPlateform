@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl"
 import type { ReactNode } from "react"
 import { type HintDetail, InfoHint } from "@/components/info-hint"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -69,6 +70,7 @@ interface MetricBlockProps {
  * formatées.
  */
 export function MetricBlock({ title, description, columns, rows, boldColumns = 1, rowHeader, note }: MetricBlockProps) {
+    const t = useTranslations("backtest.metrics")
     return (
         <Card size="compact">
             <CardHeader>
@@ -80,7 +82,7 @@ export function MetricBlock({ title, description, columns, rows, boldColumns = 1
                     <TableHeader>
                         <TableRow variant="static">
                             <TableHead variant="caption" className="px-0 pb-2.5">
-                                {rowHeader ?? <span className="sr-only">Indicateur</span>}
+                                {rowHeader ?? <span className="sr-only">{t("rowHeader")}</span>}
                             </TableHead>
                             {columns.map((c) => (
                                 <TableHead key={c.label} variant="caption" className="pr-0 pb-2.5 pl-2 text-right">

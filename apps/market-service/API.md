@@ -1,6 +1,6 @@
 # API market-service
 
-Catalogue des routes internes de market-service (port 8001, données yahoo-finance2). Elles ne sont **jamais appelées directement** : le web passe par le proxy `ALL /api/market/{*path}` de core-backend (voir [`apps/core-backend/API.md`](../core-backend/API.md#market-proxy)), qui vérifie la session et transmet l'utilisateur dans l'en-tête `x-user-id`. Toute création, modification ou suppression de route met à jour son entrée **dans le même diff que le code**, selon le gabarit ci-dessous. En cas d'écart, le code fait foi : corrige l'entrée.
+Catalogue des routes internes de market-service (port 8001, données yahoo-finance2). Le web ne les appelle **jamais directement** : il passe par le proxy de core-backend (`GET /api/market/{search,details/:id,defaults}`, liste blanche) (voir [`apps/core-backend/API.md`](../core-backend/API.md#market-proxy)), qui vérifie la session et transmet l'utilisateur dans l'en-tête `x-user-id`. Toute création, modification ou suppression de route met à jour son entrée **dans le même diff que le code**, selon le gabarit ci-dessous. En cas d'écart, le code fait foi : corrige l'entrée.
 
 ## Gabarit d'entrée
 
@@ -28,13 +28,14 @@ Catalogue des routes internes de market-service (port 8001, données yahoo-finan
 - [`GET /api/market/search`](#get-apimarketsearch)
 - [`GET /api/market/details/:id`](#get-apimarketdetailsid)
 - [`GET /api/market/defaults`](#get-apimarketdefaults)
+- [`GET /api/market/closes`](#get-apimarketcloses)
 
 ## Conventions communes
 
 - **Chemin** : identique de bout en bout. Web `apiFetch("/market/search?…")` → core-backend `/api/market/search` → market-service `/api/market/search`.
-- **Auth** : aucune vérification ici ; ne pas exposer ce service publiquement. `x-user-id` est posé par le proxy mais aucune route ne le lit aujourd'hui.
-- **Erreurs** : `AppError` → `{ "error": "<message>", ...data }` avec son statut ; toute autre exception (erreur yahoo-finance2) → `500 { "error": "Internal server error" }`. Seules les routes `GET` ci-dessous existent : une autre méthode ou un autre chemin reçoit la 404 par défaut d'Express (HTML).
-- **Types** : schémas zod d'entrée propres au service dans `interfaces/market.interface.ts` (`searchMarketSchema`, `marketIdSchema`) ; `periodSchema` et types de réponse (`MarketData`, `MarketAsset`, `MarketDetails`, `Period`), unités comprises, dans `@trading-plateform/contracts` (`src/market.ts`), partagés avec le web ; pagination (`paginationQuerySchema`, `Paginated<T>`) depuis le même package. Dates sérialisées en ISO 8601. Prix dans la devise de cotation du symbole, sans conversion.
+- **Auth** : pas de session ici, mais `x-internal-key` (valeur `INTERNAL_API_KEY`, posée par le proxy) est exigée sur toutes les routes sauf `GET /health` → sinon `401 { "error": "Unauthorized" }`. Ne pas exposer ce service publiquement. `GET /health` → `200 { "status": "ok" }`. Port : `env.PORT` (défaut 8001). `x-user-id` est posé par le proxy mais aucune route ne le lit aujourd'hui.
+- **Erreurs** : `AppError` → `{ "error": "<message anglais>", "code": "<CODE>", ...data }` avec son statut (mêmes codes que core-backend, voir son `API.md`) ; toute autre exception (erreur yahoo-finance2) → `500 { "error": "Internal server error", "code": "INTERNAL_ERROR" }`. Seules les routes `GET` ci-dessous existent : une autre méthode ou un autre chemin reçoit la 404 par défaut d'Express (HTML).
+- **Types** : schémas zod d'entrée propres au service dans `interfaces/market.interface.ts` (`searchMarketSchema`, `marketIdSchema`, `dailyClosesQuerySchema`) ; `periodSchema` et types de réponse (`MarketData`, `MarketAsset`, `MarketDetails`, `DailyCloses`, `Period`), unités comprises, dans `@trading-plateform/contracts` (`src/market.ts`), partagés avec le web ; pagination (`paginationQuerySchema`, `Paginated<T>`) depuis le même package. Dates sérialisées en ISO 8601. Prix dans la devise de cotation du symbole, sans conversion.
 - **Logos** : `logoUrl` vaut `https://img.logo.dev/ticker/<symbol>?token=…&size=64` si `LOGO_DEV_TOKEN` est défini (`env.ts`), sinon absent.
 
 ### GET /api/market/search
@@ -45,7 +46,7 @@ Catalogue des routes internes de market-service (port 8001, données yahoo-finan
   ```json
   [{ "symbol": "AAPL", "name": "Apple Inc.", "exchange": "NMS", "assetType": "EQUITY", "logoUrl": "https://img.logo.dev/ticker/AAPL?token=…&size=64" }]
   ```
-- **Erreurs** : `400 { "error": "Query must be at least 2 characters" }` → `query` absent ou trop court ; `500` → erreur yahoo-finance2.
+- **Erreurs** : `400 { "error": "Invalid query", "code": "INVALID_QUERY" }` → `query` absent ou trop court ; `500` → erreur yahoo-finance2.
 - **Effets** : aucun.
 - **Appelant** : `getSearchAssets(query)` de `apps/web/src/features/market/api.ts`, hook `useMarketSearch(query)` (clé `["market", "search", query]`, actif si `query.length >= MIN_SEARCH_LENGTH`, soit 3) ; utilisé par `SymbolPicker` (donc `SymbolSearch` et `SymbolsField`).
 - **Source** : `routes/market/market.routes.ts`, `controller/market.controller.ts` (`searchMarket`), `services/market.service.ts`, `repositories/market.repository.ts`.
@@ -60,7 +61,7 @@ Catalogue des routes internes de market-service (port 8001, données yahoo-finan
   ```json
   [{ "date": "2026-10-28T13:30:00.000Z", "price": 268.41 }]
   ```
-- **Erreurs** : `400 { "error": "Id must be provided" }` → `id` vide après `trim` ; `400 { "error": "Invalid period", "issues": [ZodIssue] }` → `period` absent ou hors liste ; `500` → symbole inconnu ou erreur yahoo-finance2.
+- **Erreurs** : `400 { "error": "Invalid query", "code": "INVALID_QUERY" }` → `id` vide après `trim` ; `400 { "error": "Invalid query", "code": "INVALID_QUERY", "issues": [ZodIssue] }` → `period` absent ou hors liste ; `500` → symbole inconnu ou erreur yahoo-finance2.
 - **Effets** : aucun.
 - **Appelant** : `getAssetsDetails(symbol, period)` de `apps/web/src/features/market/api.ts`, hook `useMarketDetails(symbol, period)` (clé `["market", "detail", symbol, period]`, `staleTime` 60 s, `keepPreviousData`) ; utilisé par `PriceChart` (`features/market/price-chart.tsx`).
 - **Source** : `routes/market/market.routes.ts`, `controller/market.controller.ts` (`getMarketDetails`), `services/market.service.ts`, `repositories/market.repository.ts`.
@@ -88,7 +89,22 @@ Catalogue des routes internes de market-service (port 8001, données yahoo-finan
     "pageSize": 5
   }
   ```
-- **Erreurs** : `400 { "error": "Invalid pagination", "issues": [ZodIssue] }` → `page` ou `pageSize` non entier ou hors bornes ; `500` seulement sur exception inattendue (échecs par symbole absorbés).
+- **Erreurs** : `400 { "error": "Invalid query", "code": "INVALID_QUERY", "issues": [ZodIssue] }` → `page` ou `pageSize` non entier ou hors bornes ; `500` seulement sur exception inattendue (échecs par symbole absorbés).
 - **Effets** : aucun.
 - **Appelant** : `getDefaultAssets(params)` de `apps/web/src/features/market/api.ts`, hook `useDefaultAssets(params)` (clé `["market", "list", params]`, `keepPreviousData`, rafraîchi toutes les 30 s) ; utilisé par `MarketList` (`features/market/market-list.tsx`).
 - **Source** : `routes/market/market.routes.ts`, `controller/market.controller.ts` (`getDefaultsAssets`), `services/market.service.ts` (`getDefaultsMarketAssets`, découpage de la page), `repositories/market.repository.ts` (`getAssets`), `constants/market.constants.ts`.
+
+### GET /api/market/closes
+
+- **Auth** : `x-internal-key` (comme toute route). Appelée par **backtest-engine** directement, pas par le web ni le proxy.
+- **Entrée** :
+  - query : `symbols` (liste séparée par des virgules, 1 à `MAX_CLOSES_SYMBOLS` = 50, doublons retirés), `start` et `end` (ISO UTC avec `Z`, `start` < `end`).
+- **Réponse** : `200`, `DailyCloses` : pour chaque symbole demandé, ses clôtures journalières triées par date, dans la devise de cotation. `date` = jour de cotation dans le fuseau de la place (`YYYY-MM-DD`), jamais en UTC ; clôtures ajustées des splits, pas des dividendes ; jours sans clôture omis. Jamais mis en cache.
+  ```json
+  // GET /api/market/closes?symbols=AAPL&start=2024-01-02T00:00:00.000Z&end=2024-01-10T00:00:00.000Z
+  { "AAPL": [{ "date": "2024-01-02", "close": 185.64 }, { "date": "2024-01-03", "close": 184.25 }] }
+  ```
+- **Erreurs** : `400 { "error": "Invalid query", "code": "INVALID_QUERY", "issues": [ZodIssue] }` → `symbols` vide ou trop long, date non ISO, `start` ≥ `end` ; `500` → symbole inconnu ou erreur yahoo-finance2.
+- **Effets** : aucun.
+- **Appelant** : `MarketRepository.getDailyCloses` de `apps/backtest-engine/repositories/market.repository.ts`.
+- **Source** : `routes/market/market.routes.ts`, `controller/market.controller.ts` (`getDailyCloses`), `services/market.service.ts`, `repositories/market.repository.ts` (`getDailyCloses`), `interfaces/market.interface.ts` (`dailyClosesQuerySchema`).

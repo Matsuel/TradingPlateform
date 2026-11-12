@@ -4,6 +4,7 @@ import type { User } from "better-auth"
 import { BadgeCheckIcon, ChevronsUpDownIcon, LogOutIcon } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { useTranslations } from "next-intl"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
     DropdownMenu,
@@ -36,6 +37,7 @@ function UserIdentity({ user }: { user: User }) {
 
 /** Profil en pied de sidebar : menu avec le lien vers le compte et la déconnexion (retour à la connexion). */
 export function NavUser({ user }: { user: User }) {
+    const t = useTranslations("navigation")
     const { isMobile } = useSidebar()
     const router = useRouter()
 
@@ -67,12 +69,12 @@ export function NavUser({ user }: { user: User }) {
                         <DropdownMenuSeparator />
                         <DropdownMenuItem render={<Link href={routes.settings} />}>
                             <BadgeCheckIcon />
-                            Compte
+                            {t("account")}
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem onClick={logout}>
                             <LogOutIcon />
-                            Se déconnecter
+                            {t("logout")}
                         </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>

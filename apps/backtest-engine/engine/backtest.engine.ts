@@ -1,5 +1,6 @@
-import type { EquityPoint, Trade, TradeSide } from "@trading-plateform/contracts";
+import type { EquityPoint } from "@trading-plateform/contracts";
 import { periodKey } from "@trading-plateform/utils";
+import { createPortfolio } from "./backtest.portfolio";
 import BacktestError from "../errors/backtest.error";
 import type { BacktestOutcome, BacktestParams, PriceSeries, TwrPoint } from "../interfaces/backtest.interface";
 import { annualizedReturn, annualizedVolatility, createDrawdownTracker, RISK_FREE_RATE, round, sharpeRatio } from "./backtest.utils";
@@ -12,9 +13,6 @@ const roundOrNull = (ratio: number | null) => (ratio === null ? null : round(rat
 const excess = (strategy: number | null, benchmark: number | null) =>
     strategy === null || benchmark === null ? null : round(strategy - benchmark, 6);
 
-// Écart minimal à la cible, devise saisie, pour passer un ordre de rebalancement : un ordre arrondi à 0 € serait invalide (amount > 0)
-const MIN_REBALANCE_ORDER = 0.01;
-
 /**
  * Calendrier partagé par les simulations d'un backtest : jours de cotation des symboles de l'allocation (`YYYY-MM-DD`,
  * triés), à partir du premier jour où l'allocation et `alignedSymbols` (le benchmark) ont tous un cours. Les jours où seul
@@ -26,7 +24,7 @@ const MIN_REBALANCE_ORDER = 0.01;
 function buildCalendar(prices: PriceSeries, strategySymbols: string[], alignedSymbols: string[]): string[] {
     const firstDates = [...strategySymbols, ...alignedSymbols].map((symbol) => {
         const first = prices[symbol]?.[0];
-        if (!first) throw new BacktestError(`No market data for ${symbol}`);
+        if (!first) throw new BacktestError("NO_MARKET_DATA", `No market data for ${symbol}`);
         return first.date;
     });
     const start = firstDates.sort().at(-1)!;
@@ -55,68 +53,34 @@ function buildCalendar(prices: PriceSeries, strategySymbols: string[], alignedSy
  * Lève `BacktestError` si rien n'a été investi (calendrier vide).
  */
 function simulate(params: BacktestParams, prices: PriceSeries, dates: string[]): Simulation {
-    const { allocations, investmentMode, initialAmount, recurringAmount, investmentFrequency, rebalanceFrequency, feeRate } = params;
-    const symbols = allocations.map((allocation) => allocation.symbol);
-
-    // Prochain cours non lu de chaque symbole (séries triées par date)
-    const cursors = new Map<string, number>(symbols.map((symbol) => [symbol, 0]));
-    const lastClose = new Map<string, number>();
-    const shares = new Map<string, number>(symbols.map((symbol) => [symbol, 0]));
+    const { investmentMode, initialAmount, recurringAmount, investmentFrequency, rebalanceFrequency } = params;
+    const portfolio = createPortfolio(params, prices);
     const equityCurve: EquityPoint[] = [];
-    const trades: Trade[] = [];
-    const recurring = investmentMode === "RECURRING" ? recurringAmount ?? 0 : 0;
-    const portfolioValue = () => symbols.reduce((sum, symbol) => sum + shares.get(symbol)! * lastClose.get(symbol)!, 0);
     const drawdown = createDrawdownTracker(dates[0]);
     const twr: TwrPoint[] = [];
     // Cumuls non arrondis : seules les valeurs publiées le sont
     let invested = 0;
-    let fees = 0;
     let rebalances = 0;
     let previousPeriod: string | null = null;
     let previousRebalancePeriod: string | null = null;
     let previousValue = 0;
 
-    /** Exécute un ordre au dernier cours connu et renvoie le montant net de frais (investi pour un achat, encaissé pour une vente). */
-    const placeOrder = (date: string, symbol: string, side: TradeSide, amount: number) => {
-        const fee = amount * feeRate;
-        const price = lastClose.get(symbol)!;
-        const quantity = side === "BUY" ? (amount - fee) / price : amount / price;
-        shares.set(symbol, shares.get(symbol)! + (side === "BUY" ? quantity : -quantity));
-        fees += fee;
-        trades.push({
-            date,
-            symbol,
-            side,
-            price: round(price, 4),
-            quantity: round(quantity, 6),
-            amount: round(amount, 2),
-            fee: round(fee, 2),
-        });
-        return amount - fee;
-    };
-
     for (const date of dates) {
-        for (const symbol of symbols) {
-            const series = prices[symbol]!;
-            let cursor = cursors.get(symbol)!;
-            while (cursor < series.length && series[cursor]!.date <= date) lastClose.set(symbol, series[cursor++]!.close);
-            cursors.set(symbol, cursor);
-        }
+        portfolio.advance(date);
 
         // Rendement du jour mesuré avant le versement : un apport n'est pas une performance
-        const dailyReturn = previousValue > 0 ? portfolioValue() / previousValue : 1;
+        const dailyReturn = previousValue > 0 ? portfolio.value() / previousValue : 1;
         const currentDrawdown = previousValue > 0 ? drawdown.record(dailyReturn, date) : 0;
         twr.push({ date, index: (twr.at(-1)?.index ?? 1) * dailyReturn });
 
         const period = periodKey(date, investmentFrequency);
         const isFirstDay = previousPeriod === null;
-        const contribution =
-            (isFirstDay ? initialAmount : 0) +
-            (period !== previousPeriod ? recurring : 0);
+        const recurring = investmentMode === "RECURRING" && period !== previousPeriod ? recurringAmount ?? 0 : 0;
+        const contribution = (isFirstDay ? initialAmount : 0) + recurring;
         previousPeriod = period;
 
         if (contribution > 0) {
-            for (const { symbol, weight } of allocations) placeOrder(date, symbol, "BUY", contribution * weight);
+            portfolio.invest(date, contribution);
             invested += contribution;
         }
 
@@ -125,41 +89,34 @@ function simulate(params: BacktestParams, prices: PriceSeries, dates: string[]):
         const isRebalanceDay = !isFirstDay && rebalancePeriod !== previousRebalancePeriod;
         previousRebalancePeriod = rebalancePeriod;
 
-        if (isRebalanceDay) {
-            const value = portfolioValue();
-            // Écart à la cible, devise saisie : > 0 ligne surpondérée, < 0 sous-pondérée
-            const gaps = allocations.map(({ symbol, weight }) => ({
-                symbol,
-                gap: shares.get(symbol)! * lastClose.get(symbol)! - weight * value,
-            }));
-            const overweight = gaps.filter(({ gap }) => gap >= MIN_REBALANCE_ORDER);
-            const underweight = gaps.filter(({ gap }) => -gap >= MIN_REBALANCE_ORDER);
+        if (isRebalanceDay && portfolio.rebalance(date)) rebalances++;
 
-            if (overweight.length > 0 && underweight.length > 0) {
-                let proceeds = 0;
-                for (const { symbol, gap } of overweight) proceeds += placeOrder(date, symbol, "SELL", gap);
-                const shortfall = underweight.reduce((sum, { gap }) => sum - gap, 0);
-                for (const { symbol, gap } of underweight) placeOrder(date, symbol, "BUY", (proceeds * -gap) / shortfall);
-                rebalances++;
-            }
-        }
-
-        previousValue = portfolioValue();
+        previousValue = portfolio.value();
         equityCurve.push({ date, value: round(previousValue, 2), invested: round(invested, 2), drawdown: round(currentDrawdown, 6) });
     }
 
-    if (invested === 0) throw new BacktestError("Nothing was invested");
+    if (invested === 0) throw new BacktestError("NOTHING_INVESTED", "Nothing was invested");
 
     const finalValue = equityCurve.at(-1)!.value;
 
     return {
         finalValue,
         totalInvested: round(invested, 2),
-        totalFees: round(fees, 2),
+        totalFees: round(portfolio.fees, 2),
         profit: round(finalValue - invested, 2),
         totalReturn: round((finalValue - invested) / invested, 6),
-        totalTrades: trades.length,
+        totalTrades: portfolio.trades.length,
         rebalanceCount: rebalances,
+        ...riskMetrics(drawdown, twr),
+        equityCurve,
+        trades: portfolio.trades,
+        holdings: portfolio.holdings(),
+    };
+}
+
+/** Métriques de risque et de rendement annualisé, calculées sur l'indice TWR (D3 à D6) et le suivi de drawdown. */
+function riskMetrics(drawdown: ReturnType<typeof createDrawdownTracker>, twr: TwrPoint[]) {
+    return {
         maxDrawdown: round(drawdown.maxDrawdown, 6),
         maxDrawdownDate: drawdown.maxDrawdownDate,
         maxDrawdownPeakDate: drawdown.maxDrawdownPeakDate,
@@ -168,13 +125,6 @@ function simulate(params: BacktestParams, prices: PriceSeries, dates: string[]):
         cagr: roundOrNull(annualizedReturn(twr)),
         volatility: roundOrNull(annualizedVolatility(twr)),
         sharpeRatio: roundOrNull(sharpeRatio(twr)),
-        equityCurve,
-        trades,
-        holdings: symbols.map((symbol) => ({
-            symbol,
-            quantity: round(shares.get(symbol)!, 6),
-            value: round(shares.get(symbol)! * lastClose.get(symbol)!, 2),
-        })),
     };
 }
 

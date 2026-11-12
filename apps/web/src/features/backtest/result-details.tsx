@@ -1,13 +1,14 @@
 "use client"
 
 import { ChevronRight } from "lucide-react"
+import { useTranslations } from "next-intl"
 import type { ReactNode } from "react"
 import { DataTable } from "@/components/data-table/data-table"
 import { Card, CardContent } from "@/components/ui/card"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
-import { formatPrice } from "@/lib/format"
+import { useFormatters } from "@/lib/format"
 import { BacktestAssumptions } from "./assumptions"
-import { holdingColumns } from "./column"
+import { useHoldingColumns } from "./column"
 import { BACKTEST_CURRENCY } from "./constants"
 import { ExecutionList } from "./execution-history"
 import type { BacktestDetails } from "./types"
@@ -23,6 +24,8 @@ function DetailSection({
     defaultOpen?: boolean
     children: ReactNode
 }) {
+    const t = useTranslations("backtest.details")
+
     return (
         <Collapsible defaultOpen={defaultOpen} className="border-b last:border-b-0">
             <CollapsibleTrigger className="group flex w-full items-center gap-3 py-3.5 text-left">
@@ -30,10 +33,10 @@ function DetailSection({
                 <span className="text-body-semibold">{title}</span>
                 <span className="min-w-0 flex-1 truncate text-small text-muted-foreground">{summary}</span>
                 <span className="text-small font-medium text-muted-foreground group-data-[panel-open]:hidden">
-                    Afficher
+                    {t("show")}
                 </span>
                 <span className="hidden text-small font-medium text-muted-foreground group-data-[panel-open]:inline">
-                    Masquer
+                    {t("hide")}
                 </span>
             </CollapsibleTrigger>
             <CollapsibleContent className="pb-4 pl-7">{children}</CollapsibleContent>
@@ -46,6 +49,9 @@ function DetailSection({
  * Sans résultat, l'historique est déplié : c'est la seule information disponible.
  */
 export function ResultDetails({ backtest }: { backtest: BacktestDetails }) {
+    const { formatPrice } = useFormatters()
+    const t = useTranslations("backtest.details")
+    const holdingColumns = useHoldingColumns()
     const { result, executions } = backtest
 
     return (
@@ -54,7 +60,7 @@ export function ResultDetails({ backtest }: { backtest: BacktestDetails }) {
                 {result && (
                     <>
                         <DetailSection
-                            title="Positions finales"
+                            title={t("positions")}
                             summary={result.holdings
                                 .map((h) => `${h.symbol} ${formatPrice(h.value, BACKTEST_CURRENCY)}`)
                                 .join(" · ")}
@@ -63,17 +69,17 @@ export function ResultDetails({ backtest }: { backtest: BacktestDetails }) {
                                 rows={result.holdings}
                                 columns={holdingColumns}
                                 rowKey={(h) => h.symbol}
-                                emptyMessage="Positions non disponibles pour ce résultat."
+                                emptyMessage={t("positionsEmpty")}
                             />
                         </DetailSection>
-                        <DetailSection title="Hypothèses" summary="Conditions de la simulation">
+                        <DetailSection title={t("assumptions")} summary={t("assumptionsSummary")}>
                             <BacktestAssumptions backtest={backtest} result={result} />
                         </DetailSection>
                     </>
                 )}
                 <DetailSection
-                    title="Historique d’exécution"
-                    summary={`${executions.length} exécution${executions.length > 1 ? "s" : ""}`}
+                    title={t("history")}
+                    summary={t("historyCount", { count: executions.length })}
                     defaultOpen={!result}
                 >
                     <ExecutionList executions={executions} />

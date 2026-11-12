@@ -1,6 +1,7 @@
 "use client"
 
 import { AlertCircle } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { SymbolCell } from "@/components/data-table/cells"
 import { CommandEmpty, CommandGroup, CommandItem } from "@/components/ui/command"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -54,11 +55,13 @@ export function SearchResults({
     query: string
     onPick: (item: MarketData) => void
 }) {
+    const t = useTranslations("components.symbolSearch")
+
     switch (state.kind) {
         case "tooShort":
             return (
                 <p className="py-6 text-center text-body text-muted-foreground">
-                    Saisis au moins {MIN_SEARCH_LENGTH} caractères.
+                    {t("tooShort", { count: MIN_SEARCH_LENGTH })}
                 </p>
             )
         case "searching":
@@ -67,14 +70,14 @@ export function SearchResults({
             return (
                 <div className="flex flex-col items-center gap-2 py-6 text-center">
                     <AlertCircle className="size-5 text-destructive" />
-                    <p className="text-body-medium">La recherche a échoué</p>
+                    <p className="text-body-medium">{t("failed")}</p>
                 </div>
             )
         case "empty":
-            return <CommandEmpty>Aucun résultat pour « {query} ».</CommandEmpty>
+            return <CommandEmpty>{t("empty", { query })}</CommandEmpty>
         case "results":
             return (
-                <CommandGroup heading="Résultats">
+                <CommandGroup heading={t("results")}>
                     {state.results.map((item) => (
                         <CommandItem
                             key={`${item.symbol}-${item.exchange}`}

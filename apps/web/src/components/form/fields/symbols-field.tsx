@@ -1,6 +1,7 @@
 "use client"
 
 import { X } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { useState } from "react"
 import type { FieldValues } from "react-hook-form"
 import { SymbolPicker } from "@/components/symbol-picker"
@@ -11,9 +12,10 @@ import { AppField, type BaseProps } from "../field"
 /** Champ de formulaire : liste de symboles (string[]) affichés en chips, ajout via recherche. */
 export function SymbolsField<T extends FieldValues>({
     max,
-    addLabel = "Ajouter",
+    addLabel,
     ...base
 }: BaseProps<T> & { max?: number; addLabel?: string }) {
+    const t = useTranslations("components.symbolsField")
     const [open, setOpen] = useState(false)
 
     return (
@@ -32,7 +34,7 @@ export function SymbolsField<T extends FieldValues>({
                                         type="button"
                                         variant="ghost"
                                         size="icon-xs"
-                                        aria-label={`Retirer ${symbol}`}
+                                        aria-label={t("remove", { symbol })}
                                         onClick={() => field.onChange(symbols.filter((s) => s !== symbol))}
                                     >
                                         <X />
@@ -40,14 +42,14 @@ export function SymbolsField<T extends FieldValues>({
                                 </Badge>
                             ))}
                             <Button type="button" variant="outline" disabled={full} onClick={() => setOpen(true)}>
-                                {addLabel}
+                                {addLabel ?? t("add")}
                             </Button>
                         </div>
                         <SymbolPicker
                             open={open}
                             onOpenChange={setOpen}
                             exclude={symbols}
-                            title="Ajouter un symbole"
+                            title={t("pickerTitle")}
                             onSelect={(item) => field.onChange([...symbols, item.symbol])}
                         />
                     </>

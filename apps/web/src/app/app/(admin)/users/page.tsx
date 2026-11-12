@@ -1,12 +1,19 @@
 import type { Metadata } from "next"
+import { useTranslations } from "next-intl"
+import { getTranslations } from "next-intl/server"
 import { PageHeader, PageLayout } from "@/components/page-layout"
 
-export const metadata: Metadata = { title: "Utilisateurs" }
+export async function generateMetadata(): Promise<Metadata> {
+    const t = await getTranslations("navigation.tabs")
+    return { title: t("users") }
+}
 
 export default function UsersPage() {
+    const t = useTranslations()
+
     return (
         <PageLayout>
-            <PageHeader title="Utilisateurs" description="Gérez les comptes, les rôles et les accès à la plateforme." />
+            <PageHeader title={t("navigation.tabs.users")} description={t("pages.users.description")} />
         </PageLayout>
     )
 }

@@ -1,15 +1,8 @@
+import { useTranslations } from "next-intl"
 import { Dash, orDash } from "@/components/dash"
 import { DetailRow } from "@/components/detail-row"
-import { formatDate, formatDayRange, formatPercent } from "@/lib/format"
-import {
-    BACKTEST_CURRENCY,
-    BACKTEST_DISCLAIMER,
-    dataProviderLabels,
-    executionRuleLabels,
-    NO_BENCHMARK_LABEL,
-    priceTypeLabels,
-    rebalanceFrequencyLabels,
-} from "./constants"
+import { useFormatters } from "@/lib/format"
+import { BACKTEST_CURRENCY, dataProviderLabels } from "./constants"
 import type { Backtest, BacktestResult } from "./types"
 import { fromDecimal } from "./utils"
 
@@ -21,43 +14,45 @@ const FINGERPRINT_PREVIEW_LENGTH = 12
  * suivie de l'avertissement. Taux sans risque, règle et source absents des résultats antérieurs : `<Dash />`.
  */
 export function BacktestAssumptions({ backtest, result }: { backtest: Backtest; result: BacktestResult }) {
+    const { formatDate, formatDayRange, formatPercent } = useFormatters()
+    const t = useTranslations("backtest")
     const { executionRule, dataSource } = result
 
     return (
         <div className="flex flex-col gap-3">
             <dl className="grid gap-x-12 text-body sm:grid-cols-2">
-                <DetailRow divided label="Période">
+                <DetailRow divided label={t("assumptions.period")}>
                     {formatDayRange(backtest.startDate, backtest.endDate)}
                 </DetailRow>
-                <DetailRow divided label="Devise">
+                <DetailRow divided label={t("assumptions.currency")}>
                     {BACKTEST_CURRENCY}
                 </DetailRow>
-                <DetailRow divided label="Frais" hint="feeRate">
-                    {formatPercent(Number(backtest.feeRate))} par ordre, achat et vente
+                <DetailRow divided label={t("assumptions.fees")} hint="feeRate">
+                    {t("assumptions.feesValue", { rate: formatPercent(Number(backtest.feeRate)) })}
                 </DetailRow>
-                <DetailRow divided label="Rebalancement" hint="rebalanceFrequency">
-                    {rebalanceFrequencyLabels[backtest.rebalanceFrequency]}
+                <DetailRow divided label={t("assumptions.rebalancing")} hint="rebalanceFrequency">
+                    {t(`rebalanceFrequency.${backtest.rebalanceFrequency}`)}
                 </DetailRow>
-                <DetailRow divided label="Benchmark" hint="benchmark">
-                    {backtest.benchmarkSymbol ?? NO_BENCHMARK_LABEL}
+                <DetailRow divided label={t("assumptions.benchmark")} hint="benchmark">
+                    {backtest.benchmarkSymbol ?? t("noBenchmark")}
                 </DetailRow>
-                <DetailRow divided label="Taux sans risque" hint="riskFreeRate">
+                <DetailRow divided label={t("assumptions.riskFree")} hint="riskFreeRate">
                     {orDash(fromDecimal(result.riskFreeRate), formatPercent)}
                 </DetailRow>
-                <DetailRow divided label="Règle d’exécution" hint="executionRule">
-                    {executionRule ? executionRuleLabels[executionRule] : <Dash />}
+                <DetailRow divided label={t("assumptions.executionRule")} hint="executionRule">
+                    {executionRule ? t(`executionRule.${executionRule}`) : <Dash />}
                 </DetailRow>
-                <DetailRow divided label="Source des données" hint="dataSource">
+                <DetailRow divided label={t("assumptions.dataSource")} hint="dataSource">
                     {dataSource ? (
-                        `${dataProviderLabels[dataSource.provider]} · ${priceTypeLabels[dataSource.priceType]}`
+                        `${dataProviderLabels[dataSource.provider]} · ${t(`priceType.${dataSource.priceType}`)}`
                     ) : (
                         <Dash />
                     )}
                 </DetailRow>
-                <DetailRow divided label="Données récupérées le">
+                <DetailRow divided label={t("assumptions.fetchedAt")}>
                     {dataSource ? formatDate(dataSource.fetchedAt) : <Dash />}
                 </DetailRow>
-                <DetailRow divided label="Empreinte des données" hint="dataFingerprint">
+                <DetailRow divided label={t("assumptions.fingerprint")} hint="dataFingerprint">
                     {dataSource ? (
                         <span className="font-mono" title={dataSource.fingerprint}>
                             {dataSource.fingerprint.slice(0, FINGERPRINT_PREVIEW_LENGTH)}
@@ -67,7 +62,7 @@ export function BacktestAssumptions({ backtest, result }: { backtest: Backtest; 
                     )}
                 </DetailRow>
             </dl>
-            <p className="text-small text-muted-foreground">{BACKTEST_DISCLAIMER}</p>
+            <p className="text-small text-muted-foreground">{t("disclaimer")}</p>
         </div>
     )
 }

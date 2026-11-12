@@ -52,6 +52,8 @@ export interface BacktestExecution {
     startedAt: string | null
     finishedAt: string | null
     error: string | null
+    // Cause stable de l'échec (`ExecutionErrorCode`), traduite par le web ; absente ou null pour les échecs antérieurs
+    errorCode?: string | null
     // Decimal sérialisé en string, fraction (0,342 = 34,2 %) ; cagr absent ou null pour les résultats antérieurs
     result?: { totalReturn: string | null; totalTrades: number; cagr?: string | null } | null
 }

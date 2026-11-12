@@ -1,25 +1,33 @@
 import { Dash, orDash } from "@/components/dash"
+import type { HintDetail } from "@/components/info-hint"
 import type { GlossaryKey } from "@/constants/glossary"
-import { formatPercent, formatRatio, formatSharpe } from "@/lib/format"
-import type { Benchmark } from "./types"
-import { formatAmount, formatRecovery, fromDecimal } from "./utils"
+import type { Formatters } from "@/lib/format"
+import { type MetricColumn, type MetricRow } from "./metric-block"
+import type { BacktestResult, Benchmark } from "./types"
+import { type BacktestTranslator, formatAmount, formatRecovery, fromDecimal } from "./utils"
 
 export type Metric = "cagr" | "totalReturn" | "finalValue" | "volatility" | "sharpeRatio" | "maxDrawdown"
 
-type MetricDefinition = { label: string; hint: GlossaryKey; format: (value: number) => string }
+type MetricDefinition = { hint: GlossaryKey; format: (f: Formatters, value: number) => string }
 
-/** Libellé, entrée du glossaire et format de chaque métrique d'un résultat, communs au détail et à la comparaison. */
+/** Entrée du glossaire et format de chaque métrique d'un résultat, communs au détail et à la comparaison. */
 export const metricDefinitions: Record<Metric, MetricDefinition> = {
-    cagr: { label: "CAGR", hint: "cagr", format: formatRatio },
-    totalReturn: { label: "Rendement total", hint: "totalReturn", format: formatRatio },
-    finalValue: { label: "Valeur finale", hint: "finalValue", format: formatAmount },
-    volatility: { label: "Volatilité", hint: "volatility", format: formatPercent },
-    sharpeRatio: { label: "Sharpe", hint: "sharpeRatio", format: formatSharpe },
-    maxDrawdown: { label: "Max drawdown", hint: "maxDrawdown", format: formatRatio },
+    cagr: { hint: "cagr", format: (f, v) => f.formatRatio(v) },
+    totalReturn: { hint: "totalReturn", format: (f, v) => f.formatRatio(v) },
+    finalValue: { hint: "finalValue", format: formatAmount },
+    volatility: { hint: "volatility", format: (f, v) => f.formatPercent(v) },
+    sharpeRatio: { hint: "sharpeRatio", format: (f, v) => f.formatSharpe(v) },
+    maxDrawdown: { hint: "maxDrawdown", format: (f, v) => f.formatRatio(v) },
 }
 
-/** Libellé et aide de la ligne « Récupération », sans format : la valeur vient de `resultRecovery` / `benchmarkRecovery`. */
-export const recoveryDefinition: Pick<MetricDefinition, "label" | "hint"> = { label: "Récupération", hint: "recovery" }
+/** Libellé (`metrics.<métrique>`) et aide d'une ligne de métrique. */
+export const metricHead = (t: BacktestTranslator, metric: Metric) => ({
+    label: t(`metrics.${metric}`),
+    hint: metricDefinitions[metric].hint,
+})
+
+/** Libellé et aide de la ligne « Récupération » : la valeur vient de `resultRecovery` / `benchmarkRecovery`. */
+export const recoveryHead = (t: BacktestTranslator) => ({ label: t("metrics.recovery"), hint: "recovery" as const })
 
 // Champs d'un résultat (détail ou comparaison) : Decimal sérialisé, null ou absent pour un résultat antérieur au champ
 type ResultFields = Partial<Record<Metric, string | null>> & {
@@ -37,17 +45,45 @@ export function withBenchmark<T>(
 }
 
 /** Métrique d'un résultat, formatée ; `<Dash />` si elle manque. */
-export const resultValue = (result: ResultFields, metric: Metric) =>
-    orDash(fromDecimal(result[metric]), metricDefinitions[metric].format)
+export const resultValue = (f: Formatters, result: ResultFields, metric: Metric) =>
+    orDash(fromDecimal(result[metric]), (v) => metricDefinitions[metric].format(f, v))
 
 /** Métrique d'un benchmark (nombre du moteur), formatée ; `<Dash />` si elle manque (`cagr` sous deux points). */
-export const benchmarkValue = (benchmark: Benchmark, metric: Metric) =>
-    orDash(benchmark[metric], metricDefinitions[metric].format)
+export const benchmarkValue = (f: Formatters, benchmark: Benchmark, metric: Metric) =>
+    orDash(benchmark[metric], (v) => metricDefinitions[metric].format(f, v))
 
 /** Récupération d'un résultat (`formatRecovery`) ; `<Dash />` pour un résultat antérieur au calcul. */
-export const resultRecovery = (result: ResultFields) =>
-    formatRecovery(result.recoveryDays, fromDecimal(result.maxDrawdown), result.maxDrawdownPeakDate != null) ?? <Dash />
+export const resultRecovery = (f: Formatters, t: BacktestTranslator, result: ResultFields) =>
+    formatRecovery(f, t, result.recoveryDays, fromDecimal(result.maxDrawdown), result.maxDrawdownPeakDate != null) ?? (
+        <Dash />
+    )
 
 /** Récupération d'un benchmark : son plus haut est toujours daté par le moteur. */
-export const benchmarkRecovery = (benchmark: Benchmark) =>
-    formatRecovery(benchmark.recoveryDays, benchmark.maxDrawdown, true) ?? <Dash />
+export const benchmarkRecovery = (f: Formatters, t: BacktestTranslator, benchmark: Benchmark) =>
+    formatRecovery(f, t, benchmark.recoveryDays, benchmark.maxDrawdown, true) ?? <Dash />
+
+/** Colonnes d'un bloc d'indicateurs : le portefeuille puis, avec un benchmark, son symbole. */
+export const resultColumns = (t: BacktestTranslator, { benchmark }: BacktestResult): MetricColumn[] =>
+    withBenchmark([{ label: t("result.portfolio") }], benchmark, (bm) => ({ label: bm.symbol }))
+
+/** Ligne d'une métrique : valeur du portefeuille puis, avec un benchmark, la sienne. */
+export function metricRow(
+    f: Formatters,
+    t: BacktestTranslator,
+    result: BacktestResult,
+    metric: Metric,
+    details?: HintDetail[],
+): MetricRow {
+    const values = withBenchmark([resultValue(f, result, metric)], result.benchmark, (bm) =>
+        benchmarkValue(f, bm, metric),
+    )
+    return { ...metricHead(t, metric), details, values }
+}
+
+/** Ligne « Récupération » : portefeuille puis, avec un benchmark, le sien. */
+export function recoveryRow(f: Formatters, t: BacktestTranslator, result: BacktestResult): MetricRow {
+    return {
+        ...recoveryHead(t),
+        values: withBenchmark([resultRecovery(f, t, result)], result.benchmark, (bm) => benchmarkRecovery(f, t, bm)),
+    }
+}

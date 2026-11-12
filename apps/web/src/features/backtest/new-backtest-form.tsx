@@ -2,10 +2,12 @@
 
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useRouter } from "next/navigation"
+import { useTranslations } from "next-intl"
 import { FormProvider, useForm, useWatch } from "react-hook-form"
 import { setFormIssues } from "@/components/form/form-issues"
 import { Button } from "@/components/ui/button"
 import { FieldError } from "@/components/ui/field"
+import { useApiErrorMessages } from "@/lib/api-error"
 import { routes } from "@/lib/routes"
 import {
     DEFAULT_BENCHMARK_SYMBOL,
@@ -17,15 +19,17 @@ import {
 } from "./constants"
 import { useCreateBacktest } from "./hook"
 import { BacktestPreviewSummary } from "./preview-summary"
-import { type BacktestValues, backtestSchema } from "./schema"
+import { type BacktestValues, createBacktestFormSchema } from "./schema"
 import { AllocationSection, GeneralSection } from "./sections"
 import { allocationTotal } from "./utils"
 
 export function NewBacktestForm() {
+    const t = useTranslations("backtest")
+    const { errorMessage, issueMessage } = useApiErrorMessages()
     const router = useRouter()
     const { mutateAsync, error } = useCreateBacktest()
     const form = useForm<BacktestValues>({
-        resolver: zodResolver(backtestSchema),
+        resolver: zodResolver(createBacktestFormSchema(t)),
         defaultValues: {
             name: "",
             investmentMode: DEFAULT_INVESTMENT_MODE,
@@ -43,7 +47,7 @@ export function NewBacktestForm() {
             const backtest = await mutateAsync(values)
             router.push(routes.backtest(backtest.id))
         } catch (e) {
-            setFormIssues(e, form.setError)
+            setFormIssues(e, form.setError, issueMessage)
         }
     }
 
@@ -54,14 +58,14 @@ export function NewBacktestForm() {
                     <GeneralSection />
                     <AllocationSection />
 
-                    {error && <FieldError>{error.message}</FieldError>}
+                    {error && <FieldError>{errorMessage(error)}</FieldError>}
 
                     <div className="flex justify-end">
                         <Button
                             type="submit"
                             disabled={form.formState.isSubmitting || allocationTotal(allocations) !== FULL_PERCENT}
                         >
-                            Lancer le backtest
+                            {t("form.submit")}
                         </Button>
                     </div>
                 </form>

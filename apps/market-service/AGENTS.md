@@ -1,6 +1,6 @@
 # market-service
 
-API Express 5 de données de marché (yahoo-finance2), port 8001. Sans base de données ni auth. **Jamais appelé par le web** : core-backend (`routes/market/` + `utils/proxy.ts`) relaie `/api/market/*` ici et vérifie la session : pas de CORS ni d'auth ici, l'utilisateur authentifié arrive dans l'en-tête `x-user-id` (de confiance). Ne pas exposer ce service publiquement. **Calqué sur `apps/core-backend`** : même découpage en couches, mêmes conventions. Lis `../core-backend/AGENTS.md` et reprends ses règles.
+API Express 5 de données de marché (yahoo-finance2), port 8001. Sans base de données. **Seul service qui appelle le fournisseur** : tout autre service lit les cours ici (core-backend pour le web, backtest-engine via `GET /api/market/closes`). Réponses de recherche, détails et liste gardées en cache mémoire (`utils/cache.ts`, durées dans `constants/market.constants.ts`) ; les cours d'un backtest ne sont jamais gardés (reproductibilité). **Jamais appelé par le web** : core-backend (`routes/market/` + `utils/proxy.ts`) relaie `/api/market/*` ici et vérifie la session : pas de CORS ni de session ici, l'utilisateur authentifié arrive dans l'en-tête `x-user-id` (de confiance). Chaque appel doit porter `x-internal-key` = `INTERNAL_API_KEY` (`internal-auth.middleware.ts`, sauf `GET /health`) : sans elle, `401`. Ne pas exposer ce service publiquement. **Calqué sur `apps/core-backend`** : même découpage en couches, mêmes conventions. Lis `../core-backend/AGENTS.md` et reprends ses règles.
 
 ## Architecture en couches
 
@@ -9,11 +9,11 @@ routes/<domaine>/   →  controller/  →  services/  →  repositories/  →  y
  (descripteurs)        (HTTP)          (métier)       (sources externes)
 ```
 
-Mêmes dossiers que core-backend (`builder/`, `models/`, `errors/`, `middleware/`, `utils/`, `constants/`, `interfaces/`) ; crée un dossier uniquement quand un fichier en a besoin.
+Mêmes dossiers que core-backend (`middleware/`, `utils/`, `constants/`, `interfaces/`) ; erreurs, `RouteDescriptor`/`registerRoutes` et `errorMiddleware` viennent de `@trading-plateform/http` ; crée un dossier uniquement quand un fichier en a besoin.
 
 ## Conventions
 
-- Identiques à core-backend : nommage `<domaine>.<couche>.ts`, `export default`, controllers en méthodes fléchées, erreurs lancées (`AppError`) et formatées par `error.middleware`, handlers enveloppés par `asyncHandler`.
+- Identiques à core-backend : nommage `<domaine>.<couche>.ts`, `export default`, controllers en méthodes fléchées, erreurs lancées (`AppError`) et formatées par `errorMiddleware`, handlers enveloppés par `asyncHandler`.
 - Routes : préfixe `/api/market`, chacune documentée dans `API.md` dès sa création.
 - Env via `env.ts` (zod).
 - Logs : `Logger.here()` de `@trading-plateform/utils`, pas de `console.log`.

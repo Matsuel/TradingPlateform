@@ -1,15 +1,19 @@
 import type { Metadata } from "next"
+import { useTranslations } from "next-intl"
+import { getTranslations } from "next-intl/server"
 import { PageHeader, PageLayout } from "@/components/page-layout"
 
-export const metadata: Metadata = { title: "Dashboard" }
+export async function generateMetadata(): Promise<Metadata> {
+    const t = await getTranslations("navigation.tabs")
+    return { title: t("dashboard") }
+}
 
 export default function DashboardPage() {
+    const t = useTranslations()
+
     return (
         <PageLayout>
-            <PageHeader
-                title="Dashboard"
-                description="Vue d’ensemble de vos backtests, portefeuilles et signaux récents."
-            />
+            <PageHeader title={t("navigation.tabs.dashboard")} description={t("pages.dashboard.description")} />
         </PageLayout>
     )
 }

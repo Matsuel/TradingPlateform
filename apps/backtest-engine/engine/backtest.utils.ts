@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
+import { DAY_MS } from "@trading-plateform/utils";
 import type { BacktestParams, PriceSeries, TwrPoint } from "../interfaces/backtest.interface";
 
-const DAY_MS = 24 * 60 * 60 * 1000;
 // Année calendaire moyenne (années bissextiles comprises), base d'annualisation du CAGR
 const DAYS_PER_YEAR = 365.25;
 export const TRADING_DAYS_PER_YEAR = 252;

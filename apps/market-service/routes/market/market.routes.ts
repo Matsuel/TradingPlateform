@@ -1,5 +1,5 @@
 import MarketController from "../../controller/market.controller";
-import type { RouteDescriptor } from "../../models/route.model";
+import type { RouteDescriptor } from "@trading-plateform/http";
 import asyncHandler from "../../utils/handler";
 
 const createMarketRoutes = (): RouteDescriptor[] => {
@@ -18,6 +18,11 @@ const createMarketRoutes = (): RouteDescriptor[] => {
             method: "get",
             path: `${prefix}/details/:id`,
             handler: asyncHandler(controller.getMarketDetails)
+        },
+        {
+            method: "get",
+            path: `${prefix}/closes`,
+            handler: asyncHandler(controller.getDailyCloses)
         },
         {
             method: "get",

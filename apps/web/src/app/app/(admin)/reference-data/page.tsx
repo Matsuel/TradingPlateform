@@ -1,15 +1,19 @@
 import type { Metadata } from "next"
+import { useTranslations } from "next-intl"
+import { getTranslations } from "next-intl/server"
 import { PageHeader, PageLayout } from "@/components/page-layout"
 
-export const metadata: Metadata = { title: "Données de référence" }
+export async function generateMetadata(): Promise<Metadata> {
+    const t = await getTranslations("navigation.tabs")
+    return { title: t("referenceData") }
+}
 
 export default function ReferenceDataPage() {
+    const t = useTranslations()
+
     return (
         <PageLayout>
-            <PageHeader
-                title="Données de référence"
-                description="Instruments importés, historiques de cours et versions du jeu de données."
-            />
+            <PageHeader title={t("navigation.tabs.referenceData")} description={t("pages.referenceData.description")} />
         </PageLayout>
     )
 }

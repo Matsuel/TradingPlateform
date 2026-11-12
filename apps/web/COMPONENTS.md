@@ -46,19 +46,21 @@ Module de fonctions, hooks, constantes ou types (`lib/*.ts`, `features/<domaine>
 - [Graphiques](#graphiques) : `AreaSeriesChart` (`ChartPoint`, `ChartSeries`, `referenceSeries`), `ChartLegend`, `Sparkline`
 - [Symboles](#symboles) : `SymbolPicker`
 - [Formulaires (`components/form`)](#formulaires-componentsform) : `AppField`, `TextField`, `NumberField`, `TextareaField`, `SelectField`, `DateField`, `CheckboxField`, `SwitchField`, `SymbolsField`, `FormSection`, `FieldRow`
-- [`lib`](#lib) : `format.ts`, `api.ts`, `pagination.ts`, `routes.ts`, `navigation.ts`, `env.ts`, `utils.ts`, `auth.ts`, `session.ts`
-- [`constants`](#constants) : `pagination.ts`, `sidebar.tsx`, `glossary.ts`
+- [`lib`](#lib) : `format.ts`, `api.ts`, `api-error.ts`, `pagination.ts`, `routes.ts`, `navigation.ts`, `env.ts`, `utils.ts`, `auth.ts`, `session.ts`
+- [`constants`](#constants) : `pagination.ts`, `sidebar.tsx`, `theme.ts`, `glossary.ts`
 - [`hooks`](#hooks) : `use-debounced-value.ts`
 - [`features/auth`](#featuresauth)
 - [`features/backtest`](#featuresbacktest)
 - [`features/market`](#featuresmarket)
+- [`features/settings`](#featuressettings)
+- [`i18n`](#i18n)
 
 ## `components/ui`
 
 Primitives shadcn (base-ui), voir la doc shadcn. Seule base des briques d'interface (`AGENTS.md`, « shadcn d'abord ») : un composant manquant s'ajoute par `bunx --bun shadcn@latest add <nom>`, un style manquant par un variant de son `cva`. Chaque variant ajouté au-delà de shadcn est listé ici.
 
 - `ui/badge.tsx` : variant `success` (bordure et texte `--success`) : statut terminé, achat, hausse. Taille `lg` (`size="lg"`) : pastille plus haute qui porte un bouton (symbole retirable de `SymbolsField`).
-- `ui/button.tsx` : variant `hint` avec la taille `inline` : libellé souligné en pointillés qui garde la typographie du parent, déclencheur d'`InfoHint`. Taille `inline` : sans hauteur ni marge.
+- `ui/button.tsx` : variant `hint` avec la taille `inline` : libellé souligné en pointillés qui garde la typographie du parent, déclencheur d'`InfoHint`. Taille `inline` : sans hauteur ni marge. Variant `tile` (avec `inline`) : tuile cliquable sans fond ni survol, contenu libre (aperçus de `ThemeCard`).
 - `ui/card.tsx` : taille `compact` (`<Card size="compact">`) : titre `text-body-semibold`, description `text-small` ; cartes de données (indicateurs, graphiques, récapitulatif).
 - `ui/table.tsx` : `TableRow` `variant` `static` (sans survol, ligne d'état) et `plain` (sans bordure ni survol) ; `TableHead` `variant` `caption` (en-tête discret) et `row` (libellé de ligne) ; `TableCell` `variant` `strong` et `muted`. Utilisés par `DataTable` et `MetricBlock`.
 - `ui/progress.tsx` (ajouté par `shadcn add progress`) : `size` `md` (piste de 6 px) et `variant` `success` et `running` (pulsation, calcul en cours). Barres de poids d'`AllocationField` et d'exécution active.
@@ -140,11 +142,11 @@ Primitives shadcn (base-ui), voir la doc shadcn. Seule base des briques d'interf
 
   | Nom | Type | Requis | Défaut | Description |
   | --- | --- | --- | --- | --- |
-  | `section` | `SidebarSection` (`constants/sidebar.tsx`) | oui | — | Nom et onglets de la section. |
+  | `section` | `SidebarSection` (`constants/sidebar.tsx`) | oui | — | Clé et onglets de la section ; libellés lus dans `navigation.*` des dictionnaires. |
 
 - **Exemple** (tiré de `src/components/app-sidebar.tsx`) :
   ```tsx
-  <SidebarNav key={section.name} section={section} />
+  <SidebarNav key={section.key} section={section} />
   ```
 - **Source** : `src/components/sidebar-nav.tsx`.
 
@@ -163,7 +165,7 @@ Primitives shadcn (base-ui), voir la doc shadcn. Seule base des briques d'interf
 ### ThemeToggle
 
 - **Import** : `import { ThemeToggle } from "@/components/theme-toggle"`.
-- **Rôle** : bouton icône soleil/lune ouvrant un menu Clair / Sombre / Système (`setTheme` de next-themes). Requiert le `ThemeProvider` de next-themes monté dans `app/layout.tsx`.
+- **Rôle** : bouton icône soleil/lune ouvrant un menu Clair / Sombre / Système (`setTheme` de next-themes, valeurs de `constants/theme.ts`, libellés `theme.*`). Raccourci du réglage de Paramètres > Apparence (`ThemeCard`). Requiert le `ThemeProvider` de next-themes monté dans `app/layout.tsx`.
 - **Props** : aucune.
 - **Source** : `src/components/theme-toggle.tsx`.
 
@@ -188,7 +190,7 @@ Primitives shadcn (base-ui), voir la doc shadcn. Seule base des briques d'interf
 ### InfoHint
 
 - **Import** : `import { InfoHint } from "@/components/info-hint"`.
-- **Rôle** : libellé d'une donnée calculée, souligné en pointillés (`Button variant="hint" size="inline"`, focusable, maquette 15.1), qui ouvre dans un `AppSheet` son entrée de `constants/glossary.ts` : « À quoi ça sert », « Comment c’est calculé », formule en `font-mono`, « Unité », « Comment le lire », valeur affichée, source (maquette 15). Le clic, y compris dans le panneau, n'atteint pas le parent (ligne de `DataTable` cliquable, libellé de champ). Garde la typographie du parent.
+- **Rôle** : libellé d'une donnée calculée, souligné en pointillés (`Button variant="hint" size="inline"`, focusable, maquette 15.1), qui ouvre dans un `AppSheet` son entrée du glossaire (textes `glossary.<entrée>` des dictionnaires, dans la langue active ; `source` dans `constants/glossary.ts`) : « À quoi ça sert », « Comment c’est calculé », formule en `font-mono`, « Unité », « Comment le lire », valeur affichée, source (maquette 15). Le clic, y compris dans le panneau, n'atteint pas le parent (ligne de `DataTable` cliquable, libellé de champ). Garde la typographie du parent.
 - **Props** :
   - `entry` (optionnel) : Clé de `GLOSSARY` ; absente, `children` est rendu seul (libellé sans aide), ce qui évite un test chez l'appelant.
   - `value` (optionnel) : Valeur déjà formatée par l'écran, rappelée dans le panneau sous « Valeur affichée » ; jamais recalculée.
@@ -221,7 +223,7 @@ Primitives shadcn (base-ui), voir la doc shadcn. Seule base des briques d'interf
   <TableCard title="Tous les backtests" description="Triés par date de lancement" actions={<FilterTabs … />}>
       <DataTable
           query={{ ...query, data: query.data?.data }}
-          columns={backtestColumns}
+          columns={columns}
           rowKey={(b) => b.id}
           onRowClick={(b) => router.push(routes.backtest(b.id))}
           emptyMessage="Aucun backtest."
@@ -259,7 +261,7 @@ Primitives shadcn (base-ui), voir la doc shadcn. Seule base des briques d'interf
 - **Import** : `import { ChangeCell } from "@/components/data-table/cells"`.
 - **Rôle** : variation signée suivie de « % », colorée par `trendOf` : verte en hausse, rouge en baisse, neutre à zéro.
 - **Props** :
-  - `value` : **Pourcentage** (`1.5` → « +1,50 % ») ; un ratio doit être multiplié par 100 avant (ou utiliser `formatRatio` hors tableau).
+  - `value` : **Pourcentage** (`1.5` → « +1,50 % ») ; un ratio doit être multiplié par 100 avant (ou utiliser `formatRatio` hors tableau). Format de la langue active (`+1.50%` en anglais).
 - **Exemple** (tiré de `src/features/backtest/column.tsx`) :
   ```tsx
   return value == null ? <Dash /> : <ChangeCell value={Number(value) * 100} />
@@ -527,12 +529,12 @@ Props communes `BaseProps<T>` (exportées par `field.tsx`), répétées dans cha
 
   | Nom | Type | Requis | Défaut | Description |
   | --- | --- | --- | --- | --- |
-  | `options` | `SelectOption[]` (`{ value: string; label: string }`) | oui | — | Options (ex. `investmentModeOptions`). |
+  | `options` | `SelectOption[]` (`{ value: string; label: string }`) | oui | — | Options, libellés traduits par l'appelant (ex. `investmentModes.map((value) => ({ value, label: t(value) }))`). |
   | `placeholder` | `string` | non | `"Sélectionner…"` | Sans valeur. |
 
 - **Exemple** (tiré de `src/features/backtest/sections.tsx`) :
   ```tsx
-  <SelectField name="investmentMode" label="Mode d’investissement" options={investmentModeOptions} />
+  <SelectField name="investmentMode" label="Mode d’investissement" options={investmentModes.map((value) => ({ value, label: t(value) }))} />
   ```
 - **Source** : `src/components/form/fields/select-field.tsx`.
 
@@ -601,7 +603,7 @@ Props communes `BaseProps<T>` (exportées par `field.tsx`), répétées dans cha
 
 | Export | Rôle (et unité) |
 | --- | --- |
-| `setFormIssues` | `setFormIssues(error, form.setError)` dans le `catch` d'une mutation : chaque issue zod d'un `400` va sous le champ de son chemin ; toute autre erreur est ignorée ici, l'écran l'affiche depuis la mutation. |
+| `setFormIssues` | `setFormIssues(error, form.setError, issueMessage)` (`issueMessage` de `useApiErrorMessages`) dans le `catch` d'une mutation : chaque issue zod d'un `400` va sous le champ de son chemin, message traduit ; toute autre erreur est ignorée ici, l'écran l'affiche depuis la mutation. |
 
 Source : `src/components/form/form-issues.ts`.
 
@@ -643,12 +645,12 @@ Source : `src/components/form/form-issues.ts`.
 
 ### `lib/format.ts`
 
-- **Import** : `import { formatPrice, formatRatio } from "@/lib/format"`.
-- Tous en locale `LOCALE` (`fr-FR`). `formatRatio` et `formatRate` convertissent une fraction en pourcentage : `formatRatio` pour une variation (signée), `formatRate` pour une proportion (non signée).
+- **Import** : `import { useFormatters, type Formatters } from "@/lib/format"`.
+- `useFormatters()` (composant ou hook) renvoie les formatters ci-dessous dans la langue active (cookie `locale`) : `const { formatPrice, formatRatio } = useFormatters()`. Un helper hors composant reçoit l'objet `Formatters` en premier argument (`formatAmount(f, v)`, `describe(f, backtest)`). Exemples donnés en français. `formatRatio` et `formatRate` convertissent une fraction en pourcentage : `formatRatio` pour une variation (signée), `formatRate` pour une proportion (non signée).
 
 | Export | Rôle (et unité) |
 | --- | --- |
-| `LOCALE` | Locale des formats `Intl` locaux à un composant (ticks de graphique, colonnes). |
+| `locale` | Langue active, pour un format `Intl` local à un composant (ticks de graphique, quantités). |
 | `formatPrice` | Montant dans la devise ISO **obligatoire** : `formatPrice(1234.5, "EUR")` → « 1 234,50 € ». |
 | `formatChange` | Nombre signé, 2 décimales, sans « % » : `1.5` → « +1,50 ». Pour un pourcentage déjà en %, ou un écart de Sharpe. |
 | `formatRatio` | Ratio en **fraction** → variation signée en % : `0.342` → « +34,20 % ». Rendement, drawdown. |
@@ -657,8 +659,8 @@ Source : `src/components/form/form-issues.ts`.
 | `formatSharpe` | Ratio de Sharpe, sans unité, 2 décimales : `1.25` → « 1,25 ». |
 | `formatVolume` | Notation compacte : `41234567` → « 41,23 M ». |
 | `formatDate` | Date et heure courtes : « 28/10/2026 09:00 ». |
-| `formatDay` | Jour court : « 28/10/26 ». |
-| `formatDayRange` | Période : « 28/10/25 – 28/10/26 ». |
+| `formatDay` | Jour court : « 28/10/2026 ». |
+| `formatDayRange` | Période : « 28/10/2025 – 28/10/2026 ». |
 | `formatMonthTick` | Mois court et année pour un axe temporel : « janv. 24 ». |
 | `formatMediumDate` | Date moyenne : « 28 oct. 2026 » (infobulle de graphique). |
 | `currencySymbol` | Symbole d'une devise ISO pour un libellé : `currencySymbol("EUR")` → « € ». |
@@ -668,13 +670,14 @@ Source : `src/lib/format.ts`.
 
 ### `lib/api.ts`
 
-- **Import** : `import { apiFetch, apiIssues } from "@/lib/api"`.
+- **Import** : `import { apiFetch, apiIssues } from "@/lib/api"` ; `import { useApiErrorMessages } from "@/lib/api-error"`.
 
 | Export | Rôle |
 | --- | --- |
 | `apiFetch` | Seul point d'appel HTTP : préfixe `path` par `env.NEXT_PUBLIC_API_URL`, envoie les cookies, ajoute `Accept: application/json`. Statut non 2xx → `ApiError` (message `"Erreur API : <status> <statusText>"`) ; `204` → `undefined`. Routes : `apps/core-backend/API.md`. |
-| `ApiError` | Erreur levée par `apiFetch` : `body` = corps JSON d'erreur (`{ error, ...data }`), `null` s'il n'est pas du JSON. |
-| `apiIssues` | Issues zod d'un `400` (`{ error, issues }`), chemin joint par des points (`"allocations.0.weight"`) ; `[]` pour toute autre erreur. Dans un formulaire, passer par `setFormIssues` (`components/form/form-issues.ts`). |
+| `useApiErrorMessages` | Hook : `{ errorMessage(error), issueMessage(code) }` traduisent une erreur de core-backend en `errors.<code>` (langue active) ; code inconnu ou erreur qui n'est pas une `ApiError` → `errors.generic`. À utiliser à la place de `error.message` pour toute erreur d'API affichée (`lib/api-error.ts`). |
+| `ApiError` | Erreur levée par `apiFetch` : `body` = corps JSON d'erreur (`{ error, code, ...data }`), `null` s'il n'est pas du JSON ; `code` = code stable (`ApiErrorCode`), `null` s'il est absent. |
+| `apiIssues` | Issues zod d'un `400` (`{ error, issues }`), `{ path, code }` avec le chemin joint par des points (`"allocations.0.weight"`) et `code` = `params.code` de l'issue (`null` si zod natif) ; `[]` pour toute autre erreur. Dans un formulaire, passer par `setFormIssues` (`components/form/form-issues.ts`). |
 
 Source : `src/lib/api.ts`.
 
@@ -709,7 +712,7 @@ Source : `src/lib/routes.ts`.
 
 | Export | Rôle |
 | --- | --- |
-| `findActiveTab` | Onglet de `constants/sidebar.tsx` qui correspond au chemin, le plus long préfixe gagnant ; le dashboard ne matche qu'exactement. `undefined` hors du menu. |
+| `findActiveTab` | Onglet de `constants/sidebar.tsx` qui correspond au chemin (avec `section` = clé de sa section), le plus long préfixe gagnant ; le dashboard ne matche qu'exactement. `undefined` hors du menu. |
 
 Source : `src/lib/navigation.ts`.
 
@@ -788,11 +791,21 @@ Source : `src/constants/pagination.ts`.
 
 | Export | Rôle |
 | --- | --- |
-| `SidebarTab` | Un onglet ; `url` vient de `routes`. |
-| `SidebarSection` | Une section du menu. |
-| `sidebarSections` | Menu, dans l'ordre de la roadmap : Vue d'ensemble (Dashboard, Notifications), Marché, Strategy Lab (Backtests, Nouveau backtest, Comparaison, Paper trading), Analyse (Risque, Projection, Optimisation, Rapports), Administration (`adminOnly` : Monitoring, Utilisateurs, Données de référence). Une page ajoutée = sa route dans `routes` puis son onglet ici. |
+| `SidebarTab` | Un onglet ; `key` = clé du libellé (`navigation.tabs.<key>` dans `messages/*.json`), `url` vient de `routes`. |
+| `SidebarSection` | Une section du menu ; `key` = clé du libellé (`navigation.sections.<key>`). |
+| `sidebarSections` | Menu, dans l'ordre de la roadmap : Vue d'ensemble (Dashboard, Notifications), Marché, Strategy Lab (Backtests, Nouveau backtest, Comparaison, Paper trading), Analyse (Risque, Projection, Optimisation, Rapports), Administration (`adminOnly` : Monitoring, Utilisateurs, Données de référence). Une page ajoutée = sa route dans `routes`, son libellé dans `messages/fr.json` et `messages/en.json`, puis son onglet ici. |
 
 Source : `src/constants/sidebar.tsx`.
+
+### `constants/theme.ts`
+
+- **Import** : `import { themes, type Theme } from "@/constants/theme"`.
+
+| Export | Rôle |
+| --- | --- |
+| `themes` / `Theme` | `light`, `dark`, `system` : valeurs de next-themes, aussi clés des libellés `theme.<valeur>` des dictionnaires. |
+
+Source : `src/constants/theme.ts`.
 
 ### `constants/glossary.ts`
 
@@ -800,11 +813,11 @@ Source : `src/constants/sidebar.tsx`.
 
 | Export | Rôle |
 | --- | --- |
-| `GlossaryEntry` | Explication d'une donnée (D3, feature 09) ; `source` = fichier et symbole qui la calculent. |
-| `GLOSSARY` | Une entrée par donnée calculée affichée : résultat (`finalValue`, `cagr`, `maxDrawdown`, `lumpSum`, `equityCurve`, ordres, positions…), hypothèses, récapitulatif du formulaire (`plannedContributions`, `plannedRebalances`), liste, comparaison (`comparisonDelta`), paramètres du formulaire, marché. |
+| `GlossaryEntry` | `{ source }` : fichier et symbole qui calculent la donnée (D3, feature 09). Les textes ne sont plus ici : `messages/fr.json` et `messages/en.json`, namespace `glossary.<clé>` (`title`, `purpose`, `computation`, `formula` et `readingTip` facultatifs, `unit`). |
+| `GLOSSARY` | Une entrée (sa `source`) par donnée calculée affichée, dont la clé est aussi celle du dictionnaire : résultat (`finalValue`, `cagr`, `maxDrawdown`, `lumpSum`, `equityCurve`, ordres, positions…), hypothèses, récapitulatif du formulaire (`plannedContributions`, `plannedRebalances`), liste, comparaison (`comparisonDelta`), paramètres du formulaire, marché. |
 | `GlossaryKey` | Clé passée à `InfoHint` (`entry`), à un champ, une ligne de `MetricBlock` ou une hypothèse (`hint`). |
 
-Ajouter une donnée calculée à l'écran = ajouter son entrée ici dans le même diff (`AGENTS.md`). Relire le texte contre le symbole cité en `source` quand ce calcul change.
+Ajouter une donnée calculée à l'écran = ajouter sa `source` ici **et** ses textes dans les deux dictionnaires, dans le même diff (`AGENTS.md`) : `bun test` échoue si une clé manque d'un côté. Les phrases communes (montant en euros `{moneyUnit}`, en dollars `{marketMoneyUnit}`, rendement pondéré dans le temps `{twr}`) sont écrites une fois par langue dans `glossary.shared`. Relire les textes contre le symbole cité en `source` quand ce calcul change.
 
 Source : `src/constants/glossary.ts`.
 
@@ -822,19 +835,19 @@ Source : `src/hooks/use-debounced-value.ts`.
 
 ## `features/auth`
 
-Écrans : `LoginForm`, `RegisterForm`. Données : `api.ts`, `hook.ts`, `schema.ts`. Même forme que `features/backtest` : react-hook-form + schéma zod + champs de `components/form`.
+Écrans : `LoginForm`, `RegisterForm`. Données : `api.ts`, `hook.ts`, `schema.ts`. Même forme que `features/backtest` : react-hook-form + schéma zod + champs de `components/form`. Une erreur better-auth est relancée en `AuthError` (`code`) par `api.ts` ; `useAuthErrorMessage()` (`hook.ts`) la traduit via `auth.errors.<code>`, avec repli sur le libellé d'échec du formulaire.
 
 ### LoginForm
 
 - **Import** : `import { LoginForm } from "@/features/auth/login-form"`.
-- **Rôle** : formulaire de connexion (email + mot de passe) dans une `FormSection` ; valide avec `loginSchema`, appelle `useLogin`, puis redirige vers `redirectTo` (prop requise, calculée par `safeRedirect` dans la page) et rafraîchit la session serveur. L’erreur better-auth s’affiche sous les champs ; lien vers `routes.register`.
+- **Rôle** : formulaire de connexion (email + mot de passe) dans une `FormSection` ; valide avec `createLoginSchema`, appelle `useLogin`, puis redirige vers `redirectTo` (prop requise, calculée par `safeRedirect` dans la page) et rafraîchit la session serveur. L’erreur better-auth s’affiche sous les champs ; lien vers `routes.register`.
 - **Props** : aucune.
 - **Source** : `src/features/auth/login-form.tsx`.
 
 ### RegisterForm
 
 - **Import** : `import { RegisterForm } from "@/features/auth/register-form"`.
-- **Rôle** : formulaire d'inscription (nom + email + mot de passe) dans une `FormSection` ; valide avec `registerSchema`, appelle `useRegister`, puis redirige vers `routes.dashboard`. Lien vers `routes.login`.
+- **Rôle** : formulaire d'inscription (nom + email + mot de passe) dans une `FormSection` ; valide avec `createRegisterSchema`, appelle `useRegister`, puis redirige vers `routes.dashboard`. Lien vers `routes.login`.
 - **Props** : aucune.
 - **Source** : `src/features/auth/register-form.tsx`.
 
@@ -863,12 +876,12 @@ Source : `src/features/auth/hook.ts`.
 
 ### `features/auth/schema.ts`
 
-- **Import** : `import { loginSchema, type LoginValues } from "@/features/auth/schema"`.
+- **Import** : `import { createLoginSchema, type LoginValues } from "@/features/auth/schema"`.
 
 | Export | Rôle |
 | --- | --- |
-| `loginSchema` / `LoginValues` | Connexion : le serveur juge le mot de passe. |
-| `registerSchema` / `RegisterValues` | Inscription : bornes = défauts `emailAndPassword` de better-auth côté core-backend. |
+| `createLoginSchema(t)` / `LoginValues` | `t` = `useTranslations("auth.validation")` (messages dans la langue active). Connexion : le serveur juge le mot de passe. |
+| `createRegisterSchema(t)` / `RegisterValues` | Même `t`. Inscription : bornes = défauts `emailAndPassword` de better-auth côté core-backend. |
 
 Source : `src/features/auth/schema.ts`.
 
@@ -901,33 +914,35 @@ Source : `src/features/auth/schema.ts`.
 ### StatusBadge
 
 - **Import** : `import { StatusBadge } from "@/features/backtest/status-badge"`.
-- **Rôle** : badge du statut d'une exécution, libellé et variante de `statusBadges` (liste, détail, historique).
+- **Rôle** : badge du statut d'une exécution, libellé `backtest.status.<statut>` et variante de `statusVariants` (liste, détail, historique).
 - **Props** : `status: ExecutionStatus`.
 - **Source** : `src/features/backtest/status-badge.tsx`.
 
 ### NewBacktestForm
 
 - **Import** : `import { NewBacktestForm } from "@/features/backtest/new-backtest-form"`.
-- **Rôle** : formulaire « Nouveau backtest » (maquette 12.1, `backtestSchema`, sections `GeneralSection` + `AllocationSection`, benchmark proposé `DEFAULT_BENCHMARK_SYMBOL`, `BacktestPreviewSummary` à droite à partir de `lg`, empilé dessous sinon) ; « Lancer le backtest » désactivé tant que `allocationTotal` ≠ 100 ; un `400` du backend place chaque issue sous le champ de son chemin (`setFormIssues`) ; redirige vers le détail créé.
+- **Rôle** : formulaire « Nouveau backtest » (maquette 12.1, `createBacktestFormSchema`, sections `GeneralSection` + `AllocationSection`, benchmark proposé `DEFAULT_BENCHMARK_SYMBOL`, `BacktestPreviewSummary` à droite à partir de `lg`, empilé dessous sinon) ; « Lancer le backtest » désactivé tant que `allocationTotal` ≠ 100 ; un `400` du backend place chaque issue sous le champ de son chemin (`setFormIssues`) ; redirige vers le détail créé.
 - **Props** : aucune.
 - **Source** : `src/features/backtest/new-backtest-form.tsx`.
 
 ### BacktestPreviewSummary
 
 - **Import** : `import { BacktestPreviewSummary } from "@/features/backtest/preview-summary"`.
-- **Rôle** : carte « Récapitulatif » du formulaire « Nouveau backtest » (maquette 12.1), sous `FormProvider` d'un formulaire `BacktestValues` : étapes Données / Simulation / Métriques (`previewSteps`), puis « Rebalancements prévus », « Versements prévus » et « Source des données » (`dataProviderLabels` · `priceTypeLabels`) renvoyés par `useBacktestPreview` (estimations calendaires du backend, aucun calcul côté web) et mention « Estimation calendaire ». Valeurs validées par `backtestSchema.safeParse` dans `useWatch({ compute })`, appel débouncé de 500 ms (`useDebouncedValue`) ; `<Dash />` tant que le formulaire est invalide ou la réponse absente. Les trois libellés sont des `InfoHint` (`plannedRebalances`, `plannedContributions`, `dataSource`).
+- **Rôle** : carte « Récapitulatif » du formulaire « Nouveau backtest » (maquette 12.1), sous `FormProvider` d'un formulaire `BacktestValues` : étapes Données / Simulation / Métriques (`previewSteps`, textes `backtest.preview.steps.*`), puis « Rebalancements prévus », « Versements prévus » et « Source des données » (`dataProviderLabels` · `backtest.priceType.<type>`) renvoyés par `useBacktestPreview` (estimations calendaires du backend, aucun calcul côté web) et mention « Estimation calendaire ». Valeurs validées par `createBacktestFormSchema(t).safeParse` dans `useWatch({ compute })`, appel débouncé de 500 ms (`useDebouncedValue`) ; `<Dash />` tant que le formulaire est invalide ou la réponse absente. Les trois libellés sont des `InfoHint` (`plannedRebalances`, `plannedContributions`, `dataSource`).
 - **Props** : aucune.
 - **Source** : `src/features/backtest/preview-summary.tsx`.
 
 ### QuickBacktestForm
 
 - **Import** : `import { QuickBacktestForm } from "@/features/backtest/quick-backtest-form"`.
-- **Rôle** : test rapide sur un seul symbole (`quickBacktestSchema`, nom `Test rapide <symbol>`, allocation `[{ symbol, weight: 100 }]`, défauts `DEFAULT_INVESTMENT_MODE`, `DEFAULT_INITIAL_AMOUNT`, `DEFAULT_FEE_PERCENT`, 1 an jusqu'à aujourd'hui ; champs `InvestmentModeFields` et `PeriodAndCapitalFields` partagés avec le formulaire complet ; récapitulatif `QuickTestSummary` et boutons `QuickTestActions` internes) ; un `400` du backend place chaque issue sous le champ de son chemin (`setFormIssues`) ; redirige vers le détail créé.
+- **Rôle** : test rapide sur un seul symbole (`createQuickBacktestFormSchema`, nom `backtest.quick.name`, allocation `[{ symbol, weight: 100 }]`, défauts `DEFAULT_INVESTMENT_MODE`, `DEFAULT_INITIAL_AMOUNT`, `DEFAULT_FEE_PERCENT`, 1 an jusqu'à aujourd'hui ; champs `InvestmentModeFields` et `PeriodAndCapitalFields` partagés avec le formulaire complet ; récapitulatif `QuickTestSummary` et boutons `QuickTestActions` internes) ; un `400` du backend place chaque issue sous le champ de son chemin (`setFormIssues`) ; redirige vers le détail créé.
 - **Props** :
   - `symbol` : Symbole testé.
 - **Source** : `src/features/backtest/quick-backtest-form.tsx`.
 
 ### AllocationField
+
+_Ligne et pied du champ : `allocation-row.tsx` (`AllocationRow`, `AllocationFooter`, internes à la feature)._
 
 - **Import** : `import { AllocationField } from "@/features/backtest/allocation-field"` (seul domaine utilisateur, d'où sa place dans la feature).
 - **Rôle** : allocation d'un portefeuille (`AllocationInput[]`) : une ligne par actif (symbole, nom, barre proportionnelle au poids, champ `%` entier de 1 à 100 au pas de 1, bouton de retrait), ajout via `SymbolPicker` (symbole déjà présent masqué et ignoré ; le nouvel actif reçoit le reste jusqu'à 100 %, vide s'il n'en reste pas), badge « Total » vert à 100 %, rouge sinon. Le total n'est qu'un affichage de la saisie : la somme = 100 se valide dans le schéma zod du formulaire.
@@ -1033,22 +1048,23 @@ Source : `src/features/auth/schema.ts`.
 - **Props** :
   - `result` : Résultat complet (ratios en fraction, montants en string).
   - `rebalanceFrequency` : Description du bloc « Coûts et activité ».
-- **Source** : `src/features/backtest/result-metrics.tsx` (`PerformanceBlock`, `RiskBlock`, `CostsBlock` internes). Valeurs des lignes : [`features/backtest/metrics.tsx`](#featuresbacktestmetricstsx).
+- **Source** : `src/features/backtest/result-metrics.tsx` (`PerformanceBlock` interne ; `RiskBlock` et `CostsBlock` dans `result-blocks.tsx`). Valeurs des lignes : [`features/backtest/metrics.tsx`](#featuresbacktestmetricstsx).
 
 ### `features/backtest/metrics.tsx`
 
-- **Import** : `import { metricDefinitions, resultValue, benchmarkValue } from "@/features/backtest/metrics"`.
+- **Import** : `import { metricDefinitions, resultValue, benchmarkValue } from "@/features/backtest/metrics"`. Les fonctions de valeur prennent les `Formatters` de `useFormatters()` en premier argument.
 - Une métrique = un libellé, une entrée du glossaire et un format, définis une fois pour le détail et la comparaison. Ajouter une métrique affichée : sa ligne ici, puis sa clé dans la liste des lignes de l'écran.
 
 | Export | Rôle |
 | --- | --- |
 | `Metric` | Métriques d'un résultat et de son benchmark. |
-| `metricDefinitions` | CAGR, rendement total et max drawdown en `formatRatio`, volatilité en `formatPercent`, Sharpe en `formatSharpe`, valeur finale en `formatAmount`. |
-| `resultValue` | Métrique d'un résultat (Decimal sérialisé), formatée ; `<Dash />` si absente (résultat antérieur). |
+| `metricDefinitions` | Aide et format de chaque métrique (libellé `backtest.metrics.<métrique>`) : CAGR, rendement total et max drawdown en `formatRatio`, volatilité en `formatPercent`, Sharpe en `formatSharpe`, valeur finale en `formatAmount`. |
+| `resultValue(f, result, metric)` | Métrique d'un résultat (Decimal sérialisé), formatée ; `<Dash />` si absente (résultat antérieur). |
 | `withBenchmark` | `withBenchmark(cells, benchmark, benchmarkCell)` : `cells`, suivies avec un benchmark de `benchmarkCell(benchmark)` (colonnes et valeurs d'un tableau d'indicateurs). |
-| `benchmarkValue` | Métrique d'un benchmark (nombre du moteur), formatée ; `<Dash />` si `null`. |
-| `recoveryDefinition` | Libellé « Récupération » et aide `recovery` de la ligne, sans format. |
-| `resultRecovery`, `benchmarkRecovery` | Récupération via `formatRecovery` ; `<Dash />` pour un résultat antérieur au calcul. |
+| `benchmarkValue(f, benchmark, metric)` | Métrique d'un benchmark (nombre du moteur), formatée ; `<Dash />` si `null`. |
+| `metricHead(t, metric)`, `recoveryHead(t)` | Libellé traduit et aide d'une ligne de métrique, de la ligne « Récupération ». |
+| `resultColumns(t, result)`, `metricRow(f, t, result, metric, details?)`, `recoveryRow(f, t, result)` | Colonnes (portefeuille, benchmark) et lignes d'un bloc d'indicateurs. |
+| `resultRecovery(f, t, result)`, `benchmarkRecovery(f, t, benchmark)` | Récupération via `formatRecovery` ; `<Dash />` pour un résultat antérieur au calcul. |
 
 Source : `src/features/backtest/metrics.tsx`.
 
@@ -1088,7 +1104,7 @@ Source : `src/features/backtest/metrics.tsx`.
   | --- | --- | --- | --- | --- |
   | `comparison` | `BacktestComparison` | oui | — | Réponse de `GET /api/backtest/compare`. |
 
-- **Source** : `src/features/backtest/comparison-metrics.tsx` (lignes construites depuis `metricDefinitions`, écart coloré par `Delta`), `src/features/backtest/comparison-parameters.tsx`.
+- **Source** : `src/features/backtest/comparison-metrics.tsx` (lignes construites depuis `metricHead`, écart coloré par `Delta`), `src/features/backtest/comparison-parameters.tsx`.
 
 ### `features/backtest/api.ts`
 
@@ -1124,45 +1140,38 @@ Source : `src/features/backtest/hook.ts`.
 
 ### `features/backtest/schema.ts`
 
-- **Import** : `import { backtestSchema, type BacktestValues } from "@/features/backtest/schema"`.
+- **Import** : `import { createBacktestFormSchema, type BacktestValues } from "@/features/backtest/schema"`.
 
 | Export | Rôle (et unité) |
 | --- | --- |
-| `backtestSchema` | Formulaire complet, miroir de `createBacktestSchema`. `weight` en **pourcent entier** (`NaN` rejeté) ; montants en devise de saisie ; `fee` en **pourcentage** par ordre. Body de `POST /api/backtest`. |
+| `createBacktestFormSchema(t)` | `t` = `useTranslations("backtest")` : messages dans la langue active. Formulaire complet, miroir de `createBacktestSchema` du backend. `weight` en **pourcent entier** (`NaN` rejeté) ; montants en devise de saisie ; `fee` en **pourcentage** par ordre. Body de `POST /api/backtest`. |
 | `BacktestValues` | Type des valeurs. |
-| `quickBacktestSchema` | Test rapide : `name` et `allocations` (100 % sur le symbole) ajoutés par `QuickBacktestForm`. |
+| `createQuickBacktestFormSchema(t)` | Même `t`. Test rapide : `name` et `allocations` (100 % sur le symbole) ajoutés par `QuickBacktestForm`. |
 | `QuickBacktestValues` | Type des valeurs. |
 
 Source : `src/features/backtest/schema.ts`.
 
 ### `features/backtest/constants.ts`
 
-- **Import** : `import { statusBadges } from "@/features/backtest/constants"`.
+- **Import** : `import { statusVariants } from "@/features/backtest/constants"`.
 
 | Export | Rôle |
 | --- | --- |
 | `BACKTEST_CURRENCY` | Devise d'affichage des montants (cours non convertis). |
 | `activeStatuses` | Statuts d'une exécution qui peut encore évoluer (miroir de `ACTIVE_STATUSES` backend). |
-| `investmentModeOptions` | Options du `SelectField` `investmentMode`. |
-| `rebalanceFrequencyLabels` | Libellé de la fréquence de rebalancement d'un backtest stocké. |
+| `investmentModes` | Modes d'investissement du `SelectField` ; libellés `backtest.investmentMode.<mode>`. |
+| `rebalanceFrequencies` | Fréquences de rebalancement (select et backtest stocké) ; libellés `backtest.rebalanceFrequency.<fréquence>`. |
 | `DEFAULT_INVESTMENT_MODE`, `DEFAULT_INITIAL_AMOUNT`, `DEFAULT_FEE_PERCENT` | Valeurs initiales du formulaire et du test rapide : `LUMP_SUM`, 10 000 en `BACKTEST_CURRENCY`, 0,1 % par ordre. |
-| `DEFAULT_REBALANCE_FREQUENCY` | Fréquence par défaut du formulaire complet et du test rapide (même défaut que `createBacktestSchema`). |
-| `rebalanceFrequencyOptions` | Options du `SelectField` `rebalanceFrequency`. |
+| `DEFAULT_REBALANCE_FREQUENCY` | Fréquence par défaut du formulaire complet et du test rapide (même défaut que le schéma du backend). |
 | `DEFAULT_BENCHMARK_SYMBOL` | Benchmark proposé par le formulaire complet (D9), retirable. |
-| `NO_BENCHMARK_LABEL` | Hypothèse « Benchmark » d'un backtest sans benchmark. |
-| `strategyLabels` | Libellé de stratégie d'un backtest stocké. |
-| `executionRuleLabels` | Libellé de la règle d'exécution d'un résultat. |
-| `dataProviderLabels` | Libellé du fournisseur de cours. |
-| `priceTypeLabels` | Libellé du type de cours. |
-| `previewSteps` | Étapes d'une exécution affichées par le récapitulatif du formulaire. |
-| `BACKTEST_DISCLAIMER` | Avertissement affiché avec tout résultat. |
-| `statusBadges` | Badge de statut d'exécution. |
-| `tradeSideBadges` | Badge du côté d'un ordre ; `side` absent (résultat antérieur) lu comme `BUY` (D10). |
-| `statusFilters` | Onglets de filtre de la liste ; `statuses` envoyés en `status` à `getBacktests` (`all` = vide, aucun filtre). |
+| `dataProviderLabels` | Nom du fournisseur de cours (nom propre, non traduit). Les autres libellés du domaine (stratégie, règle d'exécution, type de cours, avertissement, benchmark absent, titres de comparaison) sont dans `messages/*.json`, namespace `backtest`. |
+| `previewSteps` | Clés des étapes affichées par le récapitulatif ; textes `backtest.preview.steps.<étape>`. |
+| `statusVariants` | Variante du badge de chaque statut d'exécution (libellé `backtest.status.<statut>`). |
+| `tradeSideVariants` | Variante du badge du côté d'un ordre (libellé `backtest.tradeSide.<côté>`) ; `side` absent (résultat antérieur) lu comme `BUY` (D10). |
+| `statusFilters` | Onglets de filtre de la liste (libellés `backtest.filters.<filtre>`) ; `statuses` envoyés en `status` à `getBacktests` (`all` = vide, aucun filtre). |
 | `StatusFilter` | Type de l'onglet actif. |
 | `COMPARABLE_LIMIT` | Nombre de backtests proposés au choix de la comparaison (`MAX_PAGE_SIZE` du contrat, `pageSize` maximal de `GET /api/backtest`). |
 | `comparisonSideColors` |2)", className: "bg-chart-1|2" }` | Couleur de A et B : courbes, légende, pastilles de sélection. |
-| `comparisonParameterLabels` | Titre du bandeau « Comparaison non homogène ». |
 | `comparedMetricHigherIsBetter` | Sens favorable d'un écart A − B, pour sa couleur (affichage seulement). |
 
 Source : `src/features/backtest/constants.ts`.
@@ -1176,13 +1185,14 @@ Source : `src/features/backtest/constants.ts`.
 | `getExecution` | Dernière exécution (`executions[0]`). |
 | `hasStatus` | Statut de la dernière exécution dans la liste. |
 | `isActive` | Exécution `PENDING` ou `RUNNING`. |
-| `getExecutionDuration` | Durée `finishedAt − (startedAt ?? createdAt)`, « 2 min 5 s » ou « 12 s » (minimum 1 s) ; `null` si non terminée. |
+| `getExecutionDuration(t, e)` | Durée `finishedAt − (startedAt ?? createdAt)`, « 2 min 5 s » ou « 12 s » (minimum 1 s) ; `null` si non terminée. |
 | `fromDecimal` | `Decimal` sérialisé → `number`, `null` ou absent → `null`. |
-| `formatAllocation` | Allocation lisible : « AAPL 60 % · MSFT 40 % » (`formatRate` du poids). |
+| `formatAllocation(f, allocations)` | Allocation lisible : « AAPL 60 % · MSFT 40 % » (`formatRate` du poids). |
 | `alignCurves` | Courbes de A et B sur l'union de leurs dates triées : séries `a` et `b` (absentes hors de leur période) et, avec `benchmarkSide`, `benchmark` = `benchmarkValue` de ce côté ; `value` choisit la série (valeur, drawdown). |
-| `formatAmount` | Montant en `BACKTEST_CURRENCY`. |
-| `formatRecovery` | Durée `formatDuration` ; si `recoveryDays` est null : « Aucune baisse » sans baisse, « Non récupéré » si `peakDated` (`maxDrawdownPeakDate` non null ; `true` pour un benchmark), sinon `null`, affiché `<Dash />` par l'écran (résultat antérieur, que l'API renvoie aussi à null). |
-| `benchmarkLabel` | Nom de la série du benchmark : `benchmarkLabel("URTH")` → « Benchmark URTH ». |
+| `formatAmount(f, v)` | Montant en `BACKTEST_CURRENCY`, au format de la langue active. |
+| `formatRecovery(f, t, …)` | Durée `formatDuration` ; si `recoveryDays` est null : « Aucune baisse » sans baisse, « Non récupéré » si `peakDated` (`maxDrawdownPeakDate` non null ; `true` pour un benchmark), sinon `null`, affiché `<Dash />` par l'écran (résultat antérieur, que l'API renvoie aussi à null). |
+| `benchmarkLabel(t, symbol)` | Nom de la série du benchmark : « Benchmark URTH ». |
+| `BacktestTranslator` | Type du traducteur `useTranslations("backtest")`, passé aux helpers qui produisent du texte (`getExecutionDuration`, `formatRecovery`, `benchmarkLabel`). |
 | `comparisonLabel` | « A · 60/40 » : colonnes, légende et infobulles de la comparaison. |
 | `getComparisonBenchmark` | Benchmark affiché : celui de A, sinon celui de B ; `benchmark` null si aucun. |
 
@@ -1190,13 +1200,13 @@ Source : `src/features/backtest/utils.ts`. Helpers purs : aucun JSX (`<Dash />` 
 
 ### `features/backtest/column.tsx`
 
-- **Import** : `import { backtestColumns, holdingColumns, tradeColumns } from "@/features/backtest/column"`.
+- **Import** : `import { useBacktestColumns, useHoldingColumns, useTradeColumns } from "@/features/backtest/column"`. Hooks (formats de la langue active) : à appeler dans le composant, puis `columns={columns}`.
 
 | Export | Type | Colonnes |
 | --- | --- | --- |
-| `backtestColumns` | `Column<Backtest>[]` | Nom, Stratégie, Allocation (`formatAllocation`, tronquée, texte complet en `title`), Période, Rendement (`totalReturn` × 100 via `ChangeCell`), CAGR (`cagr` du résumé × 100 via `ChangeCell`, `<Dash />` si non terminé ou résultat antérieur), Statut (badge), Durée. En-têtes Rendement, CAGR et Durée en `InfoHint`. |
-| `tradeColumns` | `Column<Trade>[]` | Date, Symbole (`SymbolCell`), Côté (badge `tradeSideBadges`, « Achat » si `side` absent), Prix (2 décimales, sans devise), Quantité (jusqu'à 6 décimales), Montant et Frais (`formatPrice` en `BACKTEST_CURRENCY`) ; `Dash` si absents (résultats antérieurs). En-têtes Côté, Prix, Quantité, Montant, Frais en `InfoHint`. |
-| `holdingColumns` | `Column<Holding>[]` | Symbole (`SymbolCell`), Quantité (jusqu'à 6 décimales), Valeur au dernier cours (`formatPrice` en `BACKTEST_CURRENCY`). En-têtes Quantité et Valeur en `InfoHint`. |
+| `useBacktestColumns()` | `Column<Backtest>[]` | Nom, Stratégie, Allocation (`formatAllocation`, tronquée, texte complet en `title`), Période, Rendement (`totalReturn` × 100 via `ChangeCell`), CAGR (`cagr` du résumé × 100 via `ChangeCell`, `<Dash />` si non terminé ou résultat antérieur), Statut (badge), Durée. En-têtes Rendement, CAGR et Durée en `InfoHint`. |
+| `useTradeColumns()` | `Column<Trade>[]` | Date, Symbole (`SymbolCell`), Côté (badge `tradeSideVariants`, « Achat » si `side` absent), Prix (2 décimales, sans devise), Quantité (jusqu'à 6 décimales), Montant et Frais (`formatPrice` en `BACKTEST_CURRENCY`) ; `Dash` si absents (résultats antérieurs). En-têtes Côté, Prix, Quantité, Montant, Frais en `InfoHint`. |
+| `useHoldingColumns()` | `Column<Holding>[]` | Symbole (`SymbolCell`), Quantité (jusqu'à 6 décimales), Valeur au dernier cours (`formatPrice` en `BACKTEST_CURRENCY`). En-têtes Quantité et Valeur en `InfoHint`. |
 
 Source : `src/features/backtest/column.tsx`.
 
@@ -1226,7 +1236,7 @@ Source : `src/features/backtest/types.ts`.
 ### PriceChart
 
 - **Import** : `import { PriceChart } from "@/features/market/price-chart"`.
-- **Rôle** : carte « Prix » d'un symbole avec onglets `FilterTabs` sur `periodOptions` (`1d` par défaut) ; charge via `useMarketDetails`, affiche en `MARKET_CURRENCY`.
+- **Rôle** : carte « Prix » d'un symbole avec onglets `FilterTabs` sur `periods` (`1d` par défaut ; libellés `market.periods.*`, pas des points `market.intervals.*`) ; charge via `useMarketDetails`, affiche en `MARKET_CURRENCY`.
 - **Props** :
   - `symbol` : Symbole yahoo.
 - **Source** : `src/features/market/price-chart.tsx`.
@@ -1278,17 +1288,17 @@ Source : `src/features/market/hook.ts`.
 | --- | --- |
 | `MARKET_CURRENCY` | Devise d'affichage des cours (yahoo ne les convertit pas). |
 | `MIN_SEARCH_LENGTH` | Longueur minimale d'une recherche de symbole (le backend exige 2). |
-| `periodOptions` | Onglets de période et pas des points. |
+| `periods` | Périodes du graphique, dans l'ordre des onglets ; libellés et pas des points dans `messages/*.json`, namespace `market`. |
 
 Source : `src/features/market/constants.ts`.
 
 ### `features/market/column.tsx`
 
-- **Import** : `import { marketColumns } from "@/features/market/column"`.
+- **Import** : `import { useMarketColumns } from "@/features/market/column"`. Hook : à appeler dans le composant.
 
 | Export | Type | Colonnes |
 | --- | --- | --- |
-| `marketColumns` | `Column<MarketAsset>[]` | Symbole (`SymbolCell`), Prix (`formatPrice` en `MARKET_CURRENCY`), Variation 24 h (`ChangeCell`, pourcentage), Volume 24 h (`formatVolume`), Tendance (`Sparkline` de `history`, couleur selon le signe de la variation) ; `<Dash />` pour une valeur `null` (tendance comprise si la variation est inconnue). En-têtes Prix, Variation, Volume, Tendance en `InfoHint`. |
+| `useMarketColumns()` | `Column<MarketAsset>[]` | Symbole (`SymbolCell`), Prix (`formatPrice` en `MARKET_CURRENCY`), Variation 24 h (`ChangeCell`, pourcentage), Volume 24 h (`formatVolume`), Tendance (`Sparkline` de `history`, couleur selon le signe de la variation) ; `<Dash />` pour une valeur `null` (tendance comprise si la variation est inconnue). En-têtes Prix, Variation, Volume, Tendance en `InfoHint`. |
 
 Source : `src/features/market/column.tsx`.
 
@@ -1304,3 +1314,51 @@ Source : `src/features/market/column.tsx`.
 | `MarketData` | contrat : `{ symbol; name; exchange; assetType; logoUrl? }` |
 
 Source : `src/features/market/types.ts`.
+
+## `features/settings`
+
+Écran Paramètres (maquette `06.2`, onglet Apparence seul). Préférences d'affichage : ni route API ni base.
+
+### SettingsTabs
+
+- **Import** : `import { SettingsTabs } from "@/features/settings/settings-tabs"`.
+- **Rôle** : barre d'onglets des paramètres (`ui/tabs`) ; l'onglet « Apparence » empile `ThemeCard` et `LanguageCard`. Un nouvel onglet = un `TabsTrigger` et son `TabsContent` ici.
+- **Props** : aucune.
+- **Exemple** (tiré de `src/app/app/settings/page.tsx`) :
+  ```tsx
+  <SettingsTabs />
+  ```
+- **Source** : `src/features/settings/settings-tabs.tsx`.
+
+### SettingsCard
+
+- **Import** : `import { SettingsCard } from "@/features/settings/settings-card"`.
+- **Rôle** : carte d'un réglage (maquette `06.2`) : titre, description, puis le contrôle en `children` ; marges de 24 px, bordure et ombre légère (`Card` `compact` ajusté). Cadre commun à `ThemeCard` et `LanguageCard`.
+- **Props** : `title` (string), `description` (string), `children` (`ReactNode`), tous requis.
+- **Source** : `src/features/settings/settings-card.tsx`.
+
+### ThemeCard
+
+- **Import** : `import { ThemeCard } from "@/features/settings/theme-card"`.
+- **Rôle** : carte « Thème » : trois aperçus Clair, Sombre, Système (`Button` variant `tile`), sur une colonne puis trois à partir de `sm`. Le clic applique le thème via next-themes, sans rechargement ; l'aperçu du thème actif est encadré (aucun avant l'hydratation, le thème venant du navigateur). Aperçus en couleurs fixes : ils montrent le thème représenté, pas le thème actif.
+- **Props** : aucune.
+- **Source** : `src/features/settings/theme-card.tsx`.
+
+### LanguageCard
+
+- **Import** : `import { LanguageCard } from "@/features/settings/language-card"`.
+- **Rôle** : carte « Langue et région » : `OptionSelect` des langues de `i18n/config.ts` (nom de chaque langue dans sa propre langue). Le choix appelle `setLocale` : cookie `locale` écrit, page rendue dans la nouvelle langue sans perdre la session.
+- **Props** : aucune.
+- **Source** : `src/features/settings/language-card.tsx`.
+
+## `i18n`
+
+Langue de l'interface : cookie `locale`, jamais l'URL. Dictionnaires dans `messages/<langue>.json` (mêmes clés partout), lus par `useTranslations` / `getTranslations` de `next-intl`.
+
+| Export | Import | Rôle |
+| --- | --- | --- |
+| `LOCALES`, `Locale`, `DEFAULT_LOCALE`, `LOCALE_COOKIE`, `LOCALE_LABELS` | `@/i18n/config` | Langues disponibles (`fr`, `en`), langue par défaut (`fr`), nom du cookie, nom affiché de chaque langue. Ajouter une langue : son code ici, son libellé, son fichier `messages/<code>.json`. |
+| `setLocale(locale)` | `@/i18n/actions` | Server Action : écrit le cookie (un an) ; valeur inconnue ignorée. |
+| (défaut) | `src/i18n/request.ts` | Configuration `next-intl` par requête : langue du cookie, sinon `DEFAULT_LOCALE`. Branchée par `next.config.ts`. |
+
+Source : `src/i18n/`.

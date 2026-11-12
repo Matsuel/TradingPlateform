@@ -4,12 +4,14 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { differenceInCalendarDays, subYears } from "date-fns"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { useTranslations } from "next-intl"
 import { FormProvider, useForm, useWatch } from "react-hook-form"
 import { Dash } from "@/components/dash"
 import { DetailRow } from "@/components/detail-row"
 import { setFormIssues } from "@/components/form/form-issues"
 import { Button } from "@/components/ui/button"
 import { FieldError } from "@/components/ui/field"
+import { useApiErrorMessages } from "@/lib/api-error"
 import { routes } from "@/lib/routes"
 import {
     DEFAULT_FEE_PERCENT,
@@ -19,23 +21,26 @@ import {
     FULL_PERCENT,
 } from "./constants"
 import { useCreateBacktest } from "./hook"
-import { type QuickBacktestValues, quickBacktestSchema } from "./schema"
+import { createQuickBacktestFormSchema, type QuickBacktestValues } from "./schema"
 import { InvestmentModeFields, PeriodAndCapitalFields } from "./sections"
 
 // Récapitulatif : symbole testé et nombre de jours calendaires de la période saisie
 function QuickTestSummary({ symbol }: { symbol: string }) {
+    const t = useTranslations("backtest.quick")
     const [start, end] = useWatch<QuickBacktestValues, ["start", "end"]>({ name: ["start", "end"] })
     const days = start && end ? differenceInCalendarDays(end, start) : 0
 
     return (
         <dl className="grid gap-2 rounded-md bg-muted p-4">
-            <DetailRow label="Symbole">{symbol}</DetailRow>
-            <DetailRow label="Données analysées">{days > 0 ? `${days} jours` : <Dash />}</DetailRow>
+            <DetailRow label={t("symbol")}>{symbol}</DetailRow>
+            <DetailRow label={t("analysedData")}>{days > 0 ? t("days", { count: days }) : <Dash />}</DetailRow>
         </dl>
     )
 }
 
 function QuickTestActions({ submitting }: { submitting: boolean }) {
+    const t = useTranslations("backtest.quick")
+
     return (
         <div className="mt-auto flex gap-3">
             <Button
@@ -44,10 +49,10 @@ function QuickTestActions({ submitting }: { submitting: boolean }) {
                 nativeButton={false}
                 render={<Link href={routes.newBacktest} />}
             >
-                Configuration avancée
+                {t("advanced")}
             </Button>
             <Button type="submit" className="flex-1" disabled={submitting}>
-                Lancer le test
+                {t("run")}
             </Button>
         </div>
     )
@@ -58,10 +63,12 @@ function QuickTestActions({ submitting }: { submitting: boolean }) {
  * ajoutée à l'envoi. Un `400` place chaque issue sous son champ ; redirige vers le détail créé.
  */
 export function QuickBacktestForm({ symbol }: { symbol: string }) {
+    const t = useTranslations("backtest")
+    const { errorMessage, issueMessage } = useApiErrorMessages()
     const router = useRouter()
     const { mutateAsync, error } = useCreateBacktest()
     const form = useForm<QuickBacktestValues>({
-        resolver: zodResolver(quickBacktestSchema),
+        resolver: zodResolver(createQuickBacktestFormSchema(t)),
         defaultValues: {
             investmentMode: DEFAULT_INVESTMENT_MODE,
             start: subYears(new Date(), 1),
@@ -75,13 +82,13 @@ export function QuickBacktestForm({ symbol }: { symbol: string }) {
         try {
             const backtest = await mutateAsync({
                 ...values,
-                name: `Test rapide ${symbol}`,
+                name: t("quick.name", { symbol }),
                 allocations: [{ symbol, weight: FULL_PERCENT }],
                 rebalanceFrequency: DEFAULT_REBALANCE_FREQUENCY,
             })
             router.push(routes.backtest(backtest.id))
         } catch (e) {
-            setFormIssues(e, form.setError)
+            setFormIssues(e, form.setError, issueMessage)
         }
     }
 
@@ -91,10 +98,8 @@ export function QuickBacktestForm({ symbol }: { symbol: string }) {
                 <InvestmentModeFields />
                 <PeriodAndCapitalFields />
                 <QuickTestSummary symbol={symbol} />
-                <p className="text-small text-muted-foreground">
-                    Test rapide sur ce symbole. Pour comparer plusieurs symboles, utilisez la page Backtests.
-                </p>
-                {error && <FieldError>{error.message}</FieldError>}
+                <p className="text-small text-muted-foreground">{t("quick.hint")}</p>
+                {error && <FieldError>{errorMessage(error)}</FieldError>}
                 <QuickTestActions submitting={form.formState.isSubmitting} />
             </form>
         </FormProvider>

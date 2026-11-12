@@ -3,7 +3,7 @@
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts"
 import { type ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import type { GlossaryKey } from "@/constants/glossary"
-import { LOCALE } from "@/lib/format"
+import { useFormatters } from "@/lib/format"
 import { cn } from "@/lib/utils"
 
 /** Un point daté ; une série absente ce jour-là (`null`, `undefined`) n'a pas de point et rien dans l'infobulle. */
@@ -25,8 +25,6 @@ export const referenceSeries = (series: Pick<ChartSeries, "key" | "label" | "hin
     color: "var(--muted-foreground)",
     dashed: true,
 })
-
-const formatNumberAxis = (v: number) => v.toLocaleString(LOCALE, { maximumFractionDigits: v < 10 ? 2 : 0 })
 
 interface AreaSeriesChartProps {
     data: ChartPoint[]
@@ -62,6 +60,10 @@ function tooltipContent(
     )
 }
 
+// Graduation numérique de l'axe Y : 2 décimales sous 10 (cours bas), entier au-delà
+const formatNumberAxis = (locale: string, v: number) =>
+    v.toLocaleString(locale, { maximumFractionDigits: v < 10 ? 2 : 0 })
+
 /** Courbes datées sur un axe commun : une `Area` par série de `series`, infobulle formatée par `formatValue`. */
 export function AreaSeriesChart({
     data,
@@ -69,10 +71,11 @@ export function AreaSeriesChart({
     formatTick,
     formatTooltipDate,
     formatValue,
-    formatAxis = formatNumberAxis,
+    formatAxis,
     hideXAxis = false,
     className,
 }: AreaSeriesChartProps) {
+    const { locale } = useFormatters()
     const config = Object.fromEntries(
         series.map((s) => [s.key, { label: s.label, color: s.color }]),
     ) satisfies ChartConfig
@@ -96,7 +99,7 @@ export function AreaSeriesChart({
                     axisLine={false}
                     tickCount={5}
                     domain={["auto", "auto"]}
-                    tickFormatter={formatAxis}
+                    tickFormatter={formatAxis ?? ((v: number) => formatNumberAxis(locale, v))}
                 />
                 <ChartTooltip cursor={false} content={tooltipContent(series, formatTooltipDate, formatValue)} />
                 {series.map((s) => (

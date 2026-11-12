@@ -1,5 +1,6 @@
 import { Logger } from "@trading-plateform/utils";
 import type { BacktestRequestedPayload } from "@trading-plateform/contracts";
+import BacktestError from "../errors/backtest.error";
 import runBacktest from "../engine/backtest.engine";
 import { fingerprintPrices } from "../engine/backtest.utils";
 import type { IBacktestPublisher } from "../publishers/backtest.publisher";
@@ -40,7 +41,9 @@ class BacktestService {
         } catch (error) {
             const message = error instanceof Error ? error.message : String(error);
             logger.error("Backtest failed", { executionId, error: message });
-            await this.publisher.failed({ executionId, finishedAt: new Date().toISOString(), error: message });
+            // Hors erreur métier de l'engine (market-service injoignable, bug) : cause générique
+            const errorCode = error instanceof BacktestError ? error.code : "ENGINE_FAILED";
+            await this.publisher.failed({ executionId, finishedAt: new Date().toISOString(), error: message, errorCode });
         }
     }
 }

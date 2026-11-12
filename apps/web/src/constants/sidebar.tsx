@@ -14,55 +14,61 @@ import {
     TrendingUp,
     Users,
 } from "lucide-react"
+import type { Messages } from "next-intl"
 import type { ReactNode } from "react"
 import { routes } from "@/lib/routes"
 
-export type SidebarTab = { name: string; url: string; icon: ReactNode }
+// `key` : clé du libellé dans les dictionnaires (`navigation.tabs.<key>`, `navigation.sections.<key>`)
+export type SidebarTab = { key: keyof Messages["navigation"]["tabs"]; url: string; icon: ReactNode }
 
-export type SidebarSection = { name: string; adminOnly: boolean; tabs: SidebarTab[] }
+export type SidebarSection = {
+    key: keyof Messages["navigation"]["sections"]
+    adminOnly: boolean
+    tabs: SidebarTab[]
+}
 
 // Sections du menu, dans l'ordre de la roadmap : marché, Strategy Lab, analyses (mois 6 à 9), administration
 export const sidebarSections: SidebarSection[] = [
     {
-        name: "Vue d’ensemble",
+        key: "overview",
         adminOnly: false,
         tabs: [
-            { name: "Dashboard", url: routes.dashboard, icon: <LayoutDashboard /> },
-            { name: "Notifications", url: routes.notifications, icon: <Bell /> },
+            { key: "dashboard", url: routes.dashboard, icon: <LayoutDashboard /> },
+            { key: "notifications", url: routes.notifications, icon: <Bell /> },
         ],
     },
     {
-        name: "Marché",
+        key: "market",
         adminOnly: false,
-        tabs: [{ name: "Marché", url: routes.market, icon: <ChartCandlestick /> }],
+        tabs: [{ key: "market", url: routes.market, icon: <ChartCandlestick /> }],
     },
     {
-        name: "Strategy Lab",
+        key: "strategyLab",
         adminOnly: false,
         tabs: [
-            { name: "Backtests", url: routes.backtests, icon: <FlaskConical /> },
-            { name: "Nouveau backtest", url: routes.newBacktest, icon: <Plus /> },
-            { name: "Comparaison", url: routes.compare, icon: <GitCompareArrows /> },
-            { name: "Paper trading", url: routes.paperTrading, icon: <TrendingUp /> },
+            { key: "backtests", url: routes.backtests, icon: <FlaskConical /> },
+            { key: "newBacktest", url: routes.newBacktest, icon: <Plus /> },
+            { key: "compare", url: routes.compare, icon: <GitCompareArrows /> },
+            { key: "paperTrading", url: routes.paperTrading, icon: <TrendingUp /> },
         ],
     },
     {
-        name: "Analyse",
+        key: "analysis",
         adminOnly: false,
         tabs: [
-            { name: "Risque", url: routes.risk, icon: <ShieldAlert /> },
-            { name: "Projection", url: routes.projection, icon: <Sparkles /> },
-            { name: "Optimisation", url: routes.optimization, icon: <BrainCircuit /> },
-            { name: "Rapports", url: routes.reports, icon: <FileText /> },
+            { key: "risk", url: routes.risk, icon: <ShieldAlert /> },
+            { key: "projection", url: routes.projection, icon: <Sparkles /> },
+            { key: "optimization", url: routes.optimization, icon: <BrainCircuit /> },
+            { key: "reports", url: routes.reports, icon: <FileText /> },
         ],
     },
     {
-        name: "Administration",
+        key: "administration",
         adminOnly: true,
         tabs: [
-            { name: "Monitoring", url: routes.monitoring, icon: <Activity /> },
-            { name: "Utilisateurs", url: routes.users, icon: <Users /> },
-            { name: "Données de référence", url: routes.referenceData, icon: <Database /> },
+            { key: "monitoring", url: routes.monitoring, icon: <Activity /> },
+            { key: "users", url: routes.users, icon: <Users /> },
+            { key: "referenceData", url: routes.referenceData, icon: <Database /> },
         ],
     },
 ]

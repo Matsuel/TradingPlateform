@@ -1,5 +1,6 @@
+import type { useTranslations } from "next-intl"
 import type { ChartPoint } from "@/components/area-series-chart"
-import { formatDuration, formatPrice, formatRate } from "@/lib/format"
+import type { Formatters } from "@/lib/format"
 import { activeStatuses, BACKTEST_CURRENCY } from "./constants"
 import type {
     AllocationInput,
@@ -9,6 +10,15 @@ import type {
     EquityPoint,
     ExecutionStatus,
 } from "./types"
+
+/** Traducteur du namespace `backtest` des dictionnaires, passé aux helpers qui produisent du texte. */
+export type BacktestTranslator = ReturnType<typeof useTranslations<"backtest">>
+
+/** Cause traduite d'un échec d'exécution (`backtest.executionErrors.<code>`) ; `fallback` pour un échec antérieur au code ou un code inconnu. */
+export function executionErrorLabel(t: BacktestTranslator, e: BacktestExecution, fallback: string) {
+    const key = `executionErrors.${e.errorCode}` as Parameters<typeof t>[0]
+    return e.errorCode && t.has(key) ? t(key) : fallback
+}
 
 /** Somme des poids saisis, en pourcent ; un poids vidé (`NaN`) compte 0 (le schéma du formulaire le rejette à part). */
 export const allocationTotal = (rows: AllocationInput[]) =>
@@ -27,40 +37,44 @@ export function hasStatus(b: Backtest, statuses: readonly ExecutionStatus[]) {
 export const isActive = (e: BacktestExecution) => (activeStatuses as readonly ExecutionStatus[]).includes(e.status)
 
 /** Durée lisible d'une exécution terminée (« 1 min 5 s »), depuis son démarrage ; null tant qu'elle n'est pas finie. */
-export function getExecutionDuration(e: BacktestExecution) {
+export function getExecutionDuration(t: BacktestTranslator, e: BacktestExecution) {
     if (!e.finishedAt) return null
     const seconds = Math.max(1, Math.round((+new Date(e.finishedAt) - +new Date(e.startedAt ?? e.createdAt)) / 1000))
     const minutes = Math.floor(seconds / 60)
-    return minutes ? `${minutes} min ${seconds % 60} s` : `${seconds} s`
+    return minutes
+        ? t("duration.minutesSeconds", { minutes, seconds: seconds % 60 })
+        : t("duration.seconds", { seconds })
 }
 
 /** Allocation lisible : « AAPL 60 % · MSFT 40 % » (poids en ratio, au pourcent entier, D2). */
-export const formatAllocation = (allocations: Backtest["allocations"]) =>
-    allocations.map(({ symbol, weight }) => `${symbol} ${formatRate(Number(weight))}`).join(" · ")
+export const formatAllocation = (f: Formatters, allocations: Backtest["allocations"]) =>
+    allocations.map(({ symbol, weight }) => `${symbol} ${f.formatRate(Number(weight))}`).join(" · ")
 
 /** Decimal sérialisé en string par l'API → number ; null ou absent → null (champ absent des résultats antérieurs). */
 export const fromDecimal = (value: string | null | undefined) => (value == null ? null : Number(value))
 
 /** Montant en `BACKTEST_CURRENCY`. */
-export const formatAmount = (v: number) => formatPrice(v, BACKTEST_CURRENCY)
+export const formatAmount = (f: Formatters, v: number) => f.formatPrice(v, BACKTEST_CURRENCY)
 
 /**
  * Durée de récupération ; `recoveryDays` null : « Aucune baisse » sans baisse, « Non récupéré » si la baisse a un plus haut
  * daté par le moteur (`peakDated`), `null` sinon (l'écran affiche `<Dash />`) : résultat antérieur au calcul, où l'API renvoie aussi null.
  */
 export function formatRecovery(
+    f: Formatters,
+    t: BacktestTranslator,
     recoveryDays: number | null | undefined,
     maxDrawdown: number | null,
     peakDated: boolean,
 ): string | null {
-    if (recoveryDays != null) return formatDuration(recoveryDays)
+    if (recoveryDays != null) return f.formatDuration(recoveryDays)
     if (maxDrawdown == null) return null
-    if (maxDrawdown === 0) return "Aucune baisse"
-    return peakDated ? "Non récupéré" : null
+    if (maxDrawdown === 0) return t("recovery.noDrawdown")
+    return peakDated ? t("recovery.notRecovered") : null
 }
 
 /** Nom de la série du benchmark dans un graphique : « Benchmark URTH ». */
-export const benchmarkLabel = (symbol: string) => `Benchmark ${symbol}`
+export const benchmarkLabel = (t: BacktestTranslator, symbol: string) => t("benchmarkLabel", { symbol })
 
 /** Libellé d'un côté de la comparaison : « A · 60/40 ». */
 export const comparisonLabel = (side: "A" | "B", name: string) => `${side} · ${name}`

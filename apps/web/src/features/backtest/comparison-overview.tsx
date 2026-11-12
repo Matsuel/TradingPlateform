@@ -1,5 +1,6 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import { type ChartSeries, referenceSeries } from "@/components/area-series-chart"
 import { ChartLegend } from "@/components/chart-legend"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -14,6 +15,7 @@ import { ValueDrawdownCharts } from "./value-drawdown-charts"
  * porte (résultats antérieurs).
  */
 export function ComparisonOverview({ comparison }: { comparison: BacktestComparison }) {
+    const t = useTranslations("backtest")
     const { side: benchmarkSide, benchmark } = getComparisonBenchmark(comparison)
     const curves = [comparison.a.result.equityCurve, comparison.b.result.equityCurve] as const
     const sides: ChartSeries[] = (["a", "b"] as const).map((side) => ({
@@ -22,7 +24,10 @@ export function ComparisonOverview({ comparison }: { comparison: BacktestCompari
         color: comparisonSideColors[side].stroke,
     }))
     const valueSeries = benchmark
-        ? [...sides, referenceSeries({ key: "benchmark", label: benchmarkLabel(benchmark.symbol), hint: "benchmark" })]
+        ? [
+              ...sides,
+              referenceSeries({ key: "benchmark", label: benchmarkLabel(t, benchmark.symbol), hint: "benchmark" }),
+          ]
         : sides
     const hasDrawdown = curves.some((curve) => curve.some((p) => p.drawdown != null))
 
@@ -30,8 +35,8 @@ export function ComparisonOverview({ comparison }: { comparison: BacktestCompari
         <Card size="compact">
             <CardHeader className="flex flex-wrap items-center justify-between gap-4">
                 <div className="flex flex-col gap-1">
-                    <CardTitle>Valeur des portefeuilles</CardTitle>
-                    <CardDescription>Drawdown sous la courbe, même axe temporel</CardDescription>
+                    <CardTitle>{t("compare.overview.title")}</CardTitle>
+                    <CardDescription>{t("compare.overview.description")}</CardDescription>
                 </div>
                 <ChartLegend series={valueSeries} />
             </CardHeader>

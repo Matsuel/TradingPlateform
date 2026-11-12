@@ -1,6 +1,6 @@
 import { cva, type VariantProps } from "class-variance-authority"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { formatChange } from "@/lib/format"
+import { useFormatters } from "@/lib/format"
 import { trendOf, trendStyles } from "@/lib/trend"
 import { cn } from "@/lib/utils"
 
@@ -58,5 +58,6 @@ export function SymbolCell({ symbol, name, logoUrl, size = "md", className }: Sy
 
 /** Variation déjà en pourcent (`1.5` → « +1,50 % »), verte en hausse, rouge en baisse, neutre à zéro. */
 export function ChangeCell({ value }: { value: number }) {
-    return <span className={trendStyles[trendOf(value)].text}>{formatChange(value)} %</span>
+    const { formatRatio } = useFormatters()
+    return <span className={trendStyles[trendOf(value)].text}>{formatRatio(value / 100)}</span>
 }

@@ -1,5 +1,6 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import { useState } from "react"
 
 import { Command, CommandDialog, CommandInput, CommandList } from "@/components/ui/command"
@@ -23,13 +24,9 @@ interface SymbolPickerProps {
  * Dialogue de recherche de symbole (≥ `MIN_SEARCH_LENGTH` caractères, débouncée) : squelettes pendant la recherche,
  * erreur, aucun résultat, puis résultats hors `exclude`. Choisir un résultat appelle `onSelect` et ferme le dialogue.
  */
-export function SymbolPicker({
-    open,
-    onOpenChange,
-    onSelect,
-    exclude = [],
-    title = "Rechercher un symbole",
-}: SymbolPickerProps) {
+export function SymbolPicker({ open, onOpenChange, onSelect, exclude = [], title }: SymbolPickerProps) {
+    const t = useTranslations("components.symbolPicker")
+    const heading = title ?? t("title")
     const [query, setQuery] = useState("")
     const trimmed = query.trim()
     const debouncedQuery = useDebouncedValue(trimmed, SEARCH_DEBOUNCE_MS)
@@ -45,11 +42,11 @@ export function SymbolPicker({
         <CommandDialog
             open={open}
             onOpenChange={(next) => (next ? onOpenChange(true) : close())}
-            title={title}
-            description="Actions, ETF, cryptos et indices."
+            title={heading}
+            description={t("description")}
         >
             <Command shouldFilter={false}>
-                <CommandInput placeholder={`${title}…`} value={query} onValueChange={setQuery} />
+                <CommandInput placeholder={`${heading}…`} value={query} onValueChange={setQuery} />
                 <CommandList>
                     <SearchResults
                         state={state}

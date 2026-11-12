@@ -1,5 +1,6 @@
-import { Kafka, logLevel } from "kafkajs";
+import { Kafka, logLevel, Partitioners } from "kafkajs";
 import { kafkaConfig } from "./config/kafka.config";
+import { kafkaLogCreator } from "./kafka.logger";
 
 export class KafkaClient {
     private readonly kafka: Kafka;
@@ -9,6 +10,7 @@ export class KafkaClient {
             clientId: kafkaConfig.clientId,
             brokers: kafkaConfig.brokers,
             logLevel: logLevel.INFO,
+            logCreator: kafkaLogCreator,
             retry: {
                 initialRetryTime: 300,
                 retries: 8,
@@ -17,7 +19,8 @@ export class KafkaClient {
     }
 
     createProducer() {
-        return this.kafka.producer();
+        // Partitionneur par défaut de kafkajs 2, nommé pour ne pas déclencher son avertissement de migration
+        return this.kafka.producer({ createPartitioner: Partitioners.DefaultPartitioner });
     }
 
     createConsumer(groupId: string) {

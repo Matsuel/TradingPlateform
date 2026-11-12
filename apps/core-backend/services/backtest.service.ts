@@ -1,6 +1,7 @@
-import { Logger, periodKey } from "@trading-plateform/utils";
+import { estimateSchedule, Logger } from "@trading-plateform/utils";
 import { createKafkaEvent } from "@trading-plateform/kafka";
 import {
+    API_ERROR_CODES,
     BACKTEST_TOPICS,
     COMPARED_METRICS,
     COMPARISON_PARAMETERS,
@@ -15,12 +16,8 @@ import {
     type ComparisonParameter,
     type Paginated,
 } from "@trading-plateform/contracts";
-import { ACTIVE_STATUSES, COMPARABLE_STATUSES } from "../constants/backtest.constants";
-import BadRequestError from "../errors/badrequest.error";
-import ConflictError from "../errors/conflict.error";
-import ForbiddenError from "../errors/forbidden.error";
-import InternalError from "../errors/internal.error";
-import NotFoundError from "../errors/notfound.error";
+import { ACTIVE_STATUSES, COMPARABLE_STATUSES, EXECUTION_TIMEOUT_MS } from "../constants/backtest.constants";
+import { BadRequestError, ConflictError, ForbiddenError, InternalError, NotFoundError } from "@trading-plateform/http";
 import { producer } from "../lib/kafka";
 import BacktestRepository, { type IBacktestRepository } from "../repositories/backtest.repository";
 import type { Backtest, BacktestStatus, Prisma } from "../generated/prisma/client";
@@ -36,31 +33,10 @@ import type {
 
 const logger = Logger.here()
 
-const DAY_MS = 24 * 60 * 60 * 1000
-
-/**
- * Jours ouvrés (lundi–vendredi, `YYYY-MM-DD`) de `start` inclus à `end` exclu, comme l'intervalle de cours demandé
- * par l'engine. Les dates du formulaire sont un minuit local sérialisé en UTC : l'arrondi au minuit UTC le plus proche
- * retrouve le jour saisi pour tout fuseau à ±12 h. Jours fériés inconnus avant le chargement des cours : estimation.
- */
-const businessDays = (start: Date, end: Date) => {
-    const days: string[] = []
-    for (let day = Math.round(start.getTime() / DAY_MS); day < Math.round(end.getTime() / DAY_MS); day++) {
-        const date = new Date(day * DAY_MS)
-        const weekday = date.getUTCDay()
-        if (weekday !== 0 && weekday !== 6) days.push(date.toISOString().slice(0, 10))
-    }
-    return days
-}
-
-/** Nombre de périodes distinctes rencontrées dans `days` (triés) : chacune commence à son premier jour. */
-const countPeriods = (days: string[], frequency: Exclude<CreateBacktestInput["rebalanceFrequency"], "NONE">) =>
-    new Set(days.map((day) => periodKey(day, frequency))).size
-
 /** Remonte le résultat de la dernière exécution `COMPLETED` ; `NotFoundError` si le backtest ou son résultat a disparu entre les deux lectures. */
 const toCompared = (record: ComparedBacktestRecord | undefined): ComparedBacktestDTO => {
     const result = record?.executions[0]?.result
-    if (!record || !result) throw new NotFoundError("Backtest not found")
+    if (!record || !result) throw new NotFoundError(API_ERROR_CODES.BACKTEST_NOT_FOUND)
     const { executions, ...backtest } = record
     return { ...backtest, result }
 }
@@ -105,10 +81,7 @@ class BacktestService {
      */
     preview(userId: string, input: CreateBacktestInput): BacktestPreview {
         logger.info("Previewing backtest", { userId })
-        const days = businessDays(input.start, input.end)
-        const contributionCount = input.investmentMode === "RECURRING" ? countPeriods(days, "MONTHLY") : Math.min(days.length, 1)
-        const rebalanceCount = input.rebalanceFrequency === "NONE" ? 0 : Math.max(countPeriods(days, input.rebalanceFrequency) - 1, 0)
-        return { contributionCount, rebalanceCount, dataSource: PRICE_DATA_SOURCE }
+        return { ...estimateSchedule(input.start, input.end, input.investmentMode, input.rebalanceFrequency), dataSource: PRICE_DATA_SOURCE }
     }
 
     /**
@@ -120,7 +93,7 @@ class BacktestService {
         const backtest = this.assertOwner(await this.repo.getById(id), userId)
         const latest = backtest.executions[0]
         if (latest && ACTIVE_STATUSES.includes(latest.status)) {
-            throw new ConflictError("An execution is already in progress", { executionId: latest.id })
+            throw new ConflictError(API_ERROR_CODES.EXECUTION_IN_PROGRESS, { executionId: latest.id })
         }
         const attempt = (latest?.attempt ?? 0) + 1
         const execution = await this.repo.createExecution(id, attempt)
@@ -152,8 +125,8 @@ class BacktestService {
         const counts = await this.repo.countExecutionsByIds(ids, userId, COMPARABLE_STATUSES)
         for (const id of ids) {
             const backtest = counts.find((count) => count.id === id)
-            if (!backtest) throw new NotFoundError("Backtest not found", { id })
-            if (backtest._count.executions === 0) throw new BadRequestError("Backtest has no completed result", { id })
+            if (!backtest) throw new NotFoundError(API_ERROR_CODES.BACKTEST_NOT_FOUND, { id })
+            if (backtest._count.executions === 0) throw new BadRequestError(API_ERROR_CODES.BACKTEST_NO_RESULT, { id })
         }
         const records = await this.repo.getComparedByIds(ids, COMPARABLE_STATUSES)
         const [a, b] = ids.map((id) => toCompared(records.find((record) => record.id === id))) as [ComparedBacktestDTO, ComparedBacktestDTO]
@@ -219,18 +192,36 @@ class BacktestService {
     }
 
     /** `backtest.failed` : exécution active → `FAILED` avec sa cause. */
-    async fail({ executionId, finishedAt, error }: BacktestFailedPayload) {
+    async fail({ executionId, finishedAt, error, errorCode }: BacktestFailedPayload) {
         const updated = await this.repo.updateExecution(executionId, ACTIVE_STATUSES, {
             status: "FAILED",
             finishedAt: new Date(finishedAt),
             error,
+            errorCode,
         })
         logger.info(updated ? "Backtest execution failed" : "Backtest failed event ignored", { executionId, error })
     }
 
+    /**
+     * Passe en `FAILED` (`EXECUTION_TIMEOUT`) les exécutions actives créées il y a plus de `EXECUTION_TIMEOUT_MS` : sans cela
+     * un engine tombé laisse le backtest bloqué et chaque relance répond `409`. Un résultat tardif est ensuite ignoré
+     * (transitions gardées par statut). Renvoie le nombre d'exécutions expirées.
+     */
+    async failStaleExecutions(): Promise<number> {
+        const now = new Date()
+        const count = await this.repo.failStaleExecutions(ACTIVE_STATUSES, new Date(now.getTime() - EXECUTION_TIMEOUT_MS), {
+            status: "FAILED",
+            finishedAt: now,
+            error: "Execution timed out",
+            errorCode: "EXECUTION_TIMEOUT",
+        })
+        if (count > 0) logger.warn("Stale executions failed", { count })
+        return count
+    }
+
     private assertOwner<T extends Backtest>(backtest: T | null, userId: string): T {
-        if (!backtest) throw new NotFoundError("Backtest not found")
-        if (backtest.userId !== userId) throw new ForbiddenError("Access denied")
+        if (!backtest) throw new NotFoundError(API_ERROR_CODES.BACKTEST_NOT_FOUND)
+        if (backtest.userId !== userId) throw new ForbiddenError()
         return backtest
     }
 
@@ -263,7 +254,7 @@ class BacktestService {
                 finishedAt: new Date(),
                 error: "Backtest could not be queued",
             })
-            throw new InternalError("Backtest could not be queued")
+            throw new InternalError(API_ERROR_CODES.BACKTEST_QUEUE_FAILED)
         }
     }
 }

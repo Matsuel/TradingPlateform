@@ -3,20 +3,23 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { useTranslations } from "next-intl"
 import { FormProvider, useForm } from "react-hook-form"
 
 import { FormSection, TextField } from "@/components/form"
 import { Button } from "@/components/ui/button"
 import { FieldError } from "@/components/ui/field"
 import { routes } from "@/lib/routes"
-import { useRegister } from "./hook"
-import { type RegisterValues, registerSchema } from "./schema"
+import { useAuthErrorMessage, useRegister } from "./hook"
+import { createRegisterSchema, type RegisterValues } from "./schema"
 
 export function RegisterForm() {
+    const t = useTranslations("auth")
     const router = useRouter()
+    const authErrorMessage = useAuthErrorMessage()
     const { mutateAsync, error } = useRegister()
     const form = useForm<RegisterValues>({
-        resolver: zodResolver(registerSchema),
+        resolver: zodResolver(createRegisterSchema(useTranslations("auth.validation"))),
         defaultValues: { name: "", email: "", password: "" },
     })
 
@@ -29,20 +32,20 @@ export function RegisterForm() {
     return (
         <FormProvider {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} noValidate>
-                <FormSection title="Créer un compte" description="Renseignez vos informations pour créer votre compte">
-                    <TextField name="name" label="Nom" />
-                    <TextField name="email" label="Email" type="email" />
-                    <TextField name="password" label="Mot de passe" type="password" />
+                <FormSection title={t("register.title")} description={t("register.description")}>
+                    <TextField name="name" label={t("fields.name")} />
+                    <TextField name="email" label={t("fields.email")} type="email" />
+                    <TextField name="password" label={t("fields.password")} type="password" />
 
-                    {error && <FieldError>{error.message}</FieldError>}
+                    {error && <FieldError>{authErrorMessage(error, t("register.failed"))}</FieldError>}
 
                     <Button type="submit" disabled={form.formState.isSubmitting}>
-                        Créer le compte
+                        {t("register.submit")}
                     </Button>
                     <p className="text-center text-body text-muted-foreground">
-                        Déjà un compte ?{" "}
+                        {t("register.hasAccount")}{" "}
                         <Link href={routes.login} className="underline">
-                            Se connecter
+                            {t("register.login")}
                         </Link>
                     </p>
                 </FormSection>

@@ -1,5 +1,5 @@
 import authMiddleware from "../../middleware/auth.middleware";
-import type { RouteDescriptor } from "../../models/route.model";
+import type { RouteDescriptor } from "@trading-plateform/http";
 import proxyTo from "../../utils/proxy";
 import { env } from "../../env";
 
@@ -7,14 +7,14 @@ const createMarketRoutes = (): RouteDescriptor[] => {
 
     const prefix = "/api/market";
 
-    return [
-        {
-            method: "all",
-            path: `${prefix}/{*path}`,
-            middlewares: [authMiddleware],
-            handler: proxyTo(env.MARKET_SERVICE_URL)
-        },
-    ];
+    // Liste blanche : seules les routes lues par le web sont relayées. `closes` (cours d'un backtest, jusqu'à 50 symboles,
+    // sans cache) reste réservée à backtest-engine, qui appelle market-service directement.
+    return ["search", "details/:id", "defaults"].map((path): RouteDescriptor => ({
+        method: "get",
+        path: `${prefix}/${path}`,
+        middlewares: [authMiddleware],
+        handler: proxyTo(env.MARKET_SERVICE_URL),
+    }));
 }
 
 export default createMarketRoutes;

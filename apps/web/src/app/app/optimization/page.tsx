@@ -1,12 +1,19 @@
 import type { Metadata } from "next"
+import { useTranslations } from "next-intl"
+import { getTranslations } from "next-intl/server"
 import { PageHeader, PageLayout } from "@/components/page-layout"
 
-export const metadata: Metadata = { title: "Optimisation" }
+export async function generateMetadata(): Promise<Metadata> {
+    const t = await getTranslations("navigation.tabs")
+    return { title: t("optimization") }
+}
 
 export default function OptimizationPage() {
+    const t = useTranslations()
+
     return (
         <PageLayout>
-            <PageHeader title="Optimisation" description="Explorateur d’allocations et frontière efficiente." />
+            <PageHeader title={t("navigation.tabs.optimization")} description={t("pages.optimization.description")} />
         </PageLayout>
     )
 }

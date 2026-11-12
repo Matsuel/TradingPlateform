@@ -1,118 +1,51 @@
-import { Dash, orDash } from "@/components/dash"
-import { type HintDetail, InfoHint } from "@/components/info-hint"
-import { formatDay, formatPercent } from "@/lib/format"
-import { rebalanceFrequencyLabels } from "./constants"
-import { MetricBlock, type MetricColumn, type MetricRow } from "./metric-block"
-import {
-    benchmarkRecovery,
-    benchmarkValue,
-    type Metric,
-    metricDefinitions,
-    recoveryDefinition,
-    resultRecovery,
-    resultValue,
-    withBenchmark,
-} from "./metrics"
+import { useTranslations } from "next-intl"
+import { InfoHint } from "@/components/info-hint"
+import { useFormatters } from "@/lib/format"
+import { MetricBlock } from "./metric-block"
+import { type Metric, metricRow, resultColumns } from "./metrics"
+import { CostsBlock, RiskBlock } from "./result-blocks"
 import type { BacktestResult, RebalanceFrequency } from "./types"
-import { formatAmount, fromDecimal } from "./utils"
+import { formatAmount } from "./utils"
 
-// Lignes des blocs, dans l'ordre de la maquette 13 v2
+// Lignes du bloc Performance, dans l'ordre de la maquette 13 v2
 const performanceMetrics: Metric[] = ["cagr", "totalReturn", "finalValue"]
-const riskMetrics: Metric[] = ["volatility", "sharpeRatio", "maxDrawdown"]
-
-// Colonnes : le portefeuille puis, avec un benchmark, son symbole
-const columnsOf = ({ benchmark }: BacktestResult): MetricColumn[] =>
-    withBenchmark([{ label: "Portefeuille" }], benchmark, (bm) => ({ label: bm.symbol }))
-
-// Ligne d'une métrique : valeur du portefeuille puis, avec un benchmark, la sienne
-function metricRow(result: BacktestResult, metric: Metric, details?: HintDetail[]): MetricRow {
-    const { label, hint } = metricDefinitions[metric]
-    const values = withBenchmark([resultValue(result, metric)], result.benchmark, (bm) => benchmarkValue(bm, metric))
-    return { label, hint, details, values }
-}
-
-function recoveryRow(result: BacktestResult): MetricRow {
-    return {
-        ...recoveryDefinition,
-        values: withBenchmark([resultRecovery(result)], result.benchmark, benchmarkRecovery),
-    }
-}
 
 // Note du bloc Performance en DCA : valeur d'un investissement unique et écart avec le DCA
 function LumpSumNote({ lumpSum }: { lumpSum: NonNullable<BacktestResult["lumpSumComparison"]> }) {
+    const f = useFormatters()
+    const t = useTranslations("backtest.result.lumpSum")
     const { finalValue, dcaAdvantage } = lumpSum
     return (
         <>
             <InfoHint
                 entry="lumpSum"
                 details={[
-                    { label: "Investissement unique", value: formatAmount(finalValue) },
-                    { label: "Écart du DCA", value: formatAmount(dcaAdvantage) },
+                    { label: t("single"), value: formatAmount(f, finalValue) },
+                    { label: t("dcaGap"), value: formatAmount(f, dcaAdvantage) },
                 ]}
             >
-                Investi en une fois au 1er jour
+                {t("label")}
             </InfoHint>
-            {` : ${formatAmount(finalValue)}, soit ${formatAmount(Math.abs(dcaAdvantage))} de ${dcaAdvantage >= 0 ? "moins" : "mieux"} que le DCA`}
+            {` : ${t("summary", {
+                final: formatAmount(f, finalValue),
+                gap: formatAmount(f, Math.abs(dcaAdvantage)),
+                direction: dcaAdvantage >= 0 ? "less" : "more",
+            })}`}
         </>
     )
 }
 
 function PerformanceBlock({ result }: { result: BacktestResult }) {
+    const f = useFormatters()
+    const t = useTranslations("backtest")
     const { lumpSumComparison } = result
     return (
         <MetricBlock
-            title="Performance"
-            description="Rendement, hors versements"
-            columns={columnsOf(result)}
-            rows={performanceMetrics.map((metric) => metricRow(result, metric))}
+            title={t("result.performance.title")}
+            description={t("result.performance.description")}
+            columns={resultColumns(t, result)}
+            rows={performanceMetrics.map((metric) => metricRow(f, t, result, metric))}
             note={lumpSumComparison && <LumpSumNote lumpSum={lumpSumComparison} />}
-        />
-    )
-}
-
-function RiskBlock({ result }: { result: BacktestResult }) {
-    const { maxDrawdownDate, maxDrawdownPeakDate } = result
-    const riskFreeRate = fromDecimal(result.riskFreeRate)
-    const troughDetails = maxDrawdownDate ? [{ label: "Creux atteint le", value: formatDay(maxDrawdownDate) }] : []
-
-    return (
-        <MetricBlock
-            title="Risque"
-            description={
-                riskFreeRate == null ? "Annualisé" : `Annualisé, taux sans risque ${formatPercent(riskFreeRate)}`
-            }
-            columns={columnsOf(result)}
-            rows={[
-                ...riskMetrics.map((metric) =>
-                    metricRow(result, metric, metric === "maxDrawdown" ? troughDetails : undefined),
-                ),
-                recoveryRow(result),
-            ]}
-            note={maxDrawdownPeakDate && `Baisse maximale depuis le plus haut du ${formatDay(maxDrawdownPeakDate)}`}
-        />
-    )
-}
-
-function CostsBlock({ result, rebalanceFrequency }: ResultMetricsProps) {
-    const rebalancing =
-        rebalanceFrequency === "NONE"
-            ? "Sans rebalancement"
-            : `Rebalancement ${rebalanceFrequencyLabels[rebalanceFrequency].toLowerCase()}`
-
-    return (
-        <MetricBlock
-            title="Coûts et activité"
-            description={`${rebalancing} · frais déduits de la valeur, achats et ventes`}
-            columns={[{ label: "Total" }]}
-            rows={[
-                {
-                    label: "Frais payés",
-                    hint: "totalFees",
-                    values: [orDash(fromDecimal(result.totalFees), formatAmount)],
-                },
-                { label: "Ordres", hint: "totalTrades", values: [result.totalTrades] },
-                { label: "Rebalancements", hint: "rebalanceCount", values: [result.rebalanceCount ?? <Dash />] },
-            ]}
         />
     )
 }

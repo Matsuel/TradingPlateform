@@ -1,0 +1,863 @@
+{
+    "metadata": {
+        "description": "Laboratoire de portefeuille simulé : backtests, risque et optimisation, sans argent réel."
+    },
+    "common": {
+        "retry": "Réessayer",
+        "error": "Une erreur est survenue."
+    },
+    "errors": {
+        "generic": "Une erreur est survenue. Réessayez dans un instant.",
+        "UNAUTHORIZED": "Votre session a expiré. Reconnectez-vous.",
+        "ACCESS_DENIED": "Vous n’avez pas accès à cette ressource.",
+        "SERVICE_UNAVAILABLE": "Le service est momentanément indisponible. Réessayez plus tard.",
+        "INTERNAL_ERROR": "Erreur interne du serveur. Réessayez plus tard.",
+        "INVALID_QUERY": "Les paramètres de la requête sont invalides.",
+        "INVALID_BACKTEST": "Les paramètres du backtest sont invalides.",
+        "NAME_REQUIRED": "Le nom est obligatoire.",
+        "PORTFOLIO_NOT_FOUND": "Portefeuille introuvable.",
+        "BACKTEST_NOT_FOUND": "Backtest introuvable.",
+        "BACKTEST_NO_RESULT": "Ce backtest n’a pas encore de résultat terminé.",
+        "EXECUTION_IN_PROGRESS": "Une exécution est déjà en cours pour ce backtest.",
+        "BACKTEST_QUEUE_FAILED": "Le backtest n’a pas pu être mis en file d’attente. Relancez-le.",
+        "SYMBOLS_NOT_UNIQUE": "Chaque actif ne peut apparaître qu’une fois.",
+        "WEIGHTS_NOT_100": "Les poids doivent totaliser 100 %.",
+        "END_BEFORE_START": "La date de fin doit être postérieure à la date de début.",
+        "RECURRING_AMOUNT_REQUIRED": "Le versement mensuel est obligatoire en mode récurrent.",
+        "RECURRING_AMOUNT_NOT_ALLOWED": "Le versement mensuel n’est autorisé qu’en mode récurrent.",
+        "INITIAL_AMOUNT_NOT_POSITIVE": "Le capital initial doit être positif.",
+        "IDS_NOT_DISTINCT": "Choisissez deux backtests différents."
+    },
+    "notFound": {
+        "title": "Page introuvable",
+        "description": "La page que vous cherchez n’existe pas ou a été déplacée.",
+        "backToDashboard": "Retour au dashboard",
+        "viewMarket": "Voir le marché"
+    },
+    "navigation": {
+        "sections": {
+            "overview": "Vue d’ensemble",
+            "market": "Marché",
+            "strategyLab": "Strategy Lab",
+            "analysis": "Analyse",
+            "administration": "Administration"
+        },
+        "tabs": {
+            "dashboard": "Dashboard",
+            "notifications": "Notifications",
+            "market": "Marché",
+            "backtests": "Backtests",
+            "newBacktest": "Nouveau backtest",
+            "compare": "Comparaison",
+            "paperTrading": "Paper trading",
+            "risk": "Risque",
+            "projection": "Projection",
+            "optimization": "Optimisation",
+            "reports": "Rapports",
+            "monitoring": "Monitoring",
+            "users": "Utilisateurs",
+            "referenceData": "Données de référence"
+        },
+        "account": "Compte",
+        "logout": "Se déconnecter"
+    },
+    "theme": {
+        "toggle": "Changer de thème",
+        "light": "Clair",
+        "dark": "Sombre",
+        "system": "Système"
+    },
+    "auth": {
+        "fields": {
+            "name": "Nom",
+            "email": "Email",
+            "password": "Mot de passe"
+        },
+        "validation": {
+            "required": "Requis",
+            "invalidEmail": "Email invalide",
+            "minLength": "Au moins {count} caractères",
+            "maxLength": "Au plus {count} caractères"
+        },
+        "errors": {
+            "INVALID_EMAIL_OR_PASSWORD": "Email ou mot de passe incorrect.",
+            "USER_ALREADY_EXISTS": "Un compte existe déjà avec cet email.",
+            "USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL": "Un compte existe déjà avec cet email. Utilisez-en un autre.",
+            "INVALID_EMAIL": "Email invalide.",
+            "PASSWORD_TOO_SHORT": "Mot de passe trop court.",
+            "PASSWORD_TOO_LONG": "Mot de passe trop long.",
+            "EMAIL_NOT_VERIFIED": "Email non vérifié.",
+            "FAILED_TO_CREATE_USER": "Le compte n’a pas pu être créé."
+        },
+        "login": {
+            "title": "Connexion",
+            "description": "Connectez-vous avec votre email et votre mot de passe",
+            "submit": "Se connecter",
+            "failed": "Identifiants invalides",
+            "noAccount": "Pas encore de compte ?",
+            "createAccount": "Créer un compte"
+        },
+        "register": {
+            "metaTitle": "Inscription",
+            "title": "Créer un compte",
+            "description": "Renseignez vos informations pour créer votre compte",
+            "submit": "Créer le compte",
+            "failed": "Inscription impossible",
+            "hasAccount": "Déjà un compte ?",
+            "login": "Se connecter"
+        }
+    },
+    "settings": {
+        "title": "Paramètres",
+        "description": "Gérez votre profil et votre portefeuille virtuel.",
+        "tabs": {
+            "appearance": "Apparence"
+        },
+        "theme": {
+            "title": "Thème",
+            "description": "Choisissez l’apparence de l’interface."
+        },
+        "language": {
+            "title": "Langue et région",
+            "description": "Format d’affichage des textes, dates et nombres.",
+            "label": "Langue"
+        }
+    },
+    "components": {
+        "symbolSearch": {
+            "tooShort": "Saisis au moins {count} caractères.",
+            "failed": "La recherche a échoué",
+            "empty": "Aucun résultat pour « {query} ».",
+            "results": "Résultats"
+        },
+        "symbolPicker": {
+            "title": "Rechercher un symbole",
+            "description": "Actions, ETF, cryptos et indices."
+        },
+        "infoHint": {
+            "shownValue": "Valeur affichée",
+            "purpose": "À quoi ça sert",
+            "computation": "Comment c’est calculé",
+            "unit": "Unité",
+            "readingTip": "Comment le lire",
+            "source": "Source : {source}"
+        },
+        "optionSelect": {
+            "placeholder": "Sélectionner…"
+        },
+        "symbolsField": {
+            "add": "Ajouter",
+            "remove": "Retirer {symbol}",
+            "pickerTitle": "Ajouter un symbole"
+        },
+        "pagination": {
+            "range": "{from}–{to} sur {count}",
+            "previous": "Précédent",
+            "previousAria": "Page précédente",
+            "next": "Suivant",
+            "nextAria": "Page suivante"
+        },
+        "dataTable": {
+            "empty": "Aucune donnée."
+        },
+        "dateField": {
+            "placeholder": "jj/mm/aaaa"
+        }
+    },
+    "backtest": {
+        "list": {
+            "title": "Backtests",
+            "description": "Historique des runs de stratégies exécutés.",
+            "action": "Nouveau backtest",
+            "tableTitle": "Tous les backtests",
+            "tableDescription": "Triés par date de lancement",
+            "empty": "Aucun backtest."
+        },
+        "new": {
+            "title": "Nouveau backtest",
+            "description": "Configurez une stratégie : un test sera effectué afin de voir si cette stratégie est la bonne"
+        },
+        "detail": {
+            "metaTitle": "Backtest",
+            "rerun": "Relancer",
+            "failed": "Le backtest a échoué : {error}",
+            "unknownError": "erreur inconnue",
+            "pending": "Les résultats s’afficheront à la fin du calcul.",
+            "rebalancing": "rebalancement {frequency}",
+            "benchmark": "benchmark {symbol}",
+            "executedIn": "exécuté en {duration}"
+        },
+        "noBenchmark": "Aucun",
+        "executionErrors": {
+            "NO_MARKET_DATA": "aucun cours disponible pour un des symboles",
+            "NOTHING_INVESTED": "aucun montant n’a été investi sur la période",
+            "ENGINE_FAILED": "le calcul a rencontré une erreur",
+            "EXECUTION_TIMEOUT": "le calcul n’a pas abouti à temps, relancez le backtest"
+        },
+        "disclaimer": "Les performances passées ne préjugent pas des performances futures. Simulation pédagogique, pas un conseil en investissement.",
+        "investmentMode": {
+            "LUMP_SUM": "Investissement unique",
+            "RECURRING": "Investissement unique + versements mensuels"
+        },
+        "strategy": {
+            "RECURRING": "DCA mensuel",
+            "LUMP_SUM": "Lump sum"
+        },
+        "rebalanceFrequency": {
+            "NONE": "Aucun",
+            "MONTHLY": "Mensuel",
+            "QUARTERLY": "Trimestriel",
+            "YEARLY": "Annuel"
+        },
+        "executionRule": {
+            "CLOSE_ON_SCHEDULED_DAY": "Achat à la clôture du premier jour de cotation de chaque échéance"
+        },
+        "priceType": {
+            "CLOSE_SPLIT_ADJUSTED": "Clôture ajustée des splits, hors dividendes"
+        },
+        "status": {
+            "DRAFT": "Brouillon",
+            "PENDING": "En attente",
+            "RUNNING": "En cours",
+            "COMPLETED": "Terminé",
+            "FAILED": "Échoué",
+            "CANCELLED": "Annulé"
+        },
+        "tradeSide": {
+            "BUY": "Achat",
+            "SELL": "Vente"
+        },
+        "filters": {
+            "all": "Tous",
+            "running": "En cours",
+            "done": "Terminés",
+            "failed": "Échoués"
+        },
+        "metrics": {
+            "cagr": "CAGR",
+            "totalReturn": "Rendement total",
+            "finalValue": "Valeur finale",
+            "volatility": "Volatilité",
+            "sharpeRatio": "Sharpe",
+            "maxDrawdown": "Max drawdown",
+            "recovery": "Récupération",
+            "rowHeader": "Indicateur"
+        },
+        "recovery": {
+            "noDrawdown": "Aucune baisse",
+            "notRecovered": "Non récupéré"
+        },
+        "duration": {
+            "minutesSeconds": "{minutes} min {seconds} s",
+            "seconds": "{seconds} s",
+            "after": "Après {duration}"
+        },
+        "benchmarkLabel": "Benchmark {symbol}",
+        "columns": {
+            "name": "Nom",
+            "strategy": "Stratégie",
+            "allocation": "Allocation",
+            "period": "Période",
+            "return": "Rendement",
+            "cagr": "CAGR",
+            "status": "Statut",
+            "duration": "Durée",
+            "date": "Date",
+            "symbol": "Symbole",
+            "side": "Côté",
+            "price": "Prix",
+            "quantity": "Quantité",
+            "amount": "Montant",
+            "fees": "Frais",
+            "value": "Valeur"
+        },
+        "stats": {
+            "total": "Backtests au total",
+            "sinceCreation": "Depuis la création",
+            "active": "En cours",
+            "activeCaption": "Backtests actifs",
+            "completed": "Terminés",
+            "successRate": "Taux de réussite",
+            "failed": "Échoués",
+            "failedRuns": "Runs en erreur"
+        },
+        "trades": {
+            "title": "Ordres",
+            "recent": "{shown} plus récents sur {total}",
+            "all": "Achats et ventes, du plus récent au plus ancien",
+            "seeAll": "Voir les {count} ordres",
+            "showRecent": "Afficher les plus récents",
+            "empty": "Aucun ordre."
+        },
+        "form": {
+            "submit": "Lancer le backtest",
+            "general": {
+                "title": "Général",
+                "description": "Nom et mode d’investissement"
+            },
+            "allocationSection": {
+                "title": "Allocation et période",
+                "description": "Actifs, poids et fenêtre historique"
+            },
+            "name": "Nom du backtest",
+            "investmentMode": "Mode d’investissement",
+            "recurringAmount": "Versement mensuel ({currency})",
+            "start": "Début",
+            "end": "Fin",
+            "initialAmount": "Capital initial ({currency})",
+            "fee": "Frais par ordre (%)",
+            "allocations": "Actifs et poids",
+            "rebalance": "Rebalancement",
+            "rebalanceDescription": "Ramène les poids à la cible",
+            "benchmark": "Benchmark",
+            "benchmarkDescription": "Rejoué avec les mêmes versements et frais ; retire-le pour simuler sans benchmark",
+            "benchmarkAdd": "Choisir"
+        },
+        "allocation": {
+            "add": "Ajouter un actif",
+            "remove": "Retirer {symbol}",
+            "total": "Total : {total} %"
+        },
+        "validation": {
+            "required": "Requis",
+            "integer": "Pourcent entier",
+            "minWeight": "Au moins 1 %",
+            "atLeastOne": "Ajoute au moins un actif",
+            "maxAllocations": "Au plus {max} actifs",
+            "total": "Le total doit faire {total} %",
+            "endAfterStart": "Doit être après la date de début",
+            "greaterThanZero": "Doit être supérieur à 0"
+        },
+        "quick": {
+            "name": "Test rapide {symbol}",
+            "symbol": "Symbole",
+            "analysedData": "Données analysées",
+            "days": "{count, plural, one {# jour} other {# jours}}",
+            "hint": "Test rapide sur ce symbole. Pour comparer plusieurs symboles, utilisez la page Backtests.",
+            "advanced": "Configuration avancée",
+            "run": "Lancer le test"
+        },
+        "preview": {
+            "title": "Récapitulatif",
+            "description": "Ce que lancera le backtest",
+            "steps": {
+                "data": {
+                    "label": "Données",
+                    "description": "Cours de clôture journaliers des actifs"
+                },
+                "simulation": {
+                    "label": "Simulation",
+                    "description": "Versements, ordres et rebalancements"
+                },
+                "metrics": {
+                    "label": "Métriques",
+                    "description": "Rendement, risque et drawdown"
+                }
+            },
+            "plannedRebalances": "Rebalancements prévus",
+            "plannedContributions": "Versements prévus",
+            "dataSource": "Source des données",
+            "estimate": "Estimation calendaire : jours ouvrés du lundi au vendredi, jours fériés inconnus avant le chargement des cours."
+        },
+        "overview": {
+            "finalValue": "Valeur finale",
+            "profit": "Plus-value",
+            "invested": "{amount} investis",
+            "benchmarkReturn": "{symbol} sur la même période : {return}",
+            "portfolio": "Portefeuille",
+            "lumpSum": "Investissement unique",
+            "drawdown": "Drawdown",
+            "on": "sur"
+        },
+        "result": {
+            "performance": {
+                "title": "Performance",
+                "description": "Rendement, hors versements"
+            },
+            "risk": {
+                "title": "Risque",
+                "annualised": "Annualisé",
+                "annualisedRiskFree": "Annualisé, taux sans risque {rate}",
+                "trough": "Creux atteint le",
+                "peak": "Baisse maximale depuis le plus haut du {date}"
+            },
+            "costs": {
+                "title": "Coûts et activité",
+                "noRebalancing": "Sans rebalancement",
+                "rebalancing": "Rebalancement {frequency}",
+                "description": "{rebalancing} · frais déduits de la valeur, achats et ventes",
+                "fees": "Frais payés",
+                "trades": "Ordres",
+                "rebalances": "Rebalancements",
+                "total": "Total"
+            },
+            "portfolio": "Portefeuille",
+            "lumpSum": {
+                "label": "Investi en une fois au 1er jour",
+                "summary": "{final}, soit {gap} {direction, select, less {de moins} other {de mieux}} que le DCA",
+                "single": "Investissement unique",
+                "dcaGap": "Écart du DCA"
+            }
+        },
+        "assumptions": {
+            "period": "Période",
+            "currency": "Devise",
+            "fees": "Frais",
+            "feesValue": "{rate} par ordre, achat et vente",
+            "rebalancing": "Rebalancement",
+            "benchmark": "Benchmark",
+            "riskFree": "Taux sans risque",
+            "executionRule": "Règle d’exécution",
+            "dataSource": "Source des données",
+            "fetchedAt": "Données récupérées le",
+            "fingerprint": "Empreinte des données"
+        },
+        "details": {
+            "positions": "Positions finales",
+            "positionsEmpty": "Positions non disponibles pour ce résultat.",
+            "assumptions": "Hypothèses",
+            "assumptionsSummary": "Conditions de la simulation",
+            "history": "Historique d’exécution",
+            "historyCount": "{count, plural, one {# exécution} other {# exécutions}}",
+            "show": "Afficher",
+            "hide": "Masquer"
+        },
+        "history": {
+            "pending": "En file d’attente",
+            "running": "Calcul en cours",
+            "unknownError": "Erreur inconnue",
+            "completed": "Terminé",
+            "completedSummary": "{count, plural, one {# ordre} other {# ordres}} · {return}"
+        },
+        "compare": {
+            "title": "Comparaison",
+            "description": "Deux backtests terminés, mêmes métriques côte à côte",
+            "copy": "Copier le lien",
+            "copied": "Lien copié",
+            "invalidLink": "Ce lien ne désigne pas deux backtests différents : choisissez-en deux.",
+            "choose": "Choisissez deux backtests terminés à comparer.",
+            "selection": {
+                "a": "Backtest A",
+                "b": "Backtest B",
+                "swap": "Échanger",
+                "hint": "Seuls vos backtests terminés sont proposés. Le lien de la page garde la sélection."
+            },
+            "overview": {
+                "title": "Valeur des portefeuilles",
+                "description": "Drawdown sous la courbe, même axe temporel"
+            },
+            "metrics": {
+                "title": "Métriques comparées",
+                "description": "Écart = A − B, en points (Sharpe sans unité)",
+                "delta": "Écart",
+                "points": "{value} pts"
+            },
+            "parameters": {
+                "title": "Paramètres",
+                "description": "Ceux qui diffèrent sont signalés",
+                "rowHeader": "Paramètre",
+                "differs": "diffère",
+                "period": "Période",
+                "mode": "Mode",
+                "allocation": "Allocation",
+                "rebalancing": "Rebalancement",
+                "fees": "Frais",
+                "benchmark": "Benchmark"
+            },
+            "banner": {
+                "title": "Comparaison non homogène : {differences}",
+                "note": "Les écarts restent calculés, mais ne mesurent plus seulement l’effet de l’allocation."
+            },
+            "differences": {
+                "period": "périodes différentes",
+                "feeRate": "frais différents",
+                "benchmarkSymbol": "benchmarks différents"
+            },
+            "details": {
+                "period": "A couvre {a}, B {b}.",
+                "feeRate": "A paie {a} par ordre, B {b}.",
+                "benchmarkSymbol": "Benchmark de A : {a}, de B : {b}."
+            }
+        }
+    },
+    "market": {
+        "title": "Marché",
+        "description": "Prix en temps réel via Yahoo Finance",
+        "search": {
+            "placeholder": "Rechercher un symbole…"
+        },
+        "sheet": {
+            "title": "Test rapide · {symbol}",
+            "trigger": "Tester"
+        },
+        "columns": {
+            "symbol": "Symbole",
+            "price": "Prix",
+            "change24h": "Variation 24 h",
+            "volume24h": "Volume 24 h",
+            "trend": "Tendance"
+        },
+        "chart": {
+            "title": "Prix",
+            "description": "{symbol} · points toutes les {interval}",
+            "empty": "Aucune donnée pour cette période."
+        },
+        "periods": {
+            "1d": "1J",
+            "1w": "1S",
+            "1m": "1M",
+            "1y": "1A",
+            "max": "Max"
+        },
+        "intervals": {
+            "1d": "5 min",
+            "1w": "1 h",
+            "1m": "1 jour",
+            "1y": "1 semaine",
+            "max": "1 mois"
+        }
+    },
+    "glossary": {
+        "shared": {
+            "moneyUnit": "Montant affiché en euros. Les cours ne sont pas convertis : pour un actif coté en dollars, le montant est en réalité en dollars.",
+            "marketMoneyUnit": "Montant affiché en dollars. Les cours ne sont pas convertis : pour un actif coté dans une autre devise (ex. en euros sur Euronext), la valeur est en réalité dans sa devise de cotation.",
+            "twr": "Le moteur chaîne jour après jour la performance du portefeuille, mesurée avant le versement du jour : un versement mensuel n’est pas compté comme une performance (rendement pondéré dans le temps, TWR)."
+        },
+        "finalValue": {
+            "title": "Valeur finale",
+            "purpose": "Ce que vaut le portefeuille au dernier jour de la période : le montant que tu aurais en le liquidant ce jour-là, avant frais de vente.",
+            "computation": "Somme, pour chaque actif, de la quantité détenue multipliée par son dernier cours de clôture connu. Les frais déjà payés sont déduits, puisqu’ils ont réduit les quantités achetées.",
+            "formula": "valeur finale = Σ quantité(actif) × cours(actif, dernier jour)",
+            "unit": "{moneyUnit}",
+            "readingTip": "À comparer au montant investi : l’écart entre les deux est la plus-value."
+        },
+        "profit": {
+            "title": "Plus-value",
+            "purpose": "Le gain (ou la perte) en euros, une fois retiré tout ce que tu as versé.",
+            "computation": "Valeur finale moins montant total investi.",
+            "formula": "plus-value = valeur finale − montant investi",
+            "unit": "{moneyUnit} Négatif en cas de perte."
+        },
+        "totalInvested": {
+            "title": "Montant investi",
+            "purpose": "Tout l’argent sorti de ta poche : capital initial et, en DCA, chaque versement.",
+            "computation": "Somme des versements, frais compris : un ordre de 6 000 € coûte 6 000 €, dont les frais. Le rebalancement s’autofinance et ne l’augmente pas.",
+            "unit": "{moneyUnit}"
+        },
+        "totalReturn": {
+            "title": "Rendement total",
+            "purpose": "Le gain rapporté à ce que tu as versé, sur toute la période, sans tenir compte de sa durée.",
+            "computation": "Plus-value divisée par le montant investi. En DCA, les derniers versements ont eu peu de temps pour travailler : ce rendement ne se compare pas d’une durée à l’autre, utilise le CAGR pour cela.",
+            "formula": "rendement total = (valeur finale − montant investi) / montant investi",
+            "unit": "Ratio affiché en pourcentage.",
+            "readingTip": "+15 % : pour 100 € versés, il en reste 115 € à la fin."
+        },
+        "cagr": {
+            "title": "CAGR (rendement annualisé)",
+            "purpose": "Le rendement moyen par an, pour comparer des stratégies sur des durées différentes.",
+            "computation": "{twr} La performance cumulée est ensuite ramenée à une année de 365,25 jours calendaires, y compris pour une période de moins d’un an (extrapolation).",
+            "formula": "CAGR = (indice final / indice initial)^(365,25 / jours) − 1",
+            "unit": "Ratio annuel affiché en pourcentage.",
+            "readingTip": "+7 % : le portefeuille a progressé en moyenne de 7 % par an. Sur moins d’un an, le chiffre extrapole et peut paraître extrême."
+        },
+        "volatility": {
+            "title": "Volatilité",
+            "purpose": "L’amplitude des variations du portefeuille : plus elle est haute, plus le parcours est agité.",
+            "computation": "{twr} Le moteur prend l’écart-type de ces rendements journaliers (sur tout l’historique simulé), puis l’annualise en le multipliant par √252, le nombre de jours de cotation d’une année.",
+            "formula": "volatilité = écart-type(rendements journaliers) × √252",
+            "unit": "Ratio annuel affiché en pourcentage.",
+            "readingTip": "15 % : sur une année, le rendement s’écarte typiquement de ±15 % de sa moyenne."
+        },
+        "sharpeRatio": {
+            "title": "Ratio de Sharpe",
+            "purpose": "Le rendement obtenu par unité de risque pris : il départage deux stratégies au rendement proche.",
+            "computation": "CAGR moins le taux sans risque, divisé par la volatilité annualisée. Absent si la volatilité est nulle.",
+            "formula": "Sharpe = (CAGR − taux sans risque) / volatilité",
+            "unit": "Sans unité.",
+            "readingTip": "Au-dessus de 1, le rendement rémunère bien le risque ; sous 0, la stratégie a fait moins bien que le placement sans risque."
+        },
+        "riskFreeRate": {
+            "title": "Taux sans risque",
+            "purpose": "Le rendement d’un placement sans risque, soustrait au CAGR dans le ratio de Sharpe.",
+            "computation": "Hypothèse fixe du moteur, publiée avec chaque résultat pour savoir avec quel taux le Sharpe a été calculé.",
+            "unit": "Ratio annuel affiché en pourcentage."
+        },
+        "maxDrawdown": {
+            "title": "Max drawdown",
+            "purpose": "La pire perte subie en cours de route : la plus forte baisse du portefeuille depuis son plus-haut précédent. C’est le « pire moment » qu’il aurait fallu encaisser sans vendre.",
+            "computation": "{twr} Chaque jour, le moteur compare cet indice à son plus-haut atteint jusque-là ; le max drawdown est la baisse la plus profonde. Sur le résultat, la note du bloc Risque donne la date de ce plus-haut et le panneau celle du creux.",
+            "formula": "drawdown(t) = indice(t) / max indice(s ≤ t) − 1\nmax drawdown = min drawdown(t)",
+            "unit": "Ratio affiché en pourcentage, toujours ≤ 0 %. 0 % signifie aucune baisse.",
+            "readingTip": "−12,99 % : à son pire moment, le portefeuille valait 12,99 % de moins que son meilleur niveau précédent. Plus le chiffre est proche de 0, plus le parcours a été régulier."
+        },
+        "recovery": {
+            "title": "Récupération",
+            "purpose": "Le temps qu’il a fallu pour effacer la pire baisse (max drawdown).",
+            "computation": "{twr} La récupération compte les jours calendaires entre le plus-haut de cet indice qui précède la pire baisse et le premier jour où l’indice retrouve ce niveau. En DCA, la valeur du portefeuille peut remonter plus tôt grâce aux versements : elle n’entre pas en compte. Sans retour au plus-haut avant la fin de la période, la baisse n’est pas récupérée.",
+            "unit": "Durée en jours calendaires, affichée en jours, mois ou années.",
+            "readingTip": "4 mois : il a fallu 4 mois pour revenir au niveau d’avant la baisse. « Non récupéré » : le plus-haut n’a pas été retrouvé."
+        },
+        "equityCurve": {
+            "title": "Courbe de valeur",
+            "purpose": "Suivre la valeur du portefeuille jour après jour sur la période, versements compris.",
+            "computation": "Chaque jour de cotation, valeur des positions au cours de clôture, après le versement et le rebalancement éventuels du jour. Un cours manquant est reporté du dernier jour connu.",
+            "unit": "{moneyUnit} Un point par jour de cotation.",
+            "readingTip": "En DCA, la courbe monte aussi à chaque versement : pour juger la performance, lis le CAGR ou le drawdown, qui ignorent les versements."
+        },
+        "drawdownCurve": {
+            "title": "Courbe de drawdown",
+            "purpose": "Voir, pour chaque jour, de combien le portefeuille est sous son plus-haut précédent.",
+            "computation": "{twr} Chaque point vaut l’indice du jour divisé par son plus-haut atteint jusque-là, moins 1.",
+            "formula": "drawdown(t) = indice(t) / max indice(s ≤ t) − 1",
+            "unit": "Ratio affiché en pourcentage, toujours ≤ 0 %.",
+            "readingTip": "La courbe touche 0 % à chaque nouveau plus-haut ; son point le plus bas est le max drawdown."
+        },
+        "benchmark": {
+            "title": "Benchmark",
+            "purpose": "Un point de comparaison : la même épargne investie à 100 % dans un indice de référence (ETF), pour savoir si ta stratégie fait mieux qu’un placement passif.",
+            "computation": "Le moteur rejoue exactement les mêmes versements, aux mêmes dates et avec les mêmes frais, sur le seul symbole du benchmark, sans rebalancement. Ses métriques sont calculées comme celles du portefeuille.",
+            "unit": "Mêmes unités que les métriques du portefeuille.",
+            "readingTip": "Ses chiffres apparaissent dans la colonne à son symbole et en pointillés sur la courbe de valeur."
+        },
+        "lumpSum": {
+            "title": "Investissement unique et écart du DCA",
+            "purpose": "Répondre à « valait-il mieux tout investir le premier jour ? » pour une stratégie en versements mensuels (DCA).",
+            "computation": "Le moteur rejoue le même total versé en un seul achat le premier jour : même capital, même période, mêmes frais, seule la répartition dans le temps change. L’écart est la valeur finale du DCA moins celle de l’investissement unique.",
+            "formula": "écart = valeur finale (DCA) − valeur finale (investissement unique)",
+            "unit": "{moneyUnit}",
+            "readingTip": "Un écart positif signifie que le DCA a fait mieux. Sans benchmark, l’investissement unique est la courbe en pointillés."
+        },
+        "totalFees": {
+            "title": "Frais payés",
+            "purpose": "Le coût total des ordres passés pendant la simulation, achats et ventes de rebalancement compris.",
+            "computation": "Somme, sur chaque ordre, du montant de l’ordre multiplié par le taux de frais. Les frais sont déjà déduits de la valeur finale.",
+            "formula": "frais = Σ montant(ordre) × taux de frais",
+            "unit": "{moneyUnit}"
+        },
+        "totalTrades": {
+            "title": "Ordres",
+            "purpose": "Le nombre d’ordres d’achat et de vente passés : un indicateur de l’activité et donc des frais.",
+            "computation": "Un achat par actif à chaque versement (réparti selon les poids). À chaque rebalancement, une vente par actif au-dessus de sa cible et un achat par actif en dessous, si l’écart à la cible atteint au moins 0,01 dans la devise du backtest (un centime).",
+            "unit": "Nombre d’ordres."
+        },
+        "rebalanceCount": {
+            "title": "Rebalancements",
+            "purpose": "Le nombre de fois où le portefeuille a été ramené à ses poids cibles.",
+            "computation": "Au premier jour de cotation de chaque période (mois, trimestre, année), hors premier jour, le moteur vend les lignes au-dessus de leur poids cible et rachète celles en dessous, sans apport d’argent. Le jour n’est compté que si au moins une ligne dépasse sa cible et une autre est en dessous, d’un écart d’au moins 0,01 dans la devise du backtest (un centime).",
+            "unit": "Nombre de rebalancements."
+        },
+        "holdingQuantity": {
+            "title": "Quantité détenue",
+            "purpose": "Le nombre de titres de chaque actif détenus au dernier jour.",
+            "computation": "Somme des titres achetés moins ceux vendus au rebalancement. Les achats sont fractionnaires : (montant de l’ordre − frais) / cours.",
+            "unit": "Nombre de titres, jusqu’à 6 décimales."
+        },
+        "holdingValue": {
+            "title": "Valeur d’une position",
+            "purpose": "Ce que pèse chaque actif dans la valeur finale.",
+            "computation": "Quantité détenue multipliée par le dernier cours de clôture connu de l’actif.",
+            "formula": "valeur = quantité × cours (dernier jour)",
+            "unit": "{moneyUnit}"
+        },
+        "tradeSide": {
+            "title": "Côté de l’ordre",
+            "purpose": "Distinguer un achat d’une vente.",
+            "computation": "Achat à chaque versement et pour les lignes sous leur cible au rebalancement ; vente pour les lignes au-dessus de leur cible.",
+            "unit": "Achat ou vente."
+        },
+        "tradePrice": {
+            "title": "Prix d’exécution",
+            "purpose": "Le cours auquel l’ordre a été exécuté.",
+            "computation": "Cours de clôture, ajusté des divisions d’actions, du jour du versement ou du rebalancement. Si l’actif n’a pas coté ce jour-là, son dernier cours connu est reporté.",
+            "unit": "Cours de l’actif dans sa devise de cotation, sans conversion."
+        },
+        "tradeQuantity": {
+            "title": "Quantité de l’ordre",
+            "purpose": "Le nombre de titres achetés ou vendus.",
+            "computation": "Achat : (montant − frais) / prix. Vente : nombre de titres cédés pour revenir au poids cible.",
+            "unit": "Nombre de titres, jusqu’à 6 décimales."
+        },
+        "tradeAmount": {
+            "title": "Montant de l’ordre",
+            "purpose": "L’argent engagé ou encaissé par l’ordre.",
+            "computation": "Achat lors d’un versement : part du versement selon le poids de l’actif, frais compris. Achat lors d’un rebalancement : part du produit net des ventes du jour, au prorata de l’écart de l’actif à sa cible, frais compris. Vente : produit brut, quantité × prix, avant frais.",
+            "unit": "{moneyUnit}"
+        },
+        "tradeFee": {
+            "title": "Frais de l’ordre",
+            "purpose": "Ce que l’ordre a coûté en frais.",
+            "computation": "Montant de l’ordre multiplié par le taux de frais. Payé sur l’achat, retenu sur le produit de la vente.",
+            "formula": "frais = montant × taux de frais",
+            "unit": "{moneyUnit}"
+        },
+        "executionRule": {
+            "title": "Règle d’exécution",
+            "purpose": "Dire à quel prix les ordres sont simulés, pour éviter d’utiliser un cours qu’on ne pouvait pas connaître (biais d’anticipation).",
+            "computation": "Chaque versement est planifié : il est exécuté au cours de clôture du jour de son échéance.",
+            "unit": "Règle nommée."
+        },
+        "dataSource": {
+            "title": "Source des données",
+            "purpose": "Savoir d’où viennent les cours rejoués et de quel type de prix il s’agit.",
+            "computation": "Fournisseur des cours (Yahoo Finance) et type de prix : clôture ajustée des divisions d’actions, dividendes non réinvestis.",
+            "unit": "Fournisseur · type de prix."
+        },
+        "dataFingerprint": {
+            "title": "Empreinte des données",
+            "purpose": "Identifier exactement les cours utilisés : deux exécutions à la même empreinte ont rejoué les mêmes données.",
+            "computation": "Empreinte SHA-256 des séries de cours, indépendante de l’ordre des symboles : elle change dès qu’un cours, une date ou un symbole change. Seuls les premiers caractères sont affichés ; le survol montre l’empreinte complète.",
+            "unit": "Hexadécimal (64 caractères).",
+            "readingTip": "Deux résultats différents avec la même empreinte viennent des paramètres, pas des données."
+        },
+        "plannedContributions": {
+            "title": "Versements prévus",
+            "purpose": "Savoir combien de fois de l’argent entrera dans le portefeuille avant de lancer le backtest.",
+            "computation": "Estimation sur les jours ouvrés de la période (lundi à vendredi) : 1 en investissement unique ; en DCA, un versement par mois, le premier jour recevant aussi le capital initial. Les jours fériés sont inconnus avant le chargement des cours.",
+            "unit": "Nombre de jours de versement."
+        },
+        "plannedRebalances": {
+            "title": "Rebalancements prévus",
+            "purpose": "Estimer combien de fois le portefeuille sera ramené à ses poids cibles.",
+            "computation": "Nombre de périodes de rebalancement (mois, trimestre, année) sur les jours ouvrés de la période, moins la première. Estimation haute : à l’exécution, un rebalancement sans écart suffisant n’est pas compté.",
+            "unit": "Nombre de rebalancements."
+        },
+        "completedRate": {
+            "title": "Taux de réussite",
+            "purpose": "La part de tes backtests dont la dernière exécution s’est terminée avec un résultat.",
+            "computation": "Backtests dont la dernière exécution est terminée, divisés par le nombre total de backtests (0 sans backtest).",
+            "formula": "taux = terminés / total",
+            "unit": "Ratio affiché en pourcentage."
+        },
+        "failedRate": {
+            "title": "Taux d’échec",
+            "purpose": "La part de tes backtests dont la dernière exécution a échoué (données manquantes, erreur du moteur).",
+            "computation": "Backtests dont la dernière exécution a échoué, divisés par le nombre total de backtests (0 sans backtest).",
+            "formula": "taux = échoués / total",
+            "unit": "Ratio affiché en pourcentage."
+        },
+        "executionDuration": {
+            "title": "Durée d’exécution",
+            "purpose": "Le temps de calcul de la dernière exécution, de son démarrage par le moteur à son résultat.",
+            "computation": "Écart entre l’heure de fin et l’heure de démarrage de l’exécution (ou de sa création si elle n’a pas d’heure de démarrage). Absente tant que l’exécution n’est pas finie.",
+            "unit": "Durée en minutes et secondes."
+        },
+        "comparisonDelta": {
+            "title": "Écart A − B",
+            "purpose": "Mesurer d’un coup d’œil de combien A fait mieux ou moins bien que B sur chaque métrique.",
+            "computation": "Métrique de A moins la même métrique de B. Vert si l’écart est favorable à A (plus de rendement, moins de volatilité, un drawdown moins profond), rouge s’il est défavorable, neutre s’il est nul.",
+            "formula": "écart = métrique(A) − métrique(B)",
+            "unit": "Points de pourcentage pour les ratios (pts), sans unité pour le Sharpe.",
+            "readingTip": "+4,4 pts de CAGR : A rapporte 4,4 % de plus par an que B."
+        },
+        "investmentMode": {
+            "title": "Mode d’investissement",
+            "purpose": "Choisir comment l’argent entre dans le portefeuille : tout le premier jour, ou par versements réguliers (DCA).",
+            "computation": "Investissement unique : le capital initial est investi le premier jour. Versements mensuels (DCA) : le premier jour reçoit le capital initial et le premier versement mensuel, puis un versement au premier jour de cotation de chaque mois suivant.",
+            "unit": "Mode.",
+            "readingTip": "En DCA, le résultat montre aussi ce qu’aurait donné le même total investi en une fois."
+        },
+        "allocation": {
+            "title": "Actifs et poids",
+            "purpose": "Définir la répartition cible du portefeuille entre ses actifs.",
+            "computation": "Chaque versement est réparti entre les actifs selon leur poids ; la somme des poids vaut 100 %. Le rebalancement ramène le portefeuille à ces poids.",
+            "unit": "Poids en pourcentage, somme = 100 %."
+        },
+        "feeRate": {
+            "title": "Frais par ordre",
+            "purpose": "Simuler le coût de courtage, qui réduit la performance à chaque achat et vente.",
+            "computation": "Pourcentage prélevé sur le montant de chaque ordre, achat comme vente.",
+            "formula": "frais = montant de l’ordre × taux de frais",
+            "unit": "Pourcentage du montant de l’ordre."
+        },
+        "rebalanceFrequency": {
+            "title": "Rebalancement",
+            "purpose": "Ramener régulièrement le portefeuille à ses poids cibles, pour que l’actif qui a le plus monté ne prenne pas toute la place.",
+            "computation": "Au premier jour de cotation de chaque période, le moteur vend les lignes au-dessus de leur cible et rachète celles en dessous, sans apport d’argent. Chaque ordre paie des frais. « Aucun » : jamais de vente.",
+            "unit": "Fréquence (aucun, mensuel, trimestriel, annuel)."
+        },
+        "price": {
+            "title": "Prix",
+            "purpose": "Le dernier cours connu de l’actif.",
+            "computation": "Cours de marché de la séance en cours, ou de clôture si le marché est fermé, fourni par Yahoo Finance.",
+            "unit": "{marketMoneyUnit}"
+        },
+        "change24h": {
+            "title": "Variation 24 h",
+            "purpose": "De combien l’actif a bougé depuis la dernière clôture.",
+            "computation": "Variation du cours actuel par rapport à la clôture précédente, fournie par Yahoo Finance.",
+            "formula": "variation = (prix − clôture précédente) / clôture précédente",
+            "unit": "Pourcentage."
+        },
+        "volume24h": {
+            "title": "Volume 24 h",
+            "purpose": "L’activité sur l’actif : un volume élevé signale beaucoup d’échanges, donc un prix plus fiable.",
+            "computation": "Nombre de titres échangés pendant la séance en cours, fourni par Yahoo Finance.",
+            "unit": "Nombre de titres, abrégé (k, M, Md)."
+        },
+        "trend": {
+            "title": "Tendance",
+            "purpose": "Voir d’un coup d’œil l’évolution du cours sur les dernières 24 heures.",
+            "computation": "Cours de clôture horaires des dernières 24 heures ; vert si la variation est positive ou nulle, rouge si elle est négative.",
+            "unit": "Mini-courbe sans axe."
+        },
+        "priceChart": {
+            "title": "Graphique de prix",
+            "purpose": "Suivre le cours de l’actif sur la période choisie.",
+            "computation": "Cours de clôture fournis par Yahoo Finance, un point par intervalle (5 min sur 1 jour, 1 h sur 1 semaine, 1 jour sur 1 mois, 1 semaine sur 1 an, 1 mois au-delà). Un intervalle sans clôture (marché fermé) est omis.",
+            "unit": "{marketMoneyUnit}"
+        }
+    },
+    "pages": {
+        "dashboard": {
+            "description": "Vue d’ensemble de vos backtests, portefeuilles et signaux récents."
+        },
+        "notifications": {
+            "description": "Résultats de simulation et signaux reçus, lus ou non lus."
+        },
+        "paperTrading": {
+            "description": "Stratégies suivies à partir d’aujourd’hui sur un portefeuille virtuel."
+        },
+        "risk": {
+            "description": "Corrélations, concentration, VaR/CVaR et contribution au risque d’un portefeuille."
+        },
+        "projection": {
+            "description": "Futurs plausibles d’un portefeuille par simulation Monte Carlo."
+        },
+        "optimization": {
+            "description": "Explorateur d’allocations et frontière efficiente."
+        },
+        "reports": {
+            "description": "Rapports de gestion générés à partir de vos simulations."
+        },
+        "monitoring": {
+            "description": "État des microservices, lag Kafka et exécutions en cours."
+        },
+        "users": {
+            "description": "Gérez les comptes, les rôles et les accès à la plateforme."
+        },
+        "referenceData": {
+            "description": "Instruments importés, historiques de cours et versions du jeu de données."
+        }
+    },
+    "home": {
+        "metaTitle": "MarketFlow — Simulateur de marché",
+        "metaDescription": "Explorez les marchés, testez vos stratégies et gérez un portefeuille virtuel, sans argent réel.",
+        "intro": "Une plateforme de marché financier simulée pour apprendre à investir sans risque : explorez les cours, testez vos stratégies sur le passé et entraînez-vous avec un portefeuille virtuel.",
+        "cta": "Accéder à l’app",
+        "disclaimer": "Projet pédagogique : aucune transaction réelle, aucun conseil financier.",
+        "features": {
+            "market": {
+                "title": "Marché",
+                "description": "Recherchez un symbole, consultez son cours et son historique de prix sur graphique."
+            },
+            "backtests": {
+                "title": "Backtests",
+                "description": "Rejouez une stratégie (achat unique ou DCA mensuel) sur l’historique et mesurez rendement et drawdown."
+            },
+            "portfolio": {
+                "title": "Portefeuille virtuel",
+                "description": "Bientôt : passez des ordres avec un solde fictif et suivez vos positions en temps réel."
+            }
+        }
+    }
+}

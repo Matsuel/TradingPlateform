@@ -1,17 +1,16 @@
 import YahooFinance from "yahoo-finance2";
 import type { ChartOptions } from "yahoo-finance2/modules/chart";
-import type { MarketAsset, MarketData, MarketDetails, Period } from "@trading-plateform/contracts";
+import type { DailyCloses, MarketAsset, MarketData, MarketDetails, Period } from "@trading-plateform/contracts";
 import { env } from "../env";
-import { Logger } from "@trading-plateform/utils";
+import { DAY_MS, Logger } from "@trading-plateform/utils";
 
 const logger = Logger.here();
-
-const DAY_MS = 24 * 60 * 60 * 1000;
 
 export interface IMarketRepository {
     search(query: string): Promise<MarketData[]>
     getDetails(id: string, period: Period): Promise<MarketDetails[]>
     getAssets(symbols: string[]): Promise<MarketAsset[]>;
+    getDailyCloses(symbols: string[], start: Date, end: Date): Promise<DailyCloses>;
 }
 
 class MarketRepository implements IMarketRepository {
@@ -57,15 +56,7 @@ class MarketRepository implements IMarketRepository {
             throw new Error(`No details found for id: ${id}`)
         }
 
-        // Un intervalle sans clôture (marché fermé, donnée manquante) est omis, comme dans l'historique de getAssets
-        const formattedResult: MarketDetails[] = details.quotes
-            .filter((quote) => quote.close != null)
-            .map((quote) => ({
-                date: quote.date.toISOString(),
-                price: quote.close!,
-            }))
-
-        return formattedResult
+        return MarketRepository.toHistory(details.quotes)
     }
 
     /**
@@ -83,12 +74,7 @@ class MarketRepository implements IMarketRepository {
                     }),
                 ]);
 
-                const history: MarketDetails[] = chart.quotes
-                    .filter((point) => point.close != null)
-                    .map((point) => ({
-                        date: point.date.toISOString(),
-                        price: point.close!,
-                    }));
+                const history = MarketRepository.toHistory(chart.quotes);
 
                 return {
                     symbol: quote.symbol,
@@ -117,6 +103,39 @@ class MarketRepository implements IMarketRepository {
 
             return [];
         });
+    }
+
+    /**
+     * Cours de clôture journaliers de chaque symbole entre `start` et `end`, triés par date.
+     * Clôtures ajustées des splits, pas des dividendes ; jours sans clôture écartés. Un symbole inconnu lève l'erreur du fournisseur.
+     */
+    async getDailyCloses(symbols: string[], start: Date, end: Date): Promise<DailyCloses> {
+        const series = await Promise.all(
+            symbols.map(async (symbol) => {
+                const chart = await MarketRepository.yahooFinance.chart(symbol, {
+                    period1: start,
+                    period2: end,
+                    interval: "1d",
+                })
+
+                // Jour de cotation dans le fuseau de la place : en UTC, Tokyo ou Sydney tomberaient la veille
+                const toDay = new Intl.DateTimeFormat("en-CA", { timeZone: chart.meta.exchangeTimezoneName })
+                const points = chart.quotes
+                    .filter((quote) => quote.close != null)
+                    .map((quote) => ({ date: toDay.format(quote.date), close: quote.close! }))
+
+                return [symbol, points] as const
+            }),
+        )
+
+        return Object.fromEntries(series)
+    }
+
+    // Un intervalle sans clôture (marché fermé, donnée manquante) est omis
+    private static toHistory(quotes: { date: Date; close?: number | null }[]): MarketDetails[] {
+        return quotes
+            .filter((quote) => quote.close != null)
+            .map((quote) => ({ date: quote.date.toISOString(), price: quote.close! }))
     }
 
     private static logoUrl(symbol: string): string | undefined {

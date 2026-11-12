@@ -4,7 +4,7 @@ import {
     KafkaProducer,
 } from "@trading-plateform/kafka";
 import { BACKTEST_TOPICS } from "@trading-plateform/contracts";
-import { Logger } from "@trading-plateform/utils";
+import { Logger, onShutdown } from "@trading-plateform/utils";
 import BacktestConsumer from "./consumers/backtest.consumer";
 import BacktestPublisher from "./publishers/backtest.publisher";
 import BacktestService from "./services/backtest.service";
@@ -32,6 +32,9 @@ async function main(): Promise<void> {
     await consumer.subscribe(BACKTEST_TOPICS.requested);
 
     await consumer.consume(backtestConsumer.handle);
+
+    onShutdown(() => consumer.disconnect());
+    onShutdown(() => producer.disconnect());
 
     logger.info("Backtest engine is listening to Kafka");
 }

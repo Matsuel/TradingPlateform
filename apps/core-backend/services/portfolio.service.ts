@@ -1,7 +1,6 @@
-import NotFoundError from "../errors/notfound.error"
-import ForbiddenError from "../errors/forbidden.error"
+import { ForbiddenError, NotFoundError } from "@trading-plateform/http";
 import PortfolioRepository, { type IPortfolioRepository } from "../repositories/portfolio.repository"
-import type { Paginated, PaginationQuery } from "@trading-plateform/contracts"
+import { API_ERROR_CODES, type Paginated, type PaginationQuery } from "@trading-plateform/contracts"
 import type { Portfolio } from "../generated/prisma/client"
 import type { PortfolioInput } from "../interfaces/portfolio.interface"
 import { Logger } from "@trading-plateform/utils"
@@ -46,8 +45,8 @@ class PortfolioService {
     }
 
     private assertOwner(portfolio: Portfolio | null, userId: string): Portfolio {
-        if (!portfolio) throw new NotFoundError("Portfolio not found")
-        if (portfolio.userId !== userId) throw new ForbiddenError("Access denied")
+        if (!portfolio) throw new NotFoundError(API_ERROR_CODES.PORTFOLIO_NOT_FOUND)
+        if (portfolio.userId !== userId) throw new ForbiddenError()
         return portfolio
     }
 }

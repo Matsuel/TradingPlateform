@@ -18,12 +18,13 @@ Ces règles sont **strictes** : un écart doit être justifié dans le résumé 
 | Chemin | Rôle |
 | --- | --- |
 | `apps/core-backend` | API Express 5 + Prisma + better-auth (port 8000). **Référence d'architecture backend**, seul accès à la base. |
-| `apps/backtest-engine` | Worker Kafka sans HTTP ni base : consomme `backtest.requested`, calcule, publie le résultat. |
-| `apps/market-service` | API de données de marché (yahoo-finance2, port 8001), appelée uniquement via le proxy de core-backend. |
+| `apps/backtest-engine` | Worker Kafka sans serveur HTTP ni base : consomme `backtest.requested`, lit les cours auprès de market-service, calcule, publie le résultat. |
+| `apps/market-service` | **Seul service qui appelle yahoo-finance2** (port 8001, cache mémoire) : appelé via le proxy de core-backend pour le web, directement par backtest-engine pour les cours d'un backtest. |
 | `apps/web` | Next.js 16 (App Router) + React 19 + Tailwind 4 + shadcn/base-ui. N'appelle que core-backend. |
 | `packages/contracts` | Schémas zod et topics partagés entre services. |
 | `packages/kafka` | `KafkaClient`, `KafkaProducer`, `KafkaConsumer`, `createKafkaEvent`. |
-| `packages/utils` | `Logger` partagé. |
+| `packages/utils` | `Logger` partagé, `onShutdown`, `DAY_MS`, calendrier de simulation (`periodKey`, `businessDays`, `estimateSchedule`). |
+| `packages/http` | Socle des services Express : `AppError` et sous-classes, `RouteDescriptor`/`registerRoutes`, `errorMiddleware`. |
 | `roadmap/` | Suivi des features : un dossier par feature (`README.md`, `US.md`, `TASKS.md`), maintenu avec le skill `feature-roadmap`. |
 
 ## Responsabilités : qui calcule quoi
@@ -64,11 +65,13 @@ Chaque app qui expose quelque chose de réutilisable tient un **catalogue** : co
 ## Contrats et événements Kafka
 
 - Enveloppe `KafkaEvent<T>` (`eventId`, `eventType`, `occurredAt`, `version`, `payload`) via `createKafkaEvent` ; topics `domaine.action` en constantes dans `packages/contracts`.
-- Kafka est **at-least-once** : tout consommateur est idempotent (transitions gardées par statut côté core-backend). Un message invalide est loggué et ignoré, jamais une cause de crash.
+- Kafka est **at-least-once** : tout consommateur est idempotent (transitions gardées par statut côté core-backend). Un message invalide est loggué et ignoré, jamais une cause de crash. Un handler qui lève (base indisponible…) est loggué avec `topic`, `partition` et `offset` par `KafkaConsumer`, puis l'exception repart à kafkajs, qui rejoue le message.
 - Changer un contrat = mettre à jour producteur **et** consommateur dans le même diff, puis signaler à l'utilisateur de redémarrer les services concernés.
 - Chaque champ numérique d'un contrat documente son unité en commentaire (ratio, devise, date `YYYY-MM-DD`).
 
 ## Conventions communes
+
+- **Tests** : dossier `test/` à la racine de chaque app, fichiers `<sujet>.test.ts`, lancés par `bun test` depuis l'app. Variables d'env factices dans `test/setup.ts` (préchargé par `bunfig.toml`) : un test n'ouvre aucune connexion (base, Kafka). Un repository se teste sur la base `trading_test` (jamais `DATABASE_URL`, forcée par `test/setup.ts` ; `describeWithDb`, vidée entre les tests, tests ignorés si PostgreSQL est éteint). Un service se teste avec un faux repository assigné à `service.repo` ; une route avec `startApp` de `@trading-plateform/http/testing` (vrai Express, service espionné par `spyOn(Service.prototype, …)` restauré en `afterAll`) ; un hook ou composant web avec `@testing-library/react` (`test/render.tsx` fournit le provider de langue). Un comportement ajouté ou une transition modifiée a son test dans le même diff.
 
 - **Bun partout** : `bun install`, `bun run <script>`, `bun <file>`, `bun test`, `bunx`. Bun charge `.env` : pas de `dotenv`.
 - TypeScript `strict`, ESM. `import type` pour les types (`verbatimModuleSyntax`). Pas de `any` dans le nouveau code.
@@ -78,7 +81,8 @@ Chaque app qui expose quelque chose de réutilisable tient un **catalogue** : co
 - **Résultats stockés qui évoluent** : un champ ajouté à un résultat déjà en base est nullable (ou `@default`) côté Prisma et optionnel côté web ; l'écran affiche `<Dash />` ou masque la légende pour un résultat antérieur, sans recalculer la valeur.
 - Validation des entrées, messages et env avec `zod`.
 - **Base de données : Prisma Client uniquement** (`findMany`, `count`, `groupBy`, `$transaction`…), jamais de SQL écrit à la main (`$queryRaw`, `$executeRaw`, `Prisma.sql` et leurs variantes `Unsafe`). Une requête que l'API Prisma ne sait pas exprimer se règle par le modèle (relation ou champ dénormalisé, maintenu dans le repository), pas par du SQL. Seule exception : le SQL des fichiers de migration (`prisma/migrations/`), y compris un backfill de données.
-- Ne commit jamais de `.env` ni de secret.
+- Ne commit jamais de `.env` ni de secret. `process.env` ne se lit que dans `env.ts` de l'app ; exception : les packages sans app hôte (`packages/utils` : `LOG_LEVEL`, `NODE_ENV` ; `packages/kafka` : `KAFKA_*`).
+- **Cycle de vie** : chaque process lit son port dans `env.ts`, démarre dans un `main().catch(…)` qui met `process.exitCode = 1` (`process.exit(1)` si le serveur écoute déjà : sinon il garde le process en vie à moitié démarré), et enregistre ses fermetures avec `onShutdown` de `@trading-plateform/utils` (`SIGTERM`/`SIGINT`). Un service HTTP expose `GET /health`.
 
 ## Commandes
 
@@ -90,12 +94,23 @@ bun run dev:web        # web seul
 bun run dev:backtest   # backtest-engine seul
 ```
 
+## Dette technique
+
+`TECH-DEBT.md` (racine) est le registre de la dette connue. **Tu l'écris toi-même, sans attendre qu'on te le demande** : dès que tu repères une dette que ton diff ne règle pas, tu ajoutes une ligne dans le même diff.
+
+- **Est une dette** : un contournement ou un `TODO` que tu laisses, un test ou une doc que tu n'écris pas faute de périmètre, une duplication ou un écart aux règles de ce fichier que tu constates hors de ton périmètre, un risque (sécurité, perte de données, blocage) que tu aperçois, un seuil de taille dépassé que tu ne découpes pas.
+- **N'est pas une dette** : ce que ton diff corrige, une préférence de style, une idée de feature (elle va dans `roadmap/`).
+- **Format** : `TD-NN` suivant, gravité (`haute`, `moyenne`, `basse`), zone, ce qui est faux et pourquoi ça coûte, `fichier:ligne`, correction proposée, effort (S, M, L). Cherche d'abord une ligne existante (`grep` du fichier ou du symbole) : complète-la plutôt que d'en ouvrir une seconde.
+- **Une dette corrigée** passe dans le tableau « Fermée » (id, date, commit) dans le diff qui la corrige. Une ligne devenue fausse est corrigée ou supprimée.
+- Le résumé rendu à l'utilisateur liste les `TD-NN` ajoutés ou fermés.
+
 ## Avant de rendre la main
 
 Chaque point est vérifié, pas supposé :
 
-1. `bunx tsc --noEmit` passe dans chaque app/package touché ; `bun run lint` et `bun run format:check` dans `apps/web` si le front change ; `bun test` dans `apps/backtest-engine` si l'engine change.
+1. `bunx tsc --noEmit` passe dans chaque app/package touché ; `bun run lint` et `bun run format:check` dans `apps/web` si le front change ; `bun test` dans chaque app touchée (les tests vivent dans son dossier `test/`) ; dans `apps/web`, `messages/*.json` doit garder les mêmes clés FR et EN.
 2. Responsabilités : le diff web ne contient que de l'affichage ; tout nouveau calcul vit chez son propriétaire.
 3. Rangement : aucune constante, helper ou type dupliqué introduit (`grep` les nouveaux noms et littéraux).
 4. Catalogues : chaque route ou composant catalogué créé, modifié ou supprimé a son entrée à jour.
 5. Diff relu : rien hors périmètre, aucun fichier généré ou de debug oublié.
+6. Dette : toute dette repérée et non corrigée a sa ligne dans `TECH-DEBT.md` ; toute dette corrigée y est fermée.

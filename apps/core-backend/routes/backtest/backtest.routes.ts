@@ -1,6 +1,6 @@
 import BacktestController from "../../controller/backtest.controller";
 import authMiddleware from "../../middleware/auth.middleware";
-import type { RouteDescriptor } from "../../models/route.model";
+import type { RouteDescriptor } from "@trading-plateform/http";
 import asyncHandler from "../../utils/handler";
 
 const createBacktestRoutes = (): RouteDescriptor[] => {
