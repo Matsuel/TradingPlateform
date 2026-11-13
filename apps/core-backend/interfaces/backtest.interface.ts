@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { addYears } from "@trading-plateform/utils";
 import {
     API_ERROR_CODES,
     API_ERROR_MESSAGES,
@@ -20,9 +21,6 @@ import { BacktestStatus, type BacktestResult, type Prisma } from "../generated/p
 import type { batchBacktest, batchResult, comparedBacktest, comparedResult } from "../repositories/backtest.repository";
 
 const FULL_PERCENT = 100;
-
-/** `date` + `years` années civiles, en UTC. */
-const addYears = (date: Date, years: number) => new Date(Date.UTC(date.getUTCFullYear() + years, date.getUTCMonth(), date.getUTCDate()));
 
 // Poids saisi en pourcent entier (60 = 60 %, D2), contrôlé en pourcent puis converti en ratio pour le contrat et la base
 const allocationInputsSchema = z

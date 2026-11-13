@@ -1,4 +1,5 @@
 export { Logger, createLogger } from './logger'
-export { DAY_MS, periodKey, type PeriodFrequency } from './period'
+export { DAY_MS, addYears, periodKey, type PeriodFrequency } from './period'
+export { median } from './stats'
 export { onShutdown } from './shutdown'
 export { businessDays, estimateSchedule, type ScheduleEstimate } from './schedule'

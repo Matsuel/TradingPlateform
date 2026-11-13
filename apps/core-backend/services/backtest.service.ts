@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { estimateSchedule, Logger } from "@trading-plateform/utils";
+import { estimateSchedule, Logger, median } from "@trading-plateform/utils";
 import { createKafkaEvent } from "@trading-plateform/kafka";
 import {
     API_ERROR_CODES,
@@ -54,13 +54,6 @@ const batchStatus = (statuses: BacktestStatus[]): BacktestStatus => {
     if (statuses.includes("FAILED")) return "FAILED"
     if (statuses.every((status) => status === "COMPLETED")) return "COMPLETED"
     return statuses.includes("RUNNING") || statuses.includes("COMPLETED") ? "RUNNING" : "PENDING"
-}
-
-/** Médiane d'une liste non vide, moyenne des deux valeurs centrales si le nombre est pair. */
-const median = (values: number[]) => {
-    const sorted = [...values].sort((a, b) => a - b)
-    const middle = sorted.length >> 1
-    return sorted.length % 2 ? sorted[middle]! : (sorted[middle - 1]! + sorted[middle]!) / 2
 }
 
 // Écart A − B en points de ratio (Sharpe sans unité), comme benchmark.excess* ; null si l'une des deux valeurs manque

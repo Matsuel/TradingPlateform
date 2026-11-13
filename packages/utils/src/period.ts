@@ -24,3 +24,10 @@ export const periodKey = (date: string, frequency: PeriodFrequency) => {
             return date;
     }
 };
+
+/**
+ * `date` + `years` années civiles, en UTC, à minuit (l'heure est écartée). `years` peut être négatif.
+ * Un 29 février retombe le 1er mars quand l'année cible n'est pas bissextile.
+ */
+export const addYears = (date: Date, years: number) =>
+    new Date(Date.UTC(date.getUTCFullYear() + years, date.getUTCMonth(), date.getUTCDate()));
