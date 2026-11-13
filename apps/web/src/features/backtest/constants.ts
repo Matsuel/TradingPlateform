@@ -17,6 +17,14 @@ export const FULL_PERCENT = 100
 // non importable ici : le front n'embarque pas zod) et le benchmark en prend un
 export const MAX_ALLOCATIONS = 49
 
+// Dates de départ d'un lot (D1) : bornes de `BATCH_START_DATES_LIMITS` des contrats (valeur non importable ici, voir ci-dessus)
+export const MIN_START_DATES = 2
+export const MAX_START_DATES = 10
+// Un départ de lot précède la fin commune d'au moins un an (`BATCH_MIN_YEARS_BEFORE_END` des contrats)
+export const MIN_YEARS_BEFORE_END = 1
+// Durée de fenêtre lue par la carte « Fenêtres négatives » et choisie par défaut dans le graphique (`BATCH_SUMMARY_WINDOW_YEARS`)
+export const SUMMARY_WINDOW_YEARS = 3
+
 // Une exécution dans ces statuts peut encore évoluer
 export const activeStatuses = ["PENDING", "RUNNING"] as const satisfies readonly ExecutionStatus[]
 

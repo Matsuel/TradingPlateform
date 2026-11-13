@@ -462,7 +462,7 @@ describe("runBacktest", () => {
         // Valeurs de référence figées : un écart signale un changement de calcul, à justifier puis à mettre à jour ici.
         // Poids 50/50 exactement représentables : identiques à l'ancienne répartition équipondérée (non-régression T-02)
         test("jeu de référence : métriques figées", () => {
-            const { equityCurve, trades, holdings, ...metrics } = runBacktest(params, referencePrices);
+            const { equityCurve, trades, holdings, rollingSummary, ...metrics } = runBacktest(params, referencePrices);
 
             expect(metrics).toEqual({
                 finalValue: 2449.7,
@@ -487,9 +487,12 @@ describe("runBacktest", () => {
                 sharpeRatio: -0.019632,
                 executionRule: "CLOSE_ON_SCHEDULED_DAY",
                 riskFreeRate: 0,
-                lumpSumComparison: { finalValue: 2363.86, totalReturn: -0.015058, maxDrawdown: -0.302102, dcaAdvantage: 85.84 },
+                                lumpSumComparison: { finalValue: 2363.86, totalReturn: -0.015058, maxDrawdown: -0.302102, dcaAdvantage: 85.84 },
                 benchmark: null,
             });
+            // Deux ans d'historique : seules les fenêtres d'un an existent ; la courbe porte un point par fenêtre
+            expect(rollingSummary.map(({ years, count, points }) => [years, count, points.length])).toEqual([[1, 259, 259]]);
+            expect(rollingSummary[0]).toMatchObject({ worst: -0.280841, median: -0.059272, best: 0.097355, negativeShare: 0.722008 });
             expect(equityCurve).toHaveLength(520);
             expect(trades).toHaveLength(48);
             expect(holdings).toEqual([

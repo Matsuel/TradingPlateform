@@ -1,7 +1,7 @@
 import { API_ERROR_CODES } from "@trading-plateform/contracts"
 import type { Request, Response } from "express"
 import { BadRequestError } from "@trading-plateform/http";
-import { backtestCompareQuerySchema, backtestListQuerySchema, createBacktestSchema } from "../interfaces/backtest.interface"
+import { backtestCompareQuerySchema, backtestListQuerySchema, batchStartDatesSchema, createBacktestSchema, createBatchSchema } from "../interfaces/backtest.interface"
 import BacktestService from "../services/backtest.service"
 
 class BacktestController {
@@ -13,6 +13,26 @@ class BacktestController {
         if (!parsed.success) throw new BadRequestError(API_ERROR_CODES.INVALID_BACKTEST, { issues: parsed.error.issues })
         const backtest = await this.backtestService.create(req.userId!, parsed.data)
         res.status(202).json(backtest)
+    }
+
+    createBatch = async (req: Request, res: Response) => {
+        const parsed = createBatchSchema.safeParse(req.body)
+        if (!parsed.success) throw new BadRequestError(API_ERROR_CODES.INVALID_BACKTEST, { issues: parsed.error.issues })
+        res.status(202).json(await this.backtestService.createBatch(req.userId!, parsed.data))
+    }
+
+    getBatch = async (req: Request, res: Response) => {
+        res.json(await this.backtestService.getBatch(req.params.batchId as string, req.userId!))
+    }
+
+    restartBatch = async (req: Request, res: Response) => {
+        const parsed = batchStartDatesSchema.safeParse(req.body)
+        if (!parsed.success) throw new BadRequestError(API_ERROR_CODES.INVALID_BACKTEST, { issues: parsed.error.issues })
+        res.status(202).json(await this.backtestService.restartBatch(req.params.batchId as string, req.userId!, parsed.data))
+    }
+
+    rerunBatch = async (req: Request, res: Response) => {
+        res.status(202).json(await this.backtestService.rerunBatch(req.params.batchId as string, req.userId!))
     }
 
     previewBacktest = async (req: Request, res: Response) => {

@@ -13,6 +13,7 @@ export const routes = {
     backtests: `${prefix}/backtest`,
     newBacktest: `${prefix}/backtest/new`,
     backtest: (id: string) => `${prefix}/backtest/${id}`,
+    backtestBatch: (batchId: string) => `${prefix}/backtest/batch/${batchId}`,
     backtestDividends: (id: string) => `${prefix}/backtest/${id}/dividends`,
     compare: `${prefix}/backtest/compare`,
     compareIds: (a: string, b: string) => `${prefix}/backtest/compare?ids=${a},${b}`,

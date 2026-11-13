@@ -18,6 +18,7 @@ function createFormatters(locale: string) {
 
     const formatDay = date({ day: "2-digit", month: "2-digit", year: "numeric" })
     const formatDays = number({ style: "unit", unit: "day", unitDisplay: "long" })
+    const formatYears = number({ style: "unit", unit: "year", unitDisplay: "long", maximumFractionDigits: 1 })
     const formatMonths = number({ style: "unit", unit: "month", unitDisplay: "long", maximumFractionDigits: 0 })
 
     return {
@@ -49,6 +50,8 @@ function createFormatters(locale: string) {
         /** Durée en jours calendaires : en jours sous deux mois (« 45 jours »), sinon en mois arrondis (« 14 mois »). */
         formatDuration: (days: number) =>
             days < 2 * DAYS_PER_MONTH ? formatDays(days) : formatMonths(days / DAYS_PER_MONTH),
+        /** Durée en années, 1 décimale au plus (`10,5 ans`). */
+        formatYears,
         /** Symbole d'une devise ISO pour un libellé : `currencySymbol("EUR")` → « € ». */
         currencySymbol: (currency: string) =>
             currencyFormat(currency)

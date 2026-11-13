@@ -17,6 +17,30 @@ const createBacktestRoutes = (): RouteDescriptor[] => {
         },
         {
             method: "post",
+            path: `${prefix}/batch`,
+            middlewares: [authMiddleware],
+            handler: asyncHandler(controller.createBatch)
+        },
+        {
+            method: "get",
+            path: `${prefix}/batch/:batchId`,
+            middlewares: [authMiddleware],
+            handler: asyncHandler(controller.getBatch)
+        },
+        {
+            method: "post",
+            path: `${prefix}/batch/:batchId/starts`,
+            middlewares: [authMiddleware],
+            handler: asyncHandler(controller.restartBatch)
+        },
+        {
+            method: "post",
+            path: `${prefix}/batch/:batchId/executions`,
+            middlewares: [authMiddleware],
+            handler: asyncHandler(controller.rerunBatch)
+        },
+        {
+            method: "post",
             path: `${prefix}/preview`,
             middlewares: [authMiddleware],
             handler: asyncHandler(controller.previewBacktest)

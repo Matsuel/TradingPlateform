@@ -1,7 +1,7 @@
 import type { PaginationQuery } from "@trading-plateform/contracts"
 import { prisma } from "../prisma"
 import { Prisma, type BacktestExecution, type BacktestStatus } from "../generated/prisma/client"
-import type { BacktestDetails, BacktestExecutionCount, BacktestListFilters, BacktestStatusCounts, BacktestWithExecutions, ComparedBacktestRecord, CompleteExecutionDTO, CreateBacktestDTO } from "../interfaces/backtest.interface"
+import type { BacktestDetails, BacktestExecutionCount, BacktestListFilters, BacktestStatusCounts, BacktestWithExecutions, BatchRecords, ComparedBacktestRecord, CompleteExecutionDTO, CreateBacktestDTO } from "../interfaces/backtest.interface"
 
 export interface IBacktestRepository {
     create(data: CreateBacktestDTO): Promise<BacktestWithExecutions>
@@ -11,6 +11,7 @@ export interface IBacktestRepository {
     countByLatestStatus(userId: string): Promise<BacktestStatusCounts>
     countExecutionsByIds(ids: string[], userId: string, statuses: BacktestStatus[]): Promise<BacktestExecutionCount[]>
     getComparedByIds(ids: string[], statuses: BacktestStatus[]): Promise<ComparedBacktestRecord[]>
+    getBatch(batchId: string): Promise<BatchRecords>
     createExecution(backtestId: string, attempt: number): Promise<BacktestExecution>
     updateExecution(id: string, from: BacktestStatus[], data: Prisma.BacktestExecutionUpdateManyMutationInput): Promise<boolean>
     completeExecution(id: string, from: BacktestStatus[], data: CompleteExecutionDTO): Promise<boolean>
@@ -20,7 +21,7 @@ export interface IBacktestRepository {
 const executionSummary = {
     // Dernière exécution en premier ; attempt départage deux createdAt identiques
     orderBy: [{ createdAt: "desc" }, { attempt: "desc" }],
-    include: { result: { omit: { equityCurve: true, trades: true, holdings: true, dividendEvents: true, lumpSumComparison: true, benchmark: true } } },
+    include: { result: { omit: { equityCurve: true, trades: true, holdings: true, dividendEvents: true, lumpSumComparison: true, benchmark: true, rollingSummary: true } } },
 } satisfies Prisma.Backtest$executionsArgs
 
 // Allocation persistée : relue pour republier `backtest.requested` et renvoyée au web
@@ -58,6 +59,24 @@ export const comparedResult = {
     recoveryDays: true,
     benchmark: true,
     equityCurve: true,
+} satisfies Prisma.BacktestResultSelect
+
+// Départ d'un lot : identité, propriétaire, nom, dates
+export const batchBacktest = {
+    id: true,
+    userId: true,
+    name: true,
+    startDate: true,
+    endDate: true,
+} satisfies Prisma.BacktestSelect
+
+export const batchResult = {
+    finalValue: true,
+    cagr: true,
+    volatility: true,
+    sharpeRatio: true,
+    maxDrawdown: true,
+    totalReturn: true,
 } satisfies Prisma.BacktestResultSelect
 
 class BacktestRepository implements IBacktestRepository {
@@ -147,6 +166,32 @@ class BacktestRepository implements IBacktestRepository {
                 },
             },
         })
+    }
+
+    async getBatch(batchId: string): Promise<BatchRecords> {
+        const [backtests, earliest] = await prisma.$transaction([
+            prisma.backtest.findMany({
+                where: { batchId },
+                orderBy: { startDate: "asc" },
+                select: {
+                    ...batchBacktest,
+                    latestExecution: { select: { status: true } },
+                    executions: {
+                        where: { status: "COMPLETED" },
+                        orderBy: executionSummary.orderBy,
+                        take: 1,
+                        select: { result: { select: batchResult } },
+                    },
+                },
+            }),
+            // Les fenêtres glissantes (courbe comprise) pèsent lourd : lues une seule fois, pour le départ le plus ancien
+            prisma.backtestResult.findFirst({
+                where: { execution: { status: "COMPLETED", backtest: { batchId } } },
+                orderBy: [{ execution: { backtest: { startDate: "asc" } } }, { execution: { createdAt: "desc" } }],
+                select: { rollingSummary: true },
+            }),
+        ])
+        return { backtests, rollingSummary: earliest?.rollingSummary ?? null }
     }
 
     async createExecution(backtestId: string, attempt: number): Promise<BacktestExecution> {

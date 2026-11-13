@@ -1,13 +1,16 @@
+import { randomUUID } from "node:crypto";
 import { estimateSchedule, Logger } from "@trading-plateform/utils";
 import { createKafkaEvent } from "@trading-plateform/kafka";
 import {
     API_ERROR_CODES,
     BACKTEST_TOPICS,
+    BATCH_SUMMARY_WINDOW_YEARS,
     COMPARED_METRICS,
     COMPARISON_PARAMETERS,
     PRICE_DATA_SOURCE,
     type BacktestCompletedPayload,
     type BacktestFailedPayload,
+    type RollingWindow,
     type BacktestPreview,
     type BacktestRequestedPayload,
     type BacktestStartedPayload,
@@ -21,14 +24,18 @@ import { BadRequestError, ConflictError, ForbiddenError, InternalError, NotFound
 import { producer } from "../lib/kafka";
 import BacktestRepository, { type IBacktestRepository } from "../repositories/backtest.repository";
 import type { Backtest, BacktestStatus, Prisma } from "../generated/prisma/client";
+import { latestBatchStart } from "../interfaces/backtest.interface"
 import type {
     BacktestCompareQuery,
     BacktestComparisonDTO,
+    BatchStartDatesInput,
+    BacktestBatchDTO,
     BacktestListQuery,
     BacktestWithExecutions,
     ComparedBacktestDTO,
     ComparedBacktestRecord,
     CreateBacktestInput,
+    CreateBatchInput,
 } from "../interfaces/backtest.interface";
 
 const logger = Logger.here()
@@ -39,6 +46,20 @@ const toCompared = (record: ComparedBacktestRecord | undefined): ComparedBacktes
     if (!record || !result) throw new NotFoundError(API_ERROR_CODES.BACKTEST_NOT_FOUND)
     const { executions, ...backtest } = record
     return { ...backtest, result }
+}
+
+/** Statut d'un lot : échoué dès qu'un départ l'est, terminé quand tous le sont, sinon en cours (`RUNNING` si l'un tourne). */
+const batchStatus = (statuses: BacktestStatus[]): BacktestStatus => {
+    if (statuses.includes("FAILED")) return "FAILED"
+    if (statuses.every((status) => status === "COMPLETED")) return "COMPLETED"
+    return statuses.includes("RUNNING") || statuses.includes("COMPLETED") ? "RUNNING" : "PENDING"
+}
+
+/** Médiane d'une liste non vide, moyenne des deux valeurs centrales si le nombre est pair. */
+const median = (values: number[]) => {
+    const sorted = [...values].sort((a, b) => a - b)
+    const middle = sorted.length >> 1
+    return sorted.length % 2 ? sorted[middle]! : (sorted[middle - 1]! + sorted[middle]!) / 2
 }
 
 // Écart A − B en points de ratio (Sharpe sans unité), comme benchmark.excess* ; null si l'une des deux valeurs manque
@@ -53,9 +74,121 @@ class BacktestService {
      * exécution `PENDING`, puis publie `backtest.requested`.
      */
     async create(userId: string, input: CreateBacktestInput) {
+        return this.createOne(userId, input)
+    }
+
+    /**
+     * Crée un lot (D1) : un backtest par date de `startDates`, par ordre chronologique, tous liés par le même `batchId` et
+     * portant le même nom. Chaque départ a sa première exécution et son `backtest.requested`.
+     */
+    async createBatch(userId: string, { startDates, ...input }: CreateBatchInput) {
+        const batchId = randomUUID()
+        logger.info("Creating backtest batch", { userId, batchId, count: startDates.length })
+        const backtests: BacktestWithExecutions[] = []
+        for (const start of [...startDates].sort((a, b) => a.getTime() - b.getTime())) {
+            backtests.push(await this.createOne(userId, { ...input, start }, batchId))
+        }
+        return { batchId, backtests }
+    }
+
+    /**
+     * Départs d'un lot, du plus ancien au plus récent, avec les métriques de leur dernier résultat terminé (`null` tant qu'il
+     * n'existe pas), le statut du lot, la synthèse (CAGR médian, pire départ, pire fenêtre) et les fenêtres glissantes du départ
+     * le plus ancien. Meilleur et pire départ ne sont désignés qu'une fois tout le lot terminé. Lève `NotFoundError` si le lot
+     * n'existe pas, `ForbiddenError` s'il appartient à un autre utilisateur.
+     */
+    async getBatch(batchId: string, userId: string): Promise<BacktestBatchDTO> {
+        logger.info("Fetching backtest batch", { batchId, userId })
+        const { backtests, rollingSummary } = await this.repo.getBatch(batchId)
+        const first = backtests[0]
+        if (!first) throw new NotFoundError(API_ERROR_CODES.BACKTEST_NOT_FOUND)
+        if (first.userId !== userId) throw new ForbiddenError()
+
+        const statuses = backtests.map(({ latestExecution }) => latestExecution!.status)
+        const cagrs = backtests.map(({ executions }) => executions[0]?.result?.cagr?.toNumber() ?? null)
+        const allDone = statuses.every((status) => status === "COMPLETED") && cagrs.every((cagr) => cagr !== null)
+        const done = cagrs.filter((cagr): cagr is number => cagr !== null)
+        const [worst, best] = [Math.min(...done), Math.max(...done)]
+        const windows = first.executions[0]?.result ? (rollingSummary as RollingWindow[] | null) : null
+        const window = windows?.find(({ years }) => years === BATCH_SUMMARY_WINDOW_YEARS)
+        const worstIndex = cagrs.indexOf(worst)
+
+        return {
+            batchId,
+            name: first.name,
+            endDate: first.endDate,
+            status: batchStatus(statuses),
+            rows: backtests.map(({ id, startDate, executions }, i) => {
+                const result = executions[0]?.result
+                return {
+                    backtestId: id,
+                    startDate,
+                    status: statuses[i]!,
+                    result: result ? { finalValue: result.finalValue, cagr: result.cagr, volatility: result.volatility, sharpeRatio: result.sharpeRatio, maxDrawdown: result.maxDrawdown, totalReturn: result.totalReturn } : null,
+                    rank: allDone && worst !== best ? (cagrs[i] === best ? "BEST" : cagrs[i] === worst ? "WORST" : null) : null,
+                }
+            }),
+            summary: done.length
+                ? {
+                      medianCagr: median(done),
+                      cagrSpread: done.length > 1 ? best - worst : null,
+                      worstStart: { startDate: backtests[worstIndex]!.startDate.toISOString(), cagr: worst },
+                      window: window ? { years: window.years, worst: window.worst, worstDate: window.worstDate, negativeShare: window.negativeShare, count: window.count } : null,
+                  }
+                : null,
+            rollingSummary: windows ?? null,
+        }
+    }
+
+    /**
+     * Relance la stratégie d'un lot à de nouvelles dates (`startDates`, mêmes règles qu'à la création, fin commune du lot) :
+     * crée un nouveau lot, l'ancien reste intact. Lève `NotFoundError`/`ForbiddenError` comme `getBatch`, `BadRequestError`
+     * (`START_TOO_CLOSE_TO_END`) si un départ est à moins d'un an de la fin.
+     */
+    async restartBatch(batchId: string, userId: string, { startDates }: BatchStartDatesInput) {
+        logger.info("Restarting backtest batch", { batchId, userId })
+        const { backtests } = await this.repo.getBatch(batchId)
+        const first = this.assertOwner(backtests[0] ? await this.repo.getById(backtests[0].id) : null, userId)
+        if (startDates.some((start) => start > latestBatchStart(first.endDate))) {
+            throw new BadRequestError(API_ERROR_CODES.START_TOO_CLOSE_TO_END)
+        }
+        return this.createBatch(userId, {
+            name: first.name,
+            investmentMode: first.investmentMode,
+            allocations: first.allocations.map(({ symbol, weight }) => ({ symbol, weight: weight.toNumber() })),
+            end: first.endDate,
+            initialAmount: first.initialAmount.toNumber(),
+            recurringAmount: first.recurringAmount?.toNumber(),
+            rebalanceFrequency: first.rebalanceFrequency,
+            fee: first.feeRate.times(100).toNumber(),
+            benchmarkSymbol: first.benchmarkSymbol,
+            startDates,
+        })
+    }
+
+    /**
+     * Relance un lot : une nouvelle exécution de chaque départ. Lève `NotFoundError`/`ForbiddenError` comme `getBatch`,
+     * `ConflictError` si un départ a une exécution active (rien n'est relancé).
+     */
+    async rerunBatch(batchId: string, userId: string) {
+        logger.info("Rerunning backtest batch", { batchId, userId })
+        const { backtests } = await this.repo.getBatch(batchId)
+        const first = backtests[0]
+        if (!first) throw new NotFoundError(API_ERROR_CODES.BACKTEST_NOT_FOUND)
+        if (first.userId !== userId) throw new ForbiddenError()
+        if (backtests.some(({ latestExecution }) => ACTIVE_STATUSES.includes(latestExecution!.status))) {
+            throw new ConflictError(API_ERROR_CODES.EXECUTION_IN_PROGRESS)
+        }
+        const executions = []
+        for (const { id } of backtests) executions.push(await this.rerun(id, userId))
+        return executions
+    }
+
+    private async createOne(userId: string, input: CreateBacktestInput, batchId?: string) {
         logger.info("Creating backtest", { userId, name: input.name })
         const backtest = await this.repo.create({
             userId,
+            batchId,
             name: input.name,
             allocations: { create: input.allocations },
             startDate: input.start,

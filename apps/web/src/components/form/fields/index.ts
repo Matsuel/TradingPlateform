@@ -1,5 +1,6 @@
 export { CheckboxField } from "./checkbox-field"
 export { DateField } from "./date-field"
+export { DatePicker } from "./date-picker"
 export { NumberField } from "./number-field"
 export { SelectField } from "./select-field"
 export { SwitchField } from "./switch-field"

@@ -2,6 +2,7 @@ import type { EquityPoint } from "@trading-plateform/contracts";
 import { periodKey } from "@trading-plateform/utils";
 import { foreignCurrencies, toReferenceCurrency } from "./backtest.fx";
 import { createPortfolio } from "./backtest.portfolio";
+import { rollingSummary } from "./backtest.rolling";
 import BacktestError from "../errors/backtest.error";
 import type { BacktestOutcome, BacktestParams, MarketExtras, MarketInput, PriceSeries, TwrPoint } from "../interfaces/backtest.interface";
 import { annualizedReturn, annualizedVolatility, createDrawdownTracker, RISK_FREE_RATE, round, sharpeRatio } from "./backtest.utils";
@@ -131,6 +132,7 @@ function riskMetrics(drawdown: ReturnType<typeof createDrawdownTracker>, twr: Tw
         cagr: roundOrNull(annualizedReturn(twr)),
         volatility: roundOrNull(annualizedVolatility(twr)),
         sharpeRatio: roundOrNull(sharpeRatio(twr)),
+        rollingSummary: rollingSummary(twr),
     };
 }
 

@@ -2,20 +2,36 @@ import { keepPreviousData, skipToken, useMutation, useQuery, useQueryClient } fr
 import {
     compareBacktests,
     createBacktest,
+    createBacktestBatch,
     getBacktest,
+    getBacktestBatch,
     getBacktestStats,
     getBacktests,
     previewBacktest,
     rerunBacktest,
+    rerunBacktestBatch,
+    restartBacktestBatch,
 } from "./api"
 import { activeStatuses } from "./constants"
 import type { BacktestValues } from "./schema"
-import { hasStatus } from "./utils"
+import { hasStatus, isActiveStatus } from "./utils"
 
 export function useCreateBacktest() {
     const queryClient = useQueryClient()
     return useMutation({
         mutationFn: createBacktest,
+        onSuccess: () =>
+            Promise.all([
+                queryClient.invalidateQueries({ queryKey: ["backtest", "list"] }),
+                queryClient.invalidateQueries({ queryKey: ["backtest", "stats"] }),
+            ]),
+    })
+}
+
+export function useCreateBacktestBatch() {
+    const queryClient = useQueryClient()
+    return useMutation({
+        mutationFn: createBacktestBatch,
         onSuccess: () =>
             Promise.all([
                 queryClient.invalidateQueries({ queryKey: ["backtest", "list"] }),
@@ -57,6 +73,16 @@ export function useBacktest(id: string) {
     })
 }
 
+// Rafraîchit tant qu'un départ du lot n'est pas terminé
+export function useBacktestBatch(batchId: string) {
+    return useQuery({
+        queryKey: ["backtest", "batch", batchId],
+        queryFn: () => getBacktestBatch(batchId),
+        refetchInterval: (query) =>
+            query.state.data?.rows.some(({ status }) => isActiveStatus(status)) ? 2000 : false,
+    })
+}
+
 // Requête seulement avec deux ids distincts (l'API refuse sinon)
 export function useBacktestComparison(a: string, b: string) {
     return useQuery({
@@ -70,6 +96,23 @@ export function useRerunBacktest(id: string) {
     const queryClient = useQueryClient()
     return useMutation({
         mutationFn: () => rerunBacktest(id),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ["backtest"] }),
+    })
+}
+
+// Une nouvelle liste de départs crée un autre lot : la page affichée passe à celui-ci
+export function useRestartBacktestBatch(batchId: string) {
+    const queryClient = useQueryClient()
+    return useMutation({
+        mutationFn: (startDates: Date[]) => restartBacktestBatch(batchId, startDates),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ["backtest"] }),
+    })
+}
+
+export function useRerunBacktestBatch(batchId: string) {
+    const queryClient = useQueryClient()
+    return useMutation({
+        mutationFn: () => rerunBacktestBatch(batchId),
         onSuccess: () => queryClient.invalidateQueries({ queryKey: ["backtest"] }),
     })
 }

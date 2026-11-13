@@ -385,6 +385,8 @@ Primitives shadcn (base-ui), voir la doc shadcn. Seule base des briques d'interf
   - `formatTooltipDate` : Date de l'infobulle.
   - `formatValue` : Valeurs de l'infobulle (montant, ratio).
   - `formatAxis` (optionnel) : Axe Y.
+  - `marker` (optionnel) : `{ date, key, label }`, pastille rouge et libellé sur la série `key` à `date` (pire fenêtre glissante).
+  - `zeroLine` (optionnel) : trait plein à 0, pour des séries qui passent sous zéro (rendements).
   - `hideXAxis` (optionnel) : Graphique empilé au-dessus d'un autre qui porte l'axe des dates.
   - `className` (optionnel) : Hauteur.
 - **Exemple** (tiré de `src/features/market/price-chart.tsx`) :
@@ -538,6 +540,13 @@ Props communes `BaseProps<T>` (exportées par `field.tsx`), répétées dans cha
   ```
 - **Source** : `src/components/form/fields/select-field.tsx`.
 
+### DatePicker
+
+- **Import** : `import { DatePicker } from "@/components/form"`.
+- **Rôle** : sélecteur de date seul (bouton + calendrier), hors react-hook-form ; `DateField` l'enveloppe.
+- **Props** : `value: Date | undefined`, `onChange(date)`, `id?`, `invalid?`, `placeholder?`, `disabled?(d)`.
+- **Source** : `src/components/form/fields/date-picker.tsx`.
+
 ### DateField
 
 - **Import** : `import { DateField } from "@/components/form"`.
@@ -664,6 +673,7 @@ Source : `src/components/form/form-issues.ts`.
 | `formatMonthTick` | Mois court et année pour un axe temporel : « janv. 24 ». |
 | `formatMediumDate` | Date moyenne : « 28 oct. 2026 » (infobulle de graphique). |
 | `currencySymbol` | Symbole d'une devise ISO pour un libellé : `currencySymbol("EUR")` → « € ». |
+| `formatYears` | Durée en années, 1 décimale au plus (`10.5` → « 10,5 ans »). |
 | `formatDuration` | Durée en jours calendaires : en jours sous deux mois (`45` → « 45 jours », `1` → « 1 jour »), sinon en mois arrondis (`426` → « 14 mois »). |
 
 Source : `src/lib/format.ts`.
@@ -991,7 +1001,7 @@ _Ligne et pied du champ : `allocation-row.tsx` (`AllocationRow`, `AllocationFoot
 
 - **Import** : `import { GeneralSection } from "@/features/backtest/sections"`.
 - **Rôle** : section « Général » (`name`, puis `InvestmentModeFields`) d'un formulaire `BacktestValues`, sous `FormProvider`.
-- **Props** : aucune.
+- **Props** : `PeriodAndCapitalFields({ afterPeriod?: ReactNode })` ; `InvestmentModeFields` : aucune.
 - **Source** : `src/features/backtest/sections.tsx`.
 
 ### AllocationSection
@@ -1004,7 +1014,7 @@ _Ligne et pied du champ : `allocation-row.tsx` (`AllocationRow`, `AllocationFoot
 ### InvestmentModeFields, PeriodAndCapitalFields
 
 - **Import** : `import { InvestmentModeFields, PeriodAndCapitalFields } from "@/features/backtest/sections"`.
-- **Rôle** : champs communs au formulaire complet et au test rapide, sous `FormProvider`. `InvestmentModeFields` : mode d'investissement, puis versement mensuel en `RECURRING` seulement. `PeriodAndCapitalFields` : début et fin, capital initial et frais par ordre (aide `feeRate`). Montants libellés avec `currencySymbol(BACKTEST_CURRENCY)`.
+- **Rôle** : champs communs au formulaire complet et au test rapide, sous `FormProvider`. `InvestmentModeFields` : mode d'investissement, puis versement mensuel en `RECURRING` seulement. `PeriodAndCapitalFields` : début et fin, puis `afterPeriod` (nœud optionnel : l'interrupteur de lot du formulaire complet), capital initial et frais par ordre (aide `feeRate`). Montants libellés avec `currencySymbol(BACKTEST_CURRENCY)`.
 - **Props** : aucune.
 - **Source** : `src/features/backtest/sections.tsx`.
 
@@ -1135,6 +1145,11 @@ Source : `src/features/backtest/metrics.tsx`.
 
 - **Source** : `src/features/backtest/comparison-metrics.tsx` (lignes construites depuis `metricHead`, écart coloré par `Delta`), `src/features/backtest/comparison-parameters.tsx`.
 
+### `features/backtest/backtest-batch.tsx`
+
+- **Import** : `import { BacktestBatchView } from "@/features/backtest/backtest-batch"`. Props : `batchId`. Page d'un lot de départs (maquette 32, `/app/backtest/batch/[batchId]`) : en-tête avec « Modifier les départs » et « Relancer le lot », `BatchStats`, tableau des résultats par date de départ, carte « Dates de départ » (`StartDates`, « Lancer le lot (N départs) » crée un nouveau lot) et `RollingWindows`. Valeurs telles que reçues de l'API.
+- Sous-composants : `batch-stats.tsx` (`BatchStats({ batch })` : quatre cartes de synthèse), `rolling-windows.tsx` (`RollingWindows({ windows })` : onglets 1/3/5 ans, tableau, courbe du rendement annualisé avec la pire fenêtre marquée), `start-dates.tsx` (`StartDates({ dates, onChange, end, action? })` : Départ 1 à 10, refus sous le champ fautif, « Ajouter une date », compteur « n / 10 dates » ; aussi utilisé sous l'interrupteur du formulaire « Nouveau backtest »).
+
 ### `features/backtest/api.ts`
 
 - **Import** : `import { getBacktest } from "@/features/backtest/api"`. Appeler via les hooks plutôt que directement.
@@ -1142,6 +1157,10 @@ Source : `src/features/backtest/metrics.tsx`.
 | Export | Route (`apps/core-backend/API.md`) |
 | --- | --- |
 | `createBacktest` | `POST /api/backtest` |
+| `createBacktestBatch` | `POST /api/backtest/batch` (`startDates` = `start` + `extraStartDates`) |
+| `getBacktestBatch` | `GET /api/backtest/batch/:batchId` |
+| `restartBacktestBatch` | `POST /api/backtest/batch/:batchId/starts` (`startDates`) |
+| `rerunBacktestBatch` | `POST /api/backtest/batch/:batchId/executions` |
 | `previewBacktest` | `POST /api/backtest/preview` |
 | `getBacktests` | `GET /api/backtest?page&pageSize&status&hasResult` (`status` = statuts séparés par des virgules, omis si vide ; `hasResult=true` si vrai) |
 | `getBacktestStats` | `GET /api/backtest/stats` |
@@ -1158,6 +1177,10 @@ Source : `src/features/backtest/api.ts`.
 | Export | Clé / comportement |
 | --- | --- |
 | `useCreateBacktest` | Invalide `["backtest", "list"]` et `["backtest", "stats"]` au succès. |
+| `useCreateBacktestBatch` | Invalide `["backtest", "list"]` et `["backtest", "stats"]` au succès. |
+| `useRestartBacktestBatch` | Invalide `["backtest"]` au succès ; l'écran passe au nouveau lot. |
+| `useRerunBacktestBatch` | Invalide `["backtest"]` au succès. |
+| `useBacktestBatch` | `["backtest", "batch", batchId]` ; rafraîchi toutes les 2 s tant qu'un départ est actif. |
 | `useBacktestPreview` | `["backtest", "preview", values]` ; désactivé si `values` est `null` (formulaire invalide) ; réponse précédente gardée pendant le recalcul (`keepPreviousData`). |
 | `useBacktests` | `["backtest", "list", params]` ; page précédente gardée pendant le chargement (`keepPreviousData`). |
 | `useBacktestStats` | `["backtest", "stats"]`. |
@@ -1174,7 +1197,7 @@ Source : `src/features/backtest/hook.ts`.
 | Export | Rôle (et unité) |
 | --- | --- |
 | `createBacktestFormSchema(t)` | `t` = `useTranslations("backtest")` : messages dans la langue active. Formulaire complet, miroir de `createBacktestSchema` du backend. `weight` en **pourcent entier** (`NaN` rejeté) ; montants en devise de saisie ; `fee` en **pourcentage** par ordre. Body de `POST /api/backtest`. |
-| `BacktestValues` | Type des valeurs. |
+| `BacktestValues` | Type des valeurs. `multipleStarts` + `extraStartDates` (`{ date }[]`, vidé hors lot) : lot de départs, `start` est le Départ 1, 2 à 10 dates distinctes au total, chacune au moins un an avant `end`. |
 | `createQuickBacktestFormSchema(t)` | Même `t`. Test rapide : `name` et `allocations` (100 % sur le symbole) ajoutés par `QuickBacktestForm`. |
 | `QuickBacktestValues` | Type des valeurs. |
 
@@ -1234,6 +1257,8 @@ Source : `src/features/backtest/utils.ts`. Helpers purs : aucun JSX (`<Dash />` 
 | Export | Type | Colonnes |
 | --- | --- | --- |
 | `useBacktestColumns()` | `Column<Backtest>[]` | Nom, Stratégie, Allocation (`formatAllocation`, tronquée, texte complet en `title`), Période, Rendement (`totalReturn` × 100 via `ChangeCell`), CAGR (`cagr` du résumé × 100 via `ChangeCell`, `<Dash />` si non terminé ou résultat antérieur), Statut (badge), Durée. En-têtes Rendement, CAGR et Durée en `InfoHint`. |
+| `useBatchColumns(endDate)` | `Column<BacktestBatch["rows"][number]>[]` | Départ, Durée (jusqu'à `endDate`), CAGR, Volatilité, Drawdown max, Valeur finale, Statut (« Meilleur » / « Pire » une fois le lot terminé) ; `<Dash />` sans résultat. |
+| `useRollingColumns()` | `Column<RollingWindow>[]` | Durée (1, 3, 5 ans), Pire, Médiane, Meilleure, Part négative (rendements annualisés). |
 | `useTradeColumns()` | `Column<Trade>[]` | Date, Symbole (`SymbolCell`), Côté (badge `tradeSideVariants`, « Achat » si `side` absent), Prix (2 décimales, sans devise), Quantité (jusqu'à 6 décimales), Montant et Frais (`formatPrice` en `BACKTEST_CURRENCY`) ; `Dash` si absents (résultats antérieurs). En-têtes Côté, Prix, Quantité, Montant, Frais en `InfoHint`. |
 | `useHoldingColumns()` | `Column<Holding>[]` | Symbole (`SymbolCell`), Quantité (jusqu'à 6 décimales), Valeur au dernier cours (`formatPrice` en `BACKTEST_CURRENCY`). En-têtes Quantité et Valeur en `InfoHint`. |
 

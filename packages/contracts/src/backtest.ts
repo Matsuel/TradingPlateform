@@ -207,6 +207,43 @@ export const benchmarkSchema = z.object({
     excessSharpe: z.number().nullable(),
 });
 
+// Durées (années) des fenêtres glissantes d'un résultat (D3)
+export const ROLLING_WINDOW_YEARS = [1, 3, 5] as const;
+
+// Nombre de dates de départ d'un lot de backtests liés (D1)
+export const BATCH_START_DATES_LIMITS = { min: 2, max: 10 } as const;
+
+// Un départ de lot doit précéder la fin commune d'au moins cette durée (années) : sous un an, le CAGR n'est qu'une extrapolation
+export const BATCH_MIN_YEARS_BEFORE_END = 1;
+
+// Durée de fenêtre (années) lue par les cartes de synthèse d'un lot : pire fenêtre et part de fenêtres négatives
+export const BATCH_SUMMARY_WINDOW_YEARS = 3;
+
+export const rollingPointSchema = z.object({
+    // Date d'entrée de la fenêtre, YYYY-MM-DD
+    date: z.iso.date(),
+    // Ratio annuel (0.08 = +8 %/an) : rendement annualisé de la fenêtre qui part de `date`
+    value: z.number(),
+});
+
+// Rendement annualisé sur toutes les fenêtres glissantes d'une durée donnée, une par jour de cotation de départ (D2)
+export const rollingWindowSchema = z.object({
+    // Une valeur de ROLLING_WINDOW_YEARS
+    years: z.number().int().positive(),
+    // Nombre de fenêtres de cette durée sur l'historique ; la durée n'est pas publiée si l'historique est plus court
+    count: z.number().int().positive(),
+    // Ratios annuels de l'indice TWR (hors versements) : (1 + rendement de la fenêtre) ^ (1 / years) − 1
+    worst: z.number(),
+    median: z.number(),
+    best: z.number(),
+    // Date d'entrée de la pire fenêtre, YYYY-MM-DD
+    worstDate: z.iso.date(),
+    // Ratio 0..1 : part des fenêtres dont le rendement est strictement négatif
+    negativeShare: z.number().min(0).max(1),
+    // Une entrée par fenêtre, du plus ancien départ au plus récent : courbe du rendement selon la date d'entrée
+    points: z.array(rollingPointSchema),
+});
+
 export const backtestCompletedPayloadSchema = z.object({
     executionId: z.string().min(1),
     finishedAt: z.iso.datetime(),
@@ -249,6 +286,8 @@ export const backtestCompletedPayloadSchema = z.object({
     sharpeRatio: z.number().nullable(),
     // Ratio annuel (0 = 0 %/an) : taux sans risque du Sharpe, hypothèse fixée par l'engine (D5)
     riskFreeRate: z.number(),
+    // Une entrée par durée de ROLLING_WINDOW_YEARS couverte par l'historique, de la plus courte à la plus longue ; vide sinon
+    rollingSummary: z.array(rollingWindowSchema),
     equityCurve: z.array(equityPointSchema),
     trades: z.array(tradeSchema),
     holdings: z.array(holdingSchema),
@@ -316,6 +355,50 @@ export interface BacktestComparison {
     differences: ComparisonParameter[];
 }
 
+// Départ le moins bon ou le meilleur d'un lot, selon son CAGR
+export const BATCH_RANKS = ["BEST", "WORST"] as const;
+
+// Une ligne de GET /api/backtest/batch/:batchId : un départ du lot, tel que sérialisé par l'API (Decimal → string)
+export interface BacktestBatchRow {
+    backtestId: string;
+    // ISO
+    startDate: string;
+    // Statut de la dernière exécution
+    status: BacktestStatus;
+    // Dernier résultat terminé, ratios en fraction ("0.07" = 7 %/an), montant en devise saisie ; null tant que le départ n'est pas calculé
+    result: (Record<ComparedMetric, string | null> & { finalValue: string | null }) | null;
+    // Meilleur ou pire CAGR du lot ; null pour les autres départs et tant que le lot n'est pas entièrement terminé
+    rank: (typeof BATCH_RANKS)[number] | null;
+}
+
+// Synthèse d'un lot terminé, calculée par core-backend
+export interface BacktestBatchSummary {
+    // Ratio annuel : médiane des CAGR des départs ; null si aucun CAGR
+    medianCagr: number | null;
+    // Points de ratio annuel : meilleur CAGR − pire CAGR ; null sous deux CAGR
+    cagrSpread: number | null;
+    // Départ au CAGR le plus bas ; null si aucun CAGR
+    worstStart: { startDate: string; cagr: number } | null;
+    // Fenêtre de BATCH_SUMMARY_WINDOW_YEARS ans du départ le plus ancien ; null si l'historique est plus court
+    window: Pick<RollingWindow, "years" | "worst" | "worstDate" | "negativeShare" | "count"> | null;
+}
+
+// Réponse de GET /api/backtest/batch/:batchId : départs triés par date de départ croissante
+export interface BacktestBatch {
+    batchId: string;
+    // Nom de la stratégie, commun aux départs
+    name: string;
+    // ISO : fin commune des départs
+    endDate: string;
+    // COMPLETED si tous les départs le sont ; FAILED si l'un a échoué ; sinon PENDING ou RUNNING
+    status: BacktestStatus;
+    rows: BacktestBatchRow[];
+    // Null tant que le départ le plus ancien n'est pas terminé
+    summary: BacktestBatchSummary | null;
+    // Fenêtres glissantes (1, 3, 5 ans) du départ le plus ancien, historique le plus long ; null tant qu'il n'est pas terminé
+    rollingSummary: RollingWindow[] | null;
+}
+
 export const backtestRequestedEventSchema = kafkaEventSchema(backtestRequestedPayloadSchema);
 export const backtestStartedEventSchema = kafkaEventSchema(backtestStartedPayloadSchema);
 export const backtestCompletedEventSchema = kafkaEventSchema(backtestCompletedPayloadSchema);
@@ -336,6 +419,7 @@ export type LumpSumComparison = z.infer<typeof lumpSumComparisonSchema>;
 export type Benchmark = z.infer<typeof benchmarkSchema>;
 export type ExecutionRule = (typeof EXECUTION_RULES)[number];
 export type DataSource = z.infer<typeof dataSourceSchema>;
+export type RollingWindow = z.infer<typeof rollingWindowSchema>;
 export type BacktestCompletedPayload = z.infer<typeof backtestCompletedPayloadSchema>;
 export type ExecutionErrorCode = (typeof EXECUTION_ERROR_CODES)[number];
 export type BacktestFailedPayload = z.infer<typeof backtestFailedPayloadSchema>;

@@ -1,6 +1,6 @@
 "use client"
 
-import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts"
+import { Area, AreaChart, CartesianGrid, ReferenceDot, ReferenceLine, XAxis, YAxis } from "recharts"
 import { type ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import type { GlossaryKey } from "@/constants/glossary"
 import { useFormatters } from "@/lib/format"
@@ -26,6 +26,9 @@ export const referenceSeries = (series: Pick<ChartSeries, "key" | "label" | "hin
     dashed: true,
 })
 
+/** Point mis en évidence (ex. la pire valeur) : pastille sur la série `key` à la date `date`, avec son libellé. */
+export type ChartMarker = { date: string; key: string; label: string }
+
 interface AreaSeriesChartProps {
     data: ChartPoint[]
     series: ChartSeries[]
@@ -33,6 +36,8 @@ interface AreaSeriesChartProps {
     formatTooltipDate: (date: string) => string
     formatValue: (value: number) => string // valeurs de l'infobulle, ex. montant dans la devise
     formatAxis?: (value: number) => string // axe Y ; par défaut nombre sans unité
+    marker?: ChartMarker
+    zeroLine?: boolean // trait plein à 0 (séries qui passent sous zéro : rendements)
     hideXAxis?: boolean // graphique empilé au-dessus d'un autre qui porte l'axe des dates
     className?: string
 }
@@ -72,6 +77,8 @@ export function AreaSeriesChart({
     formatTooltipDate,
     formatValue,
     formatAxis,
+    marker,
+    zeroLine = false,
     hideXAxis = false,
     className,
 }: AreaSeriesChartProps) {
@@ -102,6 +109,7 @@ export function AreaSeriesChart({
                     tickFormatter={formatAxis ?? ((v: number) => formatNumberAxis(locale, v))}
                 />
                 <ChartTooltip cursor={false} content={tooltipContent(series, formatTooltipDate, formatValue)} />
+                {zeroLine && <ReferenceLine y={0} stroke="var(--border)" />}
                 {series.map((s) => (
                     <Area
                         key={s.key}
@@ -116,6 +124,16 @@ export function AreaSeriesChart({
                         isAnimationActive={false}
                     />
                 ))}
+                {marker && (
+                    <ReferenceDot
+                        x={marker.date}
+                        y={data.find((point) => point.date === marker.date)?.[marker.key] as number | undefined}
+                        r={4}
+                        fill="var(--destructive)"
+                        stroke="none"
+                        label={{ value: marker.label, position: "top", fill: "var(--foreground)", fontSize: 12 }}
+                    />
+                )}
             </AreaChart>
         </ChartContainer>
     )
