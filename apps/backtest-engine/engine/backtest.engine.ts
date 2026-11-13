@@ -7,7 +7,11 @@ import BacktestError from "../errors/backtest.error";
 import type { BacktestOutcome, BacktestParams, MarketExtras, MarketInput, PriceSeries, TwrPoint } from "../interfaces/backtest.interface";
 import { annualizedReturn, annualizedVolatility, createDrawdownTracker, RISK_FREE_RATE, round, sharpeRatio } from "./backtest.utils";
 
-type Simulation = Omit<BacktestOutcome, "lumpSumComparison" | "benchmark" | "executionRule" | "riskFreeRate" | "returnBreakdown" | "priceReturn" | "dividendGain">;
+// Une simulation, avec l'indice TWR dont `fullOutcome` tire les fenêtres glissantes (publiées pour la seule stratégie)
+type Simulation = Omit<
+    BacktestOutcome,
+    "lumpSumComparison" | "benchmark" | "executionRule" | "riskFreeRate" | "returnBreakdown" | "priceReturn" | "dividendGain" | "rollingSummary"
+> & { twr: TwrPoint[] };
 
 const roundOrNull = (ratio: number | null) => (ratio === null ? null : round(ratio, 6));
 
@@ -115,6 +119,7 @@ function simulate(params: BacktestParams, { prices, dividends }: MarketInput, da
         totalTrades: portfolio.trades.length,
         rebalanceCount: rebalances,
         ...riskMetrics(drawdown, twr),
+        twr,
         equityCurve,
         trades: portfolio.trades,
         holdings: portfolio.holdings(),
@@ -132,13 +137,13 @@ function riskMetrics(drawdown: ReturnType<typeof createDrawdownTracker>, twr: Tw
         cagr: roundOrNull(annualizedReturn(twr)),
         volatility: roundOrNull(annualizedVolatility(twr)),
         sharpeRatio: roundOrNull(sharpeRatio(twr)),
-        rollingSummary: rollingSummary(twr),
     };
 }
 
 /**
- * Simule le backtest demandé sur un marché déjà en euros (`runBacktest` prépare ce marché), le compare en DCA
- * à un investissement unique et, si `benchmarkSymbol` est renseigné, au benchmark.
+ * Résultat publié de la stratégie sur un marché déjà en euros, au `calendar` partagé : sa simulation, comparée en DCA
+ * à un investissement unique et, si `benchmarkSymbol` est renseigné, au benchmark. Les fenêtres glissantes (`rollingSummary`)
+ * ne sont calculées que sur la stratégie.
  *
  * La comparaison rejoue le même total versé en un seul achat au premier jour : même capital, même période,
  * mêmes frais, seule la répartition dans le temps change. Sa valeur quotidienne est ajoutée à chaque point
@@ -149,13 +154,10 @@ function riskMetrics(drawdown: ReturnType<typeof createDrawdownTracker>, twr: Tw
  * Toutes les simulations partagent le calendrier de la stratégie (`buildCalendar`) : même départ, mêmes dates, courbes
  * alignées par indice ; un jour sans cotation du benchmark reporte son dernier cours. Sa valeur quotidienne va dans `benchmarkValue`, ses métriques et les écarts stratégie − benchmark
  * dans `benchmark`. Sans benchmark, `benchmark` vaut null et la courbe n'a pas de `benchmarkValue`.
- * Lève `BacktestError` « No market data for <symbol> » si le benchmark n'a aucun cours.
  */
-function runOnMarket(params: BacktestParams, market: MarketInput): Omit<BacktestOutcome, "returnBreakdown" | "priceReturn" | "dividendGain"> {
-    const { prices } = market;
+function fullOutcome(params: BacktestParams, market: MarketInput, calendar: string[]): Omit<BacktestOutcome, "returnBreakdown" | "priceReturn" | "dividendGain"> {
     const { benchmarkSymbol } = params;
-    const calendar = buildCalendar(prices, params.allocations.map((allocation) => allocation.symbol), benchmarkSymbol ? [benchmarkSymbol] : []);
-    const outcome = simulate(params, market, calendar);
+    const { twr, ...outcome } = simulate(params, market, calendar);
     // Seule règle du MVP : chaque versement est planifié, donc exécuté à la clôture du jour de l'échéance (README, look-ahead bias)
     const executionRule = "CLOSE_ON_SCHEDULED_DAY";
 
@@ -180,6 +182,7 @@ function runOnMarket(params: BacktestParams, market: MarketInput): Omit<Backtest
 
     return {
         ...outcome,
+        rollingSummary: rollingSummary(twr),
         executionRule,
         riskFreeRate: RISK_FREE_RATE,
         // Même calendrier, même départ : les courbes ont exactement les mêmes dates, alignées par indice
@@ -213,23 +216,30 @@ function runOnMarket(params: BacktestParams, market: MarketInput): Omit<Backtest
 
 /**
  * Point d'entrée de l'engine : simule le backtest sur des cours convertis en euros au taux du jour (D3), dividendes
- * réinvestis (D1) ; voir `runOnMarket` pour le calendrier, la comparaison DCA et le benchmark.
+ * réinvestis (D1) ; voir `fullOutcome` pour la comparaison DCA et le benchmark.
  *
- * Rejoue la simulation sans dividendes (`priceReturn`, `priceOnlyValue` de chaque point, publié seulement si un dividende a été
- * perçu) et, hors euro, en devise locale (cours non convertis) : `returnBreakdown` passe du rendement du cours seul au rendement
- * en euros, avec `fx` = rendement en euros − rendement local (null si aucun symbole de l'allocation ne cote hors euro).
+ * Rejoue la stratégie seule, sur le même calendrier, sans dividendes (`priceReturn`, `priceOnlyValue` de chaque point, publié
+ * seulement si un dividende a été perçu) et, hors euro, en devise locale (cours non convertis) : `returnBreakdown` passe du
+ * rendement du cours seul au rendement en euros, avec `fx` = rendement en euros − rendement local (null si aucun symbole de
+ * l'allocation ne cote hors euro). Un rejeu sans dividendes n'a lieu que si l'allocation en a : sinon il vaut la simulation d'origine.
  * Lève `BacktestError` « No market data for EURxxx=X » si le taux d'une devise étrangère manque.
  */
 export default function runBacktest(params: BacktestParams, prices: PriceSeries, { dividends = {}, currencies = {}, fxRates = {} }: MarketExtras = {}): BacktestOutcome {
+    const symbols = params.allocations.map((allocation) => allocation.symbol);
     const local: MarketInput = { prices, dividends };
-    const foreign = foreignCurrencies(params.allocations.map((allocation) => allocation.symbol), currencies).length > 0;
+    const foreign = foreignCurrencies(symbols, currencies).length > 0;
     const converted = toReferenceCurrency(local, currencies, fxRates);
+    // Convertis ou non, les cours gardent les mêmes dates : un seul calendrier pour toutes les simulations
+    const calendar = buildCalendar(converted.prices, symbols, params.benchmarkSymbol ? [params.benchmarkSymbol] : []);
+    const hasDividends = symbols.some((symbol) => dividends[symbol]?.length);
     const withoutDividends = (market: MarketInput): MarketInput => ({ ...market, dividends: {} });
-    const outcome = runOnMarket(params, converted);
-    const priceOnly = runOnMarket(params, withoutDividends(converted));
+    const replay = (market: MarketInput) => simulate(params, market, calendar);
+
+    const outcome = fullOutcome(params, converted, calendar);
+    const priceOnly = hasDividends ? replay(withoutDividends(converted)) : outcome;
     // Sans devise étrangère, le local est l'euro : pas de simulation de plus
-    const localOutcome = foreign ? runOnMarket(params, local) : outcome;
-    const localPriceOnly = foreign ? runOnMarket(params, withoutDividends(local)) : priceOnly;
+    const localOutcome = foreign ? replay(local) : outcome;
+    const localPriceOnly = !foreign ? priceOnly : hasDividends ? replay(withoutDividends(local)) : localOutcome;
 
     return {
         ...outcome,

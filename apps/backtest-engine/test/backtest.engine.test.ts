@@ -578,6 +578,23 @@ describe("dividendes réinvestis (D1)", () => {
         expect(priceOnly.dividendTotal).toBe(0);
     });
 
+    test("un benchmark qui retarde le départ : les rejeux sans dividendes gardent le calendrier de la courbe", () => {
+        const prices = { AAA: syntheticSeries(1, "2020-01-02", 300, 10_000), LATE: syntheticSeries(3, "2020-06-01", 200, 7_000) };
+        const result = runBacktest({ ...lumpSum, benchmarkSymbol: "LATE" }, prices, { dividends: { AAA: [{ date: prices.AAA[150]!.date, amount: 0.4 }] } });
+
+        expect(result.equityCurve[0]!.date).toBe(prices.LATE[0]!.date);
+        expect(result.equityCurve.every((point) => typeof point.priceOnlyValue === "number" && typeof point.benchmarkValue === "number")).toBe(true);
+        expect(result.dividendGain).toBeGreaterThan(0);
+    });
+
+    test("un dividende arrondi à 0 € ne change ni le gain ni la courbe", () => {
+        const result = runBacktest(lumpSum, flat("AAA", 10), { dividends: { AAA: [{ date: "2024-01-03", amount: 0.000001 }] } });
+
+        expect(result.dividendTotal).toBe(0);
+        expect(result.dividendGain).toBe(0);
+        expect(result.equityCurve.every((point) => !("priceOnlyValue" in point))).toBe(true);
+    });
+
     test("un dividende détaché avant le premier achat n'est pas perçu", () => {
         const result = runBacktest(lumpSum, flat("AAA", 10), { dividends: { AAA: [{ date: "2023-12-15", amount: 1 }] } });
 
