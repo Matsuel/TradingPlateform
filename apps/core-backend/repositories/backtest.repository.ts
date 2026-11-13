@@ -1,4 +1,4 @@
-import type { PaginationQuery } from "@trading-plateform/contracts"
+import type { PaginationQuery, RollingWindow } from "@trading-plateform/contracts"
 import { prisma } from "../prisma"
 import { Prisma, type BacktestExecution, type BacktestStatus } from "../generated/prisma/client"
 import type { BacktestDetails, BacktestExecutionCount, BacktestListFilters, BacktestStatusCounts, BacktestWithExecutions, BatchRecords, ComparedBacktestRecord, CompleteExecutionDTO, CreateBacktestDTO } from "../interfaces/backtest.interface"
@@ -191,7 +191,8 @@ class BacktestRepository implements IBacktestRepository {
                 select: { rollingSummary: true },
             }),
         ])
-        return { backtests, rollingSummary: earliest?.rollingSummary ?? null }
+        // Colonne Json : écrite par `backtest.completed` sous la forme `RollingWindow[]`
+        return { backtests, rollingSummary: (earliest?.rollingSummary ?? null) as RollingWindow[] | null }
     }
 
     async createExecution(backtestId: string, attempt: number): Promise<BacktestExecution> {

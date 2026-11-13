@@ -13,6 +13,7 @@ import {
     type BacktestCompletedPayload,
     type BacktestComparison,
     type ComparedMetric,
+    type RollingWindow,
     type BacktestStatus as ContractBacktestStatus,
 } from "@trading-plateform/contracts";
 import { BacktestStatus, type BacktestResult, type Prisma } from "../generated/prisma/client";
@@ -181,7 +182,7 @@ export type BatchBacktestRecord = Prisma.BacktestGetPayload<{
 // Lecture d'un lot : ses départs, et les fenêtres glissantes stockées du départ le plus ancien terminé (JSON du résultat)
 export interface BatchRecords {
     backtests: BatchBacktestRecord[];
-    rollingSummary: Prisma.JsonValue | null;
+    rollingSummary: RollingWindow[] | null;
 }
 
 // Forme du contrat BacktestBatch avant sérialisation (Decimal, Date)

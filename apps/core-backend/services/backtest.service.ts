@@ -10,7 +10,6 @@ import {
     PRICE_DATA_SOURCE,
     type BacktestCompletedPayload,
     type BacktestFailedPayload,
-    type RollingWindow,
     type BacktestPreview,
     type BacktestRequestedPayload,
     type BacktestStartedPayload,
@@ -24,7 +23,7 @@ import { BadRequestError, ConflictError, ForbiddenError, InternalError, NotFound
 import { producer } from "../lib/kafka";
 import BacktestRepository, { type IBacktestRepository } from "../repositories/backtest.repository";
 import type { Backtest, BacktestStatus, Prisma } from "../generated/prisma/client";
-import { latestBatchStart } from "../interfaces/backtest.interface"
+import { latestBatchStart } from "../interfaces/backtest.interface";
 import type {
     BacktestCompareQuery,
     BacktestComparisonDTO,
@@ -32,6 +31,8 @@ import type {
     BacktestBatchDTO,
     BacktestListQuery,
     BacktestWithExecutions,
+    BatchBacktestRecord,
+    BatchRecords,
     ComparedBacktestDTO,
     ComparedBacktestRecord,
     CreateBacktestInput,
@@ -65,16 +66,69 @@ const median = (values: number[]) => {
 // Écart A − B en points de ratio (Sharpe sans unité), comme benchmark.excess* ; null si l'une des deux valeurs manque
 const delta = (a: Prisma.Decimal | null, b: Prisma.Decimal | null) => (a && b ? a.minus(b).toNumber() : null)
 
+/** Lignes, statut, synthèse (CAGR médian, pire départ, pire fenêtre) et fenêtres glissantes d'un lot, à partir de ses départs. */
+const summarizeBatch = (backtests: BatchBacktestRecord[], rollingSummary: BatchRecords["rollingSummary"]): Omit<BacktestBatchDTO, "batchId" | "name" | "endDate"> => {
+    const statuses = backtests.map(({ latestExecution }) => latestExecution?.status ?? "PENDING")
+    const cagrs = backtests.map(({ executions }) => executions[0]?.result?.cagr?.toNumber() ?? null)
+    const allDone = statuses.every((status) => status === "COMPLETED") && cagrs.every((cagr) => cagr !== null)
+    const done = cagrs.filter((cagr): cagr is number => cagr !== null)
+    const [worst, best] = [Math.min(...done), Math.max(...done)]
+    const windows = backtests[0]?.executions[0]?.result ? rollingSummary : null
+    const window = windows?.find(({ years }) => years === BATCH_SUMMARY_WINDOW_YEARS)
+    const worstIndex = cagrs.indexOf(worst)
+
+    return {
+        status: batchStatus(statuses),
+        rows: backtests.map(({ id, startDate, executions }, i) => {
+            const result = executions[0]?.result
+            return {
+                backtestId: id,
+                startDate,
+                status: statuses[i]!,
+                result: result ? { finalValue: result.finalValue, cagr: result.cagr, volatility: result.volatility, sharpeRatio: result.sharpeRatio, maxDrawdown: result.maxDrawdown, totalReturn: result.totalReturn } : null,
+                rank: allDone && worst !== best ? (cagrs[i] === best ? "BEST" : cagrs[i] === worst ? "WORST" : null) : null,
+            }
+        }),
+        summary: done.length
+            ? {
+                  medianCagr: median(done),
+                  cagrSpread: done.length > 1 ? best - worst : null,
+                  worstStart: { startDate: backtests[worstIndex]!.startDate.toISOString(), cagr: worst },
+                  window: window ? { years: window.years, worst: window.worst, worstDate: window.worstDate, negativeShare: window.negativeShare, count: window.count } : null,
+              }
+            : null,
+        rollingSummary: windows ?? null,
+    }
+}
+
 class BacktestService {
     repo: IBacktestRepository = new BacktestRepository()
 
     /**
      * Crée un backtest à partir du formulaire (allocation déjà convertie en ratios par le schéma ; `RECURRING` = versement
      * mensuel de `recurringAmount` après `initialAmount` ; `fee` en pourcentage stocké en fraction), avec sa première
-     * exécution `PENDING`, puis publie `backtest.requested`.
+     * exécution `PENDING`, puis publie `backtest.requested`. `batchId` rattache le backtest à un lot (voir `createBatch`).
      */
-    async create(userId: string, input: CreateBacktestInput) {
-        return this.createOne(userId, input)
+    async create(userId: string, input: CreateBacktestInput, batchId?: string) {
+        logger.info("Creating backtest", { userId, name: input.name })
+        const backtest = await this.repo.create({
+            userId,
+            batchId,
+            name: input.name,
+            allocations: { create: input.allocations },
+            startDate: input.start,
+            endDate: input.end,
+            investmentMode: input.investmentMode,
+            initialAmount: input.initialAmount,
+            recurringAmount: input.recurringAmount ?? null,
+            investmentFrequency: input.investmentMode === "RECURRING" ? "MONTHLY" : null,
+            rebalanceFrequency: input.rebalanceFrequency,
+            feeRate: input.fee / 100,
+            benchmarkSymbol: input.benchmarkSymbol ?? null,
+        })
+        logger.info("Backtest created", { id: backtest.id, userId })
+        await this.requestExecution(backtest, backtest.executions[0]!.id)
+        return backtest
     }
 
     /**
@@ -86,7 +140,7 @@ class BacktestService {
         logger.info("Creating backtest batch", { userId, batchId, count: startDates.length })
         const backtests: BacktestWithExecutions[] = []
         for (const start of [...startDates].sort((a, b) => a.getTime() - b.getTime())) {
-            backtests.push(await this.createOne(userId, { ...input, start }, batchId))
+            backtests.push(await this.create(userId, { ...input, start }, batchId))
         }
         return { batchId, backtests }
     }
@@ -100,43 +154,12 @@ class BacktestService {
     async getBatch(batchId: string, userId: string): Promise<BacktestBatchDTO> {
         logger.info("Fetching backtest batch", { batchId, userId })
         const { backtests, rollingSummary } = await this.repo.getBatch(batchId)
-        const first = backtests[0]
-        if (!first) throw new NotFoundError(API_ERROR_CODES.BACKTEST_NOT_FOUND)
-        if (first.userId !== userId) throw new ForbiddenError()
-
-        const statuses = backtests.map(({ latestExecution }) => latestExecution!.status)
-        const cagrs = backtests.map(({ executions }) => executions[0]?.result?.cagr?.toNumber() ?? null)
-        const allDone = statuses.every((status) => status === "COMPLETED") && cagrs.every((cagr) => cagr !== null)
-        const done = cagrs.filter((cagr): cagr is number => cagr !== null)
-        const [worst, best] = [Math.min(...done), Math.max(...done)]
-        const windows = first.executions[0]?.result ? (rollingSummary as RollingWindow[] | null) : null
-        const window = windows?.find(({ years }) => years === BATCH_SUMMARY_WINDOW_YEARS)
-        const worstIndex = cagrs.indexOf(worst)
-
+        const first = this.assertOwner(backtests[0] ?? null, userId)
         return {
             batchId,
             name: first.name,
             endDate: first.endDate,
-            status: batchStatus(statuses),
-            rows: backtests.map(({ id, startDate, executions }, i) => {
-                const result = executions[0]?.result
-                return {
-                    backtestId: id,
-                    startDate,
-                    status: statuses[i]!,
-                    result: result ? { finalValue: result.finalValue, cagr: result.cagr, volatility: result.volatility, sharpeRatio: result.sharpeRatio, maxDrawdown: result.maxDrawdown, totalReturn: result.totalReturn } : null,
-                    rank: allDone && worst !== best ? (cagrs[i] === best ? "BEST" : cagrs[i] === worst ? "WORST" : null) : null,
-                }
-            }),
-            summary: done.length
-                ? {
-                      medianCagr: median(done),
-                      cagrSpread: done.length > 1 ? best - worst : null,
-                      worstStart: { startDate: backtests[worstIndex]!.startDate.toISOString(), cagr: worst },
-                      window: window ? { years: window.years, worst: window.worst, worstDate: window.worstDate, negativeShare: window.negativeShare, count: window.count } : null,
-                  }
-                : null,
-            rollingSummary: windows ?? null,
+            ...summarizeBatch(backtests, rollingSummary),
         }
     }
 
@@ -173,37 +196,13 @@ class BacktestService {
     async rerunBatch(batchId: string, userId: string) {
         logger.info("Rerunning backtest batch", { batchId, userId })
         const { backtests } = await this.repo.getBatch(batchId)
-        const first = backtests[0]
-        if (!first) throw new NotFoundError(API_ERROR_CODES.BACKTEST_NOT_FOUND)
-        if (first.userId !== userId) throw new ForbiddenError()
-        if (backtests.some(({ latestExecution }) => ACTIVE_STATUSES.includes(latestExecution!.status))) {
+        this.assertOwner(backtests[0] ?? null, userId)
+        if (backtests.some(({ latestExecution }) => latestExecution && ACTIVE_STATUSES.includes(latestExecution.status))) {
             throw new ConflictError(API_ERROR_CODES.EXECUTION_IN_PROGRESS)
         }
         const executions = []
         for (const { id } of backtests) executions.push(await this.rerun(id, userId))
         return executions
-    }
-
-    private async createOne(userId: string, input: CreateBacktestInput, batchId?: string) {
-        logger.info("Creating backtest", { userId, name: input.name })
-        const backtest = await this.repo.create({
-            userId,
-            batchId,
-            name: input.name,
-            allocations: { create: input.allocations },
-            startDate: input.start,
-            endDate: input.end,
-            investmentMode: input.investmentMode,
-            initialAmount: input.initialAmount,
-            recurringAmount: input.recurringAmount ?? null,
-            investmentFrequency: input.investmentMode === "RECURRING" ? "MONTHLY" : null,
-            rebalanceFrequency: input.rebalanceFrequency,
-            feeRate: input.fee / 100,
-            benchmarkSymbol: input.benchmarkSymbol ?? null,
-        })
-        logger.info("Backtest created", { id: backtest.id, userId })
-        await this.requestExecution(backtest, backtest.executions[0]!.id)
-        return backtest
     }
 
     /**
@@ -352,7 +351,7 @@ class BacktestService {
         return count
     }
 
-    private assertOwner<T extends Backtest>(backtest: T | null, userId: string): T {
+    private assertOwner<T extends Pick<Backtest, "userId">>(backtest: T | null, userId: string): T {
         if (!backtest) throw new NotFoundError(API_ERROR_CODES.BACKTEST_NOT_FOUND)
         if (backtest.userId !== userId) throw new ForbiddenError()
         return backtest
