@@ -3,8 +3,8 @@ import type { ReactNode } from "react"
 import { Dash } from "@/components/dash"
 import { useFormatters } from "@/lib/format"
 import { trendOf, trendStyles } from "@/lib/trend"
-import { comparedMetricHigherIsBetter } from "./constants"
-import { MetricBlock, type MetricColumn, type MetricRow } from "./metric-block"
+import { comparedMetricHigherIsBetter } from "../constants"
+import { MetricBlock, type MetricColumn, type MetricRow } from "../metric-block"
 import {
     benchmarkRecovery,
     benchmarkValue,
@@ -13,9 +13,9 @@ import {
     resultRecovery,
     resultValue,
     withBenchmark,
-} from "./metrics"
-import type { BacktestComparison, Benchmark, ComparedBacktest, ComparedMetric } from "./types"
-import { type BacktestTranslator, comparisonLabel, getComparisonBenchmark } from "./utils"
+} from "../metrics"
+import type { BacktestComparison, Benchmark, ComparedBacktest, ComparedMetric } from "../types"
+import { type BacktestTranslator, comparisonLabel, getComparisonBenchmark } from "../utils"
 
 // Écart A − B de l'API, vert s'il est favorable à A, rouge sinon
 function Delta({

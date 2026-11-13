@@ -1,10 +1,10 @@
 import { useTranslations } from "next-intl"
 import { Dash, orDash } from "@/components/dash"
 import { useFormatters } from "@/lib/format"
-import { MetricBlock } from "./metric-block"
-import { type Metric, metricRow, recoveryRow, resultColumns } from "./metrics"
-import type { BacktestResult, RebalanceFrequency } from "./types"
-import { formatAmount, fromDecimal } from "./utils"
+import { MetricBlock } from "../metric-block"
+import { type Metric, metricRow, recoveryRow, resultColumns } from "../metrics"
+import type { BacktestResult, RebalanceFrequency } from "../types"
+import { formatAmount, fromDecimal } from "../utils"
 
 const riskMetrics: Metric[] = ["volatility", "sharpeRatio", "maxDrawdown"]
 

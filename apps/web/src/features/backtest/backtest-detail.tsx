@@ -10,11 +10,11 @@ import { useApiErrorMessages } from "@/lib/api-error"
 import { type Formatters, useFormatters } from "@/lib/format"
 import { routes } from "@/lib/routes"
 import { useBacktest, useRerunBacktest } from "./hook"
-import { ResultDetails } from "./result-details"
-import { ResultMetrics } from "./result-metrics"
-import { ResultOverview } from "./result-overview"
+import { ResultDetails } from "./result/result-details"
+import { ResultMetrics } from "./result/result-metrics"
+import { ResultOverview } from "./result/result-overview"
+import { TradesTable } from "./result/trades-table"
 import { StatusBadge } from "./status-badge"
-import { TradesTable } from "./trades-table"
 import type { BacktestDetails } from "./types"
 import {
     type BacktestTranslator,
@@ -55,6 +55,35 @@ function NoResult({ backtest }: { backtest: BacktestDetails }) {
     return <EmptyCard>{message}</EmptyCard>
 }
 
+type DetailActionsProps = {
+    dividendsHref?: string | null | false // absent sans résultat
+    batchHref?: string | null // lot de robustesse d'origine
+    onRerun: () => void
+    canRerun: boolean
+}
+
+function DetailActions({ dividendsHref, batchHref, onRerun, canRerun }: DetailActionsProps) {
+    const t = useTranslations("backtest.detail")
+
+    return (
+        <>
+            {dividendsHref && (
+                <Button variant="outline" nativeButton={false} render={<Link href={dividendsHref} />}>
+                    {t("dividends")}
+                </Button>
+            )}
+            {batchHref && (
+                <Button variant="outline" nativeButton={false} render={<Link href={batchHref} />}>
+                    {t("robustness")}
+                </Button>
+            )}
+            <Button onClick={onRerun} disabled={!canRerun}>
+                {t("rerun")}
+            </Button>
+        </>
+    )
+}
+
 /**
  * Écran de détail d'un backtest (maquette 13) : en-tête et relance, valeur finale avec courbes de valeur et de drawdown,
  * indicateurs groupés, derniers ordres (tous, paginés, à la demande), puis positions, hypothèses et historique repliés.
@@ -84,29 +113,12 @@ export function BacktestDetail({ id }: { id: string }) {
                 badge={execution && <StatusBadge status={execution.status} />}
                 description={describe(f, t, backtest)}
                 actions={
-                    <>
-                        {result && (
-                            <Button
-                                variant="outline"
-                                nativeButton={false}
-                                render={<Link href={routes.backtestDividends(id)} />}
-                            >
-                                {t("detail.dividends")}
-                            </Button>
-                        )}
-                        {backtest.batchId && (
-                            <Button
-                                variant="outline"
-                                nativeButton={false}
-                                render={<Link href={routes.backtestBatch(backtest.batchId)} />}
-                            >
-                                {t("detail.robustness")}
-                            </Button>
-                        )}
-                        <Button onClick={() => rerun.mutate()} disabled={!canRerun}>
-                            {t("detail.rerun")}
-                        </Button>
-                    </>
+                    <DetailActions
+                        dividendsHref={result && routes.backtestDividends(id)}
+                        batchHref={backtest.batchId && routes.backtestBatch(backtest.batchId)}
+                        onRerun={() => rerun.mutate()}
+                        canRerun={canRerun}
+                    />
                 }
             />
 

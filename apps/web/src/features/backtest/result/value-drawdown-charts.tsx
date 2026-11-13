@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl"
 import { AreaSeriesChart, type ChartPoint, type ChartSeries } from "@/components/area-series-chart"
 import { useFormatters } from "@/lib/format"
-import { formatAmount } from "./utils"
+import { formatAmount } from "../utils"
 
 interface ValueDrawdownChartsProps {
     value: { data: ChartPoint[]; series: ChartSeries[] } // montants en `BACKTEST_CURRENCY`
@@ -18,15 +18,15 @@ export function ValueDrawdownCharts({ value, drawdown }: ValueDrawdownChartsProp
     const f = useFormatters()
     const t = useTranslations("backtest.overview")
     const { formatMediumDate, formatMonthTick, formatRate, formatRatio } = f
+    const dateFormat = { tick: formatMonthTick, tooltip: formatMediumDate }
     const hasDrawdown = drawdown.data.length > 0
 
     return (
         <div className="flex flex-col gap-2">
             <AreaSeriesChart
                 {...value}
-                formatTick={formatMonthTick}
-                formatTooltipDate={formatMediumDate}
-                formatValue={(v) => formatAmount(f, v)}
+                dateFormat={dateFormat}
+                valueFormat={{ tooltip: (v) => formatAmount(f, v) }}
                 hideXAxis={hasDrawdown}
                 className="h-56"
             />
@@ -35,10 +35,8 @@ export function ValueDrawdownCharts({ value, drawdown }: ValueDrawdownChartsProp
                     <span className="text-small font-medium text-muted-foreground">{t("drawdown")}</span>
                     <AreaSeriesChart
                         {...drawdown}
-                        formatTick={formatMonthTick}
-                        formatTooltipDate={formatMediumDate}
-                        formatAxis={formatRate}
-                        formatValue={formatRatio}
+                        dateFormat={dateFormat}
+                        valueFormat={{ tooltip: formatRatio, axis: formatRate }}
                         className="h-24"
                     />
                 </>

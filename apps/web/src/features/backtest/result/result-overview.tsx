@@ -9,8 +9,8 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { useFormatters } from "@/lib/format"
 import { type Trend, trendOf, trendStyles } from "@/lib/trend"
-import type { BacktestResult } from "./types"
-import { type BacktestTranslator, benchmarkLabel, formatAmount, fromDecimal } from "./utils"
+import type { BacktestResult } from "../types"
+import { type BacktestTranslator, benchmarkLabel, formatAmount, fromDecimal } from "../utils"
 import { ValueDrawdownCharts } from "./value-drawdown-charts"
 
 // Valeur finale et rendement total

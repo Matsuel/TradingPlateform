@@ -2,40 +2,24 @@
 
 import { Area, AreaChart, CartesianGrid, ReferenceDot, ReferenceLine, XAxis, YAxis } from "recharts"
 import { type ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
-import type { GlossaryKey } from "@/constants/glossary"
 import { useFormatters } from "@/lib/format"
 import { cn } from "@/lib/utils"
+import type { ChartDateFormat, ChartMarker, ChartPoint, ChartSeries, ChartValueFormat } from "./area-series-types"
 
-/** Un point daté ; une série absente ce jour-là (`null`, `undefined`) n'a pas de point et rien dans l'infobulle. */
-// Index élargi à `string` : TypeScript impose que `date` respecte la signature d'index
-export type ChartPoint = { date: string; [series: string]: number | string | null | undefined }
-
-export type ChartSeries = {
-    key: string // clé de la valeur dans chaque `ChartPoint`
-    label: string // nom dans l'infobulle quand il y a plusieurs séries
-    color: string // couleur CSS, ex. "var(--chart-1)" ou `trendStyles[trend].color`
-    fill?: boolean // aire remplie jusqu'à zéro (une seule série remplie, sinon elles se masquent)
-    dashed?: boolean // trait en pointillés, plus fin (série de référence : benchmark)
-    hint?: GlossaryKey // aide ouverte par le libellé dans `ChartLegend`
-}
-
-/** Série de référence (benchmark, investissement unique) : grise, en pointillés. */
-export const referenceSeries = (series: Pick<ChartSeries, "key" | "label" | "hint">): ChartSeries => ({
-    ...series,
-    color: "var(--muted-foreground)",
-    dashed: true,
-})
-
-/** Point mis en évidence (ex. la pire valeur) : pastille sur la série `key` à la date `date`, avec son libellé. */
-export type ChartMarker = { date: string; key: string; label: string }
+export {
+    type ChartDateFormat,
+    type ChartMarker,
+    type ChartPoint,
+    type ChartSeries,
+    type ChartValueFormat,
+    referenceSeries,
+} from "./area-series-types"
 
 interface AreaSeriesChartProps {
     data: ChartPoint[]
     series: ChartSeries[]
-    formatTick: (date: string) => string
-    formatTooltipDate: (date: string) => string
-    formatValue: (value: number) => string // valeurs de l'infobulle, ex. montant dans la devise
-    formatAxis?: (value: number) => string // axe Y ; par défaut nombre sans unité
+    dateFormat: ChartDateFormat
+    valueFormat: ChartValueFormat
     marker?: ChartMarker
     zeroLine?: boolean // trait plein à 0 (séries qui passent sous zéro : rendements)
     hideXAxis?: boolean // graphique empilé au-dessus d'un autre qui porte l'axe des dates
@@ -43,21 +27,19 @@ interface AreaSeriesChartProps {
 }
 
 // Infobulle : la date, puis la valeur de chaque série présente ce jour-là, préfixée de son nom s'il y en a plusieurs
-function tooltipContent(
-    series: ChartSeries[],
-    formatTooltipDate: (date: string) => string,
-    formatValue: (value: number) => string,
-) {
+type Formats = Pick<AreaSeriesChartProps, "dateFormat" | "valueFormat">
+
+function tooltipContent(series: ChartSeries[], { dateFormat, valueFormat }: Formats) {
     const labels = new Map(series.map((s) => [s.key, s.label]))
     return (
         <ChartTooltipContent
             hideIndicator
-            labelFormatter={(_, payload) => (payload?.[0] ? formatTooltipDate(payload[0].payload.date) : "")}
+            labelFormatter={(_, payload) => (payload?.[0] ? dateFormat.tooltip(payload[0].payload.date) : "")}
             formatter={(value, name) =>
                 value == null ? null : (
                     <span className="text-body-medium">
                         {series.length > 1 && `${labels.get(String(name))} : `}
-                        {formatValue(Number(value))}
+                        {valueFormat.tooltip(Number(value))}
                     </span>
                 )
             }
@@ -69,14 +51,43 @@ function tooltipContent(
 const formatNumberAxis = (locale: string, v: number) =>
     v.toLocaleString(locale, { maximumFractionDigits: v < 10 ? 2 : 0 })
 
-/** Courbes datées sur un axe commun : une `Area` par série de `series`, infobulle formatée par `formatValue`. */
+// Une courbe : trait seul, ou aire remplie jusqu'à zéro pour `fill`
+function seriesArea(s: ChartSeries) {
+    return (
+        <Area
+            key={s.key}
+            dataKey={s.key}
+            type="monotone"
+            stroke={`var(--color-${s.key})`}
+            strokeWidth={s.dashed ? 1.5 : 2}
+            strokeDasharray={s.dashed ? "4 4" : undefined}
+            fill={s.fill ? `var(--color-${s.key})` : "none"}
+            fillOpacity={s.fill ? 0.12 : 0}
+            dot={false}
+            isAnimationActive={false}
+        />
+    )
+}
+
+function markerDot(marker: ChartMarker, data: ChartPoint[]) {
+    return (
+        <ReferenceDot
+            x={marker.date}
+            y={data.find((point) => point.date === marker.date)?.[marker.key] as number | undefined}
+            r={4}
+            fill="var(--destructive)"
+            stroke="none"
+            label={{ value: marker.label, position: "top", fill: "var(--foreground)", fontSize: 12 }}
+        />
+    )
+}
+
+/** Courbes datées sur un axe commun : une `Area` par série de `series`, infobulle formatée par `valueFormat.tooltip`. */
 export function AreaSeriesChart({
     data,
     series,
-    formatTick,
-    formatTooltipDate,
-    formatValue,
-    formatAxis,
+    dateFormat,
+    valueFormat,
     marker,
     zeroLine = false,
     hideXAxis = false,
@@ -98,7 +109,7 @@ export function AreaSeriesChart({
                     axisLine={false}
                     tickMargin={8}
                     minTickGap={48}
-                    tickFormatter={formatTick}
+                    tickFormatter={dateFormat.tick}
                 />
                 <YAxis
                     width={64}
@@ -106,34 +117,12 @@ export function AreaSeriesChart({
                     axisLine={false}
                     tickCount={5}
                     domain={["auto", "auto"]}
-                    tickFormatter={formatAxis ?? ((v: number) => formatNumberAxis(locale, v))}
+                    tickFormatter={valueFormat.axis ?? ((v: number) => formatNumberAxis(locale, v))}
                 />
-                <ChartTooltip cursor={false} content={tooltipContent(series, formatTooltipDate, formatValue)} />
+                <ChartTooltip cursor={false} content={tooltipContent(series, { dateFormat, valueFormat })} />
                 {zeroLine && <ReferenceLine y={0} stroke="var(--border)" />}
-                {series.map((s) => (
-                    <Area
-                        key={s.key}
-                        dataKey={s.key}
-                        type="monotone"
-                        stroke={`var(--color-${s.key})`}
-                        strokeWidth={s.dashed ? 1.5 : 2}
-                        strokeDasharray={s.dashed ? "4 4" : undefined}
-                        fill={s.fill ? `var(--color-${s.key})` : "none"}
-                        fillOpacity={s.fill ? 0.12 : 0}
-                        dot={false}
-                        isAnimationActive={false}
-                    />
-                ))}
-                {marker && (
-                    <ReferenceDot
-                        x={marker.date}
-                        y={data.find((point) => point.date === marker.date)?.[marker.key] as number | undefined}
-                        r={4}
-                        fill="var(--destructive)"
-                        stroke="none"
-                        label={{ value: marker.label, position: "top", fill: "var(--foreground)", fontSize: 12 }}
-                    />
-                )}
+                {series.map(seriesArea)}
+                {marker && markerDot(marker, data)}
             </AreaChart>
         </ChartContainer>
     )

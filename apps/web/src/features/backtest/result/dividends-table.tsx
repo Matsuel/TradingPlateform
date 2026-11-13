@@ -8,9 +8,9 @@ import { InfoHint } from "@/components/info-hint"
 import { PAGE_SIZE } from "@/constants/pagination"
 import { useFormatters } from "@/lib/format"
 import { paginate } from "@/lib/pagination"
-import { useDividendColumns } from "./column"
-import type { DividendEvent } from "./types"
-import { formatAmount, fromDecimal } from "./utils"
+import type { DividendEvent } from "../types"
+import { formatAmount, fromDecimal } from "../utils"
+import { useDividendColumns } from "./dividends-columns"
 
 /**
  * Table « Dividendes perçus » (maquette 31) : tous les versements, du plus récent au plus ancien, paginés côté client,

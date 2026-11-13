@@ -14,11 +14,11 @@ import {
     TextField,
 } from "@/components/form"
 import { useFormatters } from "@/lib/format"
+import { BACKTEST_CURRENCY, investmentModes, rebalanceFrequencies } from "../constants"
+import type { BacktestValues } from "../schema"
+import type { InvestmentMode } from "../types"
 import { AllocationField } from "./allocation-field"
-import { BACKTEST_CURRENCY, investmentModes, rebalanceFrequencies } from "./constants"
-import type { BacktestValues } from "./schema"
 import { StartDates } from "./start-dates"
-import type { InvestmentMode } from "./types"
 
 // Champs communs au formulaire « Nouveau backtest » et au test rapide, sous `FormProvider`
 

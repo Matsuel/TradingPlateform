@@ -2,9 +2,9 @@ import { useTranslations } from "next-intl"
 import { Dash, orDash } from "@/components/dash"
 import { DetailRow } from "@/components/detail-row"
 import { useFormatters } from "@/lib/format"
-import { BACKTEST_CURRENCY, dataProviderLabels } from "./constants"
-import type { Backtest, BacktestResult } from "./types"
-import { fromDecimal } from "./utils"
+import { BACKTEST_CURRENCY, dataProviderLabels } from "../constants"
+import type { Backtest, BacktestResult } from "../types"
+import { fromDecimal } from "../utils"
 
 // Préfixe de l'empreinte SHA-256, assez long pour distinguer deux jeux de données à l'œil
 const FINGERPRINT_PREVIEW_LENGTH = 12

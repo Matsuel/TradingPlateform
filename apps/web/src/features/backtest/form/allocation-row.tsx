@@ -9,8 +9,8 @@ import { FieldError } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Progress } from "@/components/ui/progress"
-import { FULL_PERCENT } from "./constants"
-import type { AllocationInput } from "./types"
+import { FULL_PERCENT } from "../constants"
+import type { AllocationInput } from "../types"
 
 interface AllocationRowProps {
     row: AllocationInput

@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { cn } from "@/lib/utils"
-import { COMPARABLE_LIMIT, comparisonSideColors } from "./constants"
-import { useBacktests } from "./hook"
+import { COMPARABLE_LIMIT, comparisonSideColors } from "../constants"
+import { useBacktests } from "../hook"
 
 function BacktestSelect({
     id,

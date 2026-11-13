@@ -2,9 +2,9 @@ import { useTranslations } from "next-intl"
 import { Progress } from "@/components/ui/progress"
 import { type Formatters, useFormatters } from "@/lib/format"
 import { cn } from "@/lib/utils"
-import { StatusBadge } from "./status-badge"
-import type { BacktestExecution } from "./types"
-import { type BacktestTranslator, executionErrorLabel, getExecutionDuration, isActive } from "./utils"
+import { StatusBadge } from "../status-badge"
+import type { BacktestExecution } from "../types"
+import { type BacktestTranslator, executionErrorLabel, getExecutionDuration, isActive } from "../utils"
 
 function describe(f: Formatters, t: BacktestTranslator, e: BacktestExecution) {
     switch (e.status) {

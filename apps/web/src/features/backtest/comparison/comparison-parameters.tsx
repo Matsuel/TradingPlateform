@@ -2,8 +2,8 @@ import { useTranslations } from "next-intl"
 import type { ReactNode } from "react"
 import { Badge } from "@/components/ui/badge"
 import { useFormatters } from "@/lib/format"
-import { MetricBlock } from "./metric-block"
-import type { BacktestComparison, ComparedBacktest, ComparisonParameter } from "./types"
+import { MetricBlock } from "../metric-block"
+import type { BacktestComparison, ComparedBacktest, ComparisonParameter } from "../types"
 
 /**
  * Tableau « Paramètres » (maquette 14) : période, mode, allocation, rebalancement, frais et benchmark de A et B ;

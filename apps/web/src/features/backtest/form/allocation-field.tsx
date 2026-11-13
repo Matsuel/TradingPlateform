@@ -5,10 +5,10 @@ import { useState } from "react"
 import { type FieldValues, useFormContext } from "react-hook-form"
 import { AppField, type BaseProps } from "@/components/form/field"
 import { SymbolPicker } from "@/components/symbol-picker"
+import { FULL_PERCENT } from "../constants"
+import type { AllocationInput } from "../types"
+import { allocationTotal } from "../utils"
 import { AllocationFooter, AllocationRow } from "./allocation-row"
-import { FULL_PERCENT } from "./constants"
-import type { AllocationInput } from "./types"
-import { allocationTotal } from "./utils"
 
 /**
  * Champ de formulaire : allocation (`AllocationInput[]`), une `AllocationRow` par actif.

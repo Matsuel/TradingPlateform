@@ -7,9 +7,9 @@ import { DataTable } from "@/components/data-table/data-table"
 import { FilterTabs } from "@/components/filter-tabs"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useFormatters } from "@/lib/format"
-import { useRollingColumns } from "./column"
-import { SUMMARY_WINDOW_YEARS } from "./constants"
-import type { RollingWindow } from "./types"
+import { SUMMARY_WINDOW_YEARS } from "../constants"
+import type { RollingWindow } from "../types"
+import { useRollingColumns } from "./rolling-columns"
 
 /**
  * Carte « Fenêtres glissantes » (maquette 32) : tableau pire / médiane / meilleure / part négative des fenêtres de 1, 3 et
@@ -50,10 +50,11 @@ export function RollingWindows({ windows }: { windows: RollingWindow[] }) {
                         label: t("worstMarker", { value: f.formatPercent(selected.worst) }),
                     }}
                     zeroLine
-                    formatTick={(date) => formatYear(new Date(date))}
-                    formatTooltipDate={f.formatDay}
-                    formatValue={f.formatPercent}
-                    formatAxis={(value) => f.formatRatio(value).replace(/[,.]00/, "")}
+                    dateFormat={{ tick: (date) => formatYear(new Date(date)), tooltip: f.formatDay }}
+                    valueFormat={{
+                        tooltip: f.formatPercent,
+                        axis: (value) => f.formatRatio(value).replace(/[,.]00/, ""),
+                    }}
                     className="h-56"
                 />
                 <p className="text-small text-muted-foreground">{t("caption", { years: selected.years })}</p>

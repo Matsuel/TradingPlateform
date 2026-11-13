@@ -6,8 +6,8 @@ import { ChartLegend } from "@/components/chart-legend"
 import { InfoHint } from "@/components/info-hint"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useFormatters } from "@/lib/format"
-import type { BacktestResult } from "./types"
-import { formatAmount, fromDecimal } from "./utils"
+import type { BacktestResult } from "../types"
+import { formatAmount, fromDecimal } from "../utils"
 import { ValueDrawdownCharts } from "./value-drawdown-charts"
 
 // Courbe de valeur avec dividendes réinvestis et, en pointillés, le même portefeuille sans dividendes ; absente d'un

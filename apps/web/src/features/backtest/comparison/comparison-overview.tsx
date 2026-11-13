@@ -4,10 +4,10 @@ import { useTranslations } from "next-intl"
 import { type ChartSeries, referenceSeries } from "@/components/area-series-chart"
 import { ChartLegend } from "@/components/chart-legend"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { comparisonSideColors } from "./constants"
-import type { BacktestComparison } from "./types"
-import { alignCurves, benchmarkLabel, comparisonLabel, getComparisonBenchmark } from "./utils"
-import { ValueDrawdownCharts } from "./value-drawdown-charts"
+import { comparisonSideColors } from "../constants"
+import { ValueDrawdownCharts } from "../result/value-drawdown-charts"
+import type { BacktestComparison } from "../types"
+import { alignCurves, benchmarkLabel, comparisonLabel, getComparisonBenchmark } from "../utils"
 
 /**
  * Carte « Valeur des portefeuilles » de la comparaison (maquette 14) : valeurs de A et B et, en pointillés, le benchmark

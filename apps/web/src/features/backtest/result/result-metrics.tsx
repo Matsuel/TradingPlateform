@@ -1,11 +1,11 @@
 import { useTranslations } from "next-intl"
 import { InfoHint } from "@/components/info-hint"
 import { useFormatters } from "@/lib/format"
-import { MetricBlock } from "./metric-block"
-import { type Metric, metricRow, resultColumns } from "./metrics"
+import { MetricBlock } from "../metric-block"
+import { type Metric, metricRow, resultColumns } from "../metrics"
+import type { BacktestResult, RebalanceFrequency } from "../types"
+import { formatAmount } from "../utils"
 import { CostsBlock, RiskBlock } from "./result-blocks"
-import type { BacktestResult, RebalanceFrequency } from "./types"
-import { formatAmount } from "./utils"
 
 // Lignes du bloc Performance, dans l'ordre de la maquette 13 v2
 const performanceMetrics: Metric[] = ["cagr", "totalReturn", "finalValue"]

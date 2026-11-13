@@ -7,11 +7,11 @@ import { DataTable } from "@/components/data-table/data-table"
 import { Card, CardContent } from "@/components/ui/card"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { useFormatters } from "@/lib/format"
+import { BACKTEST_CURRENCY } from "../constants"
+import type { BacktestDetails } from "../types"
 import { BacktestAssumptions } from "./assumptions"
-import { useHoldingColumns } from "./column"
-import { BACKTEST_CURRENCY } from "./constants"
 import { ExecutionList } from "./execution-history"
-import type { BacktestDetails } from "./types"
+import { useHoldingColumns } from "./holdings-columns"
 
 function DetailSection({
     title,

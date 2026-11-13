@@ -13,13 +13,13 @@ import { useApiErrorMessages } from "@/lib/api-error"
 import { useFormatters } from "@/lib/format"
 import { routes } from "@/lib/routes"
 import { trendOf } from "@/lib/trend"
+import { useBacktest } from "../hook"
+import { StatusBadge } from "../status-badge"
+import type { BacktestResult } from "../types"
+import { formatAmount, fromDecimal, getExecution, hasDividendDetails } from "../utils"
 import { DividendValueChart } from "./dividend-value-chart"
 import { DividendsTable } from "./dividends-table"
-import { useBacktest } from "./hook"
 import { ReturnBreakdownCard } from "./return-breakdown"
-import { StatusBadge } from "./status-badge"
-import type { BacktestResult } from "./types"
-import { formatAmount, fromDecimal, getExecution, hasDividendDetails } from "./utils"
 
 // Quatre cartes : valeur finale, rendement total (avec le cours seul), dividendes perçus, effet de change (hors EUR seulement)
 function DividendStats({ result }: { result: BacktestResult }) {

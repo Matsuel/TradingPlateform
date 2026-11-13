@@ -79,9 +79,11 @@ export function PriceChart({ symbol }: { symbol: string }) {
                                 fill: true,
                             },
                         ]}
-                        formatTick={(d) => formatTick(locale, d, period)}
-                        formatTooltipDate={(d) => formatTooltipDate(locale, d, period)}
-                        formatValue={(v) => formatPrice(v, MARKET_CURRENCY)}
+                        dateFormat={{
+                            tick: (d) => formatTick(locale, d, period),
+                            tooltip: (d) => formatTooltipDate(locale, d, period),
+                        }}
+                        valueFormat={{ tooltip: (v) => formatPrice(v, MARKET_CURRENCY) }}
                         className={cn("transition-opacity", isPlaceholderData && "opacity-50")}
                     />
                 )}

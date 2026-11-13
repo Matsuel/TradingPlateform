@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useRouter } from "next/navigation"
 import { useTranslations } from "next-intl"
-import { FormProvider, useForm, useWatch } from "react-hook-form"
+import { type Control, type DefaultValues, FormProvider, useForm, useWatch } from "react-hook-form"
 import { setFormIssues } from "@/components/form/form-issues"
 import { Button } from "@/components/ui/button"
 import { FieldError } from "@/components/ui/field"
@@ -17,11 +17,34 @@ import {
     DEFAULT_REBALANCE_FREQUENCY,
     FULL_PERCENT,
 } from "./constants"
+import { BacktestPreviewSummary } from "./form/preview-summary"
+import { AllocationSection, GeneralSection } from "./form/sections"
 import { useCreateBacktest, useCreateBacktestBatch } from "./hook"
-import { BacktestPreviewSummary } from "./preview-summary"
 import { type BacktestValues, createBacktestFormSchema } from "./schema"
-import { AllocationSection, GeneralSection } from "./sections"
 import { allocationTotal } from "./utils"
+
+const DEFAULT_VALUES: DefaultValues<BacktestValues> = {
+    name: "",
+    investmentMode: DEFAULT_INVESTMENT_MODE,
+    allocations: [],
+    initialAmount: DEFAULT_INITIAL_AMOUNT,
+    rebalanceFrequency: DEFAULT_REBALANCE_FREQUENCY,
+    fee: DEFAULT_FEE_PERCENT,
+    benchmarkSymbols: [DEFAULT_BENCHMARK_SYMBOL],
+    multipleStarts: false,
+    extraStartDates: [],
+}
+
+// Envoi bloqué tant que l'allocation ne fait pas 100 % ou qu'une ligne de départ ajoutée est restée vide
+function useSubmitBlocked(control: Control<BacktestValues>) {
+    const allocations = useWatch({ control, name: "allocations" })
+    const [multipleStarts, start, extraStartDates] = useWatch({
+        control,
+        name: ["multipleStarts", "start", "extraStartDates"],
+    })
+    const startsIncomplete = multipleStarts && [start, ...extraStartDates.map(({ date }) => date)].some((date) => !date)
+    return startsIncomplete || allocationTotal(allocations) !== FULL_PERCENT
+}
 
 export function NewBacktestForm() {
     const t = useTranslations("backtest")
@@ -32,25 +55,9 @@ export function NewBacktestForm() {
     const error = create.error ?? createBatch.error
     const form = useForm<BacktestValues>({
         resolver: zodResolver(createBacktestFormSchema(t)),
-        defaultValues: {
-            name: "",
-            investmentMode: DEFAULT_INVESTMENT_MODE,
-            allocations: [],
-            initialAmount: DEFAULT_INITIAL_AMOUNT,
-            rebalanceFrequency: DEFAULT_REBALANCE_FREQUENCY,
-            fee: DEFAULT_FEE_PERCENT,
-            benchmarkSymbols: [DEFAULT_BENCHMARK_SYMBOL],
-            multipleStarts: false,
-            extraStartDates: [],
-        },
+        defaultValues: DEFAULT_VALUES,
     })
-    const allocations = useWatch({ control: form.control, name: "allocations" })
-    const [multipleStarts, start, extraStartDates] = useWatch({
-        control: form.control,
-        name: ["multipleStarts", "start", "extraStartDates"],
-    })
-    // Une ligne de départ ajoutée et restée vide bloque l'envoi
-    const startsIncomplete = multipleStarts && [start, ...extraStartDates.map(({ date }) => date)].some((date) => !date)
+    const blocked = useSubmitBlocked(form.control)
 
     const onSubmit = async (values: BacktestValues) => {
         try {
@@ -76,14 +83,7 @@ export function NewBacktestForm() {
                     {error && <FieldError>{errorMessage(error)}</FieldError>}
 
                     <div className="flex justify-end">
-                        <Button
-                            type="submit"
-                            disabled={
-                                form.formState.isSubmitting ||
-                                startsIncomplete ||
-                                allocationTotal(allocations) !== FULL_PERCENT
-                            }
-                        >
+                        <Button type="submit" disabled={form.formState.isSubmitting || blocked}>
                             {t("form.submit")}
                         </Button>
                     </div>

@@ -11,13 +11,13 @@ import { Button } from "@/components/ui/button"
 import { useApiErrorMessages } from "@/lib/api-error"
 import { type Formatters, useFormatters } from "@/lib/format"
 import { routes } from "@/lib/routes"
+import { useBacktestComparison } from "../hook"
+import type { BacktestComparison, ComparisonParameter } from "../types"
+import type { BacktestTranslator } from "../utils"
 import { ComparisonMetrics } from "./comparison-metrics"
 import { ComparisonOverview } from "./comparison-overview"
 import { ComparisonParameters } from "./comparison-parameters"
 import { ComparisonSelection } from "./comparison-selection"
-import { useBacktestComparison } from "./hook"
-import type { BacktestComparison, ComparisonParameter } from "./types"
-import type { BacktestTranslator } from "./utils"
 
 // Une phrase par paramètre qui diffère, valeurs de A puis de B
 const differenceDetails: Record<

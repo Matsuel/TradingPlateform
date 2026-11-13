@@ -7,8 +7,8 @@ import { TableCard } from "@/components/data-table/table-card"
 import { Button } from "@/components/ui/button"
 import { PAGE_SIZE } from "@/constants/pagination"
 import { paginate } from "@/lib/pagination"
-import { useTradeColumns } from "./column"
-import type { Trade } from "./types"
+import type { Trade } from "../types"
+import { useTradeColumns } from "./trades-columns"
 
 // Ordres affichés avant « Voir les N ordres » : les plus récents
 const RECENT_TRADES = 5

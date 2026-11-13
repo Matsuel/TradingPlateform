@@ -41,6 +41,8 @@ function createFormatters(locale: string) {
         formatPercent: number({ style: "percent", maximumFractionDigits: 2 }),
         /** Ratio de Sharpe, sans unité, 2 décimales (`1,25`). */
         formatSharpe: number({ minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+        /** Quantité de titres, fractionnaires inclus (DCA) : jusqu'à 6 décimales. */
+        formatQuantity: number({ maximumFractionDigits: 6 }),
         formatVolume: number({ notation: "compact", maximumFractionDigits: 2 }),
         formatDate: date({ dateStyle: "short", timeStyle: "short" }),
         formatDay,

@@ -48,7 +48,8 @@ Chaque app qui expose quelque chose de réutilisable tient un **catalogue** : co
 | --- | --- |
 | `apps/core-backend/API.md` | Routes HTTP appelées par le web : méthode, chemin, auth, entrée, réponse, erreurs, effets (événements publiés), appelant web. |
 | `apps/market-service/API.md` | Routes internes relayées par le proxy de core-backend. |
-| `apps/web/COMPONENTS.md` | Composants partagés (`components/`), champs de formulaire, formatters de `lib/format.ts`, exports publics de chaque `features/<domaine>`. |
+| `apps/web/COMPONENTS.md` | Gabarits d'entrée, sommaire de tout le catalogue web, composants partagés (`components/`), champs de formulaire, formatters de `lib/format.ts`. |
+| `apps/web/src/features/<domaine>/COMPONENTS.md` | Exports publics d'une feature web (écrans, sections, `api.ts`, `hook.ts`, `schema.ts`, `constants.ts`, `utils.ts`, `column.tsx`, `types.ts`), référencés par le sommaire de `apps/web/COMPONENTS.md`. |
 
 - **Lis le catalogue d'abord** : avant d'appeler une route, d'utiliser un composant ou d'en créer un, consulte le catalogue concerné. Il fait foi pour l'usage (props, body, réponses).
 - **Documente dès la création** : créer, modifier ou supprimer une route ou un composant catalogué met à jour son entrée dans le même diff, selon le gabarit écrit en tête du catalogue.

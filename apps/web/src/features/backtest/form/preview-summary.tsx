@@ -7,9 +7,9 @@ import { Dash } from "@/components/dash"
 import { DetailRow } from "@/components/detail-row"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { useDebouncedValue } from "@/hooks/use-debounced-value"
-import { dataProviderLabels, previewSteps } from "./constants"
-import { useBacktestPreview } from "./hook"
-import { type BacktestValues, createBacktestFormSchema } from "./schema"
+import { dataProviderLabels, previewSteps } from "../constants"
+import { useBacktestPreview } from "../hook"
+import { type BacktestValues, createBacktestFormSchema } from "../schema"
 
 // Attente après la dernière saisie avant de redemander la prévisualisation
 const PREVIEW_DEBOUNCE_MS = 500

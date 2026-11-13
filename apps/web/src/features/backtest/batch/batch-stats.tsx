@@ -3,7 +3,7 @@ import { Dash } from "@/components/dash"
 import { InfoHint } from "@/components/info-hint"
 import { StatCard } from "@/components/stat-card"
 import { useFormatters } from "@/lib/format"
-import type { BacktestBatch } from "./types"
+import type { BacktestBatch } from "../types"
 
 /**
  * Quatre cartes de synthèse d'un lot (maquette 32) : CAGR médian, pire départ, pire fenêtre de 3 ans, part de fenêtres

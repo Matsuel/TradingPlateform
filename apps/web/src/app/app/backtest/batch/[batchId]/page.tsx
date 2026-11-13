@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import { getTranslations } from "next-intl/server"
 import { PageLayout } from "@/components/page-layout"
-import { BacktestBatchView } from "@/features/backtest/backtest-batch"
+import { BacktestBatchView } from "@/features/backtest/batch/backtest-batch"
 
 export async function generateMetadata(): Promise<Metadata> {
     const t = await getTranslations("backtest.batch")
