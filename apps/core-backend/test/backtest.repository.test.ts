@@ -121,6 +121,7 @@ describeWithDb("BacktestRepository (base de test)", () => {
             volatility: null,
             sharpeRatio: null,
             riskFreeRate: 0,
+            rollingSummary: [{ years: 1, count: 2, worst: -0.1, median: 0, best: 0.2, worstDate: "2020-01-02", negativeShare: 0.5, points: [{ date: "2020-01-02", value: -0.1 }] }],
             equityCurve: [],
             trades: [],
             holdings: [],
@@ -139,6 +140,7 @@ describeWithDb("BacktestRepository (base de test)", () => {
         expect(Number(stored.priceReturn)).toBe(0.09)
         expect(stored.dividendEvents).toEqual(dividendEvents)
         expect(stored.returnBreakdown).toEqual(returnBreakdown)
+        expect(stored.rollingSummary).toEqual(result.rollingSummary)
     })
 
     test("countByLatestStatus compte par statut de la dernière exécution", async () => {

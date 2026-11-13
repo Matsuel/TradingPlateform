@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test"
 import type { ZodSafeParseResult } from "zod"
 import { MAX_CLOSES_SYMBOLS } from "@trading-plateform/contracts"
-import { backtestCompareQuerySchema, createBacktestSchema } from "../interfaces/backtest.interface"
+import { backtestCompareQuerySchema, createBacktestSchema, createBatchSchema } from "../interfaces/backtest.interface"
 
 const valid = {
     name: "Test",
@@ -60,4 +60,33 @@ test("plus d'allocations que market-service n'accepte de symboles (benchmark com
     const allocations = (count: number) => Array.from({ length: count }, (_, i) => ({ symbol: `S${i}`, weight: 1 }))
 
     expect(createBacktestSchema.safeParse({ ...valid, allocations: allocations(MAX_CLOSES_SYMBOLS) }).success).toBe(false)
+})
+
+const { start, ...batchBase } = valid
+const validBatch = { ...batchBase, end: "2026-06-30", startDates: ["2024-01-01", "2024-03-01"] }
+
+test("un lot valide accepte 2 à 10 dates de départ", () => {
+    expect(createBatchSchema.parse(validBatch).startDates).toHaveLength(2)
+    expect(createBatchSchema.safeParse({ ...validBatch, startDates: ["2024-01-01"] }).success).toBe(false)
+    const eleven = Array.from({ length: 11 }, (_, i) => `2024-${String(i + 1).padStart(2, "0")}-01`)
+    expect(createBatchSchema.safeParse({ ...validBatch, startDates: eleven }).success).toBe(false)
+})
+
+test("lot : dates en double → START_DATES_NOT_UNIQUE", () => {
+    const result = createBatchSchema.safeParse({ ...validBatch, startDates: ["2024-01-01", "2024-01-01"] })
+
+    expect(issueCodes(result)).toContain("START_DATES_NOT_UNIQUE")
+})
+
+test("lot : un départ à moins d'un an de la fin → START_TOO_CLOSE_TO_END", () => {
+    const result = createBatchSchema.safeParse({ ...validBatch, end: "2025-06-30", startDates: ["2024-01-01", "2024-07-01"] })
+
+    expect(issueCodes(result)).toContain("START_TOO_CLOSE_TO_END")
+    expect(createBatchSchema.safeParse({ ...validBatch, end: "2025-06-30", startDates: ["2024-01-01", "2024-06-30"] }).success).toBe(true)
+})
+
+test("lot : les règles du mode d'investissement s'appliquent", () => {
+    const result = createBatchSchema.safeParse({ ...validBatch, investmentMode: "RECURRING" })
+
+    expect(issueCodes(result)).toContain("RECURRING_AMOUNT_REQUIRED")
 })

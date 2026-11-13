@@ -1,11 +1,23 @@
 "use client"
 
 import { useTranslations } from "next-intl"
-import { useWatch } from "react-hook-form"
-import { DateField, FieldRow, FormSection, NumberField, SelectField, SymbolsField, TextField } from "@/components/form"
+import type { ReactNode } from "react"
+import { useFormContext, useWatch } from "react-hook-form"
+import {
+    DateField,
+    FieldRow,
+    FormSection,
+    NumberField,
+    SelectField,
+    SwitchField,
+    SymbolsField,
+    TextField,
+} from "@/components/form"
 import { useFormatters } from "@/lib/format"
 import { AllocationField } from "./allocation-field"
 import { BACKTEST_CURRENCY, investmentModes, rebalanceFrequencies } from "./constants"
+import type { BacktestValues } from "./schema"
+import { StartDates } from "./start-dates"
 import type { InvestmentMode } from "./types"
 
 // Champs communs au formulaire « Nouveau backtest » et au test rapide, sous `FormProvider`
@@ -33,8 +45,8 @@ export function InvestmentModeFields() {
     )
 }
 
-/** Période (début, fin), puis capital initial et frais par ordre. */
-export function PeriodAndCapitalFields() {
+/** Période (début, fin), `afterPeriod` (ex. lot de départs), puis capital initial et frais par ordre. */
+export function PeriodAndCapitalFields({ afterPeriod }: { afterPeriod?: ReactNode }) {
     const t = useTranslations("backtest.form")
     const currency = useFormatters().currencySymbol(BACKTEST_CURRENCY)
 
@@ -44,10 +56,48 @@ export function PeriodAndCapitalFields() {
                 <DateField name="start" label={t("start")} />
                 <DateField name="end" label={t("end")} />
             </FieldRow>
+            {afterPeriod}
             <FieldRow>
                 <NumberField name="initialAmount" label={t("initialAmount", { currency })} />
                 <NumberField name="fee" label={t("fee")} hint="feeRate" />
             </FieldRow>
+        </>
+    )
+}
+
+/**
+ * Interrupteur « Plusieurs dates de départ » (maquette 12) et, allumé, les départs du lot : `start` (Début) est le Départ 1,
+ * les suivants sont `extraStartDates`. Réservé au formulaire complet (valeurs `BacktestValues`).
+ */
+export function StartDatesFields() {
+    const t = useTranslations("backtest.form")
+    const { control, setValue } = useFormContext<BacktestValues>()
+    const [multipleStarts, start, extra, end] = useWatch({
+        control,
+        name: ["multipleStarts", "start", "extraStartDates", "end"],
+    })
+
+    return (
+        <>
+            <SwitchField
+                name="multipleStarts"
+                label={t("multipleStarts")}
+                description={t("multipleStartsDescription")}
+            />
+            {multipleStarts && (
+                <StartDates
+                    dates={[start, ...extra.map(({ date }) => date)]}
+                    end={end}
+                    onChange={([first, ...others]) => {
+                        setValue("start", first as Date, { shouldValidate: true })
+                        setValue(
+                            "extraStartDates",
+                            others.map((date) => ({ date: date as Date })),
+                            { shouldValidate: true },
+                        )
+                    }}
+                />
+            )}
         </>
     )
 }
@@ -72,7 +122,7 @@ export function AllocationSection() {
     return (
         <FormSection title={t("allocationSection.title")} description={t("allocationSection.description")}>
             <AllocationField name="allocations" label={t("allocations")} hint="allocation" />
-            <PeriodAndCapitalFields />
+            <PeriodAndCapitalFields afterPeriod={<StartDatesFields />} />
             <SelectField
                 name="rebalanceFrequency"
                 label={t("rebalance")}

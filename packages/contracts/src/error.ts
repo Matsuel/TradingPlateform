@@ -22,6 +22,8 @@ export const API_ERROR_CODES = {
     RECURRING_AMOUNT_NOT_ALLOWED: "RECURRING_AMOUNT_NOT_ALLOWED",
     INITIAL_AMOUNT_NOT_POSITIVE: "INITIAL_AMOUNT_NOT_POSITIVE",
     IDS_NOT_DISTINCT: "IDS_NOT_DISTINCT",
+    START_DATES_NOT_UNIQUE: "START_DATES_NOT_UNIQUE",
+    START_TOO_CLOSE_TO_END: "START_TOO_CLOSE_TO_END",
 } as const;
 
 export type ApiErrorCode = (typeof API_ERROR_CODES)[keyof typeof API_ERROR_CODES];
@@ -47,4 +49,6 @@ export const API_ERROR_MESSAGES: Record<ApiErrorCode, string> = {
     RECURRING_AMOUNT_NOT_ALLOWED: "Only allowed for RECURRING",
     INITIAL_AMOUNT_NOT_POSITIVE: "Must be positive for LUMP_SUM",
     IDS_NOT_DISTINCT: "Ids must be distinct",
+    START_DATES_NOT_UNIQUE: "Start dates must be unique",
+    START_TOO_CLOSE_TO_END: "Start must be at least one year before the end",
 };

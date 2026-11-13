@@ -1,6 +1,6 @@
 # 12 · Robustesse : dates de départ et métriques glissantes
 
-- **Statut** : Planifiée
+- **Statut** : En cours
 - **Roadmap** : Mois 5 — Mois 5 — Robustesse (comparaison de dates de départ, métriques glissantes)
 - **Période** : à fixer au démarrage de la feature
 - **Branche / PR** : `feat/robustesse-dates-de-depart` — PR à ouvrir
@@ -23,6 +23,8 @@ Le moteur calcule les fenêtres glissantes (fonction pure). `core-backend` crée
 | --- | --- | --- | --- |
 | D1 | **Lot de départs** : N backtests liés par `batchId`, pas un calcul moteur unique | Réutilise le pipeline existant (un `backtest.requested` par départ) : pas de nouveau topic, rejeu déjà géré. | `US.md` (à valider) |
 | D2 | **Pas des fenêtres** : Un jour ouvré | Un pas plus grand masquerait les pires entrées. Coût de calcul acceptable sur 10 ans. | `US.md` (à valider) |
+| D4 | **Départ ≥ 1 an avant la fin commune** (maquette 32 : « Refusé : moins d’un an avant la fin commune ») | Sous un an, le CAGR n'est qu'une extrapolation. Règle imposée par core-backend (`START_TOO_CLOSE_TO_END`), miroir ergonomique dans le web. | maquette 32 |
+| D5 | **Fenêtres glissantes en rendement annualisé**, avec la courbe par date d'entrée | Seul le rendement annualisé compare des durées différentes ; la courbe de la maquette 32 en a besoin. | maquette 32 |
 | D3 | **Périodes** : 1, 3 et 5 ans seulement | Trois durées suffisent pour l'objectif pédagogique ; pas de paramètre libre. | `US.md` (à valider) |
 
 ## Écarts au plan

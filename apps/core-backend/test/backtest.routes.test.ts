@@ -15,7 +15,11 @@ const service = BacktestService.prototype
 const rerun = spyOn(service, "rerun")
 const getById = spyOn(service, "getById")
 const create = spyOn(service, "create")
-spies.push(rerun as never, getById as never, create as never)
+const createBatch = spyOn(service, "createBatch")
+const getBatch = spyOn(service, "getBatch")
+const rerunBatch = spyOn(service, "rerunBatch")
+const restartBatch = spyOn(service, "restartBatch")
+spies.push(rerun as never, getById as never, create as never, createBatch as never, getBatch as never, rerunBatch as never, restartBatch as never)
 
 let app: Awaited<ReturnType<typeof startApp>>
 beforeAll(async () => {
@@ -31,6 +35,10 @@ beforeEach(() => {
     rerun.mockReset()
     getById.mockReset()
     create.mockReset()
+    createBatch.mockReset()
+    getBatch.mockReset()
+    rerunBatch.mockReset()
+    restartBatch.mockReset()
 })
 
 const validBody = {
@@ -116,4 +124,58 @@ test("GET /api/backtest/compare : ids identiques refusés (400), deux ids distin
     const distinct = await app.request("/api/backtest/compare?ids=a,b")
     expect(distinct.status).toBe(200)
     expect(compare.mock.calls[0]![1]).toEqual({ ids: ["a", "b"] })
+})
+
+test("POST /api/backtest/batch valide : 202 avec le lot créé", async () => {
+    createBatch.mockResolvedValue({ batchId: "l1", backtests: [] } as never)
+    const { start, ...base } = validBody
+
+    const response = await app.request("/api/backtest/batch", {
+        method: "POST",
+        body: JSON.stringify({ ...base, startDates: ["2022-01-01", "2023-01-01"] }),
+    })
+
+    expect(response.status).toBe(202)
+    expect(await response.json()).toEqual({ batchId: "l1", backtests: [] })
+    expect(createBatch.mock.calls[0]![0]).toBe("u1")
+})
+
+test("POST /api/backtest/batch avec une seule date : 400 INVALID_BACKTEST, rien n'est créé", async () => {
+    const { start, ...base } = validBody
+
+    const response = await app.request("/api/backtest/batch", { method: "POST", body: JSON.stringify({ ...base, startDates: ["2024-01-01"] }) })
+
+    expect(response.status).toBe(400)
+    expect(await response.json()).toMatchObject({ code: "INVALID_BACKTEST" })
+    expect(createBatch).not.toHaveBeenCalled()
+})
+
+test("GET /api/backtest/batch/:batchId : 404 si le lot est inconnu", async () => {
+    getBatch.mockRejectedValue(new NotFoundError(API_ERROR_CODES.BACKTEST_NOT_FOUND))
+
+    const response = await app.request("/api/backtest/batch/inconnu")
+
+    expect(response.status).toBe(404)
+    expect(getBatch).toHaveBeenCalledWith("inconnu", "u1")
+})
+
+test("POST /api/backtest/batch/:batchId/executions : 202 avec les exécutions relancées", async () => {
+    rerunBatch.mockResolvedValue([{ id: "e2" }] as never)
+
+    const response = await app.request("/api/backtest/batch/l1/executions", { method: "POST" })
+
+    expect(response.status).toBe(202)
+    expect(rerunBatch).toHaveBeenCalledWith("l1", "u1")
+})
+
+test("POST /api/backtest/batch/:batchId/starts : 202 avec le nouveau lot, 400 avec une seule date", async () => {
+    restartBatch.mockResolvedValue({ batchId: "l2", backtests: [] } as never)
+
+    const ok = await app.request("/api/backtest/batch/l1/starts", { method: "POST", body: JSON.stringify({ startDates: ["2018-01-01", "2020-01-01"] }) })
+    const invalid = await app.request("/api/backtest/batch/l1/starts", { method: "POST", body: JSON.stringify({ startDates: ["2018-01-01"] }) })
+
+    expect(ok.status).toBe(202)
+    expect(await ok.json()).toEqual({ batchId: "l2", backtests: [] })
+    expect(invalid.status).toBe(400)
+    expect(restartBatch).toHaveBeenCalledTimes(1)
 })

@@ -7,8 +7,8 @@ import { Badge } from "@/components/ui/badge"
 import { useFormatters } from "@/lib/format"
 import { BACKTEST_CURRENCY, tradeSideVariants } from "./constants"
 import { StatusBadge } from "./status-badge"
-import type { Backtest, DividendEvent, Holding, Trade } from "./types"
-import { formatAllocation, getExecution, getExecutionDuration } from "./utils"
+import type { Backtest, BacktestBatch, DividendEvent, Holding, RollingWindow, Trade } from "./types"
+import { formatAllocation, formatAmount, fromDecimal, getExecution, getExecutionDuration, yearsBetween } from "./utils"
 
 // Titres fractionnaires (DCA) : jusqu'à 6 décimales
 const useFormatQuantity = () => new Intl.NumberFormat(useFormatters().locale, { maximumFractionDigits: 6 }).format
@@ -146,6 +146,92 @@ export function useHoldingColumns(): Column<Holding>[] {
             header: <InfoHint entry="holdingValue">{t("columns.value")}</InfoHint>,
             className: "text-right",
             cell: (h) => formatPrice(h.value, BACKTEST_CURRENCY),
+        },
+    ]
+}
+
+/**
+ * Colonnes du tableau d'un lot (maquette 32) : départ, durée jusqu'à `endDate` (fin commune), CAGR, volatilité, drawdown max,
+ * valeur finale, puis statut remplacé par « Meilleur » ou « Pire » une fois le lot terminé. Tirets sans résultat.
+ */
+export function useBatchColumns(endDate: string): Column<BacktestBatch["rows"][number]>[] {
+    const f = useFormatters()
+    const t = useTranslations("backtest")
+    const ratio = (value: string | null | undefined) => {
+        const n = fromDecimal(value)
+        return n == null ? <Dash /> : f.formatPercent(n)
+    }
+
+    return [
+        {
+            header: t("batch.columns.start"),
+            cell: (row) => <span className="text-body-medium">{f.formatDay(row.startDate)}</span>,
+        },
+        { header: t("batch.columns.duration"), cell: (row) => f.formatYears(yearsBetween(row.startDate, endDate)) },
+        {
+            header: <InfoHint entry="cagr">{t("columns.cagr")}</InfoHint>,
+            className: "text-right",
+            cell: (row) => <span className={row.rank ? "font-medium" : undefined}>{ratio(row.result?.cagr)}</span>,
+        },
+        {
+            header: <InfoHint entry="volatility">{t("batch.columns.volatility")}</InfoHint>,
+            className: "text-right",
+            cell: (row) => ratio(row.result?.volatility),
+        },
+        {
+            header: <InfoHint entry="maxDrawdown">{t("batch.columns.maxDrawdown")}</InfoHint>,
+            className: "text-right",
+            cell: (row) => {
+                const value = fromDecimal(row.result?.maxDrawdown)
+                return value == null ? <Dash /> : <span className="text-destructive">{f.formatPercent(value)}</span>
+            },
+        },
+        {
+            header: <InfoHint entry="finalValue">{t("batch.columns.finalValue")}</InfoHint>,
+            className: "text-right",
+            cell: (row) => {
+                const value = fromDecimal(row.result?.finalValue)
+                return value == null ? <Dash /> : formatAmount(f, value)
+            },
+        },
+        {
+            header: t("batch.columns.status"),
+            className: "text-right",
+            cell: (row) =>
+                row.rank ? (
+                    <Badge variant={row.rank === "WORST" ? "destructive" : "outline"}>
+                        {t(`batch.rank.${row.rank}`)}
+                    </Badge>
+                ) : (
+                    <StatusBadge status={row.status} />
+                ),
+        },
+    ]
+}
+
+/** Colonnes du tableau des fenêtres glissantes : durée, pire, médiane, meilleure et part négative (rendements annualisés). */
+export function useRollingColumns(): Column<RollingWindow>[] {
+    const f = useFormatters()
+    const t = useTranslations("backtest.batch.rolling")
+
+    return [
+        {
+            header: t("window"),
+            cell: (w) => <span className="text-body-medium">{t("years", { count: w.years })}</span>,
+        },
+        {
+            header: <InfoHint entry="rollingWindow">{t("worst")}</InfoHint>,
+            className: "text-right",
+            cell: (w) => (
+                <span className={w.worst < 0 ? "text-destructive" : undefined}>{f.formatPercent(w.worst)}</span>
+            ),
+        },
+        { header: t("median"), className: "text-right", cell: (w) => f.formatPercent(w.median) },
+        { header: t("best"), className: "text-right", cell: (w) => f.formatPercent(w.best) },
+        {
+            header: <InfoHint entry="negativeWindows">{t("negativeShare")}</InfoHint>,
+            className: "text-right",
+            cell: (w) => f.formatRate(w.negativeShare),
         },
     ]
 }

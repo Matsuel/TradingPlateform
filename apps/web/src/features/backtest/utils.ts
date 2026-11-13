@@ -1,7 +1,7 @@
 import type { useTranslations } from "next-intl"
 import type { ChartPoint } from "@/components/area-series-chart"
 import type { Formatters } from "@/lib/format"
-import { activeStatuses, BACKTEST_CURRENCY } from "./constants"
+import { activeStatuses, BACKTEST_CURRENCY, MIN_YEARS_BEFORE_END } from "./constants"
 import type {
     AllocationInput,
     Backtest,
@@ -35,7 +35,10 @@ export function hasStatus(b: Backtest, statuses: readonly ExecutionStatus[]) {
 }
 
 /** Exécution en attente ou en cours : miroir d'affichage de la règle backend « une exécution active à la fois ». */
-export const isActive = (e: BacktestExecution) => (activeStatuses as readonly ExecutionStatus[]).includes(e.status)
+export const isActiveStatus = (status: ExecutionStatus) =>
+    (activeStatuses as readonly ExecutionStatus[]).includes(status)
+
+export const isActive = (e: BacktestExecution) => isActiveStatus(e.status)
 
 /** Durée lisible d'une exécution terminée (« 1 min 5 s »), depuis son démarrage ; null tant qu'elle n'est pas finie. */
 export function getExecutionDuration(t: BacktestTranslator, e: BacktestExecution) {
@@ -116,4 +119,27 @@ export function alignCurves(
     add("a", a)
     add("b", b)
     return [...points.values()].sort((x, y) => x.date.localeCompare(y.date))
+}
+
+// Le web n'embarque pas packages/utils (DAY_MS)
+const DAY_MS = 86_400_000
+
+/** Durée en années entre deux dates (ISO ou `Date`), année moyenne de 365,25 jours : seulement pour l'afficher. */
+export const yearsBetween = (from: string | Date, to: string | Date) =>
+    (new Date(to).getTime() - new Date(from).getTime()) / (365.25 * DAY_MS)
+
+/** `date` + `years` années civiles, en heure locale (les dates saisies sont à minuit local). */
+const addYears = (date: Date, years: number) => new Date(date.getFullYear() + years, date.getMonth(), date.getDate())
+
+export type StartDateIssue = "required" | "duplicate" | "tooClose"
+
+/**
+ * Problème d'un départ de lot, ou `null` : date manquante, doublon d'une autre ligne, ou moins d'`BATCH_MIN_YEARS_BEFORE_END` an
+ * avant la fin commune. Miroir ergonomique de `createBatchSchema` : le backend reste seul juge.
+ */
+export function startDateIssue(dates: (Date | undefined)[], index: number, end: Date): StartDateIssue | null {
+    const date = dates[index]
+    if (!date) return "required"
+    if (dates.some((other, i) => i !== index && other?.getTime() === date.getTime())) return "duplicate"
+    return addYears(date, MIN_YEARS_BEFORE_END) > end ? "tooClose" : null
 }

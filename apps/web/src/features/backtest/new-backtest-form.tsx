@@ -17,7 +17,7 @@ import {
     DEFAULT_REBALANCE_FREQUENCY,
     FULL_PERCENT,
 } from "./constants"
-import { useCreateBacktest } from "./hook"
+import { useCreateBacktest, useCreateBacktestBatch } from "./hook"
 import { BacktestPreviewSummary } from "./preview-summary"
 import { type BacktestValues, createBacktestFormSchema } from "./schema"
 import { AllocationSection, GeneralSection } from "./sections"
@@ -27,7 +27,9 @@ export function NewBacktestForm() {
     const t = useTranslations("backtest")
     const { errorMessage, issueMessage } = useApiErrorMessages()
     const router = useRouter()
-    const { mutateAsync, error } = useCreateBacktest()
+    const create = useCreateBacktest()
+    const createBatch = useCreateBacktestBatch()
+    const error = create.error ?? createBatch.error
     const form = useForm<BacktestValues>({
         resolver: zodResolver(createBacktestFormSchema(t)),
         defaultValues: {
@@ -38,14 +40,27 @@ export function NewBacktestForm() {
             rebalanceFrequency: DEFAULT_REBALANCE_FREQUENCY,
             fee: DEFAULT_FEE_PERCENT,
             benchmarkSymbols: [DEFAULT_BENCHMARK_SYMBOL],
+            multipleStarts: false,
+            extraStartDates: [],
         },
     })
     const allocations = useWatch({ control: form.control, name: "allocations" })
+    const [multipleStarts, start, extraStartDates] = useWatch({
+        control: form.control,
+        name: ["multipleStarts", "start", "extraStartDates"],
+    })
+    // Une ligne de départ ajoutée et restée vide bloque l'envoi
+    const startsIncomplete = multipleStarts && [start, ...extraStartDates.map(({ date }) => date)].some((date) => !date)
 
     const onSubmit = async (values: BacktestValues) => {
         try {
-            const backtest = await mutateAsync(values)
-            router.push(routes.backtest(backtest.id))
+            if (values.multipleStarts) {
+                const { batchId } = await createBatch.mutateAsync(values)
+                router.push(routes.backtestBatch(batchId))
+            } else {
+                const backtest = await create.mutateAsync(values)
+                router.push(routes.backtest(backtest.id))
+            }
         } catch (e) {
             setFormIssues(e, form.setError, issueMessage)
         }
@@ -63,7 +78,11 @@ export function NewBacktestForm() {
                     <div className="flex justify-end">
                         <Button
                             type="submit"
-                            disabled={form.formState.isSubmitting || allocationTotal(allocations) !== FULL_PERCENT}
+                            disabled={
+                                form.formState.isSubmitting ||
+                                startsIncomplete ||
+                                allocationTotal(allocations) !== FULL_PERCENT
+                            }
                         >
                             {t("form.submit")}
                         </Button>

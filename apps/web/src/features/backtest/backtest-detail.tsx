@@ -94,6 +94,15 @@ export function BacktestDetail({ id }: { id: string }) {
                                 {t("detail.dividends")}
                             </Button>
                         )}
+                        {backtest.batchId && (
+                            <Button
+                                variant="outline"
+                                nativeButton={false}
+                                render={<Link href={routes.backtestBatch(backtest.batchId)} />}
+                            >
+                                {t("detail.robustness")}
+                            </Button>
+                        )}
                         <Button onClick={() => rerun.mutate()} disabled={!canRerun}>
                             {t("detail.rerun")}
                         </Button>

@@ -26,7 +26,9 @@
         "RECURRING_AMOUNT_REQUIRED": "The monthly contribution is required in recurring mode.",
         "RECURRING_AMOUNT_NOT_ALLOWED": "The monthly contribution is only allowed in recurring mode.",
         "INITIAL_AMOUNT_NOT_POSITIVE": "The initial capital must be positive.",
-        "IDS_NOT_DISTINCT": "Pick two different backtests."
+        "IDS_NOT_DISTINCT": "Pick two different backtests.",
+        "START_DATES_NOT_UNIQUE": "Start dates must be different.",
+        "START_TOO_CLOSE_TO_END": "A start date must be at least one year before the end."
     },
     "notFound": {
         "title": "Page not found",
@@ -186,7 +188,8 @@
             "pending": "Results will appear when the calculation ends.",
             "rebalancing": "{frequency} rebalancing",
             "benchmark": "benchmark {symbol}",
-            "executedIn": "ran in {duration}"
+            "executedIn": "ran in {duration}",
+            "robustness": "Robustness"
         },
         "noBenchmark": "None",
         "executionErrors": {
@@ -313,7 +316,9 @@
             "rebalanceDescription": "Brings the weights back to target",
             "benchmark": "Benchmark",
             "benchmarkDescription": "Replayed with the same contributions and fees; remove it to simulate without a benchmark",
-            "benchmarkAdd": "Choose"
+            "benchmarkAdd": "Choose",
+            "multipleStarts": "Several start dates",
+            "multipleStartsDescription": "Runs the same strategy from 2 to 10 dates and compares the results, to see whether the entry date matters"
         },
         "allocation": {
             "add": "Add an asset",
@@ -328,7 +333,9 @@
             "maxAllocations": "At most {max} assets",
             "total": "The total must be {total}%",
             "endAfterStart": "Must be after the start date",
-            "greaterThanZero": "Must be greater than 0"
+            "greaterThanZero": "Must be greater than 0",
+            "startCount": "Between {min} and {max} start dates",
+            "startsDistinct": "Start dates must be different"
         },
         "quick": {
             "name": "Quick test {symbol}",
@@ -524,6 +531,71 @@
                 "feeRate": "A pays {a} per order, B {b}.",
                 "benchmarkSymbol": "A’s benchmark: {a}, B’s: {b}."
             }
+        },
+        "batch": {
+            "metaTitle": "Robustness",
+            "title": "Robustness · {name}",
+            "description": "Same strategy over {count, plural, one {# start date} other {# start dates}} · common end {end} · linked backtests",
+            "editStarts": "Edit starts",
+            "rerun": "Rerun the batch",
+            "stats": {
+                "medianCagr": "Median CAGR",
+                "starts": "{count, plural, one {# start} other {# starts}}",
+                "spread": "Worst–best gap: {value} pts",
+                "worstStart": "Worst start",
+                "worstStartPeriod": "CAGR from {from} to {to}",
+                "worstWindow": "Worst {years}-year window",
+                "perYear": "per year",
+                "entry": "Entry on {date}",
+                "negativeWindows": "Negative windows",
+                "years": "{count, plural, one {# year} other {# years}}",
+                "windowCount": "Out of {count, number} rolling windows"
+            },
+            "results": {
+                "title": "Results by start date",
+                "description": "Metrics computed by the engine for each backtest of the batch",
+                "empty": "No start.",
+                "note": "Starts have different durations: compare the CAGR (annualised), not the final value."
+            },
+            "columns": {
+                "start": "Start",
+                "duration": "Duration",
+                "volatility": "Volatility",
+                "maxDrawdown": "Max drawdown",
+                "finalValue": "Final value",
+                "status": "Status"
+            },
+            "rank": {
+                "BEST": "Best",
+                "WORST": "Worst"
+            },
+            "starts": {
+                "title": "Start dates",
+                "description": "2 to 10 dates for the same strategy · checked before calculation",
+                "launch": "Launch the batch ({count} starts)"
+            },
+            "rolling": {
+                "title": "Rolling windows",
+                "description": "Annualised return over every window · one business day step",
+                "empty": "Rolling windows unavailable: the earliest start is not finished or its history is shorter than a year.",
+                "window": "Duration",
+                "years": "{count, plural, one {# year} other {# years}}",
+                "worst": "Worst",
+                "median": "Median",
+                "best": "Best",
+                "negativeShare": "Negative share",
+                "seriesLabel": "Annualised return",
+                "worstMarker": "Worst {value}",
+                "caption": "Each point: annualised return of a {years, plural, one {# year} other {# years}} window, by its entry date."
+            }
+        },
+        "startDates": {
+            "label": "Start {n}",
+            "placeholder": "dd/mm/yyyy",
+            "add": "Add a date",
+            "count": "{count} / {max} dates",
+            "duplicate": "Rejected: date already used by another start.",
+            "tooClose": "Rejected: less than a year before the common end ({end})."
         }
     },
     "market": {
@@ -922,6 +994,42 @@
             "purpose": "Follow the asset’s price over the chosen period.",
             "computation": "Closing prices provided by Yahoo Finance, one point per interval (5 min over 1 day, 1 h over 1 week, 1 day over 1 month, 1 week over 1 year, 1 month beyond). An interval without a close (market closed) is omitted.",
             "unit": "{marketMoneyUnit}"
+        },
+        "rollingWindow": {
+            "title": "Rolling windows",
+            "purpose": "Answers “how much would I have lost entering at the wrong time?”: the return obtained by entering on each trading day and leaving 1, 3 or 5 years later.",
+            "computation": "{twr} For each start day, the return is that of the index between that day and the first trading day one, three or five years later, scaled to one year; starts without a full window are ignored.",
+            "formula": "Annualised return = (index at window end / index at start)^(1 / years) − 1",
+            "unit": "Annual ratio displayed as a percentage; negative share = share of windows with a negative return.",
+            "readingTip": "Worst −4.1%/yr over 3 years: entering at the worst time would have returned −4.1% a year for 3 years."
+        },
+        "medianCagr": {
+            "title": "Median CAGR",
+            "purpose": "The typical annualised return of the strategy, across all start dates.",
+            "computation": "Median of the CAGRs of the batch’s starts (each backtest’s CAGR, see its definition).",
+            "unit": "Annual ratio displayed as a percentage; the worst–best gap is in percentage points.",
+            "readingTip": "A narrow worst–best gap means the strategy is not very sensitive to the entry date."
+        },
+        "worstStart": {
+            "title": "Worst start",
+            "purpose": "The entry date that gave the lowest annualised return.",
+            "computation": "The batch start with the lowest CAGR, over the period from its start to the common end.",
+            "unit": "Annual ratio displayed as a percentage.",
+            "readingTip": "Starts have different durations: only the (annualised) CAGR is comparable."
+        },
+        "worstWindow": {
+            "title": "Worst window",
+            "purpose": "The worst return obtained by staying invested for the window’s duration, whatever the entry date.",
+            "computation": "Lowest annualised return among the 3-year windows of the earliest start, one window per entry trading day.",
+            "unit": "Annual ratio displayed as a percentage.",
+            "readingTip": "The entry day shown is the one of the least favourable window."
+        },
+        "negativeWindows": {
+            "title": "Negative windows",
+            "purpose": "How often an entry, held for the window’s duration, would have ended in a loss.",
+            "computation": "Share of rolling windows whose return is strictly negative, on the earliest start.",
+            "unit": "Ratio displayed as a percentage of windows.",
+            "readingTip": "8%: out of 100 possible entry days, 8 would have lost money over the chosen duration."
         }
     },
     "pages": {

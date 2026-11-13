@@ -1,5 +1,8 @@
 import type {
     Allocation,
+    BacktestBatch,
+    BacktestBatchRow,
+    BacktestBatchSummary,
     BacktestComparison,
     BacktestCompletedPayload,
     BacktestPreview,
@@ -17,12 +20,16 @@ import type {
     ExecutionRule,
     Holding,
     LumpSumComparison,
+    RollingWindow,
     TradeSide,
 } from "@trading-plateform/contracts"
 
 // Formes et unités définies une seule fois dans les contrats : données du moteur (résultat, benchmark), réponse de
 // POST /api/backtest/preview (nombres prévus estimés par core-backend) et de GET /api/backtest/compare (écarts A − B)
 export type {
+    BacktestBatch,
+    BacktestBatchRow,
+    BacktestBatchSummary,
     BacktestComparison,
     BacktestPreview,
     Benchmark,
@@ -34,6 +41,7 @@ export type {
     ExecutionRule,
     Holding,
     LumpSumComparison,
+    RollingWindow,
     TradeSide,
 }
 
@@ -94,7 +102,7 @@ export type BacktestResult = Record<DecimalField, string | null> &
     Partial<
         Pick<
             BacktestCompletedPayload,
-            "recoveryDays" | "rebalanceCount" | "benchmark" | "dividendEvents" | "returnBreakdown"
+            "recoveryDays" | "rebalanceCount" | "benchmark" | "dividendEvents" | "returnBreakdown" | "rollingSummary"
         >
     > & {
         [K in AssumptionField]: BacktestCompletedPayload[K] | null
@@ -117,6 +125,7 @@ export interface Backtest {
     feeRate: string // Decimal sérialisé en string, fraction par ordre, achat ou vente ("0.001" = 0,1 %)
     benchmarkSymbol: BacktestRequestedPayload["benchmarkSymbol"] // null sans benchmark et pour les backtests antérieurs
     createdAt: string
+    batchId: string | null // lot de départs auquel le backtest appartient, null hors lot
     executions: BacktestExecution[] // la plus récente en premier
 }
 

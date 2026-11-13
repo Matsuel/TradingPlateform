@@ -26,7 +26,9 @@
         "RECURRING_AMOUNT_REQUIRED": "Le versement mensuel est obligatoire en mode récurrent.",
         "RECURRING_AMOUNT_NOT_ALLOWED": "Le versement mensuel n’est autorisé qu’en mode récurrent.",
         "INITIAL_AMOUNT_NOT_POSITIVE": "Le capital initial doit être positif.",
-        "IDS_NOT_DISTINCT": "Choisissez deux backtests différents."
+        "IDS_NOT_DISTINCT": "Choisissez deux backtests différents.",
+        "START_DATES_NOT_UNIQUE": "Les dates de départ doivent être distinctes.",
+        "START_TOO_CLOSE_TO_END": "Un départ doit précéder la fin d’au moins un an."
     },
     "notFound": {
         "title": "Page introuvable",
@@ -186,7 +188,8 @@
             "pending": "Les résultats s’afficheront à la fin du calcul.",
             "rebalancing": "rebalancement {frequency}",
             "benchmark": "benchmark {symbol}",
-            "executedIn": "exécuté en {duration}"
+            "executedIn": "exécuté en {duration}",
+            "robustness": "Robustesse"
         },
         "noBenchmark": "Aucun",
         "executionErrors": {
@@ -313,7 +316,9 @@
             "rebalanceDescription": "Ramène les poids à la cible",
             "benchmark": "Benchmark",
             "benchmarkDescription": "Rejoué avec les mêmes versements et frais ; retire-le pour simuler sans benchmark",
-            "benchmarkAdd": "Choisir"
+            "benchmarkAdd": "Choisir",
+            "multipleStarts": "Plusieurs dates de départ",
+            "multipleStartsDescription": "Lance la même stratégie depuis 2 à 10 dates et compare les résultats, pour voir si la date d’entrée compte"
         },
         "allocation": {
             "add": "Ajouter un actif",
@@ -328,7 +333,9 @@
             "maxAllocations": "Au plus {max} actifs",
             "total": "Le total doit faire {total} %",
             "endAfterStart": "Doit être après la date de début",
-            "greaterThanZero": "Doit être supérieur à 0"
+            "greaterThanZero": "Doit être supérieur à 0",
+            "startCount": "Entre {min} et {max} dates de départ",
+            "startsDistinct": "Les dates de départ doivent être distinctes"
         },
         "quick": {
             "name": "Test rapide {symbol}",
@@ -524,6 +531,71 @@
                 "feeRate": "A paie {a} par ordre, B {b}.",
                 "benchmarkSymbol": "Benchmark de A : {a}, de B : {b}."
             }
+        },
+        "batch": {
+            "metaTitle": "Robustesse",
+            "title": "Robustesse · {name}",
+            "description": "Même stratégie sur {count, plural, one {# date} other {# dates}} de départ · fin commune {end} · lot de backtests liés",
+            "editStarts": "Modifier les départs",
+            "rerun": "Relancer le lot",
+            "stats": {
+                "medianCagr": "CAGR médian",
+                "starts": "{count, plural, one {# départ} other {# départs}}",
+                "spread": "Écart pire–meilleur : {value} pts",
+                "worstStart": "Pire départ",
+                "worstStartPeriod": "CAGR du {from} au {to}",
+                "worstWindow": "Pire fenêtre {years} ans",
+                "perYear": "par an",
+                "entry": "Entrée au {date}",
+                "negativeWindows": "Fenêtres négatives",
+                "years": "{count, plural, one {# an} other {# ans}}",
+                "windowCount": "Sur {count, number} fenêtres glissantes"
+            },
+            "results": {
+                "title": "Résultats par date de départ",
+                "description": "Métriques calculées par le moteur pour chaque backtest du lot",
+                "empty": "Aucun départ.",
+                "note": "Les départs ont des durées différentes : comparer le CAGR (annualisé), pas la valeur finale."
+            },
+            "columns": {
+                "start": "Départ",
+                "duration": "Durée",
+                "volatility": "Volatilité",
+                "maxDrawdown": "Drawdown max",
+                "finalValue": "Valeur finale",
+                "status": "Statut"
+            },
+            "rank": {
+                "BEST": "Meilleur",
+                "WORST": "Pire"
+            },
+            "starts": {
+                "title": "Dates de départ",
+                "description": "De 2 à 10 dates pour la même stratégie · vérifiées avant calcul",
+                "launch": "Lancer le lot ({count} départs)"
+            },
+            "rolling": {
+                "title": "Fenêtres glissantes",
+                "description": "Rendement annualisé sur toutes les fenêtres · pas d’un jour ouvré",
+                "empty": "Fenêtres glissantes indisponibles : le départ le plus ancien n’est pas terminé ou son historique fait moins d’un an.",
+                "window": "Durée",
+                "years": "{count, plural, one {# an} other {# ans}}",
+                "worst": "Pire",
+                "median": "Médiane",
+                "best": "Meilleure",
+                "negativeShare": "Part négative",
+                "seriesLabel": "Rendement annualisé",
+                "worstMarker": "Pire {value}",
+                "caption": "Chaque point : rendement annualisé d’une fenêtre de {years, plural, one {# an} other {# ans}}, selon sa date d’entrée."
+            }
+        },
+        "startDates": {
+            "label": "Départ {n}",
+            "placeholder": "jj/mm/aaaa",
+            "add": "Ajouter une date",
+            "count": "{count} / {max} dates",
+            "duplicate": "Refusé : date déjà utilisée par un autre départ.",
+            "tooClose": "Refusé : moins d’un an avant la fin commune ({end})."
         }
     },
     "market": {
@@ -922,6 +994,42 @@
             "purpose": "Suivre le cours de l’actif sur la période choisie.",
             "computation": "Cours de clôture fournis par Yahoo Finance, un point par intervalle (5 min sur 1 jour, 1 h sur 1 semaine, 1 jour sur 1 mois, 1 semaine sur 1 an, 1 mois au-delà). Un intervalle sans clôture (marché fermé) est omis.",
             "unit": "{marketMoneyUnit}"
+        },
+        "rollingWindow": {
+            "title": "Fenêtres glissantes",
+            "purpose": "Répond à « combien aurais-je perdu en entrant au mauvais moment ? » : le rendement obtenu en entrant chaque jour de bourse et en sortant 1, 3 ou 5 ans plus tard.",
+            "computation": "{twr} Pour chaque jour de départ, le rendement est celui de l’indice entre ce jour et le premier jour de cotation une, trois ou cinq années plus tard, ramené à une année ; les départs sans fenêtre complète sont ignorés.",
+            "formula": "Rendement annualisé = (indice fin de fenêtre / indice début)^(1 / années) − 1",
+            "unit": "Ratio annuel affiché en pourcentage ; part négative = part des fenêtres au rendement négatif.",
+            "readingTip": "Pire −4,1 %/an sur 3 ans : entrer au pire moment aurait rapporté −4,1 % par an pendant 3 ans."
+        },
+        "medianCagr": {
+            "title": "CAGR médian",
+            "purpose": "Le rendement annualisé typique de la stratégie, toutes dates de départ confondues.",
+            "computation": "Médiane des CAGR des départs du lot (CAGR de chaque backtest, voir sa définition).",
+            "unit": "Ratio annuel affiché en pourcentage ; l’écart pire–meilleur est en points de pourcentage.",
+            "readingTip": "Un écart pire–meilleur étroit signale une stratégie peu sensible à la date d’entrée."
+        },
+        "worstStart": {
+            "title": "Pire départ",
+            "purpose": "La date d’entrée qui a donné le plus mauvais rendement annualisé.",
+            "computation": "Le départ du lot au CAGR le plus bas, sur la période de son départ à la fin commune.",
+            "unit": "Ratio annuel affiché en pourcentage.",
+            "readingTip": "Les départs ont des durées différentes : seul le CAGR (annualisé) est comparable."
+        },
+        "worstWindow": {
+            "title": "Pire fenêtre",
+            "purpose": "Le pire rendement obtenu en restant investi la durée de la fenêtre, quelle que soit la date d’entrée.",
+            "computation": "Plus bas rendement annualisé des fenêtres de 3 ans du départ le plus ancien, une fenêtre par jour de cotation d’entrée.",
+            "unit": "Ratio annuel affiché en pourcentage.",
+            "readingTip": "Le jour d’entrée indiqué est celui de la fenêtre la plus défavorable."
+        },
+        "negativeWindows": {
+            "title": "Fenêtres négatives",
+            "purpose": "La fréquence à laquelle une entrée, tenue la durée de la fenêtre, aurait fini en perte.",
+            "computation": "Part des fenêtres glissantes dont le rendement est strictement négatif, sur le départ le plus ancien.",
+            "unit": "Ratio affiché en pourcentage des fenêtres.",
+            "readingTip": "8 % : sur 100 jours d’entrée possibles, 8 auraient perdu de l’argent à la durée choisie."
         }
     },
     "pages": {
