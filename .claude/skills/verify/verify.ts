@@ -102,7 +102,7 @@ const addedIn = (pattern: RegExp, files = codeFiles) =>
 
 // --- Règles strictes du dépôt
 
-const envFiles = changed.filter((file) => /(^|\/)\.env(\.|$)/.test(file));
+const envFiles = changed.filter((file) => /(^|\/)\.env(\.|$)/.test(file) && !file.endsWith(".env.example"));
 if (envFiles.length > 0) failures.push(`Fichier .env dans le diff : ${envFiles.join(", ")}`);
 
 const rawSql = addedIn(/\$queryRaw|\$executeRaw|Prisma\.sql|Unsafe\(/, codeFiles.filter((file) => !file.includes("prisma/migrations/")));
