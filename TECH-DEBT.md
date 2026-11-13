@@ -45,5 +45,5 @@ Registre de la dette connue, à corriger avant qu'elle ne grossisse. La règle q
 | TD-22 | 2026-11-12 | `ec588af` |
 | TD-26 | 2026-11-12 | `4289a50` |
 | TD-28 | 2026-11-13 | `a045b8d` |
-| TD-29 | 2026-11-13 | `HASH` |
-| TD-32 | 2026-11-13 | `HASH` |
+| TD-29 | 2026-11-13 | `f527181` |
+| TD-32 | 2026-11-13 | `f527181` |
