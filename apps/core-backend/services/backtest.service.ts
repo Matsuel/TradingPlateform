@@ -31,6 +31,7 @@ import type {
     BacktestBatchDTO,
     BacktestListQuery,
     BacktestWithExecutions,
+    CreateBacktestDTO,
     BatchBacktestRecord,
     BatchRecords,
     ComparedBacktestDTO,
@@ -104,7 +105,14 @@ class BacktestService {
      */
     async create(userId: string, input: CreateBacktestInput, batchId?: string) {
         logger.info("Creating backtest", { userId, name: input.name })
-        const backtest = await this.repo.create({
+        const backtest = await this.repo.create(this.toCreateDTO(userId, input, batchId))
+        logger.info("Backtest created", { id: backtest.id, userId })
+        await this.requestExecution(backtest, backtest.executions[0]!.id)
+        return backtest
+    }
+
+    private toCreateDTO(userId: string, input: CreateBacktestInput, batchId?: string): CreateBacktestDTO {
+        return {
             userId,
             batchId,
             name: input.name,
@@ -118,23 +126,21 @@ class BacktestService {
             rebalanceFrequency: input.rebalanceFrequency,
             feeRate: input.fee / 100,
             benchmarkSymbol: input.benchmarkSymbol ?? null,
-        })
-        logger.info("Backtest created", { id: backtest.id, userId })
-        await this.requestExecution(backtest, backtest.executions[0]!.id)
-        return backtest
+        }
     }
 
     /**
      * Crée un lot (D1) : un backtest par date de `startDates`, par ordre chronologique, tous liés par le même `batchId` et
-     * portant le même nom. Chaque départ a sa première exécution et son `backtest.requested`.
+     * portant le même nom, créés dans une seule transaction (tous ou aucun). Chaque départ a sa première exécution et son
+     * `backtest.requested`, publié une fois le lot enregistré.
      */
     async createBatch(userId: string, { startDates, ...input }: CreateBatchInput) {
         const batchId = randomUUID()
         logger.info("Creating backtest batch", { userId, batchId, count: startDates.length })
-        const backtests: BacktestWithExecutions[] = []
-        for (const start of [...startDates].sort((a, b) => a.getTime() - b.getTime())) {
-            backtests.push(await this.create(userId, { ...input, start }, batchId))
-        }
+        const sorted = [...startDates].sort((a, b) => a.getTime() - b.getTime())
+        // Une seule transaction : si un départ échoue, aucun n'est créé et rien n'est publié
+        const backtests = await this.repo.createMany(sorted.map((start) => this.toCreateDTO(userId, { ...input, start }, batchId)))
+        for (const backtest of backtests) await this.requestExecution(backtest, backtest.executions[0]!.id)
         return { batchId, backtests }
     }
 

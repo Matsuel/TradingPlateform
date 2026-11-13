@@ -5,6 +5,7 @@ import type { BacktestDetails, BacktestExecutionCount, BacktestListFilters, Back
 
 export interface IBacktestRepository {
     create(data: CreateBacktestDTO): Promise<BacktestWithExecutions>
+    createMany(data: CreateBacktestDTO[]): Promise<BacktestWithExecutions[]>
     getById(id: string): Promise<BacktestWithExecutions | null>
     getDetailsById(id: string, statuses: BacktestStatus[]): Promise<BacktestDetails | null>
     getAllByUserId(userId: string, pagination: PaginationQuery, filters: BacktestListFilters): Promise<{ data: BacktestWithExecutions[], count: number }>
@@ -81,16 +82,27 @@ export const batchResult = {
 
 class BacktestRepository implements IBacktestRepository {
     async create(data: CreateBacktestDTO): Promise<BacktestWithExecutions> {
+        return prisma.$transaction((tx) => this.createIn(tx, data))
+    }
+
+    /** Crée tous les backtests dans une seule transaction : tous existent ou aucun (lot atomique). */
+    async createMany(data: CreateBacktestDTO[]): Promise<BacktestWithExecutions[]> {
         return prisma.$transaction(async (tx) => {
-            const { id, executions: [execution] } = await tx.backtest.create({
-                data: { ...data, executions: { create: {} } },
-                include: { executions: true },
-            })
-            return tx.backtest.update({
-                where: { id },
-                data: { latestExecutionId: execution!.id },
-                include: latestExecution,
-            })
+            const created: BacktestWithExecutions[] = []
+            for (const item of data) created.push(await this.createIn(tx, item))
+            return created
+        })
+    }
+
+    private async createIn(tx: Prisma.TransactionClient, data: CreateBacktestDTO): Promise<BacktestWithExecutions> {
+        const { id, executions: [execution] } = await tx.backtest.create({
+            data: { ...data, executions: { create: {} } },
+            include: { executions: true },
+        })
+        return tx.backtest.update({
+            where: { id },
+            data: { latestExecutionId: execution!.id },
+            include: latestExecution,
         })
     }
 

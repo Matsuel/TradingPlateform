@@ -157,9 +157,9 @@ test("une exécution active trop ancienne passe FAILED avec EXECUTION_TIMEOUT", 
 test("createBatch crée un backtest par date, trié, du même nom, lié par le même batchId, et publie un événement chacun", async () => {
     const created: { batchId?: string; name: string; startDate: Date }[] = []
     const { repo } = fakeRepo({
-        create: async (data: never) => {
-            created.push(data)
-            return { ...(backtestOf("u1") as object), executions: [{ id: `e${created.length}` }] } as never
+        createMany: async (data: never[]) => {
+            created.push(...data)
+            return data.map((_, index) => ({ ...(backtestOf("u1") as object), executions: [{ id: `e${index + 1}` }] })) as never
         },
     })
     const service = new BacktestService()
@@ -180,6 +180,31 @@ test("createBatch crée un backtest par date, trié, du même nom, lié par le m
     expect(new Set(created.map((c) => c.batchId))).toEqual(new Set([batchId]))
     expect(backtests).toHaveLength(2)
     expect(published).toHaveLength(2)
+})
+
+test("createBatch : si l'enregistrement du lot échoue, rien n'est publié", async () => {
+    const { repo } = fakeRepo({
+        createMany: async () => {
+            throw new Error("base indisponible")
+        },
+    })
+    const service = new BacktestService()
+    service.repo = repo
+    const before = published.length
+
+    await expect(
+        service.createBatch("u1", {
+            name: "DCA",
+            investmentMode: "LUMP_SUM",
+            allocations: [{ symbol: "AAPL", weight: 1 }],
+            startDates: [new Date("2024-01-01"), new Date("2024-06-01")],
+            end: new Date("2024-12-31"),
+            initialAmount: 1000,
+            rebalanceFrequency: "NONE",
+            fee: 0.1,
+        }),
+    ).rejects.toThrow("base indisponible")
+    expect(published).toHaveLength(before)
 })
 
 // Valeur Decimal factice : seul `toNumber` est lu par le service
@@ -290,9 +315,9 @@ test("restartBatch recrée la stratégie du lot à de nouvelles dates dans un no
     service.repo = fakeRepo({
         getBatch: async () => ({ backtests: [{ id: "b1", userId: "u1" }] as never, rollingSummary: null }),
         getById: async () => source as never,
-        create: async (data: never) => {
-            created.push(data)
-            return { ...source, executions: [{ id: `e${created.length}` }] } as never
+        createMany: async (data: never[]) => {
+            created.push(...data)
+            return data.map((_, index) => ({ ...source, executions: [{ id: `e${index + 1}` }] })) as never
         },
     }).repo
 
