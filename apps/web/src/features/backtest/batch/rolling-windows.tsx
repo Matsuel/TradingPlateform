@@ -24,8 +24,6 @@ export function RollingWindows({ windows }: { windows: RollingWindow[] }) {
         windows.some((w) => w.years === SUMMARY_WINDOW_YEARS) ? SUMMARY_WINDOW_YEARS : windows[0]!.years,
     )
     const selected = windows.find((w) => w.years === years) ?? windows[0]!
-    // Constante de ce seul graphique : l'axe des dates n'affiche que l'année
-    const formatYear = new Intl.DateTimeFormat(f.locale, { year: "numeric" }).format
 
     return (
         <Card>
@@ -50,7 +48,7 @@ export function RollingWindows({ windows }: { windows: RollingWindow[] }) {
                         label: t("worstMarker", { value: f.formatPercent(selected.worst) }),
                     }}
                     zeroLine
-                    dateFormat={{ tick: (date) => formatYear(new Date(date)), tooltip: f.formatDay }}
+                    dateFormat={{ tick: f.formatYear, tooltip: f.formatDay }}
                     valueFormat={{
                         tooltip: f.formatPercent,
                         axis: (value) => f.formatRatio(value).replace(/[,.]00/, ""),

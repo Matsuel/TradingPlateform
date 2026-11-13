@@ -47,10 +47,6 @@ function tooltipContent(series: ChartSeries[], { dateFormat, valueFormat }: Form
     )
 }
 
-// Graduation numérique de l'axe Y : 2 décimales sous 10 (cours bas), entier au-delà
-const formatNumberAxis = (locale: string, v: number) =>
-    v.toLocaleString(locale, { maximumFractionDigits: v < 10 ? 2 : 0 })
-
 // Une courbe : trait seul, ou aire remplie jusqu'à zéro pour `fill`
 function seriesArea(s: ChartSeries) {
     return (
@@ -93,7 +89,7 @@ export function AreaSeriesChart({
     hideXAxis = false,
     className,
 }: AreaSeriesChartProps) {
-    const { locale } = useFormatters()
+    const { formatAxis } = useFormatters()
     const config = Object.fromEntries(
         series.map((s) => [s.key, { label: s.label, color: s.color }]),
     ) satisfies ChartConfig
@@ -117,7 +113,7 @@ export function AreaSeriesChart({
                     axisLine={false}
                     tickCount={5}
                     domain={["auto", "auto"]}
-                    tickFormatter={valueFormat.axis ?? ((v: number) => formatNumberAxis(locale, v))}
+                    tickFormatter={valueFormat.axis ?? formatAxis}
                 />
                 <ChartTooltip cursor={false} content={tooltipContent(series, { dateFormat, valueFormat })} />
                 {zeroLine && <ReferenceLine y={0} stroke="var(--border)" />}

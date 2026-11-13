@@ -35,12 +35,7 @@ function Delta({
 
 // Format de l'écart A − B : points de ratio (0.044 → « +4,4 pts »), sauf le Sharpe, sans unité
 function useDeltaFormat(t: BacktestTranslator) {
-    const { locale, formatChange } = useFormatters()
-    const formatPointChange = new Intl.NumberFormat(locale, {
-        minimumFractionDigits: 1,
-        maximumFractionDigits: 1,
-        signDisplay: "always",
-    }).format
+    const { formatChange, formatPointChange } = useFormatters()
     const formatPoints = (ratio: number) => t("compare.metrics.points", { value: formatPointChange(ratio * 100) })
 
     return (metric: ComparedMetric) => (metric === "sharpeRatio" ? formatChange : formatPoints)

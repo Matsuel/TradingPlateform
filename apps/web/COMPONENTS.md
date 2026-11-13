@@ -769,7 +769,11 @@ Source : `src/components/form/form-issues.ts`.
 
 | Export | Rôle (et unité) |
 | --- | --- |
-| `locale` | Langue active, pour un format `Intl` local à un composant (ticks de graphique, quantités). |
+| `locale` | Langue active, à passer à une librairie qui attend une locale (calendrier). Pour formater, utilise les formatters ci-dessous. |
+| `formatDateWith` | Formatter de dates propre à un composant : `formatDateWith({ month: "short" })(date)`. |
+| `formatYear` | Année seule : « 2024 » (axe des fenêtres glissantes). |
+| `formatPointChange` | Écart en points de pourcentage, 1 décimale, signé : `4.4` → « +4,4 ». |
+| `formatAxis` | Graduation numérique d'un axe : 2 décimales sous 10, entier au-delà. |
 | `formatPrice` | Montant dans la devise ISO **obligatoire** : `formatPrice(1234.5, "EUR")` → « 1 234,50 € ». |
 | `formatChange` | Nombre signé, 2 décimales, sans « % » : `1.5` → « +1,50 ». Pour un pourcentage déjà en %, ou un écart de Sharpe. |
 | `formatRatio` | Ratio en **fraction** → variation signée en % : `0.342` → « +34,20 % ». Rendement, drawdown. |
