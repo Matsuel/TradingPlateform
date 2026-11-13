@@ -153,7 +153,7 @@ class BacktestService {
      */
     async getBatch(batchId: string, userId: string): Promise<BacktestBatchDTO> {
         logger.info("Fetching backtest batch", { batchId, userId })
-        const { backtests, rollingSummary } = await this.repo.getBatch(batchId)
+        const { backtests, rollingSummary } = await this.repo.getBatch(batchId, COMPARABLE_STATUSES)
         const first = this.assertOwner(backtests[0] ?? null, userId)
         return {
             batchId,
@@ -170,7 +170,7 @@ class BacktestService {
      */
     async restartBatch(batchId: string, userId: string, { startDates }: BatchStartDatesInput) {
         logger.info("Restarting backtest batch", { batchId, userId })
-        const { backtests } = await this.repo.getBatch(batchId)
+        const { backtests } = await this.repo.getBatch(batchId, COMPARABLE_STATUSES)
         const first = this.assertOwner(backtests[0] ? await this.repo.getById(backtests[0].id) : null, userId)
         if (startDates.some((start) => start > latestBatchStart(first.endDate))) {
             throw new BadRequestError(API_ERROR_CODES.START_TOO_CLOSE_TO_END)
@@ -195,7 +195,7 @@ class BacktestService {
      */
     async rerunBatch(batchId: string, userId: string) {
         logger.info("Rerunning backtest batch", { batchId, userId })
-        const { backtests } = await this.repo.getBatch(batchId)
+        const { backtests } = await this.repo.getBatch(batchId, COMPARABLE_STATUSES)
         this.assertOwner(backtests[0] ?? null, userId)
         if (backtests.some(({ latestExecution }) => latestExecution && ACTIVE_STATUSES.includes(latestExecution.status))) {
             throw new ConflictError(API_ERROR_CODES.EXECUTION_IN_PROGRESS)
@@ -236,7 +236,7 @@ class BacktestService {
 
     async getById(id: string, userId: string) {
         logger.info("Fetching backtest", { id, userId })
-        return this.assertOwner(await this.repo.getDetailsById(id), userId)
+        return this.assertOwner(await this.repo.getDetailsById(id, COMPARABLE_STATUSES), userId)
     }
 
     async getAll(userId: string, { status, hasResult, ...pagination }: BacktestListQuery): Promise<Paginated<BacktestWithExecutions>> {
