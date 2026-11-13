@@ -13,11 +13,12 @@ export const BACKTEST_STATUSES = ["DRAFT", "PENDING", "RUNNING", "COMPLETED", "F
 
 // Réponse de GET /api/backtest/stats : backtests comptés selon le statut de leur dernière exécution
 export interface BacktestStats {
+    // Nombres de backtests (entiers ≥ 0)
     total: number;
     active: number;
     completed: number;
     failed: number;
-    // Ratios : completed / total et failed / total, 0 si total = 0
+    // Ratios 0..1 : completed / total et failed / total, 0 si total = 0
     completedRate: number;
     failedRate: number;
 }
@@ -58,7 +59,9 @@ export const backtestRequestedPayloadSchema = z.object({
     startDate: z.iso.datetime(),
     endDate: z.iso.datetime(),
     investmentMode: z.enum(["LUMP_SUM", "RECURRING"]),
+    // Capital initial, devise saisie
     initialAmount: z.number().min(0),
+    // Versement de chaque échéance, devise saisie ; null en LUMP_SUM
     recurringAmount: z.number().positive().nullable(),
     investmentFrequency: z.enum(["DAILY", "WEEKLY", "MONTHLY", "YEARLY"]).nullable(),
     rebalanceFrequency: z.enum(REBALANCE_FREQUENCIES),
@@ -170,6 +173,7 @@ export const holdingSchema = z.object({
 
 // Métriques du même total versé investi en une fois au premier jour, mêmes frais (courbe : lumpSumValue)
 export const lumpSumComparisonSchema = z.object({
+    // Valeur finale, devise saisie
     finalValue: z.number(),
     // Ratio
     totalReturn: z.number(),
@@ -233,6 +237,7 @@ export const rollingWindowSchema = z.object({
     // Nombre de fenêtres de cette durée sur l'historique ; la durée n'est pas publiée si l'historique est plus court
     count: z.number().int().positive(),
     // Ratios annuels de l'indice TWR (hors versements) : (1 + rendement de la fenêtre) ^ (1 / years) − 1
+    // Pire, médian et meilleur
     worst: z.number(),
     median: z.number(),
     best: z.number(),
@@ -247,6 +252,7 @@ export const rollingWindowSchema = z.object({
 export const backtestCompletedPayloadSchema = z.object({
     executionId: z.string().min(1),
     finishedAt: z.iso.datetime(),
+    // Valeur finale du portefeuille, devise saisie
     finalValue: z.number(),
     // Total versé, frais compris
     totalInvested: z.number().positive(),
@@ -266,6 +272,7 @@ export const backtestCompletedPayloadSchema = z.object({
     // Détail de dividendTotal, du plus ancien au plus récent ; vide sans dividende
     dividendEvents: z.array(dividendEventSchema),
     returnBreakdown: returnBreakdownSchema,
+    // Nombre d'ordres de la simulation (entier ≥ 0)
     totalTrades: z.number().int().min(0),
     // Rebalancements qui ont passé au moins un ordre (D7) ; 0 avec rebalanceFrequency NONE
     rebalanceCount: z.number().int().min(0),
