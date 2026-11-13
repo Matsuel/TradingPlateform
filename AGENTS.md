@@ -2,7 +2,7 @@
 
 Monorepo Bun (`workspaces`: `apps/*`, `packages/*`). Laboratoire de portefeuille simulé (backtest, risque, optimisation), piloté par événements Kafka. Vision complète : `README.md`.
 
-Ces règles sont **strictes** : un écart doit être justifié dans le résumé rendu à l'utilisateur. Chaque dossier a son `AGENTS.md` (règles de ses couches) : lis celui du dossier où tu travailles, en plus de celui-ci.
+Ces règles sont **strictes** : un écart doit être justifié dans le résumé rendu à l'utilisateur. Les règles mécaniques (SQL brut, `process.env`, tailles, clés FR/EN…) sont bloquées par `bun run verify` (hook Stop et CI) ; le reste est relu d'après la section « Revue de code » de `CLAUDE.md`. Chaque dossier a son `AGENTS.md` (règles de ses couches) : lis celui du dossier où tu travailles, en plus de celui-ci.
 
 ## Règle d'or
 
@@ -107,11 +107,10 @@ bun run dev:backtest   # backtest-engine seul
 
 ## Avant de rendre la main
 
-Chaque point est vérifié, pas supposé :
+Lance `bun run verify` (le hook Stop le lance aussi) : tsc, lint, format et tests des workspaces touchés, plus les règles mécaniques. Corrige chaque ✗ ; corrige ou justifie chaque ⚠ dans le résumé. Vérifie ensuite à la main ce que le script ne juge pas :
 
-1. `bunx tsc --noEmit` passe dans chaque app/package touché ; `bun run lint` et `bun run format:check` dans `apps/web` si le front change ; `bun test` dans chaque app touchée (les tests vivent dans son dossier `test/`) ; dans `apps/web`, `messages/*.json` doit garder les mêmes clés FR et EN.
-2. Responsabilités : le diff web ne contient que de l'affichage ; tout nouveau calcul vit chez son propriétaire.
-3. Rangement : aucune constante, helper ou type dupliqué introduit (`grep` les nouveaux noms et littéraux).
-4. Catalogues : chaque route ou composant catalogué créé, modifié ou supprimé a son entrée à jour.
-5. Diff relu : rien hors périmètre, aucun fichier généré ou de debug oublié.
-6. Dette : toute dette repérée et non corrigée a sa ligne dans `TECH-DEBT.md` ; toute dette corrigée y est fermée.
+1. Responsabilités : le diff web ne contient que de l'affichage ; tout nouveau calcul vit chez son propriétaire.
+2. Rangement : aucune constante, helper ou type dupliqué introduit (`grep` les nouveaux noms et littéraux).
+3. Catalogues : chaque route ou composant catalogué créé, modifié ou supprimé a son entrée à jour.
+4. Diff relu : rien hors périmètre, aucun fichier généré ou de debug oublié.
+5. Dette : toute dette repérée et non corrigée a sa ligne dans `TECH-DEBT.md` ; toute dette corrigée y est fermée.

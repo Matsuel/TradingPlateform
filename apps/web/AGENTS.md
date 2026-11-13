@@ -14,12 +14,7 @@ Next.js App Router + React 19 + Tailwind 4 + shadcn/base-ui + react-hook-form/zo
 
 ## Responsabilité du web
 
-Le web affiche les valeurs renvoyées par core-backend. Calculs autorisés, et seulement ceux-ci :
-
-- formatage : devise, nombre, date, durée entre deux timestamps de l'API ;
-- conversion d'unité : ratio → pourcentage (`Number(ratio) * 100`), `Decimal` sérialisé en `string` → `Number` ;
-- tri, filtre et sélection pour l'affichage (`getExecution`, filtres d'onglets) ;
-- état d'interface (onglet actif, formulaire, polling).
+Le web affiche les valeurs renvoyées par core-backend (`../../AGENTS.md`, « Responsabilités »). Calculs autorisés, et seulement ceux-ci : formatage (devise, nombre, date, durée entre deux timestamps de l'API) ; conversion d'unité (ratio → pourcentage `Number(ratio) * 100`, `Decimal` sérialisé en `string` → `Number`) ; tri, filtre et sélection pour l'affichage (`getExecution`, filtres d'onglets) ; état d'interface (onglet actif, formulaire, polling).
 
 Un écran qui a besoin d'une valeur métier absente de l'API (total, métrique, règle d'éligibilité) déclenche un ajout côté backend : le web l'affiche une fois exposée. Une règle métier que le front reflète pour l'ergonomie (bouton désactivé pendant une exécution active) reste imposée par le backend ; le front n'en est qu'un miroir.
 
@@ -69,11 +64,10 @@ Toute brique d'interface vient de `components/ui/` (shadcn, style `base-nova` de
 
 ## Taille et complexité
 
-Le code reste lisible d'une traite ; au-delà de ces seuils, découpe avant d'ajouter :
+Le code reste lisible d'une traite. `verify` avertit au-delà de ces seuils : découpe avant d'ajouter, ou justifie.
 
-- **Fichier** ≤ 150 lignes (hors `components/ui/` et `constants/glossary.ts`) ; `verify` avertit au-delà.
-- **Composant ou fonction** ≤ 60 lignes (`verify` avertit au-delà), JSX imbriqué sur peu de niveaux : une ligne de liste, un en-tête, un bloc deviennent un sous-composant nommé (`AllocationRow`, `ResultHeadline`).
-- **Props** ≤ 8 (`verify` avertit au-delà) ; au-delà, une liste de données remplace les variantes (`AreaSeriesChart` et son `series`).
+- **Seuils** : fichier ≤ 150 lignes (hors `components/ui/` et `constants/glossary.ts`) ; composant ou fonction ≤ 60 lignes ; props ≤ 8 (au-delà, une liste de données remplace les variantes : `AreaSeriesChart` et son `series`).
+- **Imbrication** : JSX imbriqué sur peu de niveaux ; une ligne de liste, un en-tête, un bloc deviennent un sous-composant nommé (`AllocationRow`, `ResultHeadline`).
 - **Une table plutôt qu'une répétition** : une même correspondance (métrique → libellé, aide, format) écrite deux fois devient une table partagée (`features/backtest/metrics.tsx`).
 - **Un état unique plutôt que des conditions répétées** : un écran à plusieurs états calcule l'état une fois, puis l'affiche (`searchState` de `SymbolPicker`).
 

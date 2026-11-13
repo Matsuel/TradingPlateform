@@ -9,7 +9,8 @@
         "dev:backend": "bun run --cwd apps/core-backend index.ts",
         "dev:market": "bun run --cwd apps/market-service index.ts",
         "dev:web": "bun run --cwd apps/web dev",
-        "dev:backtest": "bun run --cwd apps/backtest-engine index.ts"
+        "dev:backtest": "bun run --cwd apps/backtest-engine index.ts",
+        "verify": "bun .claude/skills/verify/verify.ts"
     },
     "devDependencies": {
         "concurrently": "^10.0.7"
