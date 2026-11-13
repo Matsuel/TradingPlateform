@@ -14,12 +14,7 @@ Next.js App Router + React 19 + Tailwind 4 + shadcn/base-ui + react-hook-form/zo
 
 ## Responsabilité du web
 
-Le web affiche les valeurs renvoyées par core-backend. Calculs autorisés, et seulement ceux-ci :
-
-- formatage : devise, nombre, date, durée entre deux timestamps de l'API ;
-- conversion d'unité : ratio → pourcentage (`Number(ratio) * 100`), `Decimal` sérialisé en `string` → `Number` ;
-- tri, filtre et sélection pour l'affichage (`getExecution`, filtres d'onglets) ;
-- état d'interface (onglet actif, formulaire, polling).
+Le web affiche les valeurs renvoyées par core-backend (`../../AGENTS.md`, « Responsabilités »). Calculs autorisés, et seulement ceux-ci : formatage (devise, nombre, date, durée entre deux timestamps de l'API) ; conversion d'unité (ratio → pourcentage `Number(ratio) * 100`, `Decimal` sérialisé en `string` → `Number`) ; tri, filtre et sélection pour l'affichage (`getExecution`, filtres d'onglets) ; état d'interface (onglet actif, formulaire, polling).
 
 Un écran qui a besoin d'une valeur métier absente de l'API (total, métrique, règle d'éligibilité) déclenche un ajout côté backend : le web l'affiche une fois exposée. Une règle métier que le front reflète pour l'ergonomie (bouton désactivé pendant une exécution active) reste imposée par le backend ; le front n'en est qu'un miroir.
 
@@ -69,11 +64,10 @@ Toute brique d'interface vient de `components/ui/` (shadcn, style `base-nova` de
 
 ## Taille et complexité
 
-Le code reste lisible d'une traite ; au-delà de ces seuils, découpe avant d'ajouter :
+Le code reste lisible d'une traite. `verify` avertit au-delà de ces seuils : découpe avant d'ajouter, ou justifie.
 
-- **Fichier** ≤ 150 lignes (hors `components/ui/` et `constants/glossary.ts`) ; `verify` avertit au-delà.
-- **Composant ou fonction** ≤ 60 lignes (`verify` avertit au-delà), JSX imbriqué sur peu de niveaux : une ligne de liste, un en-tête, un bloc deviennent un sous-composant nommé (`AllocationRow`, `ResultHeadline`).
-- **Props** ≤ 8 (`verify` avertit au-delà) ; au-delà, une liste de données remplace les variantes (`AreaSeriesChart` et son `series`).
+- **Seuils** : fichier ≤ 150 lignes (hors `components/ui/` et `constants/glossary.ts`) ; composant ou fonction ≤ 60 lignes ; props ≤ 8 (au-delà, une liste de données remplace les variantes : `AreaSeriesChart` et son `series`).
+- **Imbrication** : JSX imbriqué sur peu de niveaux ; une ligne de liste, un en-tête, un bloc deviennent un sous-composant nommé (`AllocationRow`, `ResultHeadline`).
 - **Une table plutôt qu'une répétition** : une même correspondance (métrique → libellé, aide, format) écrite deux fois devient une table partagée (`features/backtest/metrics.tsx`).
 - **Un état unique plutôt que des conditions répétées** : un écran à plusieurs états calcule l'état une fois, puis l'affiche (`searchState` de `SymbolPicker`).
 
@@ -89,17 +83,23 @@ Chaque élément a un fichier attitré ; copie la forme de `features/backtest` e
 | `schema.ts` | Schémas zod des formulaires. |
 | `constants.ts` | Libellés, options, badges de statut, groupes de statuts, devise d'affichage. |
 | `utils.ts` | Helpers purs du domaine (sélection, prédicats de statut, durées). |
-| `column.tsx` | Toutes les `Column<T>` du domaine pour `components/data-table`. |
+| `column.tsx` | Les `Column<T>` de la table principale du domaine pour `components/data-table` (la liste). Les tables d'un sous-écran vivent dans son sous-dossier, une table par fichier `<sujet>-columns.tsx` (`result/trades-columns.tsx`). |
 | `stats.tsx` | Groupes de `StatCard` du domaine. |
 | `<sujet>.tsx` | Un composant d'écran ou de section par fichier, kebab-case (`backtest-detail.tsx`, `execution-history.tsx`). |
 
-Règles :
+Une feature qui dépasse ~15 fichiers à plat se range en **sous-dossiers par sous-écran** (`features/backtest/` : `result/`, `comparison/`, `batch/`, `form/`). Règles :
+
+- La racine garde les fichiers attitrés ci-dessus et les écrans d'entrée (liste, détail, formulaires de création) ; un sous-dossier garde les composants, les tables (`*-columns.tsx`) et helpers propres à son sous-écran.
+- Un fichier utilisé par plusieurs sous-dossiers (`metric-block.tsx`, `metrics.tsx`, `status-badge.tsx`) reste à la racine. Un sous-dossier peut importer la racine ou un autre sous-dossier, la racine n'importe un sous-dossier que pour composer un écran ; jamais de cycle.
+- Imports relatifs dans la feature (`../types`, `./trades-columns`), `@/features/<domaine>/<sous-dossier>/<fichier>` depuis `app/` et les autres features.
+
+Autres règles :
 
 - Un formatter utilisé par ≥ 2 fichiers vit dans `lib/format.ts` ; un formatter propre à un seul composant (ticks d'un graphique) est une constante en tête de ce fichier.
 - Une mutation est instanciée **une fois** par écran, dans le composant d'écran ; les sections reçoivent l'action ou le bouton par props (`actions`).
 - `DataTable` : `query` pour des lignes issues d'une requête (états chargement / erreur), `rows` pour des lignes déjà en mémoire (sous-liste d'un détail chargé). Ne pas fabriquer un faux `query`.
 - Conversion `Decimal` → `number` : `fromDecimal` (`features/<domaine>/utils.ts`), qui garde `null` pour un champ absent.
-- Composants partagés : consulte `COMPONENTS.md`, réutilise-les en priorité (`DataTable`, `StatCard`, `AreaSeriesChart`, `SymbolCell`, `PageHeader`). Un besoin manquant s'ajoute par une prop optionnelle rétrocompatible (slot `ReactNode` nommé `actions`, `badge`, `leading`), jamais par une copie. Un style manquant à une primitive s'ajoute en variant `ui/` (« shadcn d'abord »).
+- Composants partagés : consulte le sommaire de `COMPONENTS.md` (les exports d'une feature sont dans `features/<domaine>/COMPONENTS.md`), réutilise-les en priorité (`DataTable`, `StatCard`, `AreaSeriesChart`, `SymbolCell`, `PageHeader`). Un besoin manquant s'ajoute par une prop optionnelle rétrocompatible (slot `ReactNode` nommé `actions`, `badge`, `leading`), jamais par une copie. Un style manquant à une primitive s'ajoute en variant `ui/` (« shadcn d'abord »).
 - **Aide sur les données** : une donnée calculée ou interprétée affichée (métrique, taux, écart, frais, empreinte, paramètre qui change le calcul) a son entrée dans `constants/glossary.ts` (sa `source`, clé de l'entrée) et ses textes dans `messages/fr.json` **et** `messages/en.json` (`glossary.<clé>` : `title`, `purpose`, `computation`, `unit`, et si besoin `formula`, `readingTip`), avec son libellé en `InfoHint` (ou `hint` d'un champ) **dans le même diff**. `source` cite le symbole qui calcule la donnée ; les textes se relisent contre lui quand ce calcul change. Une phrase déjà écrite (montant en euros ou en dollars, TWR) s'insère par `{moneyUnit}`, `{marketMoneyUnit}`, `{twr}` au lieu de se recopier. Champs bruts évidents (nom, date, symbole, statut) : pas d'aide.
 - Formulaires : react-hook-form + schéma de `schema.ts` + champs de `components/form/fields`. Après création, redirige vers la page de détail de la ressource.
 - Server Component par défaut ; `"use client"` seulement si le fichier utilise hooks, état ou événements.
@@ -111,5 +111,5 @@ Règles :
 1. Données ou métriques manquantes → backend d'abord (voir `../../AGENTS.md`).
 2. `types.ts`, `api.ts`, `hook.ts`, puis `constants.ts`/`utils.ts` si besoin.
 3. `schema.ts` si formulaire ; `column.tsx` si table ; `stats.tsx` si cartes.
-4. Composants `<sujet>.tsx` codés depuis le cadre validé (« Maquette d'abord »), composés de `components/` (catalogue `COMPONENTS.md`) ; nouvelle entrée dans `COMPONENTS.md` pour chaque composant partagé ou export de feature créé.
+4. Composants `<sujet>.tsx` codés depuis le cadre validé (« Maquette d'abord »), composés de `components/` (catalogue `COMPONENTS.md`) ; nouvelle entrée pour chaque composant partagé (`COMPONENTS.md`) ou export de feature (`features/<domaine>/COMPONENTS.md`) créé, et sa ligne au sommaire de `COMPONENTS.md`.
 5. Route dans `lib/routes.ts`, page `app/app/<domaine>/page.tsx` fine, entrée sidebar dans `constants/sidebar.tsx`.

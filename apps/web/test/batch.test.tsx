@@ -1,10 +1,12 @@
-import { afterEach, expect, test } from "bun:test"
+import { afterEach, expect, mock, test } from "bun:test"
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { cleanup, render, screen } from "@testing-library/react"
 import { NextIntlClientProvider } from "next-intl"
 import type { ReactNode } from "react"
 import fr from "../messages/fr.json"
-import { BatchStats } from "../src/features/backtest/batch-stats"
-import { StartDates } from "../src/features/backtest/start-dates"
+import { BacktestBatchView } from "../src/features/backtest/batch/backtest-batch"
+import { BatchStats } from "../src/features/backtest/batch/batch-stats"
+import { StartDates } from "../src/features/backtest/form/start-dates"
 import type { BacktestBatch } from "../src/features/backtest/types"
 import { startDateIssue } from "../src/features/backtest/utils"
 
@@ -87,4 +89,53 @@ test("les départs affichent « Départ n », le compteur, le refus d'un départ
         />,
     )
     expect((screen.getByText("Ajouter une date") as HTMLButtonElement).closest("button")?.disabled).toBe(true)
+})
+
+const push = mock()
+mock.module("next/navigation", () => ({ useRouter: () => ({ push }) }))
+
+const view = (data: BacktestBatch) => {
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+    client.setQueryData(["backtest", "batch", data.batchId], data)
+    return inFrench(
+        <QueryClientProvider client={client}>
+            <BacktestBatchView batchId={data.batchId} />
+        </QueryClientProvider>,
+    )
+}
+
+const startRow = (i: number) => ({
+    backtestId: `b${i}`,
+    startDate: new Date(2016 + i, 0, 1).toISOString(),
+    status: "COMPLETED" as const,
+    result: {
+        finalValue: "30480",
+        cagr: "0.112",
+        volatility: "0.158",
+        sharpeRatio: "0.7",
+        maxDrawdown: "-0.241",
+        totalReturn: "2.048",
+    },
+    rank: null,
+})
+
+test("la page du lot affiche synthèse, une ligne par départ et fenêtres indisponibles sans résumé glissant", () => {
+    view({ ...batch, rows: [startRow(0), startRow(1)] } as unknown as BacktestBatch)
+
+    expect(screen.getByText("Robustesse · Portefeuille A")).toBeTruthy()
+    expect(screen.getByText("Résultats par date de départ")).toBeTruthy()
+    expect(screen.getByText("CAGR médian")).toBeTruthy()
+    expect(screen.getByText("Relancer le lot")).toBeTruthy()
+    expect(screen.getByText(/Fenêtres glissantes indisponibles/)).toBeTruthy()
+    expect(screen.getAllByText(/11,2/).length).toBeGreaterThanOrEqual(2)
+})
+
+test("un lot en cours ne peut pas être relancé", () => {
+    view({
+        ...batch,
+        status: "RUNNING",
+        rows: [{ ...startRow(0), status: "RUNNING", result: null }, startRow(1)],
+    } as unknown as BacktestBatch)
+
+    expect((screen.getByText("Relancer le lot").closest("button") as HTMLButtonElement).disabled).toBe(true)
 })

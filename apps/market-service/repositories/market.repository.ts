@@ -1,6 +1,7 @@
 import YahooFinance from "yahoo-finance2";
 import type { ChartOptions } from "yahoo-finance2/modules/chart";
 import type { DailyCloses, Dividends, MarketAsset, MarketData, MarketDetails, Period } from "@trading-plateform/contracts";
+import { BadGatewayError } from "@trading-plateform/http";
 import { env } from "../env";
 import { DAY_MS, Logger } from "@trading-plateform/utils";
 import { toMajorCurrency } from "../utils/currency";
@@ -55,7 +56,7 @@ class MarketRepository implements IMarketRepository {
         })
 
         if (!details) {
-            throw new Error(`No details found for id: ${id}`)
+            throw new BadGatewayError()
         }
 
         return MarketRepository.toHistory(details.quotes)
@@ -115,15 +116,7 @@ class MarketRepository implements IMarketRepository {
     async getDailyCloses(symbols: string[], start: Date, end: Date): Promise<DailyCloses> {
         const series = await Promise.all(
             symbols.map(async (symbol) => {
-                const chart = await MarketRepository.yahooFinance.chart(symbol, {
-                    period1: start,
-                    period2: end,
-                    interval: "1d",
-                })
-
-                // Jour de cotation dans le fuseau de la place : en UTC, Tokyo ou Sydney tomberaient la veille
-                const toDay = new Intl.DateTimeFormat("en-CA", { timeZone: chart.meta.exchangeTimezoneName })
-                const { divisor } = toMajorCurrency(chart.meta.currency)
+                const { chart, toDay, divisor } = await MarketRepository.fetchChart(symbol, { period1: start, period2: end })
                 const points = chart.quotes
                     .filter((quote) => quote.close != null)
                     .map((quote) => ({ date: toDay.format(quote.date), close: quote.close! / divisor }))
@@ -142,16 +135,7 @@ class MarketRepository implements IMarketRepository {
     async getDividends(symbols: string[], start: Date, end: Date): Promise<Dividends> {
         const series = await Promise.all(
             symbols.map(async (symbol) => {
-                const chart = await MarketRepository.yahooFinance.chart(symbol, {
-                    period1: start,
-                    period2: end,
-                    interval: "1d",
-                    events: "div",
-                })
-
-                // Ex-date lue dans le fuseau de la place, comme les clôtures : même jour de cotation
-                const toDay = new Intl.DateTimeFormat("en-CA", { timeZone: chart.meta.exchangeTimezoneName })
-                const { currency, divisor } = toMajorCurrency(chart.meta.currency)
+                const { chart, toDay, currency, divisor } = await MarketRepository.fetchChart(symbol, { period1: start, period2: end, events: "div" })
                 const dividends = (chart.events?.dividends ?? [])
                     .map((dividend) => ({ date: toDay.format(dividend.date), amount: dividend.amount / divisor }))
                     .sort((a, b) => a.date.localeCompare(b.date))
@@ -161,6 +145,14 @@ class MarketRepository implements IMarketRepository {
         )
 
         return Object.fromEntries(series)
+    }
+
+    // Série journalière avec le formateur de jour de cotation et la devise principale de la place : clôtures et ex-dates se lisent pareil
+    private static async fetchChart(symbol: string, options: Pick<ChartOptions, "period1" | "period2" | "events">) {
+        const chart = await MarketRepository.yahooFinance.chart(symbol, { ...options, interval: "1d" })
+        // Jour de cotation dans le fuseau de la place : en UTC, Tokyo ou Sydney tomberaient la veille
+        const toDay = new Intl.DateTimeFormat("en-CA", { timeZone: chart.meta.exchangeTimezoneName })
+        return { chart, toDay, ...toMajorCurrency(chart.meta.currency) }
     }
 
     // Un intervalle sans clôture (marché fermé, donnée manquante) est omis

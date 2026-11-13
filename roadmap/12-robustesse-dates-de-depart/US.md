@@ -36,8 +36,8 @@
 **En tant que** utilisateur, **je veux** voir le rendement sur toutes les fenêtres de 1, 3 ou 5 ans **afin de** répondre à « combien aurais-je perdu en entrant au mauvais moment ? »..
 
 Critères d’acceptation :
-- [ ] Les fenêtres d'1, 3 et 5 ans sont calculées sur tout l'historique du backtest.
-- [ ] Le résumé affiche pire, médiane, meilleure et part négative.
+- [x] Les fenêtres d'1, 3 et 5 ans sont calculées sur tout l'historique du backtest.
+- [x] Le résumé affiche pire, médiane, meilleure et part négative.
 
 Tâches : T-01, T-02, T-04, T-07 (détail dans `TASKS.md`).
 
@@ -50,9 +50,9 @@ Tâches : T-01, T-02, T-04, T-07 (détail dans `TASKS.md`).
 **En tant que** utilisateur, **je veux** lancer la même stratégie sur plusieurs dates de départ et voir les résultats côte à côte **afin de** savoir si mon résultat dépend de la chance de mon point d'entrée..
 
 Critères d’acceptation :
-- [ ] Je peux saisir de 2 à 10 dates de départ pour une même stratégie.
-- [ ] Un tableau affiche CAGR, volatilité et drawdown par départ.
-- [ ] Un départ invalide est refusé avant calcul.
+- [x] Je peux saisir de 2 à 10 dates de départ pour une même stratégie.
+- [x] Un tableau affiche CAGR, volatilité et drawdown par départ.
+- [x] Un départ invalide est refusé avant calcul.
 
 Tâches : T-02, T-03, T-05, T-06, T-07, T-08 (détail dans `TASKS.md`).
 

@@ -14,6 +14,7 @@ export type PaginationQuery = z.infer<typeof paginationQuerySchema>;
 // Réponse d'une route de liste ; count = total des éléments correspondant au filtre, toutes pages confondues
 export interface Paginated<T> {
     data: T[];
+    // Entiers : count ≥ 0 ; page à partir de 1 ; pageSize = éléments par page
     count: number;
     page: number;
     pageSize: number;

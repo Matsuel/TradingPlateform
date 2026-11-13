@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { addYears } from "@trading-plateform/utils";
 import {
     API_ERROR_CODES,
     API_ERROR_MESSAGES,
@@ -13,15 +14,13 @@ import {
     type BacktestCompletedPayload,
     type BacktestComparison,
     type ComparedMetric,
+    type RollingWindow,
     type BacktestStatus as ContractBacktestStatus,
 } from "@trading-plateform/contracts";
 import { BacktestStatus, type BacktestResult, type Prisma } from "../generated/prisma/client";
 import type { batchBacktest, batchResult, comparedBacktest, comparedResult } from "../repositories/backtest.repository";
 
 const FULL_PERCENT = 100;
-
-/** `date` + `years` années civiles, en UTC. */
-const addYears = (date: Date, years: number) => new Date(Date.UTC(date.getUTCFullYear() + years, date.getUTCMonth(), date.getUTCDate()));
 
 // Poids saisi en pourcent entier (60 = 60 %, D2), contrôlé en pourcent puis converti en ratio pour le contrat et la base
 const allocationInputsSchema = z
@@ -181,7 +180,7 @@ export type BatchBacktestRecord = Prisma.BacktestGetPayload<{
 // Lecture d'un lot : ses départs, et les fenêtres glissantes stockées du départ le plus ancien terminé (JSON du résultat)
 export interface BatchRecords {
     backtests: BatchBacktestRecord[];
-    rollingSummary: Prisma.JsonValue | null;
+    rollingSummary: RollingWindow[] | null;
 }
 
 // Forme du contrat BacktestBatch avant sérialisation (Decimal, Date)

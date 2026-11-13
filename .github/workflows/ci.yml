@@ -53,3 +53,19 @@ jobs:
         working-directory: apps/core-backend
       - run: bun test
         working-directory: apps/${{ matrix.app }}
+
+  # Règles mécaniques des AGENTS.md + tsc + lint sur le diff de la PR (tests et format sont dans les jobs ci-dessus)
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.2
+      - run: bun install --frozen-lockfile
+      # Le client Prisma n'est pas versionné : requis par tsc de core-backend
+      - run: bun run db:generate
+        working-directory: apps/core-backend
+      - run: bun .claude/skills/verify/verify.ts origin/develop --ci

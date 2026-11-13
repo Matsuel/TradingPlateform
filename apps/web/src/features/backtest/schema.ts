@@ -32,6 +32,42 @@ const rule = <T>(
     message: string,
 ): [(v: T) => boolean, { path: string[]; message: string }] => [check, { path, message }]
 
+// Poids en pourcent entier (D2) ; un champ vidé (NaN) est rejeté par z.number()
+const allocationsField = (t: BacktestTranslator) =>
+    z
+        .array(
+            z.object({
+                symbol: z.string(),
+                name: z.string().optional(),
+                weight: z
+                    .number({ error: t("validation.required") })
+                    .int(t("validation.integer"))
+                    .min(1, t("validation.minWeight"))
+                    .max(FULL_PERCENT),
+            }),
+        )
+        .min(1, t("validation.atLeastOne"))
+        .max(MAX_ALLOCATIONS, t("validation.maxAllocations", { max: MAX_ALLOCATIONS }))
+        .refine((rows) => allocationTotal(rows) === FULL_PERCENT, t("validation.total", { total: FULL_PERCENT }))
+
+// Règles croisées (général <-> allocation et période)
+function refinements(t: BacktestTranslator) {
+    const required = t("validation.required")
+
+    return {
+        endAfterStart: rule(endAfterStart, ["end"], t("validation.endAfterStart")),
+        recurringAmountRequired: rule(recurringAmountRequired, ["recurringAmount"], required),
+        initialAmountPositive: rule(initialAmountPositive, ["initialAmount"], t("validation.greaterThanZero")),
+        startCountInRange: rule(
+            startCountInRange,
+            ["extraStartDates"],
+            t("validation.startCount", { min: MIN_START_DATES, max: MAX_START_DATES }),
+        ),
+        startsDistinct: rule(startsDistinct, ["extraStartDates"], t("validation.startsDistinct")),
+        startsBeforeEnd: rule(startsBeforeEnd, ["end"], t("validation.endAfterStart")),
+    }
+}
+
 // Champs communs aux deux schémas ; les messages d'erreur sont dans la langue de `t` (`backtest.validation`)
 function fields(t: BacktestTranslator) {
     const required = t("validation.required")
@@ -44,25 +80,7 @@ function fields(t: BacktestTranslator) {
             recurringAmount: z.number({ error: required }).positive().optional(),
         },
         market: {
-            // Poids en pourcent entier (D2) ; un champ vidé (NaN) est rejeté par z.number()
-            allocations: z
-                .array(
-                    z.object({
-                        symbol: z.string(),
-                        name: z.string().optional(),
-                        weight: z
-                            .number({ error: required })
-                            .int(t("validation.integer"))
-                            .min(1, t("validation.minWeight"))
-                            .max(FULL_PERCENT),
-                    }),
-                )
-                .min(1, t("validation.atLeastOne"))
-                .max(MAX_ALLOCATIONS, t("validation.maxAllocations", { max: MAX_ALLOCATIONS }))
-                .refine(
-                    (rows) => allocationTotal(rows) === FULL_PERCENT,
-                    t("validation.total", { total: FULL_PERCENT }),
-                ),
+            allocations: allocationsField(t),
             start: z.date({ error: required }),
             end: z.date({ error: required }),
             // Devise de saisie, versé le premier jour
@@ -80,19 +98,7 @@ function fields(t: BacktestTranslator) {
             multipleStarts: z.boolean(),
             extraStartDates: z.array(z.object({ date: z.date({ error: required }) })),
         },
-        // Règles croisées (général <-> allocation et période)
-        refinements: {
-            endAfterStart: rule(endAfterStart, ["end"], t("validation.endAfterStart")),
-            recurringAmountRequired: rule(recurringAmountRequired, ["recurringAmount"], required),
-            initialAmountPositive: rule(initialAmountPositive, ["initialAmount"], t("validation.greaterThanZero")),
-            startCountInRange: rule(
-                startCountInRange,
-                ["extraStartDates"],
-                t("validation.startCount", { min: MIN_START_DATES, max: MAX_START_DATES }),
-            ),
-            startsDistinct: rule(startsDistinct, ["extraStartDates"], t("validation.startsDistinct")),
-            startsBeforeEnd: rule(startsBeforeEnd, ["end"], t("validation.endAfterStart")),
-        },
+        refinements: refinements(t),
     }
 }
 

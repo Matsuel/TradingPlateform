@@ -7,7 +7,21 @@ const root = (await Bun.$`git rev-parse --show-toplevel`.text()).trim();
 process.chdir(root);
 
 const git = async (...args: string[]) => (await Bun.$`git ${args}`.quiet().nothrow().text()).trim();
-const base = Bun.argv[2] ?? ((await git("merge-base", "HEAD", "develop")) || "HEAD");
+// Options : --hook (Stop hook de Claude Code : base = changements non commités, échec bloquant via le code 2)
+//           --ci   (CI GitHub : tests et format sont déjà des jobs à part)
+const args = Bun.argv.slice(2);
+const hook = args.includes("--hook");
+const ci = args.includes("--ci");
+const readHookInput = async () => {
+    try {
+        return JSON.parse((await Bun.stdin.text()) || "{}") as { stop_hook_active?: boolean };
+    } catch {
+        return {};
+    }
+};
+// stop_hook_active : l'agent a déjà été renvoyé corriger une fois, on le laisse finir (pas de boucle infinie)
+const stopHookActive = hook && !process.stdin.isTTY && (await readHookInput()).stop_hook_active === true;
+const base = args.find((arg) => !arg.startsWith("--")) ?? (hook ? "HEAD" : (await git("merge-base", "HEAD", "develop")) || "HEAD");
 // Une base inconnue ferait un diff vide, donc un faux « aucun changement »
 if ((await Bun.$`git rev-parse --verify --quiet ${base}^{tree}`.quiet().nothrow()).exitCode !== 0) {
     console.error(`Base inconnue : ${base}`);
@@ -65,11 +79,11 @@ for (const ws of workspaces.filter((ws) => toCheck.has(ws.name))) {
     if (existsSync(join(ws.dir, "tsconfig.json"))) await run(`tsc ${ws.dir}`, ws.dir, ["bunx", "tsc", "--noEmit"]);
 }
 // Tests : le dossier `test/` de chaque app touchée (ou dont une dépendance a changé)
-for (const ws of workspaces.filter((ws) => toCheck.has(ws.name) && existsSync(join(ws.dir, "test")))) {
+for (const ws of workspaces.filter((ws) => !ci && toCheck.has(ws.name) && existsSync(join(ws.dir, "test")))) {
     await run(`bun test ${ws.dir}`, ws.dir, ["bun", "test"]);
 }
 if (touched(/^apps\/web\//)) await run("lint apps/web", "apps/web", ["bun", "run", "lint"]);
-if (touched(/^apps\/web\//)) await run("format apps/web", "apps/web", ["bun", "run", "format:check"]);
+if (!ci && touched(/^apps\/web\//)) await run("format apps/web", "apps/web", ["bun", "run", "format:check"]);
 
 // --- Lignes ajoutées par le diff (fichiers non suivis : tout leur contenu)
 
@@ -88,7 +102,7 @@ const addedIn = (pattern: RegExp, files = codeFiles) =>
 
 // --- Règles strictes du dépôt
 
-const envFiles = changed.filter((file) => /(^|\/)\.env(\.|$)/.test(file));
+const envFiles = changed.filter((file) => /(^|\/)\.env(\.|$)/.test(file) && !file.endsWith(".env.example"));
 if (envFiles.length > 0) failures.push(`Fichier .env dans le diff : ${envFiles.join(", ")}`);
 
 const rawSql = addedIn(/\$queryRaw|\$executeRaw|Prisma\.sql|Unsafe\(/, codeFiles.filter((file) => !file.includes("prisma/migrations/")));
@@ -101,6 +115,75 @@ if (touched(/^apps\/core-backend\/prisma\/schema\.prisma$/)) {
     warnings.push("Schéma Prisma modifié : lance `bun run db:generate` et vérifie qu'une colonne ajoutée à une table non vide est nullable ou a une `@default`.");
 }
 
+// --- Règles mécaniques des AGENTS.md (bloquantes : un motif suffit, aucun jugement requis)
+
+const addedCode = (pattern: RegExp, files = codeFiles) =>
+    files.flatMap((file) =>
+        (added.get(file) ?? [])
+            .filter((line) => !/^\s*(\/\/|\/\*|\*)/.test(line) && pattern.test(line))
+            .map((line) => `${file} : ${line.trim()}`),
+    );
+const webFiles = codeFiles.filter((file) => file.startsWith("apps/web/src/") && !file.startsWith("apps/web/src/components/ui/"));
+// Fichiers où Next.js (ou next-intl : i18n/request.ts) impose un `export default`
+const NEXT_FILE = /(^|\/)(page|layout|error|global-error|not-found|loading|template|default|route|proxy|opengraph-image|icon|sitemap|robots|manifest)\.tsx?$|^apps\/web\/src\/i18n\/request\.ts$/;
+
+const mechanical = [
+    {
+        rule: "`process.env` hors `env.ts` (AGENTS.md racine, « Conventions communes »)",
+        hits: addedCode(
+            /process\.env\b/,
+            codeFiles.filter((file) => !/(^|\/)(env\.ts|test\/|[^/]+\.config\.ts$)/.test(file) && !/^packages\/(utils|kafka)\//.test(file)),
+        ),
+    },
+    {
+        rule: "Taille de texte Tailwind (`text-sm`, `text-xs`) : utilise les tokens du thème `text-body`, `text-small`… (apps/web/AGENTS.md, « Forme du code »)",
+        hits: addedCode(/\btext-(sm|xs)\b/, webFiles),
+    },
+    {
+        rule: "`<a href>` interne : utilise `next/link` et `routes` (apps/web/AGENTS.md, « Navigation »)",
+        hits: addedCode(/<a\b[^>]*\bhref=(?!["'](?:https?:|mailto:|tel:|#))/, webFiles),
+    },
+    {
+        rule: "Import relatif entre apps ou vers `packages/` : passe par `@trading-plateform/<nom>` (AGENTS.md racine, « Rangement »)",
+        hits: addedCode(/from\s+["'](?:\.\.\/)+(?:apps\/|packages\/|core-backend\/|market-service\/|backtest-engine\/|web\/)/, codeFiles),
+    },
+    {
+        rule: "`export default` hors fichiers imposés par Next (apps/web/AGENTS.md, « Forme du code »)",
+        hits: addedCode(/^\s*export\s+default\b/, webFiles.filter((file) => !NEXT_FILE.test(file))),
+    },
+];
+for (const { rule, hits } of mechanical) if (hits.length > 0) failures.push(`${rule} :\n${hits.join("\n")}`);
+
+// `import type` obligatoire pour les contrats dans le web (zod n'est pas embarqué dans le front)
+const runtimeContracts = webFiles.filter(
+    (file) =>
+        (added.get(file) ?? []).some((line) => line.includes("@trading-plateform/contracts")) &&
+        /import\s+(?!type\b)(?:(?!\bfrom\b)[^])*?\bfrom\s+["']@trading-plateform\/contracts/.test(readFileSync(file, "utf8")),
+);
+if (runtimeContracts.length > 0) {
+    failures.push(`Import runtime de \`@trading-plateform/contracts\` dans le web : utilise \`import type\` (apps/web/AGENTS.md, « Rangement ») :\n${runtimeContracts.join("\n")}`);
+}
+
+// Mêmes clés FR et EN (apps/web/AGENTS.md, « Libellés »)
+if (touched(/^apps\/web\/messages\/(fr|en)\.json$/)) {
+    const flatten = (value: unknown, prefix: string): string[] =>
+        typeof value === "object" && value !== null
+            ? Object.entries(value).flatMap(([key, child]) => flatten(child, prefix ? `${prefix}.${key}` : key))
+            : [prefix];
+    const keys = (file: string) => new Set(flatten(JSON.parse(readFileSync(file, "utf8")), ""));
+    try {
+        const fr = keys("apps/web/messages/fr.json");
+        const en = keys("apps/web/messages/en.json");
+        const gaps = [
+            ...[...fr].filter((key) => !en.has(key)).map((key) => `${key} : absente de en.json`),
+            ...[...en].filter((key) => !fr.has(key)).map((key) => `${key} : absente de fr.json`),
+        ];
+        if (gaps.length > 0) failures.push(`Clés différentes entre fr.json et en.json (apps/web/AGENTS.md, « Libellés ») :\n${gaps.join("\n")}`);
+    } catch (error) {
+        failures.push(`apps/web/messages/*.json illisible : ${error instanceof Error ? error.message : error}`);
+    }
+}
+
 // --- Points à juger (avertissements)
 
 const anys = addedIn(/:\s*any\b|as any\b|<any>/);
@@ -109,17 +192,20 @@ if (anys.length > 0) warnings.push(`\`any\` ajouté :\n${anys.join("\n")}`);
 const consoles = addedIn(/console\.(log|debug|info)\(/);
 if (consoles.length > 0) warnings.push(`console.* ajouté (logs via Logger.here()) ou reste de debug :\n${consoles.join("\n")}`);
 
-const catalogs = [
+const catalogs: { code: RegExp; catalog: string | RegExp; label?: string }[] = [
     { code: /^apps\/core-backend\/(routes|controller)\//, catalog: "apps/core-backend/API.md" },
     { code: /^apps\/market-service\/(routes|controller)\//, catalog: "apps/market-service/API.md" },
     {
         code: /^apps\/web\/src\/(components\/(?!ui\/)|lib\/|features\/[^/]+\/(api|hook|constants|utils|types)\.ts$)/,
-        catalog: "apps/web/COMPONENTS.md",
+        // Catalogue scindé : sommaire dans apps/web/COMPONENTS.md, une entrée par domaine dans features/<domaine>/COMPONENTS.md
+        catalog: /^apps\/web\/(src\/features\/[^/]+\/)?COMPONENTS\.md$/,
+        label: "apps/web/COMPONENTS.md (ou features/<domaine>/COMPONENTS.md)",
     },
 ];
-for (const { code, catalog } of catalogs) {
-    if (touched(code) && !changed.includes(catalog)) {
-        warnings.push(`${catalog} inchangé alors que ${changed.filter((file) => code.test(file)).join(", ")} a changé : mets l'entrée à jour si une route ou un élément catalogué a changé.`);
+for (const { code, catalog, label } of catalogs) {
+    const documented = typeof catalog === "string" ? changed.includes(catalog) : changed.some((file) => catalog.test(file));
+    if (touched(code) && !documented) {
+        warnings.push(`${label ?? catalog} inchangé alors que ${changed.filter((file) => code.test(file)).join(", ")} a changé : mets l'entrée à jour si une route ou un élément catalogué a changé.`);
     }
 }
 
@@ -197,4 +283,9 @@ for (const pass of passes) console.log(`✓ ${pass}`);
 for (const warning of warnings) console.log(`\n⚠ ${warning}`);
 for (const failure of failures) console.log(`\n✗ ${failure}`);
 console.log(`\n${failures.length} échec(s), ${warnings.length} avertissement(s).`);
-process.exit(failures.length > 0 ? 1 : 0);
+if (hook && failures.length > 0 && !stopHookActive) {
+    // Code 2 : Claude Code refuse de terminer et renvoie ce message à l'agent
+    console.error(`verify : ${failures.length} échec(s) à corriger avant de rendre la main.\n\n${failures.join("\n\n")}`);
+    process.exit(2);
+}
+process.exit(failures.length > 0 && !hook ? 1 : 0);

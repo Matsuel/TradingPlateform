@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import { getTranslations } from "next-intl/server"
 import { PageLayout } from "@/components/page-layout"
-import { BacktestCompare } from "@/features/backtest/backtest-compare"
+import { BacktestCompare } from "@/features/backtest/comparison/backtest-compare"
 
 export async function generateMetadata(): Promise<Metadata> {
     const t = await getTranslations("backtest.compare")

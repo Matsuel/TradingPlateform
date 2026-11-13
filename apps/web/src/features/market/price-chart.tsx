@@ -23,14 +23,10 @@ const tickFormats: Record<Period, Intl.DateTimeFormatOptions> = {
     max: { year: "numeric" },
 }
 
-const formatTick = (locale: string, date: string, period: Period) =>
-    new Intl.DateTimeFormat(locale, tickFormats[period]).format(new Date(date))
-
-const formatTooltipDate = (locale: string, date: string, period: Period) =>
-    new Intl.DateTimeFormat(locale, {
-        dateStyle: "medium",
-        ...(period === "1d" || period === "1w" ? { timeStyle: "short" } : {}),
-    }).format(new Date(date))
+const tooltipFormat = (period: Period): Intl.DateTimeFormatOptions => ({
+    dateStyle: "medium",
+    ...(period === "1d" || period === "1w" ? { timeStyle: "short" } : {}),
+})
 
 /** Carte « Prix » d'un symbole : onglets de période (1J à Max) et courbe ; garde la courbe précédente, atténuée, pendant un changement de période. */
 // Tendance de la période : dernier cours face au premier
@@ -38,7 +34,7 @@ const trendOfPeriod = (points: { price: number }[]) =>
     points.length < 2 ? "neutral" : trendOf(points[points.length - 1].price - points[0].price)
 
 export function PriceChart({ symbol }: { symbol: string }) {
-    const { formatPrice, locale } = useFormatters()
+    const { formatPrice, formatDateWith } = useFormatters()
     const t = useTranslations("market")
     const { errorMessage } = useApiErrorMessages()
     const [period, setPeriod] = useState<Period>("1d")
@@ -79,9 +75,11 @@ export function PriceChart({ symbol }: { symbol: string }) {
                                 fill: true,
                             },
                         ]}
-                        formatTick={(d) => formatTick(locale, d, period)}
-                        formatTooltipDate={(d) => formatTooltipDate(locale, d, period)}
-                        formatValue={(v) => formatPrice(v, MARKET_CURRENCY)}
+                        dateFormat={{
+                            tick: formatDateWith(tickFormats[period]),
+                            tooltip: formatDateWith(tooltipFormat(period)),
+                        }}
+                        valueFormat={{ tooltip: (v) => formatPrice(v, MARKET_CURRENCY) }}
                         className={cn("transition-opacity", isPlaceholderData && "opacity-50")}
                     />
                 )}

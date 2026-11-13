@@ -20,9 +20,9 @@ import {
     DEFAULT_REBALANCE_FREQUENCY,
     FULL_PERCENT,
 } from "./constants"
+import { InvestmentModeFields, PeriodAndCapitalFields } from "./form/sections"
 import { useCreateBacktest } from "./hook"
 import { createQuickBacktestFormSchema, type QuickBacktestValues } from "./schema"
-import { InvestmentModeFields, PeriodAndCapitalFields } from "./sections"
 
 // Récapitulatif : symbole testé et nombre de jours calendaires de la période saisie
 function QuickTestSummary({ symbol }: { symbol: string }) {

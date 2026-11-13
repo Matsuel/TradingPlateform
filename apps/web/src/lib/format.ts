@@ -21,9 +21,20 @@ function createFormatters(locale: string) {
     const formatYears = number({ style: "unit", unit: "year", unitDisplay: "long", maximumFractionDigits: 1 })
     const formatMonths = number({ style: "unit", unit: "month", unitDisplay: "long", maximumFractionDigits: 0 })
 
+    const formatAxisSmall = number({ maximumFractionDigits: 2 })
+    const formatAxisLarge = number({ maximumFractionDigits: 0 })
+
     return {
-        /** Langue active, pour un formatter propre à un seul composant (`new Intl.NumberFormat(locale, …)`). */
+        /** Langue active (à passer à une librairie qui attend une locale ; pour formater, utilise les formatters ci-dessous). */
         locale,
+        /** Formatter de dates propre à un composant : `formatDateWith({ month: "short" })(date)`. */
+        formatDateWith: (options: Intl.DateTimeFormatOptions) => date(options),
+        /** Année seule (`2024`), pour l'axe des fenêtres glissantes. */
+        formatYear: date({ year: "numeric" }),
+        /** Écart en points de pourcentage, 1 décimale, signé (`+4,4`). */
+        formatPointChange: number({ minimumFractionDigits: 1, maximumFractionDigits: 1, signDisplay: "always" }),
+        /** Graduation numérique d'un axe : 2 décimales sous 10 (cours bas), entier au-delà. */
+        formatAxis: (v: number) => (v < 10 ? formatAxisSmall(v) : formatAxisLarge(v)),
         /** Montant dans la devise de la donnée : seul le format suit la langue (`1 234,50 €`, `€1,234.50`). */
         formatPrice: (v: number, currency: string) => currencyFormat(currency).format(v),
         /** Nombre signé à 2 décimales, sans unité (`+1,25`). */
@@ -41,6 +52,8 @@ function createFormatters(locale: string) {
         formatPercent: number({ style: "percent", maximumFractionDigits: 2 }),
         /** Ratio de Sharpe, sans unité, 2 décimales (`1,25`). */
         formatSharpe: number({ minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+        /** Quantité de titres, fractionnaires inclus (DCA) : jusqu'à 6 décimales. */
+        formatQuantity: number({ maximumFractionDigits: 6 }),
         formatVolume: number({ notation: "compact", maximumFractionDigits: 2 }),
         formatDate: date({ dateStyle: "short", timeStyle: "short" }),
         formatDay,

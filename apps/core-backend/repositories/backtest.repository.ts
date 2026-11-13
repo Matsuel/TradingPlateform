@@ -1,17 +1,18 @@
-import type { PaginationQuery } from "@trading-plateform/contracts"
+import type { PaginationQuery, RollingWindow } from "@trading-plateform/contracts"
 import { prisma } from "../prisma"
 import { Prisma, type BacktestExecution, type BacktestStatus } from "../generated/prisma/client"
 import type { BacktestDetails, BacktestExecutionCount, BacktestListFilters, BacktestStatusCounts, BacktestWithExecutions, BatchRecords, ComparedBacktestRecord, CompleteExecutionDTO, CreateBacktestDTO } from "../interfaces/backtest.interface"
 
 export interface IBacktestRepository {
     create(data: CreateBacktestDTO): Promise<BacktestWithExecutions>
+    createMany(data: CreateBacktestDTO[]): Promise<BacktestWithExecutions[]>
     getById(id: string): Promise<BacktestWithExecutions | null>
-    getDetailsById(id: string): Promise<BacktestDetails | null>
+    getDetailsById(id: string, statuses: BacktestStatus[]): Promise<BacktestDetails | null>
     getAllByUserId(userId: string, pagination: PaginationQuery, filters: BacktestListFilters): Promise<{ data: BacktestWithExecutions[], count: number }>
     countByLatestStatus(userId: string): Promise<BacktestStatusCounts>
     countExecutionsByIds(ids: string[], userId: string, statuses: BacktestStatus[]): Promise<BacktestExecutionCount[]>
     getComparedByIds(ids: string[], statuses: BacktestStatus[]): Promise<ComparedBacktestRecord[]>
-    getBatch(batchId: string): Promise<BatchRecords>
+    getBatch(batchId: string, statuses: BacktestStatus[]): Promise<BatchRecords>
     createExecution(backtestId: string, attempt: number): Promise<BacktestExecution>
     updateExecution(id: string, from: BacktestStatus[], data: Prisma.BacktestExecutionUpdateManyMutationInput): Promise<boolean>
     completeExecution(id: string, from: BacktestStatus[], data: CompleteExecutionDTO): Promise<boolean>
@@ -81,16 +82,27 @@ export const batchResult = {
 
 class BacktestRepository implements IBacktestRepository {
     async create(data: CreateBacktestDTO): Promise<BacktestWithExecutions> {
+        return prisma.$transaction((tx) => this.createIn(tx, data))
+    }
+
+    /** Crée tous les backtests dans une seule transaction : tous existent ou aucun (lot atomique). */
+    async createMany(data: CreateBacktestDTO[]): Promise<BacktestWithExecutions[]> {
         return prisma.$transaction(async (tx) => {
-            const { id, executions: [execution] } = await tx.backtest.create({
-                data: { ...data, executions: { create: {} } },
-                include: { executions: true },
-            })
-            return tx.backtest.update({
-                where: { id },
-                data: { latestExecutionId: execution!.id },
-                include: latestExecution,
-            })
+            const created: BacktestWithExecutions[] = []
+            for (const item of data) created.push(await this.createIn(tx, item))
+            return created
+        })
+    }
+
+    private async createIn(tx: Prisma.TransactionClient, data: CreateBacktestDTO): Promise<BacktestWithExecutions> {
+        const { id, executions: [execution] } = await tx.backtest.create({
+            data: { ...data, executions: { create: {} } },
+            include: { executions: true },
+        })
+        return tx.backtest.update({
+            where: { id },
+            data: { latestExecutionId: execution!.id },
+            include: latestExecution,
         })
     }
 
@@ -101,14 +113,14 @@ class BacktestRepository implements IBacktestRepository {
         })
     }
 
-    async getDetailsById(id: string): Promise<BacktestDetails | null> {
+    async getDetailsById(id: string, statuses: BacktestStatus[]): Promise<BacktestDetails | null> {
         const [backtest, result] = await prisma.$transaction([
             prisma.backtest.findUnique({
                 where: { id },
                 include: { ...allocations, executions: executionSummary },
             }),
             prisma.backtestResult.findFirst({
-                where: { execution: { backtestId: id, status: "COMPLETED" } },
+                where: { execution: { backtestId: id, status: { in: statuses } } },
                 orderBy: [{ execution: { createdAt: "desc" } }, { execution: { attempt: "desc" } }],
             }),
         ])
@@ -168,7 +180,7 @@ class BacktestRepository implements IBacktestRepository {
         })
     }
 
-    async getBatch(batchId: string): Promise<BatchRecords> {
+    async getBatch(batchId: string, statuses: BacktestStatus[]): Promise<BatchRecords> {
         const [backtests, earliest] = await prisma.$transaction([
             prisma.backtest.findMany({
                 where: { batchId },
@@ -177,7 +189,7 @@ class BacktestRepository implements IBacktestRepository {
                     ...batchBacktest,
                     latestExecution: { select: { status: true } },
                     executions: {
-                        where: { status: "COMPLETED" },
+                        where: { status: { in: statuses } },
                         orderBy: executionSummary.orderBy,
                         take: 1,
                         select: { result: { select: batchResult } },
@@ -186,12 +198,13 @@ class BacktestRepository implements IBacktestRepository {
             }),
             // Les fenêtres glissantes (courbe comprise) pèsent lourd : lues une seule fois, pour le départ le plus ancien
             prisma.backtestResult.findFirst({
-                where: { execution: { status: "COMPLETED", backtest: { batchId } } },
+                where: { execution: { status: { in: statuses }, backtest: { batchId } } },
                 orderBy: [{ execution: { backtest: { startDate: "asc" } } }, { execution: { createdAt: "desc" } }],
                 select: { rollingSummary: true },
             }),
         ])
-        return { backtests, rollingSummary: earliest?.rollingSummary ?? null }
+        // Colonne Json : écrite par `backtest.completed` sous la forme `RollingWindow[]`
+        return { backtests, rollingSummary: (earliest?.rollingSummary ?? null) as RollingWindow[] | null }
     }
 
     async createExecution(backtestId: string, attempt: number): Promise<BacktestExecution> {

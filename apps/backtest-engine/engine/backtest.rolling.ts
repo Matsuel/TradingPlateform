@@ -1,19 +1,7 @@
+import { addYears, median } from "@trading-plateform/utils";
 import { ROLLING_WINDOW_YEARS, type RollingWindow } from "@trading-plateform/contracts";
 import type { TwrPoint } from "../interfaces/backtest.interface";
 import { round } from "./backtest.utils";
-
-/** Date `YYYY-MM-DD` + `years` années civiles (un 29 février retombe le 1er mars hors année bissextile). */
-const addYears = (date: string, years: number) => {
-    const shifted = new Date(date);
-    shifted.setUTCFullYear(shifted.getUTCFullYear() + years);
-    return shifted.toISOString().slice(0, 10);
-};
-
-/** Médiane d'une liste triée croissante, moyenne des deux valeurs centrales si le nombre est pair. */
-const median = (sorted: number[]) => {
-    const middle = sorted.length >> 1;
-    return sorted.length % 2 ? sorted[middle]! : (sorted[middle - 1]! + sorted[middle]!) / 2;
-};
 
 /**
  * Rendement annualisé de l'indice TWR (hors versements, ratio annuel : `0.08` = +8 %/an) sur chaque fenêtre glissante de
@@ -25,7 +13,7 @@ function windowReturns(points: TwrPoint[], years: number): RollingWindow["points
     const windows: RollingWindow["points"] = [];
     let end = 0;
     for (const start of points) {
-        const target = addYears(start.date, years);
+        const target = addYears(new Date(start.date), years).toISOString().slice(0, 10);
         while (end < points.length && points[end]!.date < target) end++;
         if (end === points.length) break;
         windows.push({ date: start.date, value: (points[end]!.index / start.index) ** (1 / years) - 1 });

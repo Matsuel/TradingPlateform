@@ -62,7 +62,7 @@ Catalogue des routes internes de market-service (port 8001, données yahoo-finan
   ```json
   [{ "date": "2026-10-28T13:30:00.000Z", "price": 268.41 }]
   ```
-- **Erreurs** : `400 { "error": "Invalid query", "code": "INVALID_QUERY" }` → `id` vide après `trim` ; `400 { "error": "Invalid query", "code": "INVALID_QUERY", "issues": [ZodIssue] }` → `period` absent ou hors liste ; `500` → symbole inconnu ou erreur yahoo-finance2.
+- **Erreurs** : `400 { "error": "Invalid query", "code": "INVALID_QUERY" }` → `id` vide après `trim` ; `400 { "error": "Invalid query", "code": "INVALID_QUERY", "issues": [ZodIssue] }` → `period` absent ou hors liste ; `502 { "error": "Service unavailable", "code": "SERVICE_UNAVAILABLE" }` → le fournisseur ne rend aucune série ; `500` → symbole inconnu ou erreur yahoo-finance2.
 - **Effets** : aucun.
 - **Appelant** : `getAssetsDetails(symbol, period)` de `apps/web/src/features/market/api.ts`, hook `useMarketDetails(symbol, period)` (clé `["market", "detail", symbol, period]`, `staleTime` 60 s, `keepPreviousData`) ; utilisé par `PriceChart` (`features/market/price-chart.tsx`).
 - **Source** : `routes/market/market.routes.ts`, `controller/market.controller.ts` (`getMarketDetails`), `services/market.service.ts`, `repositories/market.repository.ts`.
