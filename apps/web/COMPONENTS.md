@@ -316,7 +316,7 @@ Primitives shadcn (base-ui), voir la doc shadcn. Seule base des briques d'interf
 - **Import** : `import { StatCard } from "@/components/stat-card"`.
 - **Rôle** : carte de métrique : libellé, valeur, badge de tendance optionnel et légende. Groupes de cartes dans `features/<domaine>/stats.tsx`.
 - **Props** :
-  - `label` : Libellé.
+  - `label` : Libellé (texte, ou `InfoHint` qui ouvre le glossaire).
   - `value` : Valeur déjà formatée.
   - `caption` (optionnel) : Légende ; masquée si falsy.
   - `delta` (optionnel) : Contenu du badge ; badge masqué si `null`/`undefined`.
@@ -899,10 +899,39 @@ Source : `src/features/auth/schema.ts`.
 ### BacktestDetail
 
 - **Import** : `import { BacktestDetail } from "@/features/backtest/backtest-detail"`.
-- **Rôle** : écran détail (maquette 13 v2 · A) : en-tête avec statut, allocation, rebalancement, benchmark et relance ; `ResultOverview` (valeur finale, courbes de valeur et de drawdown) ; `ResultMetrics` (indicateurs groupés) ; `TradesTable` (ordres) ; `ResultDetails` (positions, hypothèses, historique repliés). Instancie `useBacktest` et `useRerunBacktest`.
+- **Rôle** : écran détail (maquette 13 v2 · A) : en-tête avec statut, allocation, rebalancement, benchmark, relance et, dès qu'il y a un résultat, bouton vers `BacktestDividends` ; `ResultOverview` (valeur finale, courbes de valeur et de drawdown) ; `ResultMetrics` (indicateurs groupés) ; `TradesTable` (ordres) ; `ResultDetails` (positions, hypothèses, historique repliés). Instancie `useBacktest` et `useRerunBacktest`.
 - **Props** :
   - `id` : Id du backtest.
 - **Source** : `src/features/backtest/backtest-detail.tsx`.
+
+### BacktestDividends
+
+- **Import** : `import { BacktestDividends } from "@/features/backtest/backtest-dividends"`.
+- **Rôle** : écran « Dividendes et change » (maquette 31, route `routes.backtestDividends(id)`), ouvert par le bouton « Dividendes et change » du détail (toujours affiché avec un résultat) : quatre `StatCard` (valeur finale, rendement total avec le cours seul, dividendes perçus, effet de change si hors EUR), `ReturnBreakdown`, courbe avec et sans dividendes (`ValueDrawdownCharts` sans drawdown ; absente sans `priceOnlyValue`) et `DividendsTable`. Un résultat antérieur ou sans dividende ni change affiche un `EmptyCard`. Instancie `useBacktest`.
+- **Props** :
+  - `id` : Id du backtest.
+- **Source** : `src/features/backtest/backtest-dividends.tsx`.
+
+### ReturnBreakdownCard
+
+- **Import** : `import { ReturnBreakdownCard } from "@/features/backtest/return-breakdown"`.
+- **Rôle** : carte « Décomposition du rendement » : cours seul, dividendes, rendement local, contribution du change, rendement en EUR, avec une barre proportionnelle à chaque valeur. Composantes en points, totaux en pourcentage ; sans change (`fx` null), lignes « devise locale » et « change » omises.
+- **Props** : `breakdown` (`returnBreakdown` du moteur, ratios), `totalReturn` (ratio EUR).
+- **Source** : `src/features/backtest/return-breakdown.tsx`.
+
+### DividendValueChart
+
+- **Import** : `import { DividendValueChart } from "@/features/backtest/dividend-value-chart"`.
+- **Rôle** : carte « Valeur du portefeuille » de la page dividendes : courbe avec dividendes réinvestis et, en pointillés, le même portefeuille sans dividendes (`priceOnlyValue`), puis l'écart final (`dividendGain`). Renvoie `null` si aucun point n'a de `priceOnlyValue`.
+- **Props** : `result: BacktestResult`.
+- **Source** : `src/features/backtest/dividend-value-chart.tsx`.
+
+### DividendsTable
+
+- **Import** : `import { DividendsTable } from "@/features/backtest/dividends-table"`.
+- **Rôle** : table « Dividendes perçus » : ex-date, actif, montant en EUR, parts rachetées ; du plus récent au plus ancien, paginée côté client (`PAGE_SIZE`), puis total et nombre de versements.
+- **Props** : `events` (`dividendEvents` du moteur, du plus ancien au plus récent), `total` (`dividendTotal`, Decimal sérialisé ou null).
+- **Source** : `src/features/backtest/dividends-table.tsx`.
 
 ### TradesTable
 

@@ -179,6 +179,7 @@
         },
         "detail": {
             "metaTitle": "Backtest",
+            "dividends": "Dividends and currency",
             "rerun": "Run again",
             "failed": "The backtest failed: {error}",
             "unknownError": "unknown error",
@@ -213,7 +214,8 @@
             "CLOSE_ON_SCHEDULED_DAY": "Buy at the close of the first trading day of each due date"
         },
         "priceType": {
-            "CLOSE_SPLIT_ADJUSTED": "Close adjusted for splits, excluding dividends"
+            "CLOSE_SPLIT_ADJUSTED": "Close adjusted for splits, excluding dividends",
+            "TOTAL_RETURN": "Close adjusted for splits, dividends reinvested, in euros"
         },
         "status": {
             "DRAFT": "Draft",
@@ -368,6 +370,50 @@
             "lumpSum": "Lump sum",
             "drawdown": "Drawdown",
             "on": "on"
+        },
+        "dividends": {
+            "metaTitle": "Dividends and currency",
+            "finalValue": "Final value",
+            "description": "Reinvested dividends and currency effect, amounts in EUR",
+            "back": "Back to the result",
+            "empty": "This backtest has no dividend received and no currency effect to detail. A result from before this feature has no such data.",
+            "points": "{value} pts",
+            "invested": "Invested {amount}",
+            "totalReturn": "Total return",
+            "priceOnly": "Price only: {value}",
+            "reinvested": "reinvested",
+            "dividendTotal": "Dividends received",
+            "dividendCaption": "At the ex-date price, no fee",
+            "fx": "Currency effect",
+            "fxCaption": "Local return {value}",
+            "breakdown": {
+                "title": "Return breakdown",
+                "description": "From the price in local currency to the return in EUR, in % points",
+                "price": "Price (local currency)",
+                "dividends": "Dividends reinvested",
+                "local": "= Return in local currency",
+                "fx": "Currency contribution",
+                "total": "= Return in EUR",
+                "note": "Local return + currency contribution = return in EUR, within 0.1 point. Converted at the day's rate.",
+                "noteEur": "Holdings quoted in euros: no conversion."
+            },
+            "chart": {
+                "title": "Portfolio value",
+                "description": "In EUR, from {from} to {to}",
+                "reinvested": "Dividends reinvested",
+                "priceOnly": "Price only",
+                "gap": "Final gap: {amount} due to reinvested dividends"
+            },
+            "table": {
+                "title": "Dividends received",
+                "description": "Payments · reinvested at the ex-date",
+                "empty": "No dividend received",
+                "total": "Total over the period: {total} in {count, plural, one {# payment} other {# payments}}. Taxes and withholding not included.",
+                "exDate": "Ex-date",
+                "symbol": "Asset",
+                "amount": "Amount",
+                "quantity": "Shares bought"
+            }
         },
         "result": {
             "performance": {
@@ -544,6 +590,77 @@
             "computation": "Sum of the contributions, fees included: a €6,000 order costs €6,000, fees included. Rebalancing is self-financing and does not increase it.",
             "unit": "{moneyUnit}"
         },
+        "priceReturn": {
+            "title": "Return excluding dividends",
+            "purpose": "Isolate what prices alone return, to measure what dividends add.",
+            "computation": "The engine replays the simulation paying no dividend. The gap with the total return comes from the reinvested dividends.",
+            "formula": "dividend contribution = total return − return excluding dividends",
+            "unit": "Ratio displayed as a percentage.",
+            "readingTip": "Equal to the total return when the holdings pay nothing."
+        },
+        "dividendTotal": {
+            "title": "Dividends received",
+            "purpose": "See how much the holdings paid in dividends, already put back into the portfolio.",
+            "computation": "On each ex-dividend date, the dividend per share is multiplied by the shares held. That amount is bought back at that day's price, with no fee. Dollar dividends are converted to euros at the day's rate.",
+            "formula": "dividends = Σ shares held × dividend per share",
+            "unit": "{moneyUnit}",
+            "readingTip": "They are already included in the final value and the total return."
+        },
+        "fxContribution": {
+            "title": "Currency effect",
+            "purpose": "Understand the share of the return due to the euro moving against the currency of the holdings.",
+            "computation": "The engine replays the simulation in local currency, without conversion, then subtracts that return from the return in euros.",
+            "formula": "currency effect = return in euros − return in local currency",
+            "unit": "Ratio points displayed as a percentage.",
+            "readingTip": "+3%: the dollar added 3 points of return against the euro. A dollar stock can gain in price and lose in euros."
+        },
+        "localPriceReturn": {
+            "title": "Price return in local currency",
+            "purpose": "See what prices alone return, before dividends and before conversion to euros.",
+            "computation": "The engine replays the simulation with no dividend, with prices in their trading currency, without conversion.",
+            "unit": "Ratio displayed as a percentage.",
+            "readingTip": "Differs from the return excluding dividends in euros when a holding trades in dollars: the currency effect is not counted yet."
+        },
+        "dividendContribution": {
+            "title": "Contribution of reinvested dividends",
+            "purpose": "Measure what reinvested dividends add to the price return.",
+            "computation": "Local-currency return with dividends, minus local-currency return without dividends.",
+            "formula": "contribution = local return with dividends − local return without dividends",
+            "unit": "Ratio points displayed as a percentage.",
+            "readingTip": "+1.2 pt: reinvested dividends added 1.2 points to the return."
+        },
+        "localReturn": {
+            "title": "Return in local currency",
+            "purpose": "See the return before the currency effect: prices and dividends, without conversion to euros.",
+            "computation": "The engine replays the simulation with prices in their trading currency, dividends reinvested.",
+            "formula": "local return = price + reinvested dividends",
+            "unit": "Ratio displayed as a percentage.",
+            "readingTip": "Adding the currency effect gives the return in euros."
+        },
+        "dividendGain": {
+            "title": "Gap due to dividends",
+            "purpose": "Know how much reinvested dividends earned in euros over the period.",
+            "computation": "Final value of the portfolio minus the final value of the same portfolio without reinvested dividends. The reinvested shares grew with prices too: the gap exceeds the total received.",
+            "formula": "gap = final value − final value without dividends",
+            "unit": "{moneyUnit}",
+            "readingTip": "Higher than the dividends received when the shares bought back gained value."
+        },
+        "dividendAmount": {
+            "title": "Dividend amount",
+            "purpose": "See how much a payment returned on the ex-dividend date.",
+            "computation": "Shares held on the ex-date multiplied by the dividend per share, converted to euros at that day's rate, rounded to the cent.",
+            "formula": "amount = shares held × dividend per share",
+            "unit": "{moneyUnit}",
+            "readingTip": "Taxes and withholding are not included."
+        },
+        "dividendQuantity": {
+            "title": "Shares bought back",
+            "purpose": "See how many shares the dividend added to the portfolio.",
+            "computation": "Dividend amount divided by the ex-date closing price, with no fee. Shares are fractional.",
+            "formula": "shares = amount ÷ ex-date price",
+            "unit": "Number of shares, up to 6 decimals.",
+            "readingTip": "These shares receive the following dividends in turn."
+        },
         "totalReturn": {
             "title": "Total return",
             "purpose": "The gain relative to what you paid in, over the whole period, regardless of its length.",
@@ -699,7 +816,7 @@
         "dataSource": {
             "title": "Data source",
             "purpose": "Know where the replayed prices come from and what type of price they are.",
-            "computation": "Price provider (Yahoo Finance) and price type: close adjusted for stock splits, dividends not reinvested.",
+            "computation": "Price provider (Yahoo Finance) and price type: close adjusted for stock splits. Recent results reinvest dividends and convert holdings to euros; older ones do not.",
             "unit": "Provider · price type."
         },
         "dataFingerprint": {

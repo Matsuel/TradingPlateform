@@ -65,3 +65,15 @@ test("une réponse qui ne respecte pas le contrat est refusée", async () => {
 
     expect(new MarketRepository().getDailyCloses(["AAA"], start, end)).rejects.toThrow()
 })
+
+test("lit les dividendes et la devise auprès de market-service", async () => {
+    const calls = stubFetch(() => Response.json({ AAA: { currency: "USD", dividends: [{ date: "2024-02-09", amount: 0.24 }] }, BBB: { currency: "EUR", dividends: [] } }))
+
+    const dividends = await new MarketRepository().getDividends(["AAA", "BBB"], start, end)
+
+    expect(dividends.AAA).toEqual({ currency: "USD", dividends: [{ date: "2024-02-09", amount: 0.24 }] })
+    expect(dividends.BBB!.dividends).toEqual([])
+    expect(new URL(calls[0]!.url).pathname).toBe("/api/market/dividends")
+    expect(calls[0]!.headers.get("x-internal-key")).toBeTruthy()
+})
+

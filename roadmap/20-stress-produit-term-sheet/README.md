@@ -6,6 +6,7 @@
 - **Branche / PR** : `feat/stress-produit-term-sheet` — PR à ouvrir
 - **Points** : 19 (MUST 15, SHOULD 4) — prévus
 - **Maquettes** : `40 · Term sheet` (créée, node `467:13542`)
+- **Écrans modifiés** : `39 · Constructeur de produit` (node `465:13338`) : bouton « Term sheet » vers la page 40 — dessiné dans la copie `à modifier (F20)` ; l’original est mis à jour au codage
 - **Dépend de** : 13 (Risk Engine, vocabulaire du stress) ; 19 (produit à stresser).
 
 ## Objectif

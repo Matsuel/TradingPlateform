@@ -5,6 +5,7 @@ Trace de ce qui a été fait, comment, et de ce qui est prévu. Un dossier par f
 La vision et la roadmap annuelle restent dans le [`README.md`](../README.md) racine. Ce dossier en est le suivi d’exécution. Il est maintenu avec le skill `feature-roadmap` (`.claude/skills/feature-roadmap/`) : planification d’une nouvelle feature, rétro d’une feature livrée, clôture.
 
 - **Maquettes** : Figma `Trading`, clé `DmpvF0SdUJGCBfA6GsdErm`, page `0:1`. Une section par feature ou par mois, écrans numérotés dans l’ordre des features.
+- **Écrans modifiés** : la ligne du même nom du `README.md` de chaque feature liste les cadres Figma existants qu'elle change (bouton, bloc, lien), avec leur état : `à dessiner`, `à mettre à jour` ou `mise à jour faite`. Dans Figma, la section de la feature contient une copie de chacun de ces écrans, nommée `<écran> · à modifier (F<NN>)`, à côté de ses nouveaux écrans : tout ce qui se travaille pour la feature se voit au même endroit (l'original reste dans sa section). **Étape par étape** : la copie ne montre que les changements de sa feature et des précédentes, jamais ceux des suivantes ; l'original ne reçoit le changement qu'au codage de la feature (états : `à dessiner`, `dessiné dans la copie`, `mise à jour faite` une fois codé).
 
 ### Renumérotation des maquettes (2026-11-01)
 
@@ -42,6 +43,7 @@ Les dossiers des features 02 à 08 citent les anciens numéros ; cette table les
 | 07 | [Clôture du Strategy Lab](07-strategy-lab-cloture/) | 3 | 2026-10-29 → 2026-10-30 | #3 | Livrée | 24 ᵃ |
 | 08 | [Portfolio Management V1](08-portfolio-v1/) | 4 | 2026-10-30 → 2026-10-31 | — | Livrée | 104 |
 | 09 | [Aide contextuelle sur les données](09-aide-contextuelle/) | 4–5 ᵇ | 2026-11-01 | — | Livrée | 28 |
+| 11 | [Dividendes, splits et effet devise](11-dividendes-splits-devise/) | 5 | 2026-11-12 | — | Livrée | 36 |
 
 ᵃ estimés a posteriori d’après les diffs.
 ᵇ hors « Roadmap annuelle » : demande du 2026-10-30, après le lot 3 de la feature 08.

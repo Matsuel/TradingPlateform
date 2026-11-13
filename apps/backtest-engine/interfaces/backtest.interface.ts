@@ -1,10 +1,31 @@
-import type { BacktestCompletedPayload, BacktestRequestedPayload, DailyClose } from "@trading-plateform/contracts";
+import type { BacktestCompletedPayload, BacktestRequestedPayload, DailyClose, Dividend } from "@trading-plateform/contracts";
 
 // Clôture d'un jour de cotation (`YYYY-MM-DD`), devise de cotation
 export type PricePoint = DailyClose;
 
 // Cours de clôture journaliers par symbole, triés par date
 export type PriceSeries = Record<string, PricePoint[]>;
+
+// Dividendes par symbole, triés par date : ex-date `YYYY-MM-DD`, montant par titre dans la devise de cotation
+export type DividendSeries = Record<string, Dividend[]>;
+
+// Devise de cotation (ISO 4217) de chaque symbole ; un symbole absent est traité comme coté en euros
+export type Currencies = Record<string, string>;
+
+// Données de marché d'une simulation : cours et dividendes dans la même devise
+export interface MarketInput {
+    prices: PriceSeries;
+    dividends: DividendSeries;
+}
+
+// Données d'entrée facultatives de `runBacktest` : sans elles, les cours sont déjà en euros et sans dividende
+export interface MarketExtras {
+    dividends?: DividendSeries;
+    // Devise de cotation de chaque symbole de `prices` ; un symbole absent cote en euros
+    currencies?: Currencies;
+    // Séries journalières des paires `EURxxx=X` (unités de devise pour 1 €), une par devise étrangère
+    fxRates?: PriceSeries;
+}
 
 // Point de l'indice de performance pondérée dans le temps (TWR, hors versements), chaîné jour après jour
 export interface TwrPoint {

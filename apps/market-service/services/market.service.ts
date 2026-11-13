@@ -1,4 +1,4 @@
-import type { DailyCloses, MarketAsset, Paginated, PaginationQuery, Period } from "@trading-plateform/contracts";
+import type { DailyCloses, Dividends, MarketAsset, Paginated, PaginationQuery, Period } from "@trading-plateform/contracts";
 import MarketRepository, { type IMarketRepository } from "../repositories/market.repository";
 import { ASSETS_CACHE_TTL_MS, DEFAULT_TICKERS, DETAILS_CACHE_TTL_MS, SEARCH_CACHE_TTL_MS } from "../constants/market.constants";
 import { TtlCache } from "../utils/cache";
@@ -35,6 +35,11 @@ class MarketService {
     // Jamais mis en cache : un backtest publie l'empreinte et l'instant de récupération de ces cours (reproductibilité)
     async getDailyCloses(symbols: string[], start: Date, end: Date): Promise<DailyCloses> {
         return this.repo.getDailyCloses(symbols, start, end)
+    }
+
+    // Jamais mis en cache : les dividendes entrent dans l'empreinte de reproductibilité d'un backtest, comme les cours
+    async getDividends(symbols: string[], start: Date, end: Date): Promise<Dividends> {
+        return this.repo.getDividends(symbols, start, end)
     }
 }
 

@@ -7,6 +7,7 @@ import type {
     Backtest,
     BacktestComparison,
     BacktestExecution,
+    BacktestResult,
     EquityPoint,
     ExecutionStatus,
 } from "./types"
@@ -49,6 +50,11 @@ export function getExecutionDuration(t: BacktestTranslator, e: BacktestExecution
 /** Allocation lisible : « AAPL 60 % · MSFT 40 % » (poids en ratio, au pourcent entier, D2). */
 export const formatAllocation = (f: Formatters, allocations: Backtest["allocations"]) =>
     allocations.map(({ symbol, weight }) => `${symbol} ${f.formatRate(Number(weight))}`).join(" · ")
+
+/** Un résultat a-t-il des dividendes perçus ou un effet de change à détailler ? Faux pour un résultat antérieur. */
+export const hasDividendDetails = (result: BacktestResult) =>
+    result.returnBreakdown != null &&
+    ((fromDecimal(result.dividendTotal) ?? 0) > 0 || result.returnBreakdown.fx != null)
 
 /** Decimal sérialisé en string par l'API → number ; null ou absent → null (champ absent des résultats antérieurs). */
 export const fromDecimal = (value: string | null | undefined) => (value == null ? null : Number(value))

@@ -6,6 +6,7 @@
 - **Branche / PR** : `feat/resilience-et-soutenance` — PR à ouvrir
 - **Points** : 27 (MUST 24, SHOULD 3) — prévus
 - **Maquettes** : aucune
+- **Écrans modifiés** : aucun
 - **Dépend de** : 23 (observabilité pour mesurer les pannes) ; 22 (cluster pour les pannes et la sauvegarde).
 
 ## Objectif

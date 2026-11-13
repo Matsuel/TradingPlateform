@@ -46,6 +46,16 @@ class MarketController {
         res.json(await this.marketService.getDailyCloses(symbols, start, end))
     }
 
+    getDividends = async(req: Request, res: Response) => {
+        logger.info(`Handling dividends request ${req.method} ${req.originalUrl}`)
+
+        const parsed = dailyClosesQuerySchema.safeParse(req.query)
+        if (!parsed.success) throw new BadRequestError(API_ERROR_CODES.INVALID_QUERY, { issues: parsed.error.issues })
+
+        const { symbols, start, end } = parsed.data
+        res.json(await this.marketService.getDividends(symbols, start, end))
+    }
+
     getDefaultsAssets = async(req: Request, res: Response) => {
         logger.info(`Handling defaults market request ${req.method} ${req.originalUrl}`)
 

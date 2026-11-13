@@ -15,7 +15,7 @@ const trends = {
 } as const satisfies Record<Trend, { variant: "success" | "outline"; className?: string; icon?: ReactNode }>
 
 interface StatCardProps {
-    label: string
+    label: ReactNode
     value: ReactNode
     caption?: ReactNode
     delta?: ReactNode

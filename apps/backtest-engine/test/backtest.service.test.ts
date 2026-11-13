@@ -32,8 +32,13 @@ function recordingPublisher() {
     return { publisher, events }
 }
 
+// Sans dividende, cotations en euros
 const marketWith = (getDailyCloses: IMarketRepository["getDailyCloses"]) =>
-    ({ source: { provider: "test", priceType: "close" }, getDailyCloses }) as unknown as IMarketRepository
+    ({
+        source: { provider: "test", priceType: "close" },
+        getDailyCloses,
+        getDividends: async (symbols: string[]) => Object.fromEntries(symbols.map((symbol) => [symbol, { currency: "EUR", dividends: [] }])),
+    }) as unknown as IMarketRepository
 
 test("un backtest réussi publie started puis completed avec la provenance des cours", async () => {
     const { publisher, events } = recordingPublisher()
@@ -67,4 +72,23 @@ test("une panne du fournisseur de cours publie failed avec ENGINE_FAILED, sans l
     await service.run(request)
 
     expect(events[1]).toMatchObject({ type: "failed", payload: { errorCode: "ENGINE_FAILED", error: "yahoo down" } })
+})
+
+test("un actif en dollars charge sa paire EURUSD=X avec les cours et publie la contribution du change", async () => {
+    const { publisher, events } = recordingPublisher()
+    const service = new BacktestService(publisher)
+    const requested: string[][] = []
+    service.repo = {
+        source: { provider: "test", priceType: "close" },
+        getDividends: async () => ({ AAA: { currency: "USD", dividends: [{ date: "2024-01-03", amount: 0.1 }] } }),
+        getDailyCloses: async (symbols: string[]) => {
+            requested.push(symbols)
+            return { AAA: syntheticSeries(1, "2024-01-02", 8, 10000), "EURUSD=X": syntheticSeries(2, "2024-01-02", 8, 110) }
+        },
+    } as unknown as IMarketRepository
+
+    await service.run(request)
+
+    expect(requested).toEqual([["AAA", "EURUSD=X"]])
+    expect(events[1]!.payload).toMatchObject({ returnBreakdown: expect.objectContaining({ fx: expect.any(Number) }), dividendTotal: expect.any(Number) })
 })

@@ -6,6 +6,7 @@
 - **Branche / PR** : `feat/risk-engine` — PR à ouvrir
 - **Points** : 25 (MUST 18, SHOULD 7) — prévus
 - **Maquettes** : `33 · Risque` (créée, node `454:12126`)
+- **Écrans modifiés** : `13 · Résultat d’un backtest` (node `350:7214`) : bouton « Risque » vers la page 33 du backtest (décision : pas de bloc dans le résultat) — dessiné dans la copie `à modifier (F13)` ; l’original est mis à jour au codage
 - **Dépend de** : 11 (rendements corrects). Gèle le moteur de simulation à la fin de cette feature.
 
 ## Objectif

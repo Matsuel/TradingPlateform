@@ -29,6 +29,7 @@ Catalogue des routes internes de market-service (port 8001, données yahoo-finan
 - [`GET /api/market/details/:id`](#get-apimarketdetailsid)
 - [`GET /api/market/defaults`](#get-apimarketdefaults)
 - [`GET /api/market/closes`](#get-apimarketcloses)
+- [`GET /api/market/dividends`](#get-apimarketdividends)
 
 ## Conventions communes
 
@@ -99,7 +100,7 @@ Catalogue des routes internes de market-service (port 8001, données yahoo-finan
 - **Auth** : `x-internal-key` (comme toute route). Appelée par **backtest-engine** directement, pas par le web ni le proxy.
 - **Entrée** :
   - query : `symbols` (liste séparée par des virgules, 1 à `MAX_CLOSES_SYMBOLS` = 50, doublons retirés), `start` et `end` (ISO UTC avec `Z`, `start` < `end`).
-- **Réponse** : `200`, `DailyCloses` : pour chaque symbole demandé, ses clôtures journalières triées par date, dans la devise de cotation. `date` = jour de cotation dans le fuseau de la place (`YYYY-MM-DD`), jamais en UTC ; clôtures ajustées des splits, pas des dividendes ; jours sans clôture omis. Jamais mis en cache.
+- **Réponse** : `200`, `DailyCloses` : pour chaque symbole demandé, ses clôtures journalières triées par date, dans la devise de cotation. `date` = jour de cotation dans le fuseau de la place (`YYYY-MM-DD`), jamais en UTC ; clôtures ajustées des splits, pas des dividendes ; jours sans clôture omis. Un titre coté en sous-unité (`GBp`, `ILA`, `ZAc`) est rendu dans sa devise principale (÷ 100), comme `currency` de `dividends`. Jamais mis en cache.
   ```json
   // GET /api/market/closes?symbols=AAPL&start=2024-01-02T00:00:00.000Z&end=2024-01-10T00:00:00.000Z
   { "AAPL": [{ "date": "2024-01-02", "close": 185.64 }, { "date": "2024-01-03", "close": 184.25 }] }
@@ -108,3 +109,17 @@ Catalogue des routes internes de market-service (port 8001, données yahoo-finan
 - **Effets** : aucun.
 - **Appelant** : `MarketRepository.getDailyCloses` de `apps/backtest-engine/repositories/market.repository.ts`.
 - **Source** : `routes/market/market.routes.ts`, `controller/market.controller.ts` (`getDailyCloses`), `services/market.service.ts`, `repositories/market.repository.ts` (`getDailyCloses`), `interfaces/market.interface.ts` (`dailyClosesQuerySchema`).
+
+### GET /api/market/dividends
+
+- **Auth** : `x-internal-key` (comme toute route). Appelée par **backtest-engine** directement, pas par le web ni le proxy.
+- **Entrée** : query `dailyClosesQuerySchema`, identique à `closes` : `symbols` (1 à `MAX_CLOSES_SYMBOLS`), `start` et `end` (ISO UTC avec `Z`, `start` < `end`).
+- **Réponse** : `200`, `Dividends` : pour chaque symbole demandé, sa devise de cotation (`currency`, ISO 4217, devise principale : `GBp` → `GBP`, montants ÷ 100) et ses dividendes triés par date (`chart` yahoo avec `events: 'div'`). `date` = ex-date dans le fuseau de la place (`YYYY-MM-DD`), `amount` = montant par titre dans la devise de cotation. Liste vide sans dividende. Jamais mis en cache.
+  ```json
+  // GET /api/market/dividends?symbols=AAPL&start=2024-01-02T00:00:00.000Z&end=2024-12-31T00:00:00.000Z
+  { "AAPL": { "currency": "USD", "dividends": [{ "date": "2024-02-09", "amount": 0.24 }] } }
+  ```
+- **Erreurs** : `400 { "error": "Invalid query", "code": "INVALID_QUERY", "issues": [ZodIssue] }` → mêmes cas que `closes` ; `500` → symbole inconnu ou erreur yahoo-finance2.
+- **Effets** : aucun.
+- **Appelant** : `MarketRepository.getDividends` de `apps/backtest-engine/repositories/market.repository.ts`.
+- **Source** : `routes/market/market.routes.ts`, `controller/market.controller.ts` (`getDividends`), `services/market.service.ts`, `repositories/market.repository.ts` (`getDividends`), `interfaces/market.interface.ts` (`dailyClosesQuerySchema`).

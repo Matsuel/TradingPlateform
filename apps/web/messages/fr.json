@@ -179,6 +179,7 @@
         },
         "detail": {
             "metaTitle": "Backtest",
+            "dividends": "Dividendes et change",
             "rerun": "Relancer",
             "failed": "Le backtest a échoué : {error}",
             "unknownError": "erreur inconnue",
@@ -213,7 +214,8 @@
             "CLOSE_ON_SCHEDULED_DAY": "Achat à la clôture du premier jour de cotation de chaque échéance"
         },
         "priceType": {
-            "CLOSE_SPLIT_ADJUSTED": "Clôture ajustée des splits, hors dividendes"
+            "CLOSE_SPLIT_ADJUSTED": "Clôture ajustée des splits, hors dividendes",
+            "TOTAL_RETURN": "Clôture ajustée des splits, dividendes réinvestis, en euros"
         },
         "status": {
             "DRAFT": "Brouillon",
@@ -368,6 +370,50 @@
             "lumpSum": "Investissement unique",
             "drawdown": "Drawdown",
             "on": "sur"
+        },
+        "dividends": {
+            "metaTitle": "Dividendes et change",
+            "finalValue": "Valeur finale",
+            "description": "Dividendes réinvestis et effet du change, montants en EUR",
+            "back": "Retour au résultat",
+            "empty": "Ce backtest n’a ni dividende perçu ni effet de change à détailler. Un résultat antérieur à cette fonction n’a pas ces données.",
+            "points": "{value} pts",
+            "invested": "Investi {amount}",
+            "totalReturn": "Rendement total",
+            "priceOnly": "Cours seul : {value}",
+            "reinvested": "réinvestis",
+            "dividendTotal": "Dividendes perçus",
+            "dividendCaption": "Au cours de l’ex-date, sans frais",
+            "fx": "Effet de change",
+            "fxCaption": "Rendement local {value}",
+            "breakdown": {
+                "title": "Décomposition du rendement",
+                "description": "Du cours en devise locale au rendement en EUR, en points de %",
+                "price": "Cours (devise locale)",
+                "dividends": "Dividendes réinvestis",
+                "local": "= Rendement en devise locale",
+                "fx": "Contribution du change",
+                "total": "= Rendement en EUR",
+                "note": "Rendement local + contribution du change = rendement en EUR, à 0,1 point près. Conversion au cours du jour.",
+                "noteEur": "Titres cotés en euros : aucune conversion."
+            },
+            "chart": {
+                "title": "Valeur du portefeuille",
+                "description": "En EUR, de {from} à {to}",
+                "reinvested": "Dividendes réinvestis",
+                "priceOnly": "Cours seul",
+                "gap": "Écart final : {amount} dus aux dividendes réinvestis"
+            },
+            "table": {
+                "title": "Dividendes perçus",
+                "description": "Versements · réinvestis à l’ex-date",
+                "empty": "Aucun dividende perçu",
+                "total": "Total sur la période : {total} en {count, plural, one {# versement} other {# versements}}. Taxes et retenue à la source non incluses.",
+                "exDate": "Ex-date",
+                "symbol": "Actif",
+                "amount": "Montant",
+                "quantity": "Parts rachetées"
+            }
         },
         "result": {
             "performance": {
@@ -544,6 +590,77 @@
             "computation": "Somme des versements, frais compris : un ordre de 6 000 € coûte 6 000 €, dont les frais. Le rebalancement s’autofinance et ne l’augmente pas.",
             "unit": "{moneyUnit}"
         },
+        "priceReturn": {
+            "title": "Rendement hors dividendes",
+            "purpose": "Isoler ce que rapportent les cours seuls, pour mesurer l’apport des dividendes.",
+            "computation": "Le moteur rejoue la simulation sans verser aucun dividende. La différence avec le rendement total vient des dividendes réinvestis.",
+            "formula": "apport des dividendes = rendement total − rendement hors dividendes",
+            "unit": "Ratio affiché en pourcentage.",
+            "readingTip": "Égal au rendement total quand les titres ne versent rien."
+        },
+        "dividendTotal": {
+            "title": "Dividendes perçus",
+            "purpose": "Voir combien les titres ont versé de dividendes, déjà remis dans le portefeuille.",
+            "computation": "À chaque date de détachement, le dividende par titre est multiplié par le nombre de titres détenus. Cette somme est rachetée au cours de ce jour, sans frais. Les dividendes en dollars sont convertis en euros au taux du jour.",
+            "formula": "dividendes = Σ titres détenus × dividende par titre",
+            "unit": "{moneyUnit}",
+            "readingTip": "Ils sont déjà compris dans la valeur finale et le rendement total."
+        },
+        "fxContribution": {
+            "title": "Effet du change",
+            "purpose": "Comprendre la part du rendement due à la variation de l’euro face à la devise des titres.",
+            "computation": "Le moteur rejoue la simulation en devise locale, sans conversion, puis retranche ce rendement du rendement en euros.",
+            "formula": "effet du change = rendement en euros − rendement en devise locale",
+            "unit": "Points de ratio affichés en pourcentage.",
+            "readingTip": "+3 % : le dollar a pris 3 points de rendement face à l’euro. Un titre en dollars peut gagner en cours et perdre en euros."
+        },
+        "localPriceReturn": {
+            "title": "Rendement du cours en devise locale",
+            "purpose": "Voir ce que rapportent les cours seuls, avant dividendes et avant conversion en euros.",
+            "computation": "Le moteur rejoue la simulation sans dividende, avec les cours dans leur devise de cotation, sans conversion.",
+            "unit": "Ratio affiché en pourcentage.",
+            "readingTip": "Différent du rendement hors dividendes en euros quand un titre cote en dollars : le change n’est pas encore compté."
+        },
+        "dividendContribution": {
+            "title": "Apport des dividendes réinvestis",
+            "purpose": "Mesurer ce que les dividendes réinvestis ajoutent au rendement du cours.",
+            "computation": "Rendement en devise locale avec dividendes, moins rendement en devise locale sans dividendes.",
+            "formula": "apport = rendement local avec dividendes − rendement local sans dividendes",
+            "unit": "Points de ratio affichés en pourcentage.",
+            "readingTip": "+1,2 pt : les dividendes réinvestis ont ajouté 1,2 point au rendement."
+        },
+        "localReturn": {
+            "title": "Rendement en devise locale",
+            "purpose": "Voir le rendement avant l’effet du change : cours et dividendes, sans conversion en euros.",
+            "computation": "Le moteur rejoue la simulation avec les cours dans leur devise de cotation, dividendes réinvestis.",
+            "formula": "rendement local = cours + dividendes réinvestis",
+            "unit": "Ratio affiché en pourcentage.",
+            "readingTip": "Ajouter l’effet du change donne le rendement en euros."
+        },
+        "dividendGain": {
+            "title": "Écart dû aux dividendes",
+            "purpose": "Savoir combien les dividendes réinvestis ont rapporté en euros sur la période.",
+            "computation": "Valeur finale du portefeuille moins valeur finale du même portefeuille sans dividendes réinvestis. Les dividendes rachetés ont eux-mêmes grandi avec les cours : l’écart dépasse le total perçu.",
+            "formula": "écart = valeur finale − valeur finale sans dividendes",
+            "unit": "{moneyUnit}",
+            "readingTip": "Supérieur aux dividendes perçus quand les titres rachetés ont pris de la valeur."
+        },
+        "dividendAmount": {
+            "title": "Montant du dividende",
+            "purpose": "Voir combien un versement a rapporté à la date de détachement.",
+            "computation": "Titres détenus à l’ex-date multipliés par le dividende par titre, converti en euros au taux de ce jour, arrondi au centime.",
+            "formula": "montant = titres détenus × dividende par titre",
+            "unit": "{moneyUnit}",
+            "readingTip": "Taxes et retenue à la source non incluses."
+        },
+        "dividendQuantity": {
+            "title": "Parts rachetées",
+            "purpose": "Voir combien de titres le dividende a permis d’ajouter au portefeuille.",
+            "computation": "Montant du dividende divisé par le cours de clôture de l’ex-date, sans frais. Les titres sont fractionnaires.",
+            "formula": "parts = montant ÷ cours de l’ex-date",
+            "unit": "Nombre de titres, jusqu’à 6 décimales.",
+            "readingTip": "Ces parts reçoivent à leur tour les dividendes suivants."
+        },
         "totalReturn": {
             "title": "Rendement total",
             "purpose": "Le gain rapporté à ce que tu as versé, sur toute la période, sans tenir compte de sa durée.",
@@ -699,7 +816,7 @@
         "dataSource": {
             "title": "Source des données",
             "purpose": "Savoir d’où viennent les cours rejoués et de quel type de prix il s’agit.",
-            "computation": "Fournisseur des cours (Yahoo Finance) et type de prix : clôture ajustée des divisions d’actions, dividendes non réinvestis.",
+            "computation": "Fournisseur des cours (Yahoo Finance) et type de prix : clôture ajustée des divisions d’actions. Les résultats récents réinvestissent les dividendes et convertissent les titres en euros ; les plus anciens ne le font pas.",
             "unit": "Fournisseur · type de prix."
         },
         "dataFingerprint": {

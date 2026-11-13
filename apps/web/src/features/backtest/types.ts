@@ -13,6 +13,7 @@ import type {
     EquityPoint as CompletedEquityPoint,
     Trade as CompletedTrade,
     DataSource,
+    DividendEvent,
     ExecutionRule,
     Holding,
     LumpSumComparison,
@@ -29,6 +30,7 @@ export type {
     ComparedMetric,
     ComparisonParameter,
     DataSource,
+    DividendEvent,
     ExecutionRule,
     Holding,
     LumpSumComparison,
@@ -72,15 +74,29 @@ type DecimalField = "finalValue" | "totalInvested" | "totalFees" | "profit" | "t
 type AssumptionField = "executionRule" | "dataSource"
 
 // Métriques de risque (D10) : Decimal sérialisé en string, cagr, volatility et riskFreeRate (taux sans risque du Sharpe)
-// en fraction annuelle, sharpeRatio sans unité ; null ou absentes pour les résultats antérieurs
-type MetricField = "cagr" | "volatility" | "sharpeRatio" | "riskFreeRate"
+// en fraction annuelle, sharpeRatio sans unité ; null ou absentes pour les résultats antérieurs.
+// priceReturn : rendement sans dividendes (fraction) ; dividendTotal, dividendGain : euros
+type MetricField =
+    | "cagr"
+    | "volatility"
+    | "sharpeRatio"
+    | "riskFreeRate"
+    | "priceReturn"
+    | "dividendTotal"
+    | "dividendGain"
 
 // holdings vide et lumpSumComparison null pour les résultats antérieurs ; lumpSumComparison null hors DCA ;
-// benchmark null sans benchmark, absent ou null pour les résultats antérieurs
+// benchmark null sans benchmark, absent ou null pour les résultats antérieurs ; dividendEvents et returnBreakdown : tels que
+// publiés par le moteur, absents ou null pour les résultats antérieurs
 export type BacktestResult = Record<DecimalField, string | null> &
     Partial<Record<MetricField, string | null>> &
     Pick<BacktestCompletedPayload, "totalTrades" | "holdings" | "lumpSumComparison"> &
-    Partial<Pick<BacktestCompletedPayload, "recoveryDays" | "rebalanceCount" | "benchmark">> & {
+    Partial<
+        Pick<
+            BacktestCompletedPayload,
+            "recoveryDays" | "rebalanceCount" | "benchmark" | "dividendEvents" | "returnBreakdown"
+        >
+    > & {
         [K in AssumptionField]: BacktestCompletedPayload[K] | null
     } & {
         maxDrawdownDate: string | null // ISO

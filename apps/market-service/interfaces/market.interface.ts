@@ -7,7 +7,7 @@ export const searchMarketSchema = z.object({
 
 export const marketIdSchema = z.string().trim().min(1);
 
-// ?symbols=AAPL,MSFT&start=<ISO>&end=<ISO> : cours de clôture journaliers de `start` à `end`
+// ?symbols=AAPL,MSFT&start=<ISO>&end=<ISO> : cours de clôture journaliers (closes) ou dividendes (dividends) de `start` à `end`
 export const dailyClosesQuerySchema = z
     .object({
         symbols: z

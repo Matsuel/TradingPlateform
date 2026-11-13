@@ -6,6 +6,7 @@
 - **Branche / PR** : `feat/grecques-volatilite-implicite` — PR à ouvrir
 - **Points** : 24 (MUST 19, SHOULD 5) — prévus
 - **Maquettes** : `37 · Grecques et smile` (créée, node `461:12922`)
+- **Écrans modifiés** : `36 · Calculateur d’option` (node `459:12719`) : bouton « Volatilité implicite » vers la page 37 — dessiné dans la copie `à modifier (F17)` ; l’original est mis à jour au codage
 - **Dépend de** : 16 (options vanilles).
 
 ## Objectif

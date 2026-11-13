@@ -1,8 +1,9 @@
 import YahooFinance from "yahoo-finance2";
 import type { ChartOptions } from "yahoo-finance2/modules/chart";
-import type { DailyCloses, MarketAsset, MarketData, MarketDetails, Period } from "@trading-plateform/contracts";
+import type { DailyCloses, Dividends, MarketAsset, MarketData, MarketDetails, Period } from "@trading-plateform/contracts";
 import { env } from "../env";
 import { DAY_MS, Logger } from "@trading-plateform/utils";
+import { toMajorCurrency } from "../utils/currency";
 
 const logger = Logger.here();
 
@@ -11,6 +12,7 @@ export interface IMarketRepository {
     getDetails(id: string, period: Period): Promise<MarketDetails[]>
     getAssets(symbols: string[]): Promise<MarketAsset[]>;
     getDailyCloses(symbols: string[], start: Date, end: Date): Promise<DailyCloses>;
+    getDividends(symbols: string[], start: Date, end: Date): Promise<Dividends>;
 }
 
 class MarketRepository implements IMarketRepository {
@@ -108,6 +110,7 @@ class MarketRepository implements IMarketRepository {
     /**
      * Cours de clôture journaliers de chaque symbole entre `start` et `end`, triés par date.
      * Clôtures ajustées des splits, pas des dividendes ; jours sans clôture écartés. Un symbole inconnu lève l'erreur du fournisseur.
+     * Devise de cotation ramenée à la devise principale (`toMajorCurrency`) : un cours en pence est rendu en livres.
      */
     async getDailyCloses(symbols: string[], start: Date, end: Date): Promise<DailyCloses> {
         const series = await Promise.all(
@@ -120,11 +123,40 @@ class MarketRepository implements IMarketRepository {
 
                 // Jour de cotation dans le fuseau de la place : en UTC, Tokyo ou Sydney tomberaient la veille
                 const toDay = new Intl.DateTimeFormat("en-CA", { timeZone: chart.meta.exchangeTimezoneName })
+                const { divisor } = toMajorCurrency(chart.meta.currency)
                 const points = chart.quotes
                     .filter((quote) => quote.close != null)
-                    .map((quote) => ({ date: toDay.format(quote.date), close: quote.close! }))
+                    .map((quote) => ({ date: toDay.format(quote.date), close: quote.close! / divisor }))
 
                 return [symbol, points] as const
+            }),
+        )
+
+        return Object.fromEntries(series)
+    }
+
+    /**
+     * Dividendes de chaque symbole entre `start` et `end`, triés par date, avec sa devise de cotation.
+     * Montants par titre ajustés des splits par le fournisseur, dans la devise principale (`toMajorCurrency`) ; liste vide sans dividende. Un symbole inconnu lève l'erreur du fournisseur.
+     */
+    async getDividends(symbols: string[], start: Date, end: Date): Promise<Dividends> {
+        const series = await Promise.all(
+            symbols.map(async (symbol) => {
+                const chart = await MarketRepository.yahooFinance.chart(symbol, {
+                    period1: start,
+                    period2: end,
+                    interval: "1d",
+                    events: "div",
+                })
+
+                // Ex-date lue dans le fuseau de la place, comme les clôtures : même jour de cotation
+                const toDay = new Intl.DateTimeFormat("en-CA", { timeZone: chart.meta.exchangeTimezoneName })
+                const { currency, divisor } = toMajorCurrency(chart.meta.currency)
+                const dividends = (chart.events?.dividends ?? [])
+                    .map((dividend) => ({ date: toDay.format(dividend.date), amount: dividend.amount / divisor }))
+                    .sort((a, b) => a.date.localeCompare(b.date))
+
+                return [symbol, { currency, dividends }] as const
             }),
         )
 

@@ -5,6 +5,7 @@ import {
     annualizedReturn,
     annualizedVolatility,
     createDrawdownTracker,
+    fingerprintMarket,
     fingerprintPrices,
     round,
     sharpeRatio,
@@ -187,3 +188,17 @@ describe("fingerprintPrices", () => {
         expect(fingerprintPrices(referencePrices)).toBe("7e2c42c9eda0d6ef5e7a5c69fce301c8c05395ce5e456b905485e310bdd96409");
     });
 });
+
+describe("fingerprintMarket", () => {
+    const market = { prices: { AAA: [{ date: "2024-01-02", close: 10 }] }, dividends: { AAA: [{ date: "2024-01-03", amount: 0.5 }] }, fxRates: {} };
+
+    test("change dès qu'un dividende ou un taux change", () => {
+        const reference = fingerprintMarket(market);
+
+        expect(reference).toMatch(/^[0-9a-f]{64}$/);
+        expect(fingerprintMarket(market)).toBe(reference);
+        expect(fingerprintMarket({ ...market, dividends: { AAA: [{ date: "2024-01-03", amount: 0.51 }] } })).not.toBe(reference);
+        expect(fingerprintMarket({ ...market, fxRates: { "EURUSD=X": [{ date: "2024-01-02", close: 1.1 }] } })).not.toBe(reference);
+    });
+});
+

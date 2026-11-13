@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { DAY_MS } from "@trading-plateform/utils";
-import type { BacktestParams, PriceSeries, TwrPoint } from "../interfaces/backtest.interface";
+import type { BacktestParams, DividendSeries, PriceSeries, TwrPoint } from "../interfaces/backtest.interface";
 
 // Année calendaire moyenne (années bissextiles comprises), base d'annualisation du CAGR
 const DAYS_PER_YEAR = 365.25;
@@ -142,4 +142,17 @@ export function fingerprintPrices(prices: PriceSeries): string {
         .sort()
         .map((symbol) => [symbol, prices[symbol]!.map((point) => [point.date, point.close])]);
     return createHash("sha256").update(JSON.stringify(canonical)).digest("hex");
+}
+
+/**
+ * Empreinte SHA-256 de toutes les données d'entrée d'une exécution : cours, dividendes et taux de change.
+ * Même contrat que `fingerprintPrices` : change dès qu'une valeur, une date ou un symbole change.
+ */
+export function fingerprintMarket({ prices, dividends, fxRates }: { prices: PriceSeries; dividends: DividendSeries; fxRates: PriceSeries }): string {
+    const canonicalDividends = Object.keys(dividends)
+        .sort()
+        .map((symbol) => [symbol, dividends[symbol]!.map((dividend) => [dividend.date, dividend.amount])]);
+    return createHash("sha256")
+        .update(JSON.stringify([fingerprintPrices(prices), fingerprintPrices(fxRates), canonicalDividends]))
+        .digest("hex");
 }

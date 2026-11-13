@@ -6,6 +6,7 @@
 - **Branche / PR** : `feat/robustesse-dates-de-depart` — PR à ouvrir
 - **Points** : 27 (MUST 21, SHOULD 6) — prévus
 - **Maquettes** : `32 · Robustesse` (créée, node `453:11911`)
+- **Écrans modifiés** : `12 · Nouveau backtest` (node `297:5995`) : interrupteur « Plusieurs dates de départ » sous Début/Fin (T-06 modifie `new-backtest-form.tsx`) ; `13 · Résultat d’un backtest` (node `350:7214`) : bouton « Robustesse » vers la page de lot 32 — dessiné dans la copie `à modifier (F12)` ; l’original est mis à jour au codage
 - **Dépend de** : 11 (dividendes, rendements corrects).
 
 ## Objectif

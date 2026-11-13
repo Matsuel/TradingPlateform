@@ -6,6 +6,7 @@
 - **Branche / PR** : `feat/projection-monte-carlo` — PR à ouvrir
 - **Points** : 26 (MUST 25, SHOULD 1) — prévus
 - **Maquettes** : `34 · Projection Monte Carlo` (créée, node `455:12320`)
+- **Écrans modifiés** : aucun (page `Projection` de la sidebar, le backtest se choisit sur la page 34)
 - **Dépend de** : 12 (robustesse). Le moteur est réutilisé en 18 pour le pricing.
 
 ## Objectif

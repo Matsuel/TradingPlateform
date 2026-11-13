@@ -92,6 +92,55 @@ describeWithDb("BacktestRepository (base de test)", () => {
         expect(onlyRunning.data.map((backtest) => backtest.name)).toEqual(["b"])
     })
 
+    test("completeExecution écrit les dividendes et la décomposition du rendement, et rejoue sans effet", async () => {
+        const backtest = await repo.create(backtestFor(userId))
+        const executionId = backtest.executions[0]!.id
+        await repo.updateExecution(executionId, ["PENDING"], { status: "RUNNING" })
+        const dividendEvents = [{ date: "2024-02-09", symbol: "AAPL", amount: 1.5, quantity: 0.008 }]
+        const returnBreakdown = { price: 0.1, dividends: 0.02, local: 0.12, fx: -0.01 }
+        const result = {
+            finishedAt: new Date(),
+            finalValue: 1110,
+            totalInvested: 1000,
+            totalFees: 1,
+            profit: 110,
+            totalReturn: 0.11,
+            priceReturn: 0.09,
+            dividendTotal: 1.5,
+            dividendGain: 20,
+            dividendEvents,
+            returnBreakdown,
+            totalTrades: 1,
+            rebalanceCount: 0,
+            maxDrawdown: -0.05,
+            maxDrawdownDate: null,
+            maxDrawdownPeakDate: null,
+            maxDrawdownRecoveryDate: null,
+            recoveryDays: null,
+            cagr: null,
+            volatility: null,
+            sharpeRatio: null,
+            riskFreeRate: 0,
+            equityCurve: [],
+            trades: [],
+            holdings: [],
+            lumpSumComparison: null,
+            benchmark: null,
+            executionRule: "CLOSE_ON_SCHEDULED_DAY" as const,
+            dataSource: { provider: "yahoo-finance2" as const, priceType: "TOTAL_RETURN" as const, fetchedAt: new Date().toISOString(), fingerprint: "a".repeat(64) },
+        }
+
+        expect(await repo.completeExecution(executionId, ["RUNNING"], result)).toBe(true)
+        expect(await repo.completeExecution(executionId, ["RUNNING"], result)).toBe(false)
+
+        const stored = await prisma.backtestResult.findUniqueOrThrow({ where: { executionId } })
+        expect(Number(stored.dividendTotal)).toBe(1.5)
+        expect(Number(stored.dividendGain)).toBe(20)
+        expect(Number(stored.priceReturn)).toBe(0.09)
+        expect(stored.dividendEvents).toEqual(dividendEvents)
+        expect(stored.returnBreakdown).toEqual(returnBreakdown)
+    })
+
     test("countByLatestStatus compte par statut de la dernière exécution", async () => {
         const backtest = await repo.create(backtestFor(userId))
         await repo.create(backtestFor(userId, "autre"))

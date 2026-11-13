@@ -6,6 +6,7 @@
 - **Branche / PR** : `feat/observabilite` — PR à ouvrir
 - **Points** : 29 (MUST 27, SHOULD 2) — prévus
 - **Maquettes** : aucune (tableau de bord Grafana, pas de maquette Figma)
+- **Écrans modifiés** : aucun (Grafana, pas d’écran web)
 - **Dépend de** : 22 (cluster où déployer le collecteur) ; 21 pour les images.
 
 ## Objectif

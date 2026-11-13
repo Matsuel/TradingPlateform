@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { useFormatters } from "@/lib/format"
 import { BACKTEST_CURRENCY, tradeSideVariants } from "./constants"
 import { StatusBadge } from "./status-badge"
-import type { Backtest, Holding, Trade } from "./types"
+import type { Backtest, DividendEvent, Holding, Trade } from "./types"
 import { formatAllocation, getExecution, getExecutionDuration } from "./utils"
 
 // Titres fractionnaires (DCA) : jusqu'à 6 décimales
@@ -105,6 +105,27 @@ export function useTradeColumns(): Column<Trade>[] {
             header: <InfoHint entry="tradeFee">{t("columns.fees")}</InfoHint>,
             className: "text-right",
             cell: (trade) => (trade.fee == null ? <Dash /> : formatPrice(trade.fee, BACKTEST_CURRENCY)),
+        },
+    ]
+}
+
+export function useDividendColumns(): Column<DividendEvent>[] {
+    const { formatDay, formatPrice } = useFormatters()
+    const t = useTranslations("backtest.dividends.table")
+    const formatQuantity = useFormatQuantity()
+
+    return [
+        { header: t("exDate"), cell: (event) => formatDay(event.date) },
+        { header: t("symbol"), cell: (event) => <SymbolCell symbol={event.symbol} /> },
+        {
+            header: <InfoHint entry="dividendAmount">{t("amount")}</InfoHint>,
+            className: "text-right",
+            cell: (event) => formatPrice(event.amount, BACKTEST_CURRENCY),
+        },
+        {
+            header: <InfoHint entry="dividendQuantity">{t("quantity")}</InfoHint>,
+            className: "text-right",
+            cell: (event) => formatQuantity(event.quantity),
         },
     ]
 }

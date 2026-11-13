@@ -2,7 +2,8 @@ import { Logger } from "@trading-plateform/utils";
 import type { BacktestRequestedPayload } from "@trading-plateform/contracts";
 import BacktestError from "../errors/backtest.error";
 import runBacktest from "../engine/backtest.engine";
-import { fingerprintPrices } from "../engine/backtest.utils";
+import { foreignCurrencies, fxPairSymbol } from "../engine/backtest.fx";
+import { fingerprintMarket } from "../engine/backtest.utils";
 import type { IBacktestPublisher } from "../publishers/backtest.publisher";
 import MarketRepository, { type IMarketRepository } from "../repositories/market.repository";
 
@@ -28,13 +29,24 @@ class BacktestService {
             const symbols = request.allocations.map((allocation) => allocation.symbol);
             // Cours du benchmark chargés avec ceux de l'allocation : inclus dans l'empreinte dataSource.fingerprint
             if (request.benchmarkSymbol && !symbols.includes(request.benchmarkSymbol)) symbols.push(request.benchmarkSymbol);
-            const prices = await this.repo.getDailyCloses(
-                symbols,
-                new Date(request.startDate),
-                new Date(request.endDate),
-            );
-            const dataSource = { ...this.repo.source, fetchedAt: new Date().toISOString(), fingerprint: fingerprintPrices(prices) };
-            const outcome = runBacktest(request, prices);
+            const start = new Date(request.startDate);
+            const end = new Date(request.endDate);
+
+            const dividendData = await this.repo.getDividends(symbols, start, end);
+            const currencies = Object.fromEntries(Object.entries(dividendData).map(([symbol, { currency }]) => [symbol, currency]));
+            const dividends = Object.fromEntries(Object.entries(dividendData).map(([symbol, { dividends }]) => [symbol, dividends]));
+            // Les taux EUR/devise se lisent comme des cours : une paire par devise étrangère, une fois les devises connues
+            const pairs = foreignCurrencies(symbols, currencies).map(fxPairSymbol);
+            const closes = await this.repo.getDailyCloses([...symbols, ...pairs], start, end);
+            const prices = Object.fromEntries(symbols.map((symbol) => [symbol, closes[symbol] ?? []]));
+            const fxRates = Object.fromEntries(pairs.map((pair) => [pair, closes[pair] ?? []]));
+
+            const dataSource = {
+                ...this.repo.source,
+                fetchedAt: new Date().toISOString(),
+                fingerprint: fingerprintMarket({ prices, dividends, fxRates }),
+            };
+            const outcome = runBacktest(request, prices, { dividends, currencies, fxRates });
 
             await this.publisher.completed({ executionId, finishedAt: new Date().toISOString(), ...outcome, dataSource });
             logger.info("Backtest completed", { executionId, finalValue: outcome.finalValue });

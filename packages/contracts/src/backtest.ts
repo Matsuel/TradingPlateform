@@ -75,8 +75,9 @@ export const EXECUTION_RULES = ["CLOSE_ON_SCHEDULED_DAY"] as const;
 // Provenance des cours utilisés par une exécution : rend le résultat explicable et comparable
 export const dataSourceSchema = z.object({
     provider: z.enum(["yahoo-finance2"]),
-    // Clôture journalière ajustée des splits, pas des dividendes
-    priceType: z.enum(["CLOSE_SPLIT_ADJUSTED"]),
+    // CLOSE_SPLIT_ADJUSTED : clôture ajustée des splits, hors dividendes (résultats antérieurs, toujours lisibles).
+    // TOTAL_RETURN : clôtures ajustées des splits, dividendes réinvestis à l'ex-date, valeurs converties en EUR
+    priceType: z.enum(["CLOSE_SPLIT_ADJUSTED", "TOTAL_RETURN"]),
     // Instant de récupération des cours
     fetchedAt: z.iso.datetime(),
     // SHA-256 hexadécimal des séries de cours : même empreinte = mêmes données d'entrée
@@ -86,7 +87,7 @@ export const dataSourceSchema = z.object({
 // Fournisseur et type des cours chargés par backtest-engine : déclarés par son repository, annoncés par la prévisualisation
 export const PRICE_DATA_SOURCE = {
     provider: "yahoo-finance2",
-    priceType: "CLOSE_SPLIT_ADJUSTED",
+    priceType: "TOTAL_RETURN",
 } as const satisfies Pick<z.infer<typeof dataSourceSchema>, "provider" | "priceType">;
 
 // Réponse de POST /api/backtest/preview : estimations calendaires (jours ouvrés lundi–vendredi, jours fériés
@@ -114,8 +115,33 @@ export const equityPointSchema = z.object({
     lumpSumValue: z.number().optional(),
     // Valeur du benchmark à la même date, mêmes versements et frais (D9), devise saisie ; absent sans benchmark
     benchmarkValue: z.number().optional(),
+    // Valeur du même portefeuille sans dividendes réinvestis (cours seuls), EUR ; absent si aucun dividende n'a été perçu
+    priceOnlyValue: z.number().optional(),
     // Ratio ≤ 0 : baisse depuis le plus haut de l'indice TWR (hors versements), 0 sur un plus haut
     drawdown: z.number().max(0),
+});
+
+// Un dividende perçu puis réinvesti (D1) : un par ex-date et par actif détenu, EUR
+export const dividendEventSchema = z.object({
+    // Ex-date, YYYY-MM-DD
+    date: z.iso.date(),
+    symbol: z.string().min(1),
+    // EUR : dividende encaissé = titres détenus × dividende par titre, converti au taux de l'ex-date, arrondi au centime
+    amount: z.number().positive(),
+    // Titres rachetés au cours de l'ex-date, sans frais (fractionnaire)
+    quantity: z.number().positive(),
+});
+
+// Du rendement du cours seul au rendement en euros. totalReturn (EUR) = local + fx
+export const returnBreakdownSchema = z.object({
+    // Ratio, devise locale (cours non convertis) : rendement sans dividendes
+    price: z.number(),
+    // Ratio : apport des dividendes réinvestis, local − price
+    dividends: z.number(),
+    // Ratio, devise locale : rendement dividendes compris
+    local: z.number(),
+    // Ratio : contribution du change, totalReturn − local ; null si tous les actifs cotent en EUR
+    fx: z.number().nullable(),
 });
 
 // Montants d'un ordre arrondis au centime ; les totaux du résultat sont calculés sur les valeurs non arrondies
@@ -192,8 +218,17 @@ export const backtestCompletedPayloadSchema = z.object({
     totalFees: z.number().min(0),
     // Plus-value : valeur finale − total versé, devise saisie
     profit: z.number(),
-    // Ratio : profit / totalInvested
+    // Ratio : profit / totalInvested ; dividendes réinvestis compris
     totalReturn: z.number(),
+    // Ratio : rendement du même backtest sans dividendes (cours seuls, en EUR) ; égal à totalReturn sans dividende
+    priceReturn: z.number(),
+    // Dividendes perçus puis réinvestis à l'ex-date (D1), EUR ; 0 sans dividende
+    dividendTotal: z.number().min(0),
+    // Valeur finale − valeur finale du même portefeuille sans dividendes réinvestis, EUR : le gain qu'ils ont apporté, croissance comprise
+    dividendGain: z.number(),
+    // Détail de dividendTotal, du plus ancien au plus récent ; vide sans dividende
+    dividendEvents: z.array(dividendEventSchema),
+    returnBreakdown: returnBreakdownSchema,
     totalTrades: z.number().int().min(0),
     // Rebalancements qui ont passé au moins un ordre (D7) ; 0 avec rebalanceFrequency NONE
     rebalanceCount: z.number().int().min(0),
@@ -294,6 +329,8 @@ export type EquityPoint = z.infer<typeof equityPointSchema>;
 export type RebalanceFrequency = (typeof REBALANCE_FREQUENCIES)[number];
 export type TradeSide = (typeof TRADE_SIDES)[number];
 export type Trade = z.infer<typeof tradeSchema>;
+export type DividendEvent = z.infer<typeof dividendEventSchema>;
+export type ReturnBreakdown = z.infer<typeof returnBreakdownSchema>;
 export type Holding = z.infer<typeof holdingSchema>;
 export type LumpSumComparison = z.infer<typeof lumpSumComparisonSchema>;
 export type Benchmark = z.infer<typeof benchmarkSchema>;
