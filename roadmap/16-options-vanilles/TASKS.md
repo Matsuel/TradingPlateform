@@ -8,18 +8,16 @@
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | T-01 | Engine : Black-Scholes avec dividende continu | US-01, US-03 | backtest-engine | MUST | 5 | — | — |
 | T-02 | Engine : payoffs et parité call-put | US-01, US-02 | backtest-engine | MUST | 3 | T-01 | — |
-| T-03 | Chaîne d'options dans market-service | US-02 | market-service | MUST | 3 | — | — |
 | T-04 | Contrat : demande et résultat d'option | US-01, US-02 | contracts | MUST | 3 | — | — |
 | T-05 | Demande d'option par core-backend | US-01 | core-backend | MUST | 3 | T-04 | — |
 | T-06 | Worker : pricing d'option | US-01 | backtest-engine | MUST | 2 | T-01, T-04 | — |
-| T-07 | Calculateur d'option et diagramme de payoff | US-01, US-02 | web | SHOULD | 5 | T-05, T-03 | — |
+| T-07 | Calculateur d'option et diagramme de payoff | US-01, US-02 | web | SHOULD | 5 | T-05 | — |
 
-**Total** : 24 points — MUST 19, SHOULD 5.
+**Total** : 21 points — MUST 16, SHOULD 5. T-03 (chaîne d'options) est déplacée en 17 (T-08), décision D5.
 
 | Lot | Tâches | Points |
 | --- | --- | --- |
 | 1. Moteur | T-01 → T-02 | 8 |
-| 2. Données | T-03 | 3 |
 | 3. Contrat | T-04 | 3 |
 | 4. Service | T-05 | 3 |
 | 5. Worker | T-06 | 2 |
@@ -27,7 +25,7 @@
 
 **Chemin critique** (11 points) : T-04 → T-05 → T-07. T-01 : les formules doivent passer le test de référence avant toute intégration ; la parité est le filet de sécurité.
 
-**Parallélisable** : T-01, T-03, T-04 dès le début ; T-01, T-03, T-04 dès le début ; T-07 après T-05 et T-03.
+**Parallélisable** : T-01 et T-04 dès le début ; T-07 après T-05.
 
 ## Graphe des dépendances
 
@@ -35,7 +33,6 @@
 flowchart LR
     T01[T-01 Engine  Black-Scholes avec dividende continu]
     T02[T-02 Engine  payoffs et parité call-put]
-    T03[T-03 Chaîne d'options dans market-service]
     T04[T-04 Contrat  demande et résultat d'option]
     T05[T-05 Demande d'option par core-backend]
     T06[T-06 Worker  pricing d'option]
@@ -45,7 +42,6 @@ flowchart LR
     T01 --> T06
     T04 --> T06
     T05 --> T07
-    T03 --> T07
 ```
 
 ---
@@ -69,17 +65,6 @@ Critères d’acceptation :
 Critères d’acceptation :
 - [ ] Payoff à l'échéance : call = max(S − K, 0), put = max(K − S, 0), sur une grille de cours.
 - [ ] Parité : C − P = S e^(−qT) − K e^(−rT), à 1e-6 près (test).
-
-## Lot 2 — Données
-
-### T-03 · Chaîne d'options dans market-service
-
-- **US** : US-02 · **Priorité** : MUST · **Points** : 3 · **Dépend de** : — · **Commits** : —
-- **Fichiers** : `apps/market-service/routes/market/`, `repositories/market.repository.ts`, `API.md`
-
-Critères d’acceptation :
-- [ ] `GET /api/market/options/:symbol?expiration=` renvoie strikes, bid, ask, dernier prix, volume et volatilité Yahoo, à titre indicatif.
-- [ ] Dates d'échéance à la forme `YYYY-MM-DD`.
 
 ## Lot 3 — Contrat
 
@@ -116,9 +101,9 @@ Critères d’acceptation :
 
 ### T-07 · Calculateur d'option et diagramme de payoff
 
-- **US** : US-01, US-02 · **Priorité** : SHOULD · **Points** : 5 · **Dépend de** : T-05, T-03 · **Commits** : —
+- **US** : US-01, US-02 · **Priorité** : SHOULD · **Points** : 5 · **Dépend de** : T-05 · **Commits** : —
 - **Fichiers** : `apps/web/src/features/pricing/` (calculateur)
 
 Critères d’acceptation :
-- [ ] Pré-remplissage du spot et du dividende depuis la fiche ; volatilité saisie par l'utilisateur (D2).
+- [ ] Pré-remplissage du spot et du dividende depuis la fiche ; volatilité historique 1 an et taux US 3 mois modifiables (D2, D4).
 - [ ] Diagramme de payoff tel que reçu du backend.

@@ -7,7 +7,6 @@
 | Couche | Existant | Manque |
 | --- | --- | --- |
 | `apps/backtest-engine/engine/` | `backtest.utils.ts` (volatilité, Sharpe). | Black-Scholes, payoffs, parité. |
-| `apps/market-service/routes/market/` | search, details, defaults. | Route de chaîne d'options (yahoo `options`). |
 | `packages/contracts/src/pricing.ts` | Créé en 15. | Union `OPTION`. |
 | `apps/web/src/features/pricing/` | Créé en 15. | Calculateur. |
 
@@ -25,6 +24,8 @@
 | D1 | Modèle | Black-Scholes, européen, dividende continu q | Modèle de référence du cours. Dividendes discrets (ajustement du forward) reportés. |
 | D2 | Volatilité | Saisie par l'utilisateur, pré-remplie avec la volatilité historique | La volatilité implicite est traitée en 17 ; une valeur Yahoo brute n'est pas une source de vérité. |
 | D3 | Options américaines | Hors périmètre | Exercice anticipé : pas en MVP (voir README, COULD). |
+| D4 | Pré-remplissage | Volatilité historique 1 an (annualisée, 252 jours) et taux US 3 mois, modifiables | Validée le 2026-11-14. |
+| D5 | Chaîne d'options | Absente de la 16, route en 17 avec le filtre | Validée le 2026-11-14 ; T-03 déplacée en 17 (T-08). |
 
 ---
 
@@ -51,7 +52,7 @@ Tâches : T-01, T-02, T-04, T-05, T-06, T-07 (détail dans `TASKS.md`).
 Critères d’acceptation :
 - [ ] Un diagramme de payoff montre call et put sur une grille de cours.
 
-Tâches : T-02, T-03, T-04, T-07 (détail dans `TASKS.md`).
+Tâches : T-02, T-04, T-07 (détail dans `TASKS.md`).
 
 ---
 
@@ -81,5 +82,5 @@ Tâches : T-01 (détail dans `TASKS.md`).
 | US | Titre | Priorité | Lot | Couches |
 | --- | --- | --- | --- | --- |
 | US-01 | Pricer une option européenne | MUST | 1 | backtest-engine, contracts, core-backend, web |
-| US-02 | Voir le payoff d'une option | MUST | 1 | backtest-engine, market-service, contracts, web |
+| US-02 | Voir le payoff d'une option | MUST | 1 | backtest-engine, contracts, web |
 | US-03 | Vérifier la cohérence du moteur | MUST | 1 | backtest-engine |

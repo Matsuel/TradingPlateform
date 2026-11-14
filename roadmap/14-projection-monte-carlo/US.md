@@ -26,6 +26,10 @@
 | D2 | Blocs | 21 jours ouvrés, fixe | Conserve un peu d'enchaînement des jours sans paramètre à exposer. |
 | D3 | Stockage | Percentiles seulement | 10 000 trajectoires × 1 260 jours ne se stockent pas ; on garde ce qui s'affiche. |
 | D4 | Transport | Deux nouveaux topics Kafka | Le calcul est lourd, asynchrone : même patron que le backtest, rejeu géré par statut. |
+| D5 | Source | Blocs tirés sur les actifs ensemble, pondérés aux poids du backtest | Les corrélations sont conservées. Validée le 2026-11-14. |
+| D6 | Paramètres | Horizon en années ; 10 000 trajectoires et seed non exposées | Seed stockée avec le résultat. Validée le 2026-11-14. |
+| D7 | Percentiles | P5, P10, P25, P50, P75, P90, P95 par date | Deux bandes et la médiane. Validée le 2026-11-14. |
+| D8 | Probabilité de perte | Valeur finale < capital initial (EUR) | Sans versements. Validée le 2026-11-14. |
 
 ---
 

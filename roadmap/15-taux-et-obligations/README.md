@@ -25,7 +25,10 @@ Taux US lus dans `market-service` (4 points, pas de clé). Interpolation et actu
 | D2 | **Interpolation** : Linéaire entre deux points | Simple à expliquer ; une interpolation plus fine n'apporte rien à 4 points. | `US.md` (à valider) |
 | D3 | **Actualisation** : Composée annuelle, base 365 | Convention la plus lisible pour un débutant ; les conventions de marché (taux continus, base 360) sont une limite affichée. | `US.md` (à valider) |
 | D4 | **Taux euro** : Saisi par l'utilisateur (taux plat) | Pas de source gratuite fiable ; évite une courbe inventée. | `US.md` (à valider) |
-| D5 | **Calcul de pricing** : Worker `backtest-engine` via Kafka | Règle d'architecture : tout calcul vit dans l'engine. Le même pipeline servira aux options (16) et au Monte Carlo (18). | `US.md` (à valider) |
+| D5 | **Calcul de pricing** : Worker `backtest-engine` via Kafka | Règle d'architecture : tout calcul vit dans l'engine. Le même pipeline servira aux options (16) et au Monte Carlo (18). | Confirmée le 2026-11-14 : pipeline posé dès la 15 |
+| D6 | **Source des taux** : D1 confirmée (Yahoo, gratuit, sans clé) | Seule contrainte : gratuit. L'index parlait de FRED : corrigé. | Décision du 2026-11-14 |
+| D7 | **Duration** : Macaulay (années) et modifiée (sensibilité du prix à +1 % de taux) | Le couple pédagogique complet. | Décision du 2026-11-14 |
+| D8 | **Obligation saisie** : nominal, coupon annuel, maturité, taux ; zéro-coupon = coupon à 0 | Pas de fréquence de coupon en MVP : moins de cas, limite affichée. | Décision du 2026-11-14 |
 
 ## Écarts au plan
 

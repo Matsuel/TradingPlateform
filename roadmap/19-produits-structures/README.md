@@ -25,6 +25,8 @@ Moteur : produits comme assemblages de briques (`structured.ts`) ; autocallable 
 | D2 | **Participation** : Calculée par le moteur : budget d'option divisé par le prix du call | Formule simple et lisible : elle montre le compromis garantie / participation. | `US.md` (à valider) |
 | D3 | **Autocallable** : Monte Carlo avec dates d'observation | Un autocallable n'a pas de formule fermée. | `US.md` (à valider) |
 | D4 | **Marge** : Prix client − juste valeur, en devise et en % | Affiche la rémunération sans la faire passer pour un conseil. Hypothèses de financement et de couverture non incluses. | `US.md` (à valider) |
+| D5 | **Prix client** : nominal à 100 %, marge = 100 % − juste valeur | Aucune saisie en plus ; lecture simple. | Décision du 2026-11-14 |
+| D6 | **Autocallable** : observation annuelle, rappel si le sous-jacent est ≥ 100 % du niveau initial (coupon cumulé), barrière de protection 60 % à l'échéance, 5 ans ; niveaux modifiables | Cas d'école de la structuration ; les niveaux modifiables montrent l'effet de la barrière sur la juste valeur. | Décision du 2026-11-14 |
 
 ## Écarts au plan
 

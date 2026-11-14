@@ -25,6 +25,8 @@
 | D2 | Participation | Calculée par le moteur : budget d'option divisé par le prix du call | Formule simple et lisible : elle montre le compromis garantie / participation. |
 | D3 | Autocallable | Monte Carlo avec dates d'observation | Un autocallable n'a pas de formule fermée. |
 | D4 | Marge | Prix client − juste valeur, en devise et en % | Affiche la rémunération sans la faire passer pour un conseil. Hypothèses de financement et de couverture non incluses. |
+| D5 | Prix client | Nominal à 100 %, marge = 100 % − juste valeur | Validée le 2026-11-14. |
+| D6 | Autocallable | Observation annuelle, rappel ≥ 100 % (coupon cumulé), barrière 60 %, 5 ans ; niveaux modifiables | Validée le 2026-11-14. |
 
 ---
 
