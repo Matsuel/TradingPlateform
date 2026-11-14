@@ -1,6 +1,6 @@
-import { Logger } from "@trading-plateform/utils";
-import type { MessageHandler } from "@trading-plateform/kafka";
-import { backtestRequestedEventSchema } from "@trading-plateform/contracts";
+import { Logger } from "@azimut/utils";
+import type { MessageHandler } from "@azimut/kafka";
+import { backtestRequestedEventSchema } from "@azimut/contracts";
 import type BacktestService from "../services/backtest.service";
 
 const logger = Logger.here();

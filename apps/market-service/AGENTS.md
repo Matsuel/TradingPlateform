@@ -9,14 +9,14 @@ routes/<domaine>/   →  controller/  →  services/  →  repositories/  →  y
  (descripteurs)        (HTTP)          (métier)       (sources externes)
 ```
 
-Mêmes dossiers que core-backend (`middleware/`, `utils/`, `constants/`, `interfaces/`) ; erreurs, `RouteDescriptor`/`registerRoutes` et `errorMiddleware` viennent de `@trading-plateform/http` ; crée un dossier uniquement quand un fichier en a besoin.
+Mêmes dossiers que core-backend (`middleware/`, `utils/`, `constants/`, `interfaces/`) ; erreurs, `RouteDescriptor`/`registerRoutes` et `errorMiddleware` viennent de `@azimut/http` ; crée un dossier uniquement quand un fichier en a besoin.
 
 ## Conventions
 
 - Identiques à core-backend : nommage `<domaine>.<couche>.ts`, `export default`, controllers en méthodes fléchées, erreurs lancées (`AppError`) et formatées par `errorMiddleware`, handlers enveloppés par `asyncHandler`.
 - Routes : préfixe `/api/market`, chacune documentée dans `API.md` dès sa création.
 - Env via `env.ts` (zod).
-- Logs : `Logger.here()` de `@trading-plateform/utils`, pas de `console.log`.
+- Logs : `Logger.here()` de `@azimut/utils`, pas de `console.log`.
 - **N'ajoute pas d'accès DB ici** : core-backend est le seul service qui écrit en base.
 
 ## Commandes

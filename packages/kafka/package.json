@@ -1,5 +1,5 @@
 {
-    "name": "@trading-plateform/kafka",
+    "name": "@azimut/kafka",
     "version": "1.0.0",
     "private": true,
     "type": "module",
@@ -7,7 +7,7 @@
         ".": "./src/index.ts"
     },
     "dependencies": {
-        "@trading-plateform/utils": "workspace:*",
+        "@azimut/utils": "workspace:*",
         "kafkajs": "^2.2.4",
         "zod": "^4.6.7"
     },

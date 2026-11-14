@@ -1,6 +1,6 @@
 import { afterEach, expect, spyOn, test } from "bun:test"
-import { Logger } from "@trading-plateform/utils"
-import { kafkaLogCreator } from "@trading-plateform/kafka"
+import { Logger } from "@azimut/utils"
+import { kafkaLogCreator } from "@azimut/kafka"
 
 // Niveaux de kafkajs : ERROR 1, WARN 2, INFO 4, DEBUG 5
 const entry = (level: number, message: string, extra: object = {}) =>

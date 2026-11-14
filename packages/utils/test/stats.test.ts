@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test"
-import { median } from "@trading-plateform/utils"
+import { median } from "@azimut/utils"
 
 test("median : valeur centrale si le nombre est impair", () => {
     expect(median([3, 1, 2])).toBe(2)

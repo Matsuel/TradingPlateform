@@ -30,7 +30,7 @@ Donner accès aux données de marché : une liste d’actifs suivis avec leur te
 
 ## Écarts au plan
 
-Le README prévoit des données « persistées par MarketFlow » ; ici les cours sont lus en direct chez Yahoo à chaque requête. La persistance est reportée au mois 10 (« Données et historique »).
+Le README prévoit des données « persistées par Azimut » ; ici les cours sont lus en direct chez Yahoo à chaque requête. La persistance est reportée au mois 10 (« Données et historique »).
 
 ## Bilan
 

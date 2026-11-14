@@ -1,4 +1,4 @@
-import type { DailyCloses, Dividends, MarketAsset, Paginated, PaginationQuery, Period } from "@trading-plateform/contracts";
+import type { DailyCloses, Dividends, MarketAsset, Paginated, PaginationQuery, Period } from "@azimut/contracts";
 import MarketRepository, { type IMarketRepository } from "../repositories/market.repository";
 import { ASSETS_CACHE_TTL_MS, DEFAULT_TICKERS, DETAILS_CACHE_TTL_MS, SEARCH_CACHE_TTL_MS } from "../constants/market.constants";
 import { TtlCache } from "../utils/cache";

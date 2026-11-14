@@ -1,4 +1,4 @@
-# TradingPlateform (MarketFlow)
+# Azimut
 
 Monorepo Bun (`workspaces`: `apps/*`, `packages/*`). Laboratoire de portefeuille simulé (backtest, risque, optimisation), piloté par événements Kafka. Vision complète : `README.md`.
 
@@ -60,7 +60,7 @@ Chaque app qui expose quelque chose de réutilisable tient un **catalogue** : co
 - **Cherche avant de créer** : catalogue d'usage, puis `grep` du nom ou de la valeur. Un helper, une constante ou un composant équivalent existe → réutilise-le ou étends-le.
 - **Constantes** : une valeur métier écrite deux fois (statuts, devise, topic, fréquence) devient une constante nommée dans `constants/` (backend) ou `features/<domaine>/constants.ts` (web).
 - **Types** : un type qui décrit une donnée d'un contrat ou de Prisma en est **dérivé** (`z.infer`, `Pick`, `Omit`, `Prisma.XGetPayload`), jamais recopié champ par champ.
-- **Helpers** : un helper vit dans la couche de sa responsabilité (formatage web → `lib/format.ts`, helper de domaine → `features/<domaine>/utils.ts`, calcul → `engine/`). Code partagé entre apps → `packages/*`, importé par `@trading-plateform/<nom>` ; jamais d'import relatif entre apps.
+- **Helpers** : un helper vit dans la couche de sa responsabilité (formatage web → `lib/format.ts`, helper de domaine → `features/<domaine>/utils.ts`, calcul → `engine/`). Code partagé entre apps → `packages/*`, importé par `@azimut/<nom>` ; jamais d'import relatif entre apps.
 - **Fichiers** : un fichier = une responsabilité, nommé `<domaine>.<couche>.ts` côté backend. `index.ts` (backend) et `page.tsx` (web) ne font que câbler/composer.
 
 ## Contrats et événements Kafka
@@ -72,18 +72,18 @@ Chaque app qui expose quelque chose de réutilisable tient un **catalogue** : co
 
 ## Conventions communes
 
-- **Tests** : dossier `test/` à la racine de chaque app, fichiers `<sujet>.test.ts`, lancés par `bun test` depuis l'app. Variables d'env factices dans `test/setup.ts` (préchargé par `bunfig.toml`) : un test n'ouvre aucune connexion (base, Kafka). Un repository se teste sur la base `trading_test` (jamais `DATABASE_URL`, forcée par `test/setup.ts` ; `describeWithDb`, vidée entre les tests, tests ignorés si PostgreSQL est éteint). Un service se teste avec un faux repository assigné à `service.repo` ; une route avec `startApp` de `@trading-plateform/http/testing` (vrai Express, service espionné par `spyOn(Service.prototype, …)` restauré en `afterAll`) ; un hook ou composant web avec `@testing-library/react` (`test/render.tsx` fournit le provider de langue). Un comportement ajouté ou une transition modifiée a son test dans le même diff.
+- **Tests** : dossier `test/` à la racine de chaque app, fichiers `<sujet>.test.ts`, lancés par `bun test` depuis l'app. Variables d'env factices dans `test/setup.ts` (préchargé par `bunfig.toml`) : un test n'ouvre aucune connexion (base, Kafka). Un repository se teste sur la base `trading_test` (jamais `DATABASE_URL`, forcée par `test/setup.ts` ; `describeWithDb`, vidée entre les tests, tests ignorés si PostgreSQL est éteint). Un service se teste avec un faux repository assigné à `service.repo` ; une route avec `startApp` de `@azimut/http/testing` (vrai Express, service espionné par `spyOn(Service.prototype, …)` restauré en `afterAll`) ; un hook ou composant web avec `@testing-library/react` (`test/render.tsx` fournit le provider de langue). Un comportement ajouté ou une transition modifiée a son test dans le même diff.
 
 - **Bun partout** : `bun install`, `bun run <script>`, `bun <file>`, `bun test`, `bunx`. Bun charge `.env` : pas de `dotenv`.
 - TypeScript `strict`, ESM. `import type` pour les types (`verbatimModuleSyntax`). Pas de `any` dans le nouveau code.
 - Indentation 4 espaces dans les apps backend et packages ; `web` est formaté par Biome (`bun run format` dans `apps/web`).
-- Logs via `Logger.here()` de `@trading-plateform/utils`.
+- Logs via `Logger.here()` de `@azimut/utils`.
 - **Documentation des fonctions** : chaque fonction ou composant exporté dont le rôle ne se lit pas dans son nom porte un JSDoc `/** */` : ce qu'il fait, unités, cas limites (`null`, erreur levée). Pas de JSDoc qui paraphrase la signature.
 - **Résultats stockés qui évoluent** : un champ ajouté à un résultat déjà en base est nullable (ou `@default`) côté Prisma et optionnel côté web ; l'écran affiche `<Dash />` ou masque la légende pour un résultat antérieur, sans recalculer la valeur.
 - Validation des entrées, messages et env avec `zod`.
 - **Base de données : Prisma Client uniquement** (`findMany`, `count`, `groupBy`, `$transaction`…), jamais de SQL écrit à la main (`$queryRaw`, `$executeRaw`, `Prisma.sql` et leurs variantes `Unsafe`). Une requête que l'API Prisma ne sait pas exprimer se règle par le modèle (relation ou champ dénormalisé, maintenu dans le repository), pas par du SQL. Seule exception : le SQL des fichiers de migration (`prisma/migrations/`), y compris un backfill de données.
 - Ne commit jamais de `.env` ni de secret. `process.env` ne se lit que dans `env.ts` de l'app ; exception : les packages sans app hôte (`packages/utils` : `LOG_LEVEL`, `NODE_ENV` ; `packages/kafka` : `KAFKA_*`).
-- **Cycle de vie** : chaque process lit son port dans `env.ts`, démarre dans un `main().catch(…)` qui met `process.exitCode = 1` (`process.exit(1)` si le serveur écoute déjà : sinon il garde le process en vie à moitié démarré), et enregistre ses fermetures avec `onShutdown` de `@trading-plateform/utils` (`SIGTERM`/`SIGINT`). Un service HTTP expose `GET /health`.
+- **Cycle de vie** : chaque process lit son port dans `env.ts`, démarre dans un `main().catch(…)` qui met `process.exitCode = 1` (`process.exit(1)` si le serveur écoute déjà : sinon il garde le process en vie à moitié démarré), et enregistre ses fermetures avec `onShutdown` de `@azimut/utils` (`SIGTERM`/`SIGINT`). Un service HTTP expose `GET /health`.
 
 ## Commandes
 

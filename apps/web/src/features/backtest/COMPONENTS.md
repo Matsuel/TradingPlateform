@@ -372,7 +372,7 @@ Source : `src/features/backtest/column.tsx` (liste), `result/*-columns.tsx` (ord
 ### `features/backtest/types.ts`
 
 - **Import** : `import type { Backtest, BacktestDetails, BacktestResult } from "@/features/backtest/types"`.
-- Réponses de core-backend : `Decimal` → `string` (ratios en fraction), dates → `string` ISO. Les données du moteur et des contrats (`EquityPoint`, `Trade`, `Holding`, `Benchmark`, `LumpSumComparison`, `ExecutionRule`, `DataSource`, `BacktestPreview`, `BacktestComparison`…) sont **dérivées de `@trading-plateform/contracts`** (`import type`), unités dans `packages/contracts/src/backtest.ts`. Champs absents des résultats antérieurs : optionnels ou `null`, affichés `<Dash />`. Le détail de chaque type et de ses unités est en commentaire dans le fichier.
+- Réponses de core-backend : `Decimal` → `string` (ratios en fraction), dates → `string` ISO. Les données du moteur et des contrats (`EquityPoint`, `Trade`, `Holding`, `Benchmark`, `LumpSumComparison`, `ExecutionRule`, `DataSource`, `BacktestPreview`, `BacktestComparison`…) sont **dérivées de `@azimut/contracts`** (`import type`), unités dans `packages/contracts/src/backtest.ts`. Champs absents des résultats antérieurs : optionnels ou `null`, affichés `<Dash />`. Le détail de chaque type et de ses unités est en commentaire dans le fichier.
 - Types propres au web : `Backtest` (liste), `BacktestDetails` (détail, `result` = dernier résultat terminé), `BacktestExecution`, `BacktestResult`, `AllocationInput` (saisie, poids en pourcent entier), `ExecutionStatus`, `InvestmentMode`, `RebalanceFrequency`, `BacktestListStats`.
 
 Source : `src/features/backtest/types.ts`.

@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test"
-import { addYears } from "@trading-plateform/utils"
+import { addYears } from "@azimut/utils"
 
 const day = (iso: string) => new Date(`${iso}T00:00:00Z`)
 const iso = (date: Date) => date.toISOString().slice(0, 10)

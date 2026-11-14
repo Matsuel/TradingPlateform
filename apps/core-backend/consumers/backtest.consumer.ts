@@ -1,12 +1,12 @@
 import type { z } from "zod"
-import { Logger } from "@trading-plateform/utils"
-import type { MessageHandler } from "@trading-plateform/kafka"
+import { Logger } from "@azimut/utils"
+import type { MessageHandler } from "@azimut/kafka"
 import {
     BACKTEST_TOPICS,
     backtestCompletedEventSchema,
     backtestFailedEventSchema,
     backtestStartedEventSchema,
-} from "@trading-plateform/contracts"
+} from "@azimut/contracts"
 import BacktestService from "../services/backtest.service"
 
 const logger = Logger.here()

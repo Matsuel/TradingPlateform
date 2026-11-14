@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test"
-import type { MarketAsset } from "@trading-plateform/contracts"
+import type { MarketAsset } from "@azimut/contracts"
 import { DEFAULT_TICKERS } from "../constants/market.constants"
 import type { IMarketRepository } from "../repositories/market.repository"
 import MarketService from "../services/market.service"

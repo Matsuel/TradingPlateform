@@ -52,7 +52,7 @@ const workspaces: Workspace[] = (await git("ls-files", "apps/*/package.json", "p
     .split("\n")
     .map((file) => {
         const pkg = JSON.parse(readFileSync(file, "utf8"));
-        const deps = Object.keys({ ...pkg.dependencies, ...pkg.devDependencies }).filter((dep) => dep.startsWith("@trading-plateform/"));
+        const deps = Object.keys({ ...pkg.dependencies, ...pkg.devDependencies }).filter((dep) => dep.startsWith("@azimut/"));
         return { dir: dirname(file), name: pkg.name as string, deps };
     });
 
@@ -144,7 +144,7 @@ const mechanical = [
         hits: addedCode(/<a\b[^>]*\bhref=(?!["'](?:https?:|mailto:|tel:|#))/, webFiles),
     },
     {
-        rule: "Import relatif entre apps ou vers `packages/` : passe par `@trading-plateform/<nom>` (AGENTS.md racine, « Rangement »)",
+        rule: "Import relatif entre apps ou vers `packages/` : passe par `@azimut/<nom>` (AGENTS.md racine, « Rangement »)",
         hits: addedCode(/from\s+["'](?:\.\.\/)+(?:apps\/|packages\/|core-backend\/|market-service\/|backtest-engine\/|web\/)/, codeFiles),
     },
     {
@@ -157,11 +157,11 @@ for (const { rule, hits } of mechanical) if (hits.length > 0) failures.push(`${r
 // `import type` obligatoire pour les contrats dans le web (zod n'est pas embarqué dans le front)
 const runtimeContracts = webFiles.filter(
     (file) =>
-        (added.get(file) ?? []).some((line) => line.includes("@trading-plateform/contracts")) &&
-        /import\s+(?!type\b)(?:(?!\bfrom\b)[^])*?\bfrom\s+["']@trading-plateform\/contracts/.test(readFileSync(file, "utf8")),
+        (added.get(file) ?? []).some((line) => line.includes("@azimut/contracts")) &&
+        /import\s+(?!type\b)(?:(?!\bfrom\b)[^])*?\bfrom\s+["']@azimut\/contracts/.test(readFileSync(file, "utf8")),
 );
 if (runtimeContracts.length > 0) {
-    failures.push(`Import runtime de \`@trading-plateform/contracts\` dans le web : utilise \`import type\` (apps/web/AGENTS.md, « Rangement ») :\n${runtimeContracts.join("\n")}`);
+    failures.push(`Import runtime de \`@azimut/contracts\` dans le web : utilise \`import type\` (apps/web/AGENTS.md, « Rangement ») :\n${runtimeContracts.join("\n")}`);
 }
 
 // Mêmes clés FR et EN (apps/web/AGENTS.md, « Libellés »)

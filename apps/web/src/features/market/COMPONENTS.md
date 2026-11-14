@@ -88,7 +88,7 @@ Source : `src/features/market/column.tsx`.
 
 ### `features/market/types.ts`
 
-- **Import** : `import type { MarketAsset, Period } from "@/features/market/types"`. Réexport de `@trading-plateform/contracts` (`src/market.ts`), qui porte les unités.
+- **Import** : `import type { MarketAsset, Period } from "@/features/market/types"`. Réexport de `@azimut/contracts` (`src/market.ts`), qui porte les unités.
 
 | Export | Forme |
 | --- | --- |

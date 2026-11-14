@@ -1,5 +1,5 @@
 import type { Consumer, EachMessagePayload } from "kafkajs";
-import { Logger } from "@trading-plateform/utils";
+import { Logger } from "@azimut/utils";
 
 const logger = Logger.here();
 

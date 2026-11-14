@@ -1,5 +1,5 @@
 import MarketController from "../../controller/market.controller";
-import type { RouteDescriptor } from "@trading-plateform/http";
+import type { RouteDescriptor } from "@azimut/http";
 import asyncHandler from "../../utils/handler";
 
 const createMarketRoutes = (): RouteDescriptor[] => {

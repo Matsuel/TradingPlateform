@@ -1,9 +1,9 @@
-import { ForbiddenError, NotFoundError } from "@trading-plateform/http";
+import { ForbiddenError, NotFoundError } from "@azimut/http";
 import PortfolioRepository, { type IPortfolioRepository } from "../repositories/portfolio.repository"
-import { API_ERROR_CODES, type Paginated, type PaginationQuery } from "@trading-plateform/contracts"
+import { API_ERROR_CODES, type Paginated, type PaginationQuery } from "@azimut/contracts"
 import type { Portfolio } from "../generated/prisma/client"
 import type { PortfolioInput } from "../interfaces/portfolio.interface"
-import { Logger } from "@trading-plateform/utils"
+import { Logger } from "@azimut/utils"
 
 const logger = Logger.here()
 

@@ -53,7 +53,7 @@ Toute brique d'interface vient de `components/ui/` (shadcn, style `base-nova` de
 
 - **Formatage : Biome** (`biome.json`), lancé par `bun run format` (formate et trie les imports) ; `bun run format:check` échoue sur un fichier non formaté. 4 espaces, guillemets doubles, sans point-virgule, 120 colonnes. `components/ui/` (shadcn) et le Markdown sont exclus. ESLint (`bun run lint`) garde les règles Next et React.
 - **Fichiers** en kebab-case (`app-header.tsx`), un composant exporté **nommé** (`export function AppHeader`) ; `export default` seulement là où Next l'exige (`page.tsx`, `layout.tsx`, `error.tsx`, `not-found.tsx`). Pas de dossier pour un seul fichier.
-- **Pages** : `export default function XPage()`, typées par les helpers globaux `PageProps<"/route">` / `LayoutProps<"/route">` ; `export const metadata = { title }` (le gabarit « %s · MarketFlow » est dans le layout racine), `generateMetadata` pour une page dynamique.
+- **Pages** : `export default function XPage()`, typées par les helpers globaux `PageProps<"/route">` / `LayoutProps<"/route">` ; `export const metadata = { title }` (le gabarit « %s · Azimut » est dans le layout racine), `generateMetadata` pour une page dynamique.
 - **Navigation** : toute URL vient de `routes` (`lib/routes.ts`) ; un lien interne est un `next/link`, jamais un `<a href>` (rechargement complet, cache TanStack perdu). Un bouton-lien : `<Button nativeButton={false} render={<Link href={…} />}>`, jamais `<Link><Button>` (HTML invalide).
 - **Nouvelle page** : sa route dans `routes`, son onglet dans `constants/sidebar.tsx`, puis `app/app/<route>/page.tsx`. Une page pas encore construite n'affiche que `PageHeader` : titre `navigation.tabs.<clé>`, description `pages.<clé>.description` des dictionnaires.
 - `process.env` ne se lit que dans `lib/env.ts` (validé par zod).
@@ -77,7 +77,7 @@ Chaque élément a un fichier attitré ; copie la forme de `features/backtest` e
 
 | Fichier | Contenu |
 | --- | --- |
-| `types.ts` | Types alignés sur les réponses de core-backend (`Decimal` → `string`, dates → `string` ISO), unité en commentaire. Une donnée décrite par un contrat est **dérivée** de `@trading-plateform/contracts` par `import type` (`Pick`, `Omit`, réexport), jamais recopiée ; jamais d'import runtime du package (zod n'est pas embarqué dans le front). |
+| `types.ts` | Types alignés sur les réponses de core-backend (`Decimal` → `string`, dates → `string` ISO), unité en commentaire. Une donnée décrite par un contrat est **dérivée** de `@azimut/contracts` par `import type` (`Pick`, `Omit`, réexport), jamais recopiée ; jamais d'import runtime du package (zod n'est pas embarqué dans le front). |
 | `api.ts` | Fonctions `apiFetch`, une par route. Aucun `fetch` ailleurs. |
 | `hook.ts` | TanStack Query : clés `[domaine, "list"]`, `[domaine, "detail", id]` ; mutations qui invalident les clés des vues impactées. |
 | `schema.ts` | Schémas zod des formulaires. |

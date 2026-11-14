@@ -1,4 +1,4 @@
-import type { DividendEvent, Trade, TradeSide } from "@trading-plateform/contracts";
+import type { DividendEvent, Trade, TradeSide } from "@azimut/contracts";
 import type { BacktestParams, DividendSeries, PriceSeries } from "../interfaces/backtest.interface";
 import { round } from "./backtest.utils";
 

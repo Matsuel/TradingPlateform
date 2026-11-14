@@ -24,7 +24,7 @@ export default function HomePage() {
     return (
         <main className="flex flex-1 flex-col items-center px-6 py-24 md:py-32">
             <section className="flex max-w-2xl flex-col items-center gap-6 text-center">
-                <h1 className="text-4xl font-semibold tracking-tight md:text-5xl">MarketFlow</h1>
+                <h1 className="text-4xl font-semibold tracking-tight md:text-5xl">Azimut</h1>
                 <p className="text-h3 font-normal text-muted-foreground">{t("intro")}</p>
                 <Button
                     size="lg"

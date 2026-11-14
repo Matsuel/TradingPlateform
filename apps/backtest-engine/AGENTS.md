@@ -34,7 +34,7 @@ constants/         constantes (<domaine>.constants.ts)
 - **Taille du message** : une série journalière ne se duplique pas ; une série parallèle (ex. `lumpSumValue`) est un champ de chaque point de la courbe, pas une seconde courbe avec ses propres dates.
 - **Aperçu avant exécution** : l'estimation des versements et rebalancements (`estimateSchedule`, `packages/utils`) suit les règles de l'engine et utilise le même `periodKey` que la simulation ; core-backend l'appelle sans recalculer. Une règle de calendrier qui change se modifie dans `periodKey`/`estimateSchedule` et son test.
 - **services/** orchestre : publie `started`, charge les cours, appelle l'engine, publie `completed`. Toute erreur (données, calcul, publication) → `failed` avec la cause. Seul endroit où l'horloge (`new Date()`) est lue. Ne connaît pas `kafkajs`.
-- **consumers/** valide le message avec le schéma de `@trading-plateform/contracts`, appelle **une** méthode de service. Message invalide → `logger.warn` et retour.
+- **consumers/** valide le message avec le schéma de `@azimut/contracts`, appelle **une** méthode de service. Message invalide → `logger.warn` et retour.
 - **repositories/** lit les sources externes (market-service : une seconde tentative sur injoignable, délai dépassé ou 502/503/504, jamais sur un 500) et valide leur format avec le contrat (`dailyClosesSchema`). Le jour de cotation est déjà normalisé par market-service (fuseau de la place, jamais UTC). Aucun calcul métier.
 - **publishers/** publie avec `createKafkaEvent`, clé Kafka = `executionId` (tous les événements d'une exécution sur la même partition).
 - Types internes dérivés des contrats (`Pick<BacktestCompletedPayload, ...>`), jamais redéfinis.

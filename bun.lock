@@ -10,9 +10,9 @@
     "apps/backtest-engine": {
       "name": "backtest-engine",
       "dependencies": {
-        "@trading-plateform/contracts": "workspace:*",
-        "@trading-plateform/kafka": "workspace:*",
-        "@trading-plateform/utils": "workspace:*",
+        "@azimut/contracts": "workspace:*",
+        "@azimut/kafka": "workspace:*",
+        "@azimut/utils": "workspace:*",
         "kafkajs": "^2.2.4",
         "zod": "^4.6.7",
       },
@@ -26,13 +26,13 @@
     "apps/core-backend": {
       "name": "core-backend",
       "dependencies": {
+        "@azimut/contracts": "workspace:*",
+        "@azimut/http": "workspace:*",
+        "@azimut/kafka": "workspace:*",
+        "@azimut/utils": "workspace:*",
         "@better-auth/prisma-adapter": "^1.7.22",
         "@prisma/adapter-pg": "^7.10.1",
         "@prisma/client": "^7.10.1",
-        "@trading-plateform/contracts": "workspace:*",
-        "@trading-plateform/http": "workspace:*",
-        "@trading-plateform/kafka": "workspace:*",
-        "@trading-plateform/utils": "workspace:*",
         "@types/cors": "^2.8.19",
         "@types/express": "^5.0.6",
         "better-auth": "^1.7.22",
@@ -57,9 +57,9 @@
     "apps/market-service": {
       "name": "market-service",
       "dependencies": {
-        "@trading-plateform/contracts": "workspace:*",
-        "@trading-plateform/http": "workspace:*",
-        "@trading-plateform/utils": "workspace:*",
+        "@azimut/contracts": "workspace:*",
+        "@azimut/http": "workspace:*",
+        "@azimut/utils": "workspace:*",
         "@types/express": "^5.0.6",
         "express": "^5.3.0",
         "yahoo-finance2": "^4.0.6",
@@ -76,11 +76,11 @@
       "name": "web",
       "version": "0.1.0",
       "dependencies": {
+        "@azimut/contracts": "workspace:*",
         "@base-ui/react": "^1.9.0",
         "@hookform/resolvers": "^7.0.6",
         "@tanstack/react-query": "^5.107.1",
         "@tanstack/react-table": "^9.3.1",
-        "@trading-plateform/contracts": "workspace:*",
         "better-auth": "^1.7.22",
         "class-variance-authority": "^0.7.1",
         "cmdk": "^1.1.1",
@@ -116,18 +116,18 @@
       },
     },
     "packages/contracts": {
-      "name": "@trading-plateform/contracts",
+      "name": "@azimut/contracts",
       "version": "1.0.0",
       "dependencies": {
         "zod": "^4.6.7",
       },
     },
     "packages/http": {
-      "name": "@trading-plateform/http",
+      "name": "@azimut/http",
       "version": "1.0.0",
       "dependencies": {
-        "@trading-plateform/contracts": "workspace:*",
-        "@trading-plateform/utils": "workspace:*",
+        "@azimut/contracts": "workspace:*",
+        "@azimut/utils": "workspace:*",
       },
       "devDependencies": {
         "@types/express": "^5.0.6",
@@ -138,10 +138,10 @@
       },
     },
     "packages/kafka": {
-      "name": "@trading-plateform/kafka",
+      "name": "@azimut/kafka",
       "version": "1.0.0",
       "dependencies": {
-        "@trading-plateform/utils": "workspace:*",
+        "@azimut/utils": "workspace:*",
         "kafkajs": "^2.2.4",
         "zod": "^4.6.7",
       },
@@ -150,7 +150,7 @@
       },
     },
     "packages/utils": {
-      "name": "@trading-plateform/utils",
+      "name": "@azimut/utils",
       "version": "1.0.0",
       "devDependencies": {
         "@types/node": "^26.6.6",
@@ -163,6 +163,14 @@
   ],
   "packages": {
     "@alloc/quick-lru": ["@alloc/quick-lru@5.3.0", "", {}, "sha512-U4+70Pc5ZS9osnCBCE5Jha/ciHM+Yp+CNMNC/7HvYbNRk1Ldd+f7qO65W5qfhu/TCv+/ozljlXXe9Nj8419DMA=="],
+
+    "@azimut/contracts": ["@azimut/contracts@workspace:packages/contracts"],
+
+    "@azimut/http": ["@azimut/http@workspace:packages/http"],
+
+    "@azimut/kafka": ["@azimut/kafka@workspace:packages/kafka"],
+
+    "@azimut/utils": ["@azimut/utils@workspace:packages/utils"],
 
     "@babel/code-frame": ["@babel/code-frame@7.29.7", "", { "dependencies": { "@babel/helper-validator-identifier": "^7.29.7", "js-tokens": "^4.0.0", "picocolors": "^1.1.1" } }, "sha512-Aup7aUOfpbAUg2ROOJN6Iw5f9DMBlzu0mIkm/malLQFN/YQgO48wCj0Kxa3sEHJvPVFg7siR+qRInwXd2qhQKw=="],
 
@@ -631,14 +639,6 @@
     "@testing-library/dom": ["@testing-library/dom@10.4.2", "", { "dependencies": { "@babel/code-frame": "^7.10.4", "@babel/runtime": "^7.12.5", "@types/aria-query": "^5.0.1", "aria-query": "5.3.0", "dom-accessibility-api": "^0.5.9", "lz-string": "^1.5.0", "picocolors": "1.1.1", "pretty-format": "^27.0.2" } }, "sha512-yzr2S9HyAIdhz2/6qHgbs665Q7PKVcDF05vsOlHPxG1mo36gKVesdYVeDLnXgfjJ03CrKRk08knc6+E/9m8v2Q=="],
 
     "@testing-library/react": ["@testing-library/react@16.3.3", "", { "dependencies": { "@babel/runtime": "^7.12.5" }, "peerDependencies": { "@testing-library/dom": "^10.0.0", "@types/react": "^18.0.0 || ^19.0.0", "@types/react-dom": "^18.0.0 || ^19.0.0", "react": "^18.0.0 || ^19.0.0", "react-dom": "^18.0.0 || ^19.0.0" }, "optionalPeers": ["@types/react", "@types/react-dom"] }, "sha512-Uo193NgQbPMz6lrrhtRQQFcMC6Re/ELLFbbuVL30WDlZxlpZf9/lMHTAVxPRLw1q1iu9OJmR1c2BLiENRstdBg=="],
-
-    "@trading-plateform/contracts": ["@trading-plateform/contracts@workspace:packages/contracts"],
-
-    "@trading-plateform/http": ["@trading-plateform/http@workspace:packages/http"],
-
-    "@trading-plateform/kafka": ["@trading-plateform/kafka@workspace:packages/kafka"],
-
-    "@trading-plateform/utils": ["@trading-plateform/utils@workspace:packages/utils"],
 
     "@ts-morph/common": ["@ts-morph/common@0.27.0", "", { "dependencies": { "fast-glob": "^3.3.3", "minimatch": "^10.0.1", "path-browserify": "^1.0.1" } }, "sha512-Wf29UqxWDpc+i61k3oIOzcUfQt79PIT9y/MWfAGlrkjg6lBC1hwDECLXPVJAhWjiGbfBCxZd65F/LIZF3+jeJQ=="],
 

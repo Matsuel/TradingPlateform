@@ -808,7 +808,7 @@ Source : `src/lib/api.ts`.
 
 ### `lib/pagination.ts`
 
-- **Import** : `import { getPageItems, paginate, type PaginationParams } from "@/lib/pagination"` ; le type de réponse `Paginated<T>` s'importe de `@trading-plateform/contracts` (`import type`).
+- **Import** : `import { getPageItems, paginate, type PaginationParams } from "@/lib/pagination"` ; le type de réponse `Paginated<T>` s'importe de `@azimut/contracts` (`import type`).
 
 | Export | Rôle |
 | --- | --- |

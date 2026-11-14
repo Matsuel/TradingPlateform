@@ -1,4 +1,4 @@
-# @trading-plateform/contracts
+# @azimut/contracts
 
 **Source unique de vérité** des données échangées entre services : topics, schémas zod des payloads et de l'enveloppe, types `z.infer`. Uniquement des définitions : pas de logique ni d'I/O. Respecte `../../AGENTS.md`.
 

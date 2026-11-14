@@ -36,7 +36,7 @@ Catalogue des routes internes de market-service (port 8001, données yahoo-finan
 - **Chemin** : identique de bout en bout. Web `apiFetch("/market/search?…")` → core-backend `/api/market/search` → market-service `/api/market/search`.
 - **Auth** : pas de session ici, mais `x-internal-key` (valeur `INTERNAL_API_KEY`, posée par le proxy) est exigée sur toutes les routes sauf `GET /health` → sinon `401 { "error": "Unauthorized" }`. Ne pas exposer ce service publiquement. `GET /health` → `200 { "status": "ok" }`. Port : `env.PORT` (défaut 8001). `x-user-id` est posé par le proxy mais aucune route ne le lit aujourd'hui.
 - **Erreurs** : `AppError` → `{ "error": "<message anglais>", "code": "<CODE>", ...data }` avec son statut (mêmes codes que core-backend, voir son `API.md`) ; toute autre exception (erreur yahoo-finance2) → `500 { "error": "Internal server error", "code": "INTERNAL_ERROR" }`. Seules les routes `GET` ci-dessous existent : une autre méthode ou un autre chemin reçoit la 404 par défaut d'Express (HTML).
-- **Types** : schémas zod d'entrée propres au service dans `interfaces/market.interface.ts` (`searchMarketSchema`, `marketIdSchema`, `dailyClosesQuerySchema`) ; `periodSchema` et types de réponse (`MarketData`, `MarketAsset`, `MarketDetails`, `DailyCloses`, `Period`), unités comprises, dans `@trading-plateform/contracts` (`src/market.ts`), partagés avec le web ; pagination (`paginationQuerySchema`, `Paginated<T>`) depuis le même package. Dates sérialisées en ISO 8601. Prix dans la devise de cotation du symbole, sans conversion.
+- **Types** : schémas zod d'entrée propres au service dans `interfaces/market.interface.ts` (`searchMarketSchema`, `marketIdSchema`, `dailyClosesQuerySchema`) ; `periodSchema` et types de réponse (`MarketData`, `MarketAsset`, `MarketDetails`, `DailyCloses`, `Period`), unités comprises, dans `@azimut/contracts` (`src/market.ts`), partagés avec le web ; pagination (`paginationQuerySchema`, `Paginated<T>`) depuis le même package. Dates sérialisées en ISO 8601. Prix dans la devise de cotation du symbole, sans conversion.
 - **Logos** : `logoUrl` vaut `https://img.logo.dev/ticker/<symbol>?token=…&size=64` si `LOGO_DEV_TOKEN` est défini (`env.ts`), sinon absent.
 
 ### GET /api/market/search
@@ -70,10 +70,10 @@ Catalogue des routes internes de market-service (port 8001, données yahoo-finan
 ### GET /api/market/defaults
 
 - **Auth** : aucune ici (proxy core-backend) ; `x-user-id` non lu.
-- **Entrée** : query `paginationQuerySchema` (`@trading-plateform/contracts`), valeurs coercées depuis la query string :
+- **Entrée** : query `paginationQuerySchema` (`@azimut/contracts`), valeurs coercées depuis la query string :
   - `page` (entier ≥ 1, défaut `1`) ;
   - `pageSize` (entier de 1 à 100, défaut `20`).
-- **Réponse** : `200`, `Paginated<MarketAsset>` (`@trading-plateform/contracts`). La pagination porte sur les 15 symboles de `DEFAULT_TICKERS` (`constants/market.constants.ts`), dans cet ordre : seuls les symboles de la page demandée sont interrogés sur yahoo-finance2.
+- **Réponse** : `200`, `Paginated<MarketAsset>` (`@azimut/contracts`). La pagination porte sur les 15 symboles de `DEFAULT_TICKERS` (`constants/market.constants.ts`), dans cet ordre : seuls les symboles de la page demandée sont interrogés sur yahoo-finance2.
   - `count` : nombre total de symboles par défaut (`DEFAULT_TICKERS.length`, soit 15), toutes pages confondues ;
   - `page`, `pageSize` : valeurs appliquées (défauts inclus) ;
   - `data` : `MarketAsset[]` de la page ; `[]` si `page` dépasse la dernière page (`200`, pas d'erreur). Un symbole en échec est omis (loggué en `error`) sans faire échouer la route : `data.length` peut alors être inférieur à `pageSize` même hors dernière page, et ne doit pas servir à calculer le nombre de pages (utiliser `count`).

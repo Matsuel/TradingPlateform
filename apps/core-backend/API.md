@@ -63,7 +63,7 @@ Catalogue des routes HTTP exposées par core-backend (port 8000) et appelées pa
 
 ### Pagination
 
-Les routes de liste (`GET /api/portfolio`, `GET /api/backtest`) suivent le contrat de `packages/contracts/src/pagination.ts` (`@trading-plateform/contracts`) :
+Les routes de liste (`GET /api/portfolio`, `GET /api/backtest`) suivent le contrat de `packages/contracts/src/pagination.ts` (`@azimut/contracts`) :
 
 - **Query** `paginationQuerySchema` : `page` (int ≥ 1, défaut `1`), `pageSize` (int de 1 à 100, défaut `20`), coercés depuis la query string.
 - **Réponse** `Paginated<T>` : `data` (éléments de la page), `count` (total des éléments correspondant au filtre, toutes pages confondues), `page`, `pageSize` (valeurs appliquées, défauts compris).
@@ -197,7 +197,7 @@ Les montants sont dans la devise saisie, affichée `EUR` par le web (`BACKTEST_C
   { "id": "cm…", "name": "60/40", "allocations": [{ "symbol": "AAPL", "weight": "0.6", "...": "…" }, { "symbol": "IEF", "weight": "0.4", "...": "…" }], "investmentMode": "RECURRING", "initialAmount": "10000", "recurringAmount": "500", "investmentFrequency": "MONTHLY", "rebalanceFrequency": "YEARLY", "feeRate": "0.001", "benchmarkSymbol": "URTH", "...": "…", "executions": [{ "id": "cm…", "status": "PENDING", "attempt": 1, "result": null, "...": "…" }] }
   ```
 - **Erreurs** : `400 { "error": "Invalid backtest", "issues": [ZodIssue] }` → body invalide, une issue par erreur avec son chemin : `["end"]` `"Must be after start"` ; `["allocations"]` `"Weights must sum to 100"` (somme ≠ 100), `"Symbols must be unique"` (symbole en double) ou tableau vide ; `["allocations", i, "weight"]` → poids non entier, < 1 ou > 100 ; `["recurringAmount"]` `"Required for RECURRING"` / `"Only allowed for RECURRING"` ; `["initialAmount"]` `"Must be positive for LUMP_SUM"`. Les anciens champs `strategy`, `symbols`, `amount` ne sont plus acceptés ; `401` ; `500 { "error": "Backtest could not be queued" }` → publication Kafka impossible (le backtest reste créé, son exécution passe `FAILED`).
-- **Effets** : écrit `Backtest` (`investmentMode`, `initialAmount`, `recurringAmount` ou null, `investmentFrequency: MONTHLY` en `RECURRING` et null sinon, `rebalanceFrequency`, `benchmarkSymbol` ou null), ses `BacktestAllocation` (une ligne par actif, `weight` en ratio, création imbriquée dans la même transaction) et une `BacktestExecution` `PENDING`. Publie `backtest.requested` (clé `executionId`, payload `BacktestRequestedPayload` de `@trading-plateform/contracts`). Les événements `backtest.started|completed|failed` font ensuite évoluer l'exécution.
+- **Effets** : écrit `Backtest` (`investmentMode`, `initialAmount`, `recurringAmount` ou null, `investmentFrequency: MONTHLY` en `RECURRING` et null sinon, `rebalanceFrequency`, `benchmarkSymbol` ou null), ses `BacktestAllocation` (une ligne par actif, `weight` en ratio, création imbriquée dans la même transaction) et une `BacktestExecution` `PENDING`. Publie `backtest.requested` (clé `executionId`, payload `BacktestRequestedPayload` de `@azimut/contracts`). Les événements `backtest.started|completed|failed` font ensuite évoluer l'exécution.
 - **Appelant** : `createBacktest(values)` de `apps/web/src/features/backtest/api.ts`, hook `useCreateBacktest()` (invalide `["backtest", "list"]` et `["backtest", "stats"]`) ; utilisé par `NewBacktestForm` et `QuickBacktestForm`.
 - **Source** : `routes/backtest/backtest.routes.ts`, `controller/backtest.controller.ts`, `services/backtest.service.ts`, `interfaces/backtest.interface.ts`.
 
@@ -205,7 +205,7 @@ Les montants sont dans la devise saisie, affichée `EUR` par le web (`BACKTEST_C
 
 - **Auth** : session requise.
 - **Entrée** : body `createBacktestSchema`, identique à `POST /api/backtest` (mêmes champs, mêmes règles). Seuls `investmentMode`, `start`, `end` et `rebalanceFrequency` influent sur la réponse.
-- **Réponse** : `200`, `BacktestPreview` (`@trading-plateform/contracts`, partagé avec le web). **Estimations calendaires**, calculées par le service sans appel à l'engine : jours ouvrés du lundi au vendredi de `start` (inclus) à `end` (exclu), chaque date ramenée au minuit UTC le plus proche (jour saisi en heure locale) ; jours fériés et premier cours commun des symboles inconnus avant le chargement des cours, donc l'exécution peut différer d'une unité.
+- **Réponse** : `200`, `BacktestPreview` (`@azimut/contracts`, partagé avec le web). **Estimations calendaires**, calculées par le service sans appel à l'engine : jours ouvrés du lundi au vendredi de `start` (inclus) à `end` (exclu), chaque date ramenée au minuit UTC le plus proche (jour saisi en heure locale) ; jours fériés et premier cours commun des symboles inconnus avant le chargement des cours, donc l'exécution peut différer d'une unité.
   - `contributionCount` (int) : jours de versement ; `1` en `LUMP_SUM`, un par mois civil contenant un jour ouvré en `RECURRING` (le capital initial s'ajoute au premier) ; `0` sans jour ouvré ;
   - `rebalanceCount` (int) : premier jour ouvré de chaque période `MONTHLY` / `QUARTERLY` / `YEARLY`, hors premier jour (règle D7 de l'engine) ; `0` pour `NONE` ;
   - `dataSource` : `PRICE_DATA_SOURCE`, fournisseur et type des cours que chargera l'engine.
@@ -234,7 +234,7 @@ Les montants sont dans la devise saisie, affichée `EUR` par le web (`BACKTEST_C
 
 - **Auth** : session requise.
 - **Entrée** : aucune. Route enregistrée avant `/:id` (sinon `stats` serait lu comme un id).
-- **Réponse** : `200`, `BacktestStats` (`@trading-plateform/contracts`, partagé avec le web) : backtests de l'utilisateur comptés selon le statut de leur **dernière** exécution. `total` = tous les backtests ; `active` = dernière exécution `PENDING` ou `RUNNING` (`ACTIVE_STATUSES`) ; `completed` = `COMPLETED` ; `failed` = `FAILED` ; `completedRate` = `completed / total`, `failedRate` = `failed / total` (fractions non arrondies, `0` si `total = 0`).
+- **Réponse** : `200`, `BacktestStats` (`@azimut/contracts`, partagé avec le web) : backtests de l'utilisateur comptés selon le statut de leur **dernière** exécution. `total` = tous les backtests ; `active` = dernière exécution `PENDING` ou `RUNNING` (`ACTIVE_STATUSES`) ; `completed` = `COMPLETED` ; `failed` = `FAILED` ; `completedRate` = `completed / total`, `failedRate` = `failed / total` (fractions non arrondies, `0` si `total = 0`).
   ```json
   { "total": 13, "active": 6, "completed": 5, "failed": 2, "completedRate": 0.38461538461538464, "failedRate": 0.15384615384615385 }
   ```
@@ -260,7 +260,7 @@ Les montants sont dans la devise saisie, affichée `EUR` par le web (`BACKTEST_C
 
 - **Auth** : session requise.
 - **Entrée** : params `batchId`. Route à deux segments : pas de conflit avec `/:id`.
-- **Réponse** : `200`, `BacktestBatch` (`@trading-plateform/contracts`) :
+- **Réponse** : `200`, `BacktestBatch` (`@azimut/contracts`) :
   - `name`, `endDate` (ISO, fin commune), `status` (`COMPLETED` si tous les départs le sont, `FAILED` si l'un a échoué, sinon `RUNNING`/`PENDING`) ;
   - `rows` triées par `startDate` croissante : `{ backtestId, startDate (ISO), status (dernière exécution), result, rank }` ; `result` = `{ finalValue, cagr, volatility, sharpeRatio, maxDrawdown, totalReturn }` (Decimal string | null, unités de `BacktestResult`) du dernier résultat `COMPLETED`, `null` tant qu'il n'existe pas ; `rank` = `"BEST"` / `"WORST"` (meilleur / pire CAGR), `null` sinon et tant que le lot n'est pas entièrement terminé ;
   - `summary` (null tant qu'aucun départ n'est terminé) : `medianCagr` (ratio annuel), `cagrSpread` (meilleur − pire CAGR, points de ratio), `worstStart` (`{ startDate, cagr }`), `window` (fenêtre de 3 ans du départ le plus ancien : `{ years, worst, worstDate, negativeShare, count }`, null si l'historique est plus court) ;
@@ -301,7 +301,7 @@ Les montants sont dans la devise saisie, affichée `EUR` par le web (`BACKTEST_C
   ```
   GET /api/backtest/compare?ids=cmA…,cmB…
   ```
-- **Réponse** : `200`, `BacktestComparison` (`@trading-plateform/contracts`, partagé avec le web) :
+- **Réponse** : `200`, `BacktestComparison` (`@azimut/contracts`, partagé avec le web) :
   - `a`, `b` (`ComparedBacktest`, dans l'ordre de `ids`) : paramètres `id`, `name`, `startDate`, `endDate` (ISO), `investmentMode`, `rebalanceFrequency`, `feeRate` (Decimal string, fraction par ordre), `benchmarkSymbol` (string | null) ; `allocations` (`[{ "symbol", "weight" }]`, `weight` Decimal string, ratio) ; `result` = dernier résultat de la dernière exécution `COMPLETED`, réduit à `finalValue`, `totalInvested`, `totalReturn`, `cagr`, `volatility`, `sharpeRatio`, `maxDrawdown` (Decimal string | null, mêmes unités que `BacktestResult`), `maxDrawdownPeakDate` (ISO | null), `recoveryDays` (int | null), `benchmark` (objet | null, comme `BacktestResult.benchmark`) et `equityCurve` (comme `BacktestResult.equityCurve`, avec `benchmarkValue` si benchmark) ; ni `trades`, ni `holdings` ;
   - `deltas` : `{ "cagr", "volatility", "sharpeRatio", "maxDrawdown", "totalReturn" }` (`COMPARED_METRICS`), écart **A − B** calculé par le service en points de ratio (`0.013` = +1,3 pt ; Sharpe sans unité), comme `benchmark.excess*` ; `null` si la métrique manque d'un côté (résultat antérieur, moins de deux points) ;
   - `homogeneous` : `true` si même période (dates de début et de fin), mêmes frais et même benchmark ;

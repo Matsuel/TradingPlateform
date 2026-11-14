@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test"
-import { businessDays, estimateSchedule } from "@trading-plateform/utils"
+import { businessDays, estimateSchedule } from "@azimut/utils"
 
 const day = (iso: string) => new Date(`${iso}T00:00:00Z`)
 

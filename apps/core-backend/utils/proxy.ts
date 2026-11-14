@@ -1,8 +1,8 @@
 import type { NextFunction, Request, RequestHandler, Response } from "express";
 import { createProxyMiddleware } from "http-proxy-middleware";
-import { Logger } from "@trading-plateform/utils";
-import { INTERNAL_KEY_HEADER } from "@trading-plateform/contracts";
-import { BadGatewayError } from "@trading-plateform/http";
+import { Logger } from "@azimut/utils";
+import { INTERNAL_KEY_HEADER } from "@azimut/contracts";
+import { BadGatewayError } from "@azimut/http";
 import { env } from "../env";
 
 const logger = Logger.here();

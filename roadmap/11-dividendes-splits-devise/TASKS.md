@@ -72,7 +72,7 @@ Critères d’acceptation :
 Yahoo Finance reste le seul fournisseur, appelé par market-service uniquement (D4).
 
 Critères d’acceptation :
-- [x] market-service expose les dividendes par symbole (`chart` avec `events: 'div'`) : date `YYYY-MM-DD` de l'ex-date dans le fuseau de la place, montant par titre dans la devise de cotation ; schéma zod dans `@trading-plateform/contracts`.
+- [x] market-service expose les dividendes par symbole (`chart` avec `events: 'div'`) : date `YYYY-MM-DD` de l'ex-date dans le fuseau de la place, montant par titre dans la devise de cotation ; schéma zod dans `@azimut/contracts`.
 - [x] Le repository du moteur lit cette route (clé interne, même politique de nouvel essai que `closes`), sans appeler Yahoo.
 - [x] Un test couvre un titre sans dividende (liste vide, pas d'erreur).
 - [x] Entrée ajoutée dans `apps/market-service/API.md`.

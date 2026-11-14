@@ -1,9 +1,9 @@
 import YahooFinance from "yahoo-finance2";
 import type { ChartOptions } from "yahoo-finance2/modules/chart";
-import type { DailyCloses, Dividends, MarketAsset, MarketData, MarketDetails, Period } from "@trading-plateform/contracts";
-import { BadGatewayError } from "@trading-plateform/http";
+import type { DailyCloses, Dividends, MarketAsset, MarketData, MarketDetails, Period } from "@azimut/contracts";
+import { BadGatewayError } from "@azimut/http";
 import { env } from "../env";
-import { DAY_MS, Logger } from "@trading-plateform/utils";
+import { DAY_MS, Logger } from "@azimut/utils";
 import { toMajorCurrency } from "../utils/currency";
 
 const logger = Logger.here();

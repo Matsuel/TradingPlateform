@@ -1,4 +1,4 @@
-import type { ExecutionErrorCode } from "@trading-plateform/contracts";
+import type { ExecutionErrorCode } from "@azimut/contracts";
 
 class BacktestError extends Error {
     constructor(

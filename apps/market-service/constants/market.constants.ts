@@ -1,4 +1,4 @@
-import type { Period } from "@trading-plateform/contracts";
+import type { Period } from "@azimut/contracts";
 
 export const DEFAULT_TICKERS = [
     "AAPL",    // Apple

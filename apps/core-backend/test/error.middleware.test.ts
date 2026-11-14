@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test"
 import type { Request, Response } from "express"
-import { API_ERROR_CODES } from "@trading-plateform/contracts"
-import { ConflictError, ForbiddenError, NotFoundError, errorMiddleware } from "@trading-plateform/http";
+import { API_ERROR_CODES } from "@azimut/contracts"
+import { ConflictError, ForbiddenError, NotFoundError, errorMiddleware } from "@azimut/http";
 
 // Réponse minimale : mémorise le statut et le corps envoyés
 function run(error: Error) {

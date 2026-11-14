@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, expect, test } from "bun:test"
-import { startApp } from "@trading-plateform/http/testing"
+import { startApp } from "@azimut/http/testing"
 import createMarketRoutes from "../routes/market/market.routes"
 
 let app: Awaited<ReturnType<typeof startApp>>

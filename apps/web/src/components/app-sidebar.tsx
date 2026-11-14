@@ -35,7 +35,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
                             <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
                                 <GalleryVerticalEnd className="size-4" />
                             </div>
-                            <span className="font-medium">MarketFlow</span>
+                            <span className="font-medium">Azimut</span>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                 </SidebarMenu>

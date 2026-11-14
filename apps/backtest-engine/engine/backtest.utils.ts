@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { DAY_MS } from "@trading-plateform/utils";
+import { DAY_MS } from "@azimut/utils";
 import type { BacktestParams, DividendSeries, PriceSeries, TwrPoint } from "../interfaces/backtest.interface";
 
 // Année calendaire moyenne (années bissextiles comprises), base d'annualisation du CAGR

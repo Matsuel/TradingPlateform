@@ -1,5 +1,5 @@
 import { logLevel, type LogEntry } from "kafkajs";
-import { createLogger } from "@trading-plateform/utils";
+import { createLogger } from "@azimut/utils";
 
 const logger = createLogger("kafkajs");
 

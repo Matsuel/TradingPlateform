@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"]
 export async function generateMetadata(): Promise<Metadata> {
     const t = await getTranslations("metadata")
     return {
-        title: { default: "MarketFlow", template: "%s · MarketFlow" },
+        title: { default: "Azimut", template: "%s · Azimut" },
         description: t("description"),
     }
 }

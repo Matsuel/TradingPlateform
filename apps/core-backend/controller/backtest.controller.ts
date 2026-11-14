@@ -1,6 +1,6 @@
-import { API_ERROR_CODES } from "@trading-plateform/contracts"
+import { API_ERROR_CODES } from "@azimut/contracts"
 import type { Request, Response } from "express"
-import { BadRequestError } from "@trading-plateform/http";
+import { BadRequestError } from "@azimut/http";
 import { backtestCompareQuerySchema, backtestListQuerySchema, batchStartDatesSchema, createBacktestSchema, createBatchSchema } from "../interfaces/backtest.interface"
 import BacktestService from "../services/backtest.service"
 

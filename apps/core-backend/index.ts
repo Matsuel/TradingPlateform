@@ -1,15 +1,15 @@
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
-import { errorMiddleware } from "@trading-plateform/http";
+import { errorMiddleware } from "@azimut/http";
 import { authRateLimit, backtestCreateRateLimit } from './middleware/rate-limit.middleware';
 import { dbHealthCheck, isDbConnected } from './utils/db';
 import authRouter from './routes/auth';
 import portfolioRouter from './routes/portfolio';
 import marketRouter from './routes/market';
 import backtestRouter from './routes/backtest';
-import { Logger, onShutdown } from '@trading-plateform/utils';
-import { BACKTEST_TOPICS } from '@trading-plateform/contracts';
+import { Logger, onShutdown } from '@azimut/utils';
+import { BACKTEST_TOPICS } from '@azimut/contracts';
 import { consumer, kafkaClient, producer } from './lib/kafka';
 import BacktestConsumer from './consumers/backtest.consumer';
 import BacktestService from './services/backtest.service';

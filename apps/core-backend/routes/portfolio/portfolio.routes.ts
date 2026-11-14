@@ -1,6 +1,6 @@
 import PortfolioController from "../../controller/portfolio.controller";
 import authMiddleware from "../../middleware/auth.middleware";
-import type { RouteDescriptor } from "@trading-plateform/http";
+import type { RouteDescriptor } from "@azimut/http";
 import asyncHandler from "../../utils/handler";
 
 const createPortfolioRoutes = (): RouteDescriptor[] => {

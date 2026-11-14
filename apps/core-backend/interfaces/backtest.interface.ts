@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { addYears } from "@trading-plateform/utils";
+import { addYears } from "@azimut/utils";
 import {
     API_ERROR_CODES,
     API_ERROR_MESSAGES,
@@ -16,7 +16,7 @@ import {
     type ComparedMetric,
     type RollingWindow,
     type BacktestStatus as ContractBacktestStatus,
-} from "@trading-plateform/contracts";
+} from "@azimut/contracts";
 import { BacktestStatus, type BacktestResult, type Prisma } from "../generated/prisma/client";
 import type { batchBacktest, batchResult, comparedBacktest, comparedResult } from "../repositories/backtest.repository";
 

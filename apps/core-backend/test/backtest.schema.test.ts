@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test"
 import type { ZodSafeParseResult } from "zod"
-import { MAX_CLOSES_SYMBOLS } from "@trading-plateform/contracts"
+import { MAX_CLOSES_SYMBOLS } from "@azimut/contracts"
 import { backtestCompareQuerySchema, createBacktestSchema, createBatchSchema } from "../interfaces/backtest.interface"
 
 const valid = {

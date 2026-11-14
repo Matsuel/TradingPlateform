@@ -1,4 +1,4 @@
-# @trading-plateform/kafka
+# @azimut/kafka
 
 Wrappers `kafkajs` génériques : `KafkaClient` (dont `ensureTopics`), `KafkaProducer`, `KafkaConsumer`, `kafkaConfig`, `createKafkaEvent`, types `KafkaEvent<T>` / `KafkaMessage<T>` / `MessageHandler<T>`. Aucune logique métier : les événements (topic + schéma zod) vivent dans `packages/contracts`. Respecte `../../AGENTS.md`.
 

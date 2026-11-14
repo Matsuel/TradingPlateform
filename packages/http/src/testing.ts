@@ -4,7 +4,7 @@ import { errorMiddleware } from "./error.middleware";
 import { registerRoutes, type RouteDescriptor } from "./route";
 
 /**
- * Aide de test des apps (`@trading-plateform/http/testing`) : démarre un vrai serveur Express (port libre) avec ces routes
+ * Aide de test des apps (`@azimut/http/testing`) : démarre un vrai serveur Express (port libre) avec ces routes
  * puis `errorMiddleware`, comme `index.ts`. `request(path, init)` appelle le serveur ; `close()` l'arrête.
  */
 export async function startApp(routes: RouteDescriptor[]) {

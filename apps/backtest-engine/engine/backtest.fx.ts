@@ -1,4 +1,4 @@
-import type { Dividend } from "@trading-plateform/contracts";
+import type { Dividend } from "@azimut/contracts";
 import BacktestError from "../errors/backtest.error";
 import type { Currencies, MarketInput, PricePoint, PriceSeries } from "../interfaces/backtest.interface";
 

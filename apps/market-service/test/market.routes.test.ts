@@ -1,10 +1,10 @@
 import { afterAll, beforeAll, expect, spyOn, test } from "bun:test"
-import { INTERNAL_KEY_HEADER } from "@trading-plateform/contracts"
+import { INTERNAL_KEY_HEADER } from "@azimut/contracts"
 import internalAuthMiddleware from "../middleware/internal-auth.middleware"
 import createMarketRoutes from "../routes/market/market.routes"
 import MarketService from "../services/market.service"
 import { env } from "../env"
-import { startApp } from "@trading-plateform/http/testing"
+import { startApp } from "@azimut/http/testing"
 
 const closes = spyOn(MarketService.prototype, "getDailyCloses").mockResolvedValue({ AAPL: [{ date: "2024-01-02", close: 185.64 }] })
 const dividends = spyOn(MarketService.prototype, "getDividends").mockResolvedValue({ AAPL: { currency: "USD", dividends: [] } })

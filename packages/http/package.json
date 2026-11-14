@@ -1,5 +1,5 @@
 {
-    "name": "@trading-plateform/http",
+    "name": "@azimut/http",
     "version": "1.0.0",
     "private": true,
     "type": "module",
@@ -8,8 +8,8 @@
         "./testing": "./src/testing.ts"
     },
     "dependencies": {
-        "@trading-plateform/contracts": "workspace:*",
-        "@trading-plateform/utils": "workspace:*"
+        "@azimut/contracts": "workspace:*",
+        "@azimut/utils": "workspace:*"
     },
     "peerDependencies": {
         "express": "^5.3.0"

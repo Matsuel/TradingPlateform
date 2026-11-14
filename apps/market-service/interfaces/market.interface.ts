@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { MAX_CLOSES_SYMBOLS } from "@trading-plateform/contracts";
+import { MAX_CLOSES_SYMBOLS } from "@azimut/contracts";
 
 export const searchMarketSchema = z.object({
     query: z.string().trim().min(2),

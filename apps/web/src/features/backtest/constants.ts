@@ -80,7 +80,7 @@ export const statusFilters = {
 
 export type StatusFilter = keyof typeof statusFilters
 
-// Backtests proposés au choix de la comparaison : MAX_PAGE_SIZE de @trading-plateform/contracts (pagination.ts), pageSize
+// Backtests proposés au choix de la comparaison : MAX_PAGE_SIZE de @azimut/contracts (pagination.ts), pageSize
 // maximal de GET /api/backtest ; recopié car le web n'importe pas le package à l'exécution
 export const COMPARABLE_LIMIT = 100
 

@@ -1,4 +1,4 @@
-import type { PaginationQuery } from "@trading-plateform/contracts"
+import type { PaginationQuery } from "@azimut/contracts"
 import type { Portfolio } from "../generated/prisma/client"
 import type { CreatePortfolioDTO, UpdatePortfolioDTO } from "../interfaces/portfolio.interface"
 import { prisma } from "../prisma"

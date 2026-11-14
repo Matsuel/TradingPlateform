@@ -1,6 +1,6 @@
 # web
 
-Front Next.js (App Router) de MarketFlow : il affiche les données de core-backend et n'appelle que lui.
+Front Next.js (App Router) de Azimut : il affiche les données de core-backend et n'appelle que lui.
 
 ## Lancer
 

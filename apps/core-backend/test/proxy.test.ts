@@ -1,8 +1,8 @@
 import { afterAll, beforeAll, expect, test } from "bun:test"
 import express from "express"
 import type { Server } from "node:http"
-import { INTERNAL_KEY_HEADER } from "@trading-plateform/contracts"
-import { errorMiddleware } from "@trading-plateform/http"
+import { INTERNAL_KEY_HEADER } from "@azimut/contracts"
+import { errorMiddleware } from "@azimut/http"
 import { env } from "../env"
 import proxyTo from "../utils/proxy"
 

@@ -10,9 +10,9 @@
     "typescript": "^7.0.2"
   },
   "dependencies": {
-    "@trading-plateform/contracts": "workspace:*",
-    "@trading-plateform/http": "workspace:*",
-    "@trading-plateform/utils": "workspace:*",
+    "@azimut/contracts": "workspace:*",
+    "@azimut/http": "workspace:*",
+    "@azimut/utils": "workspace:*",
     "@types/express": "^5.0.6",
     "express": "^5.3.0",
     "yahoo-finance2": "^4.0.6",

@@ -1,6 +1,6 @@
 import { afterEach, expect, spyOn, test } from "bun:test"
 import type { NextFunction, Request, Response } from "express"
-import { UnauthorizedError } from "@trading-plateform/http"
+import { UnauthorizedError } from "@azimut/http"
 import { auth } from "../lib/auth"
 import authMiddleware from "../middleware/auth.middleware"
 

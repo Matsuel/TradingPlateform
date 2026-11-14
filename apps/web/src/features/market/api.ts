@@ -1,4 +1,4 @@
-import type { Paginated } from "@trading-plateform/contracts"
+import type { Paginated } from "@azimut/contracts"
 import { apiFetch } from "@/lib/api"
 import type { PaginationParams } from "@/lib/pagination"
 import type { MarketAsset, MarketData, MarketDetails, Period } from "./types"

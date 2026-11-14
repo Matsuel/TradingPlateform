@@ -109,7 +109,7 @@ Critères d’acceptation :
 ### T-07 · Tableau de bord versionné : simulations, lag, erreurs
 
 - **US** : US-02 · **Priorité** : MUST · **Points** : 3 · **Dépend de** : T-06 · **Commits** : —
-- **Fichiers** : `deploy/dashboards/marketflow.json`
+- **Fichiers** : `deploy/dashboards/azimut.json`
 
 Critères d’acceptation :
 - [ ] Trois panneaux : simulations par statut, lag, erreurs ; le JSON est dans le dépôt.

@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test"
-import { KafkaConsumer, type MessageHandler } from "@trading-plateform/kafka"
+import { KafkaConsumer, type MessageHandler } from "@azimut/kafka"
 
 // Types de kafkajs dérivés du package Kafka : core-backend ne dépend pas de kafkajs
 type Consumer = ConstructorParameters<typeof KafkaConsumer>[0]

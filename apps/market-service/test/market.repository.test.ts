@@ -1,5 +1,5 @@
 import { afterEach, expect, spyOn, test } from "bun:test"
-import { BadGatewayError } from "@trading-plateform/http"
+import { BadGatewayError } from "@azimut/http"
 import MarketRepository from "../repositories/market.repository"
 
 // Client yahoo-finance2 privé de la classe : simulé pour ne faire aucun appel réseau

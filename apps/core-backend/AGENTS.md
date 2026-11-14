@@ -19,9 +19,9 @@ routes/<domaine>/   →  controller/  →  services/  →  repositories/  →  p
 | `repositories/` | Interface `I<Domaine>Repository` + classe : seul lieu où vit `prisma`. |
 | `interfaces/` | Schémas zod d'entrée et types/DTO du domaine (`<domaine>.interface.ts`). |
 | `constants/` | Constantes métier (`<domaine>.constants.ts`) : statuts, valeurs fixes. |
-| `errors/` | Absent : les erreurs (`AppError` et sous-classes par statut) viennent de `@trading-plateform/http`. |
+| `errors/` | Absent : les erreurs (`AppError` et sous-classes par statut) viennent de `@azimut/http`. |
 | `middleware/` | `auth`, `error`. |
-| `utils/` | Helpers techniques (`db`, `proxyTo`). `RouteDescriptor`, `registerRoutes` et `errorMiddleware` viennent de `@trading-plateform/http`. |
+| `utils/` | Helpers techniques (`db`, `proxyTo`). `RouteDescriptor`, `registerRoutes` et `errorMiddleware` viennent de `@azimut/http`. |
 | `lib/`, `types/` | Config better-auth, `kafkaClient`/`producer`/`consumer` (`lib/kafka.ts`), augmentations Express. |
 | `prisma/`, `generated/` | Schéma et migrations ; `generated/` ne s'édite jamais. |
 
@@ -30,7 +30,7 @@ routes/<domaine>/   →  controller/  →  services/  →  repositories/  →  p
 Chaque couche fait **exactement** son travail ; une ligne qui relève d'une autre couche y est déplacée.
 
 - **Controller** : valide `req` avec le schéma zod de `interfaces/` (`BadRequestError` si invalide), appelle **une** méthode de service, répond (`res.json`, `res.status(201|202)` pour création/asynchrone). Méthodes en propriétés fléchées ; `userId` vient de `req.userId`.
-- **Consumer** : valide le message avec le schéma d'événement de `@trading-plateform/contracts`, appelle **une** méthode de service. Message invalide → `logger.warn` et retour, sans exception.
+- **Consumer** : valide le message avec le schéma d'événement de `@azimut/contracts`, appelle **une** méthode de service. Message invalide → `logger.warn` et retour, sans exception.
 - **Service** : décide. Autorisation (propriétaire → `NotFoundError`/`ForbiddenError` via un seul helper privé `assertOwner` par service), invariants métier, transitions de statut, mapping entrée API → DTO, publication Kafka (`producer` de `lib/kafka.ts` + `createKafkaEvent`), logs. Ne connaît ni `req`/`res` ni `prisma`.
 - **Repository** : exécute, avec Prisma Client uniquement (règle « Base de données » du `../../AGENTS.md` : aucun SQL écrit à la main). Une méthode par besoin d'accès, paramétrée par ce que le service a décidé (les statuts autorisés sont passés en argument, pas choisis ici). Aucune règle métier, aucune `AppError`. Lecture légère (`getById`) pour autoriser/décider, lecture complète (`getDetailsById`) seulement pour la réponse : on ne charge jamais une colonne lourde (JSON de courbe, listes) pour une vérification.
 - Les erreurs se **lancent** ; seul `error.middleware` formate la réponse d'erreur.
@@ -39,7 +39,7 @@ Chaque couche fait **exactement** son travail ; une ligne qui relève d'une autr
 
 - DTO dérivés de Prisma (`Prisma.XUncheckedCreateInput`, `Prisma.XGetPayload<{ include }>`) ou des contrats (`Omit<Payload, ...> & {...}`). Les `include`/`omit` réutilisés sont des constantes `satisfies Prisma.XInclude` en tête du repository.
 - Décimaux : `Decimal` Prisma (`@db.Decimal`), convertis en `number` uniquement pour construire un payload Kafka. Ratios stockés en fraction (`0.342`), jamais en pourcentage.
-- Erreurs (`@trading-plateform/http`, constructeur `(code, data?)`) : `BadRequest` 400, `Unauthorized` 401, `Forbidden` 403, `NotFound` 404, `Conflict` 409, `Internal` 500, `BadGateway` 502. Un nouveau statut s'ajoute dans `packages/http`, un nouveau code dans `packages/contracts/src/error.ts`.
+- Erreurs (`@azimut/http`, constructeur `(code, data?)`) : `BadRequest` 400, `Unauthorized` 401, `Forbidden` 403, `NotFound` 404, `Conflict` 409, `Internal` 500, `BadGateway` 502. Un nouveau statut s'ajoute dans `packages/http`, un nouveau code dans `packages/contracts/src/error.ts`.
 
 ## Événements consommés : transitions gardées
 

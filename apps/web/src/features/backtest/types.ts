@@ -22,7 +22,7 @@ import type {
     LumpSumComparison,
     RollingWindow,
     TradeSide,
-} from "@trading-plateform/contracts"
+} from "@azimut/contracts"
 
 // Formes et unités définies une seule fois dans les contrats : données du moteur (résultat, benchmark), réponse de
 // POST /api/backtest/preview (nombres prévus estimés par core-backend) et de GET /api/backtest/compare (écarts A − B)

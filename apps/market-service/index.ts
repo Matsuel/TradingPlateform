@@ -1,8 +1,8 @@
 import express from 'express';
-import { errorMiddleware } from "@trading-plateform/http";
+import { errorMiddleware } from "@azimut/http";
 import internalAuthMiddleware from './middleware/internal-auth.middleware';
 import marketRouter from './routes/market';
-import { Logger, onShutdown } from '@trading-plateform/utils';
+import { Logger, onShutdown } from '@azimut/utils';
 import { env } from './env';
 
 const logger = Logger.here()

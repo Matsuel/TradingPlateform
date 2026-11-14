@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
-import { estimateSchedule, Logger, median } from "@trading-plateform/utils";
-import { createKafkaEvent } from "@trading-plateform/kafka";
+import { estimateSchedule, Logger, median } from "@azimut/utils";
+import { createKafkaEvent } from "@azimut/kafka";
 import {
     API_ERROR_CODES,
     BACKTEST_TOPICS,
@@ -17,9 +17,9 @@ import {
     type ComparedMetric,
     type ComparisonParameter,
     type Paginated,
-} from "@trading-plateform/contracts";
+} from "@azimut/contracts";
 import { ACTIVE_STATUSES, COMPARABLE_STATUSES, EXECUTION_TIMEOUT_MS } from "../constants/backtest.constants";
-import { BadRequestError, ConflictError, ForbiddenError, InternalError, NotFoundError } from "@trading-plateform/http";
+import { BadRequestError, ConflictError, ForbiddenError, InternalError, NotFoundError } from "@azimut/http";
 import { producer } from "../lib/kafka";
 import BacktestRepository, { type IBacktestRepository } from "../repositories/backtest.repository";
 import type { Backtest, BacktestStatus, Prisma } from "../generated/prisma/client";

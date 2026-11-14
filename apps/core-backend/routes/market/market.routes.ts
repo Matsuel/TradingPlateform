@@ -1,5 +1,5 @@
 import authMiddleware from "../../middleware/auth.middleware";
-import type { RouteDescriptor } from "@trading-plateform/http";
+import type { RouteDescriptor } from "@azimut/http";
 import proxyTo from "../../utils/proxy";
 import { env } from "../../env";
 

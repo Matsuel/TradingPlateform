@@ -1,9 +1,9 @@
 import { afterAll, beforeAll, expect, spyOn, test } from "bun:test"
-import { ForbiddenError } from "@trading-plateform/http"
+import { ForbiddenError } from "@azimut/http"
 import { auth } from "../lib/auth"
 import createPortfolioRoutes from "../routes/portfolio/portfolio.routes"
 import PortfolioService from "../services/portfolio.service"
-import { startApp } from "@trading-plateform/http/testing"
+import { startApp } from "@azimut/http/testing"
 
 const spies = [
     spyOn(auth.api, "getSession").mockImplementation((async () => ({ user: { id: "u1" } })) as never),

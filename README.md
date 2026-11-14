@@ -1,4 +1,4 @@
-# MarketFlow — Distributed Portfolio Lab
+# Azimut — Distributed Portfolio Lab
 
 > Laboratoire **simulé** de stratégie et de gestion de portefeuille, distribué et piloté par événements. Projet de mastère conçu pour apprendre et démontrer les concepts de la gestion d’actifs (backtest, risque, optimisation, projection) ainsi que des choix d’architecture, de fiabilité et d’exploitation — sans prétendre reproduire une plateforme professionnelle ni fournir un conseil financier.
 
@@ -30,7 +30,7 @@
 
 ## Vision
 
-MarketFlow est un laboratoire de portefeuille : l’utilisateur décrit une stratégie (actifs, poids, versements, rebalancement, frais), la simule sur des données historiques, mesure son rendement et son risque, compare des alternatives et projette des scénarios futurs plausibles. Les calculs lourds tournent dans des workers asynchrones pilotés par Kafka.
+Azimut est un laboratoire de portefeuille : l’utilisateur décrit une stratégie (actifs, poids, versements, rebalancement, frais), la simule sur des données historiques, mesure son rendement et son risque, compare des alternatives et projette des scénarios futurs plausibles. Les calculs lourds tournent dans des workers asynchrones pilotés par Kafka.
 
 Le but n’est pas de bâtir un outil de gestion prêt pour la production. Le but est de comprendre, à une échelle maîtrisable, comment une stratégie se comporte selon la période, l’allocation et le niveau de risque, et de rendre démontrables les propriétés d’une architecture distribuée :
 
@@ -71,7 +71,7 @@ Les étiquettes suivantes évitent de sacrifier un projet fini à une architectu
 
 ### MVP réaliste (MUST)
 
-- Comptes authentifiés, recherche d’actifs et graphiques historiques servis par MarketFlow.
+- Comptes authentifiés, recherche d’actifs et graphiques historiques servis par Azimut.
 - Backtest asynchrone via Kafka : DCA ou investissement unique, frais, courbe de valeur, transactions simulées, comparaison DCA / investissement unique.
 - Portefeuille multi-actifs avec poids, rebalancement et benchmark.
 - Métriques : CAGR, volatilité, max drawdown, durée de récupération, Sharpe.
@@ -104,7 +104,7 @@ Les étiquettes suivantes évitent de sacrifier un projet fini à une architectu
 
 > Le schéma ci-dessous inclut le module bonus « marché simulé » (matching engine). Dans le MVP, le calcul asynchrone est porté par `backtest-engine` (consomme `backtest.requested`, publie le résultat) et les données de marché par `market-service`, appelé via le proxy du `core-backend`.
 
-Le front-end ne parle jamais directement au moteur de matching **ni à un fournisseur de données externe**. Il lit exclusivement les API et WebSockets de MarketFlow. Les commandes synchrones passent par une API ; les faits de marché circulent ensuite comme événements. Kafka est le journal d’intégration, pas une base de données ni un RPC déguisé.
+Le front-end ne parle jamais directement au moteur de matching **ni à un fournisseur de données externe**. Il lit exclusivement les API et WebSockets de Azimut. Les commandes synchrones passent par une API ; les faits de marché circulent ensuite comme événements. Kafka est le journal d’intégration, pas une base de données ni un RPC déguisé.
 
 ```text
                        ┌────────────────────┐
@@ -113,7 +113,7 @@ Le front-end ne parle jamais directement au moteur de matching **ni à un fourni
                     HTTPS/REST │       │ WebSocket
                                ▼       │
                   ┌────────────────────▼───────────────────┐
-                  │ Core backend MarketFlow                 │
+                  │ Core backend Azimut                 │
                   │ API • auth • portefeuilles • admin      │
                   │ consumers Kafka • projections • WS      │
                   └───┬───────────────┬───────────────┬─────┘
@@ -135,9 +135,9 @@ Un instrument doit être traité séquentiellement par **une seule instance logi
 
 ## Modèle de données et source de vérité
 
-MarketFlow possède et persiste ses propres données. L’interface n’est pas une simple surcouche de Yahoo Finance : elle affiche le résultat des données écrites et projetées par **ta** plateforme.
+Azimut possède et persiste ses propres données. L’interface n’est pas une simple surcouche de Yahoo Finance : elle affiche le résultat des données écrites et projetées par **ta** plateforme.
 
-| Donnée visible dans l’UI | Source de vérité MarketFlow | Mise à jour |
+| Donnée visible dans l’UI | Source de vérité Azimut | Mise à jour |
 | --- | --- | --- |
 | Compte, profil et droits | `users` / `accounts` dans PostgreSQL ; identité liée au `subject` JWT | Création/connexion et administration |
 | Solde disponible et réservé | `ledger_entries` et projections `accounts` | Réservation, exécution, annulation |
@@ -151,7 +151,7 @@ MarketFlow possède et persiste ses propres données. L’interface n’est pas 
 
 Yahoo Finance peut alimenter l’**importeur de données de référence**, par exemple pour rechercher `AAPL`, enregistrer son nom, son secteur, sa devise et importer des bougies historiques afin de proposer de jolis graphiques. Après import, l’application sert ces données depuis sa propre base et son cache.
 
-Il ne doit ni gérer les comptes, ni détenir les portefeuilles, ni décider les exécutions, ni fournir directement l’état du carnet. Les prix d’exécution, les trades et les portefeuilles restent entièrement simulés et appartiennent à MarketFlow. Prévoir aussi un jeu de données local de démonstration : la démo reste fonctionnelle si le fournisseur externe est indisponible ou si ses conditions d’accès changent.
+Il ne doit ni gérer les comptes, ni détenir les portefeuilles, ni décider les exécutions, ni fournir directement l’état du carnet. Les prix d’exécution, les trades et les portefeuilles restent entièrement simulés et appartiennent à Azimut. Prévoir aussi un jeu de données local de démonstration : la démo reste fonctionnelle si le fournisseur externe est indisponible ou si ses conditions d’accès changent.
 
 ## Stack : quoi utiliser et quand
 
@@ -395,9 +395,9 @@ Le ledger est append-only ; les positions et soldes sont des projections pratiqu
 | `GET` | `/v1/markets/{instrumentId}/order-book` | Snapshot cohérent du carnet. |
 | `GET` | `/v1/markets/{instrumentId}/trades` | Derniers échanges. |
 | `GET` | `/v1/portfolio` | Cash, positions, P&L. |
-| `GET` | `/v1/instruments?query=apple` | Recherche dans le catalogue **stocké par MarketFlow**. |
+| `GET` | `/v1/instruments?query=apple` | Recherche dans le catalogue **stocké par Azimut**. |
 | `GET` | `/v1/instruments/{instrumentId}` | Fiche instrument, informations et provenance de référence. |
-| `GET` | `/v1/instruments/{instrumentId}/candles?interval=1d` | Bougies historiques depuis la base MarketFlow. |
+| `GET` | `/v1/instruments/{instrumentId}/candles?interval=1d` | Bougies historiques depuis la base Azimut. |
 | `POST` | `/v1/strategies/backtests` | Crée et lance un backtest DCA historique. |
 | `GET` | `/v1/backtests/{runId}` | Résultat, séries graphiques et transactions simulées d’un backtest. |
 | `POST` | `/v1/strategies` | Crée une stratégie de paper trading à partir d’aujourd’hui. |
@@ -818,7 +818,7 @@ Le projet peut s'inspirer des fonctionnalités de plateformes publiques comme :
 - **Portfolio Visualizer** : analyse et backtest de portefeuilles ;
 - **QuantConnect** : backtesting et analyse de stratégies programmatiques.
 
-Ces plateformes servent de **références fonctionnelles**. MarketFlow ne cherche pas à les copier ; l'objectif est de construire une version cohérente avec les objectifs pédagogiques du projet et l'architecture distribuée déjà prévue.
+Ces plateformes servent de **références fonctionnelles**. Azimut ne cherche pas à les copier ; l'objectif est de construire une version cohérente avec les objectifs pédagogiques du projet et l'architecture distribuée déjà prévue.
 
 ### Ordre de développement recommandé
 
@@ -890,17 +890,17 @@ Ajouts à `market-service` : `options/:symbol` (chaîne par échéance), dividen
 
 ### Limites à afficher
 
-Black-Scholes suppose une volatilité constante, des marchés sans friction et aucun risque de crédit sur l’émetteur. Les prix produits par MarketFlow sont des **valeurs pédagogiques**, pas des prix exécutables ; les produits longs utilisent une volatilité choisie par l’utilisateur.
+Black-Scholes suppose une volatilité constante, des marchés sans friction et aucun risque de crédit sur l’émetteur. Les prix produits par Azimut sont des **valeurs pédagogiques**, pas des prix exécutables ; les produits longs utilisent une volatilité choisie par l’utilisateur.
 
 ## Strategy Lab : DCA, backtest et paper trading
 
-Le **Strategy Lab** est la fonctionnalité qui différencie MarketFlow d’un simple tableau de trading. Il permet à une personne qui hésite à investir de tester une règle simple sur une période passée, puis de l’observer avec de l’argent virtuel à partir d’aujourd’hui. Il s’agit d’un outil pédagogique : aucun résultat historique ne constitue une prédiction ou un conseil d’investissement.
+Le **Strategy Lab** est la fonctionnalité qui différencie Azimut d’un simple tableau de trading. Il permet à une personne qui hésite à investir de tester une règle simple sur une période passée, puis de l’observer avec de l’argent virtuel à partir d’aujourd’hui. Il s’agit d’un outil pédagogique : aucun résultat historique ne constitue une prédiction ou un conseil d’investissement.
 
 ### Deux modes complémentaires
 
 | Mode | Question répondue | Données et exécution | Matching engine |
 | --- | --- | --- | --- |
-| **Backtest historique** | « Qu’aurait donné 100 € par mois sur cet actif entre deux dates passées ? » | Bougies historiques persistées dans MarketFlow ; calcul déterministe et reproductible | **Non** : une exécution synthétique est plus honnête qu’un carnet fictif dans le passé |
+| **Backtest historique** | « Qu’aurait donné 100 € par mois sur cet actif entre deux dates passées ? » | Bougies historiques persistées dans Azimut ; calcul déterministe et reproductible | **Non** : une exécution synthétique est plus honnête qu’un carnet fictif dans le passé |
 | **Paper trading futur** | « Que se passe-t-il si je commence cette stratégie maintenant ? » | Stratégie planifiée, portefeuille virtuel et nouvelles données au fil du temps | **Optionnel** : oui si la stratégie envoie un ordre au marché simulé ; non si elle suit un cours de référence |
 
 ### MVP : backtest DCA simple
@@ -934,7 +934,7 @@ Le graphique doit toujours afficher la période, la devise, les frais, la règle
 
 Une stratégie active, par exemple « 100 € chaque premier lundi du mois », crée un portefeuille virtuel distinct. Un job planifié détecte les échéances, crée une transaction ou un ordre virtuel, puis le `core-backend` met à jour le portefeuille. L’utilisateur voit au fil du temps les décisions réalisées et leur valeur avec les nouvelles données.
 
-Pour éviter une ambiguïté : ce mode mesure le résultat **après** le lancement de la stratégie ; il ne prédit jamais le prix futur. Si les achats doivent interagir avec le carnet et les bots MarketFlow, ils passent alors par Kafka et le matching engine comme les autres ordres. Si l’objectif est seulement de suivre une stratégie DCA sur un cours de référence, une exécution synthétique suffit.
+Pour éviter une ambiguïté : ce mode mesure le résultat **après** le lancement de la stratégie ; il ne prédit jamais le prix futur. Si les achats doivent interagir avec le carnet et les bots Azimut, ils passent alors par Kafka et le matching engine comme les autres ordres. Si l’objectif est seulement de suivre une stratégie DCA sur un cours de référence, une exécution synthétique suffit.
 
 ### Limites à rendre visibles
 
@@ -1003,7 +1003,7 @@ Métriques Prometheus initiales :
 - JWT signés et vérifiés par l’API ; autorisation systématique : un compte ne lit/modifie que ses ressources.
 - Validation stricte de tous les payloads, limites de taille, rate limiting sur la soumission et le WebSocket.
 - CORS restrictif, dépendances scannées, images conteneur non-root et minimales.
-- Données fictives uniquement. Ne jamais présenter MarketFlow comme une interface de trading réel.
+- Données fictives uniquement. Ne jamais présenter Azimut comme une interface de trading réel.
 
 Supabase Auth est approprié si l’objectif est de livrer vite ; Keycloak est pertinent si l’auto-hébergement, les rôles et l’administration d’identité font partie de la démonstration. L’application métier ne doit dépendre que des claims JWT, pas du fournisseur choisi.
 
@@ -1052,7 +1052,7 @@ Pour un développeur seul, commencer par Compose + CI. Kubernetes, Helm et Argo 
 Un monorepo simplifie le partage de contrats et le démarrage solo.
 
 ```text
-marketflow/
+azimut/
 ├── apps/
 │   ├── web/                         # Next.js
 │   ├── core-backend/                 # API, auth, portefeuille, admin, WS, consumers Kafka
@@ -1070,7 +1070,7 @@ marketflow/
 ├── infra/
 │   ├── compose/
 │   ├── kafka/                       # création topics/config local
-│   ├── helm/marketflow/
+│   ├── helm/azimut/
 │   └── observability/
 ├── gitops/                           # valeurs par environnement (SHOULD)
 ├── docs/
@@ -1124,7 +1124,7 @@ Si le temps manque : finir le MVP du mois 4, documenter ses limites et préparer
 - [x] Un message `backtest.requested` rejoué ne crée ni double exécution ni double résultat.
 - [ ] Les calculs du moteur et les invariants critiques sont couverts par des tests automatisés.
 - [ ] Kafka et PostgreSQL sont observables ; un dashboard montre au moins simulations, lag et erreurs.
-- [ ] La recherche d’instruments, la fiche et le graphique lisent les données persistées par MarketFlow, sans appel navigateur vers un fournisseur externe.
+- [ ] La recherche d’instruments, la fiche et le graphique lisent les données persistées par Azimut, sans appel navigateur vers un fournisseur externe.
 - [ ] Le README contient l’installation, les limites et le scénario de démo.
 
 ### Extension terminée lorsque
@@ -1182,4 +1182,4 @@ Préparer une fiche d’architecture d’une page, un diagramme de séquence d�
 
 ---
 
-MarketFlow est un simulateur pédagogique. Les comptes, portefeuilles, ordres, prix d’exécution et événements sont fictifs et persistent dans MarketFlow. Le catalogue ou les historiques de référence peuvent, si souhaité, provenir d’une source externe ; ils ne transforment pas le simulateur en plateforme de trading réel.
+Azimut est un simulateur pédagogique. Les comptes, portefeuilles, ordres, prix d’exécution et événements sont fictifs et persistent dans Azimut. Le catalogue ou les historiques de référence peuvent, si souhaité, provenir d’une source externe ; ils ne transforment pas le simulateur en plateforme de trading réel.

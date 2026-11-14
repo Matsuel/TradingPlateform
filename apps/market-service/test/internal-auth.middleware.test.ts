@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test"
 import type { Request, Response } from "express"
-import { INTERNAL_KEY_HEADER } from "@trading-plateform/contracts"
+import { INTERNAL_KEY_HEADER } from "@azimut/contracts"
 import internalAuthMiddleware from "../middleware/internal-auth.middleware"
 import { env } from "../env"
 

@@ -1,5 +1,5 @@
 import express from "express";
-import { registerRoutes } from "@trading-plateform/http";
+import { registerRoutes } from "@azimut/http";
 import createMarketRoutes from "./market.routes";
 
 const marketRouter = express.Router();

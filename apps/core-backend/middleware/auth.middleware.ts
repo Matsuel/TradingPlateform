@@ -1,8 +1,8 @@
 import type { Request, Response, NextFunction } from 'express'
 import { fromNodeHeaders } from 'better-auth/node'
-import { Logger } from '@trading-plateform/utils'
+import { Logger } from '@azimut/utils'
 import { auth } from '../lib/auth'
-import { UnauthorizedError } from "@trading-plateform/http";
+import { UnauthorizedError } from "@azimut/http";
 
 const logger = Logger.here()
 

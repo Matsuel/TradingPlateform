@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test"
-import { API_ERROR_CODES } from "@trading-plateform/contracts"
+import { API_ERROR_CODES } from "@azimut/contracts"
 import { createTranslator } from "next-intl"
 import en from "../messages/en.json"
 import fr from "../messages/fr.json"

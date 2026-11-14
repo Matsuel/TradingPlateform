@@ -1,10 +1,10 @@
 import { afterAll, beforeAll, beforeEach, expect, spyOn, test } from "bun:test"
-import { ConflictError, NotFoundError } from "@trading-plateform/http"
-import { API_ERROR_CODES } from "@trading-plateform/contracts"
+import { ConflictError, NotFoundError } from "@azimut/http"
+import { API_ERROR_CODES } from "@azimut/contracts"
 import { auth } from "../lib/auth"
 import createBacktestRoutes from "../routes/backtest/backtest.routes"
 import BacktestService from "../services/backtest.service"
-import { startApp } from "@trading-plateform/http/testing"
+import { startApp } from "@azimut/http/testing"
 
 // Session better-auth simulée : `signedIn` décide si la requête a un utilisateur
 let signedIn = true

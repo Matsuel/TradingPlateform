@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test"
-import type { BacktestRequestedPayload } from "@trading-plateform/contracts"
+import type { BacktestRequestedPayload } from "@azimut/contracts"
 import type { IBacktestPublisher } from "../publishers/backtest.publisher"
 import type { IMarketRepository } from "../repositories/market.repository"
 import BacktestService from "../services/backtest.service"

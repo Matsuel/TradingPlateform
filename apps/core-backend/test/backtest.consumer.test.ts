@@ -1,5 +1,5 @@
 import { afterAll, expect, spyOn, test } from "bun:test"
-import type { MessageHandler } from "@trading-plateform/kafka"
+import type { MessageHandler } from "@azimut/kafka"
 
 // Les transitions du service sont espionnées : on vérifie le routage, pas l'écriture en base
 const calls: { method: string; payload: unknown }[] = []

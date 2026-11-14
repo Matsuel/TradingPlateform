@@ -1,4 +1,4 @@
-import type { Paginated } from "@trading-plateform/contracts"
+import type { Paginated } from "@azimut/contracts"
 
 export type PaginationParams = Pick<Paginated<unknown>, "page" | "pageSize">
 

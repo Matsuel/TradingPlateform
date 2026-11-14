@@ -1,4 +1,4 @@
-# @trading-plateform/utils
+# @azimut/utils
 
 Utilitaires transverses : `Logger` (`Logger.here()`), `onShutdown`, et le calendrier partagé par la simulation et son aperçu (`periodKey`, `businessDays`, `estimateSchedule`, dont les règles appartiennent à l'engine : un changement de règle de versement ou de rebalancement se répercute ici et dans `backtest-engine/test/backtest.schedule.test.ts`). N'ajoute que du code réellement partagé par plusieurs apps, sans dépendance métier. Réexporter via `src/index.ts`. Respecte `../../AGENTS.md`.
 

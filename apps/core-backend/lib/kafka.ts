@@ -1,4 +1,4 @@
-import { KafkaClient, KafkaConsumer, KafkaProducer } from "@trading-plateform/kafka";
+import { KafkaClient, KafkaConsumer, KafkaProducer } from "@azimut/kafka";
 
 export const kafkaClient = new KafkaClient();
 

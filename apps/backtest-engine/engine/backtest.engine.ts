@@ -1,5 +1,5 @@
-import type { EquityPoint } from "@trading-plateform/contracts";
-import { periodKey } from "@trading-plateform/utils";
+import type { EquityPoint } from "@azimut/contracts";
+import { periodKey } from "@azimut/utils";
 import { foreignCurrencies, toReferenceCurrency } from "./backtest.fx";
 import { createPortfolio } from "./backtest.portfolio";
 import { rollingSummary } from "./backtest.rolling";

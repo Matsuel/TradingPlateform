@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test"
-import { MAX_CLOSES_SYMBOLS } from "@trading-plateform/contracts"
+import { MAX_CLOSES_SYMBOLS } from "@azimut/contracts"
 import { dailyClosesQuerySchema } from "../interfaces/market.interface"
 
 const valid = { symbols: "AAPL, MSFT,AAPL", start: "2024-01-02T00:00:00.000Z", end: "2024-01-10T00:00:00.000Z" }

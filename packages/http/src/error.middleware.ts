@@ -1,5 +1,5 @@
 import type { NextFunction, Request, Response } from "express";
-import { API_ERROR_CODES, API_ERROR_MESSAGES } from "@trading-plateform/contracts";
+import { API_ERROR_CODES, API_ERROR_MESSAGES } from "@azimut/contracts";
 import { AppError } from "./errors";
 
 /** Dernier middleware d'un service : seul endroit qui formate une réponse d'erreur (`{ error, code, ...data }`). */

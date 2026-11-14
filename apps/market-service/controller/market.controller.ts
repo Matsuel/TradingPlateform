@@ -1,9 +1,9 @@
 import type { Request, Response } from "express";
 import MarketService from "../services/market.service";
-import { BadRequestError } from "@trading-plateform/http";
+import { BadRequestError } from "@azimut/http";
 import { dailyClosesQuerySchema, marketIdSchema, searchMarketSchema } from "../interfaces/market.interface";
-import { API_ERROR_CODES, paginationQuerySchema, periodSchema } from "@trading-plateform/contracts";
-import { Logger } from "@trading-plateform/utils";
+import { API_ERROR_CODES, paginationQuerySchema, periodSchema } from "@azimut/contracts";
+import { Logger } from "@azimut/utils";
 
 const logger = Logger.here();
 

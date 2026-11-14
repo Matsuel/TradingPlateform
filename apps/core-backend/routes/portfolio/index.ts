@@ -1,5 +1,5 @@
 import express from 'express';
-import { registerRoutes } from "@trading-plateform/http";
+import { registerRoutes } from "@azimut/http";
 import createPortfolioRoutes from './portfolio.routes';
 
 const portfolioRouter = express.Router();

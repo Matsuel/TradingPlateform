@@ -1,4 +1,4 @@
-import type { PaginationQuery, RollingWindow } from "@trading-plateform/contracts"
+import type { PaginationQuery, RollingWindow } from "@azimut/contracts"
 import { prisma } from "../prisma"
 import { Prisma, type BacktestExecution, type BacktestStatus } from "../generated/prisma/client"
 import type { BacktestDetails, BacktestExecutionCount, BacktestListFilters, BacktestStatusCounts, BacktestWithExecutions, BatchRecords, ComparedBacktestRecord, CompleteExecutionDTO, CreateBacktestDTO } from "../interfaces/backtest.interface"

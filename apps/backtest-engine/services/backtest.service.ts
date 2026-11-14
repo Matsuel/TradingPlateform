@@ -1,5 +1,5 @@
-import { Logger } from "@trading-plateform/utils";
-import type { BacktestRequestedPayload } from "@trading-plateform/contracts";
+import { Logger } from "@azimut/utils";
+import type { BacktestRequestedPayload } from "@azimut/contracts";
 import BacktestError from "../errors/backtest.error";
 import runBacktest from "../engine/backtest.engine";
 import { foreignCurrencies, fxPairSymbol } from "../engine/backtest.fx";

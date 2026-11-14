@@ -1,4 +1,4 @@
-import { Logger } from "@trading-plateform/utils";
+import { Logger } from "@azimut/utils";
 import { prisma } from "../prisma";
 
 const logger = Logger.here()

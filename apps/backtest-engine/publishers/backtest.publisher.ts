@@ -1,10 +1,10 @@
-import { createKafkaEvent, type KafkaProducer } from "@trading-plateform/kafka";
+import { createKafkaEvent, type KafkaProducer } from "@azimut/kafka";
 import {
     BACKTEST_TOPICS,
     type BacktestCompletedPayload,
     type BacktestFailedPayload,
     type BacktestStartedPayload,
-} from "@trading-plateform/contracts";
+} from "@azimut/contracts";
 
 export interface IBacktestPublisher {
     started(payload: BacktestStartedPayload): Promise<void>;

@@ -1,7 +1,7 @@
 import { timingSafeEqual } from "node:crypto";
 import type { NextFunction, Request, Response } from "express";
-import { INTERNAL_KEY_HEADER } from "@trading-plateform/contracts";
-import { UnauthorizedError } from "@trading-plateform/http";
+import { INTERNAL_KEY_HEADER } from "@azimut/contracts";
+import { UnauthorizedError } from "@azimut/http";
 import { env } from "../env";
 
 const expected = Buffer.from(env.INTERNAL_API_KEY);

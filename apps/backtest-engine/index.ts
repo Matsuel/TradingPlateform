@@ -2,9 +2,9 @@ import {
     KafkaClient,
     KafkaConsumer,
     KafkaProducer,
-} from "@trading-plateform/kafka";
-import { BACKTEST_TOPICS } from "@trading-plateform/contracts";
-import { Logger, onShutdown } from "@trading-plateform/utils";
+} from "@azimut/kafka";
+import { BACKTEST_TOPICS } from "@azimut/contracts";
+import { Logger, onShutdown } from "@azimut/utils";
 import BacktestConsumer from "./consumers/backtest.consumer";
 import BacktestPublisher from "./publishers/backtest.publisher";
 import BacktestService from "./services/backtest.service";

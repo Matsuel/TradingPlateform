@@ -1,4 +1,4 @@
-import { API_ERROR_CODES, API_ERROR_MESSAGES, type ApiErrorCode } from "@trading-plateform/contracts";
+import { API_ERROR_CODES, API_ERROR_MESSAGES, type ApiErrorCode } from "@azimut/contracts";
 
 /** Erreur métier ou technique rendue par `errorMiddleware` en `{ error, code, ...data }` avec `statusCode`. */
 export class AppError extends Error {

@@ -1,4 +1,4 @@
-import { dailyClosesSchema, dividendsSchema, INTERNAL_KEY_HEADER, PRICE_DATA_SOURCE, type DataSource, type Dividends } from "@trading-plateform/contracts";
+import { dailyClosesSchema, dividendsSchema, INTERNAL_KEY_HEADER, PRICE_DATA_SOURCE, type DataSource, type Dividends } from "@azimut/contracts";
 import { MARKET_SERVICE_TIMEOUT_MS, RETRYABLE_STATUSES } from "../constants/market.constants";
 import { env } from "../env";
 import type { PriceSeries } from "../interfaces/backtest.interface";

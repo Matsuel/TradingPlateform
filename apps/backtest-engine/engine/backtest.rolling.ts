@@ -1,5 +1,5 @@
-import { addYears, median } from "@trading-plateform/utils";
-import { ROLLING_WINDOW_YEARS, type RollingWindow } from "@trading-plateform/contracts";
+import { addYears, median } from "@azimut/utils";
+import { ROLLING_WINDOW_YEARS, type RollingWindow } from "@azimut/contracts";
 import type { TwrPoint } from "../interfaces/backtest.interface";
 import { round } from "./backtest.utils";
 

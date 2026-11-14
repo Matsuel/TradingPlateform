@@ -1,4 +1,4 @@
-import type { BacktestCompletedPayload, BacktestRequestedPayload, DailyClose, Dividend } from "@trading-plateform/contracts";
+import type { BacktestCompletedPayload, BacktestRequestedPayload, DailyClose, Dividend } from "@azimut/contracts";
 
 // Clôture d'un jour de cotation (`YYYY-MM-DD`), devise de cotation
 export type PricePoint = DailyClose;

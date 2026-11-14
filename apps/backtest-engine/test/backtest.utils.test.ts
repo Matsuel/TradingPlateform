@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { periodKey } from "@trading-plateform/utils";
+import { periodKey } from "@azimut/utils";
 import { referencePrices } from "./backtest.fixture";
 import {
     annualizedReturn,
