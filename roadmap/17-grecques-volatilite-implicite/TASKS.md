@@ -10,22 +10,24 @@
 | T-02 | Engine : grecques delta, gamma, vega, theta, rho | US-02 | backtest-engine | MUST | 3 | — | — |
 | T-03 | Engine : filtre de qualité des cotations | US-01 | backtest-engine | MUST | 2 | T-01 | — |
 | T-04 | Contrat : smile et grecques | US-02, US-03 | contracts | MUST | 2 | — | — |
-| T-05 | Calcul d'une chaîne par le worker | US-01, US-03 | core-backend | MUST | 5 | T-01, T-03, T-04 | — |
+| T-05 | Calcul d'une chaîne par le worker | US-01, US-03 | core-backend | MUST | 5 | T-01, T-03, T-04, T-08 | — |
 | T-06 | Smile par échéance dans le calculateur | US-03 | web | SHOULD | 5 | T-05 | — |
 | T-07 | Grecques affichées dans le calculateur | US-02 | web | MUST | 2 | T-05 | — |
+| T-08 | Chaîne d'options dans market-service | US-01 | market-service | MUST | 3 | — | — |
 
-**Total** : 24 points — MUST 19, SHOULD 5.
+**Total** : 27 points — MUST 22, SHOULD 5.
 
 | Lot | Tâches | Points |
 | --- | --- | --- |
 | 1. Moteur | T-01 → T-03 | 10 |
+| Données | T-08 | 3 |
 | 2. Contrat | T-04 | 2 |
 | 3. Service | T-05 | 5 |
 | 4. Écrans | T-06 → T-07 | 7 |
 
 **Chemin critique** (17 points) : T-01 → T-03 → T-05 → T-06. T-01 : l'inversion peut diverger sur des prix proches des bornes ; les cas limites doivent être testés avant la chaîne complète.
 
-**Parallélisable** : T-01, T-02, T-04 dès le début ; T-01, T-02, T-04 dès le début ; T-03 après T-01 ; T-06 et T-07 après T-05.
+**Parallélisable** : T-01, T-02, T-04, T-08 dès le début ; T-03 après T-01 ; T-06 et T-07 après T-05.
 
 ## Graphe des dépendances
 
@@ -38,10 +40,12 @@ flowchart LR
     T05[T-05 Calcul d'une chaîne par le worker]
     T06[T-06 Smile par échéance dans le calculateur]
     T07[T-07 Grecques affichées dans le calculateur]
+    T08[T-08 Chaîne d'options dans market-service]
     T01 --> T03
     T01 --> T05
     T03 --> T05
     T04 --> T05
+    T08 --> T05
     T05 --> T06
     T05 --> T07
 ```
@@ -101,6 +105,15 @@ Critères d’acceptation :
 - [ ] Résultat stocké avec le nombre de contrats écartés.
 
 ## Lot 4 — Écrans
+
+### T-08 · Chaîne d'options dans market-service
+
+- **US** : US-01 · **Priorité** : MUST · **Points** : 3 · **Dépend de** : — · **Commits** : —
+- **Fichiers** : `apps/market-service/routes/market/`, `repositories/market.repository.ts`, `API.md`
+
+Critères d’acceptation :
+- [ ] `GET /api/market/options/:symbol?expiration=` renvoie strikes, bid, ask, dernier prix, volume et volatilité Yahoo, à titre indicatif (le filtre de qualité est en T-03).
+- [ ] Dates d'échéance à la forme `YYYY-MM-DD`.
 
 ### T-06 · Smile par échéance dans le calculateur
 

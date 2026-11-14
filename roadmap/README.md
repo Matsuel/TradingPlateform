@@ -43,6 +43,7 @@ Les dossiers des features 02 à 08 citent les anciens numéros ; cette table les
 | 07 | [Clôture du Strategy Lab](07-strategy-lab-cloture/) | 3 | 2026-10-29 → 2026-10-30 | #3 | Livrée | 24 ᵃ |
 | 08 | [Portfolio Management V1](08-portfolio-v1/) | 4 | 2026-10-30 → 2026-10-31 | — | Livrée | 104 |
 | 09 | [Aide contextuelle sur les données](09-aide-contextuelle/) | 4–5 ᵇ | 2026-11-01 | — | Livrée | 28 |
+| 10 | [Internationalisation et apparence du web](10-internationalisation/) | 5 | — | — | En cours (T-11 restant) | 50 |
 | 11 | [Dividendes, splits et effet devise](11-dividendes-splits-devise/) | 5 | 2026-11-12 | — | Livrée | 36 |
 | 12 | [Robustesse : dates de départ et métriques glissantes](12-robustesse-dates-de-depart/) | 5 | 2026-11-13 | #10 | Livrée | 36 |
 
@@ -60,7 +61,7 @@ Les dossiers des features 02 à 08 citent les anciens numéros ; cette table les
 
 Ordre fixé le 2026-11-03 d’après les dépendances, pas d’après les mois seuls. L’internationalisation (10) est **urgente** : elle passe avant toute nouvelle page, pour que les écrans suivants naissent traduits. Chaque feature est planifiée avec le skill `feature-roadmap` (dossier `roadmap/<NN>-<slug>/`). « Dépend de » liste les features qui doivent être **livrées** avant.
 
-Planification : **toutes les features 10 à 24 sont planifiées** (dossiers `roadmap/<NN>-<slug>/`, statut `Planifiée`). Maquettes Figma 30 à 40 : **non dessinées**, à faire avec un agent plus fort que Haiku.
+Planification : **toutes les features 10 à 24 sont planifiées** (dossiers `roadmap/<NN>-<slug>/`, statut `Planifiée`). Maquettes Figma 31 à 40 : **dessinées** (aucune pour 21 à 24, infrastructure).
 
 | # | Feature | Mois | Dépend de | Pourquoi à cette place |
 | --- | --- | --- | --- | --- |
@@ -69,7 +70,7 @@ Planification : **toutes les features 10 à 24 sont planifiées** (dossiers `roa
 | 12 | Robustesse : dates de départ et métriques glissantes | 5 | 11 | Sensibilité à la date d’entrée, sur des rendements corrects. |
 | 13 | Risk Engine | 6 | 11 | Corrélations, expositions, concentration, VaR/CVaR, contraintes. Gel fonctionnel du moteur de simulation à la fin. |
 | 14 | Projection Monte Carlo | 7 | 12 | Moteur seedé réutilisé par le pricing (18). |
-| 15 | Taux et obligations | 8 | 08 | Source de taux (FRED), courbe, actualisation, prix, duration. Indépendant du risque. |
+| 15 | Taux et obligations | 8 | 08 | Source de taux (Yahoo, gratuit ; FRED reporté), courbe, actualisation, prix, duration. Indépendant du risque. |
 | 16 | Options vanilles : payoffs et Black-Scholes | 9 | 11, 15 | Besoin du taux (15) et des dividendes (11). |
 | 17 | Grecques, volatilité implicite et surface | 9 | 16 | Route `options/:symbol` dans `market-service` ; volatilité implicite recalculée par le moteur. |
 | 18 | Pricing Monte Carlo et option à barrière | 10 | 14, 16 | Moteur de 14, validé contre Black-Scholes (16). |

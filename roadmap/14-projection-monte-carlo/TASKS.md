@@ -63,7 +63,8 @@ flowchart LR
 
 Critères d’acceptation :
 - [ ] Même seed et mêmes entrées : sortie identique (test de reproductibilité).
-- [ ] Blocs de 21 jours ouvrés (D2) ; 10 000 trajectoires.
+- [ ] Blocs de 21 jours ouvrés (D2) ; 10 000 trajectoires (D6).
+- [ ] Les mêmes jours sont tirés pour tous les actifs, rendements pondérés aux poids du backtest (D5) : test de conservation de la corrélation.
 
 ### T-02 · Engine : percentiles et probabilité de perte
 
@@ -71,7 +72,7 @@ Critères d’acceptation :
 - **Fichiers** : `apps/backtest-engine/engine/projection.ts`
 
 Critères d’acceptation :
-- [ ] Percentiles 10, 50, 90 par date ; probabilité que la valeur finale soit < capital investi.
+- [ ] Percentiles 5, 10, 25, 50, 75, 90, 95 par date (D7) ; probabilité que la valeur finale soit < capital initial, en EUR (D8).
 - [ ] Test sur une série constante (résultat connu).
 
 ## Lot 2 — Contrat
@@ -94,7 +95,7 @@ Critères d’acceptation :
 
 Critères d’acceptation :
 - [ ] POST crée une projection `PENDING`, publie `projection.requested`.
-- [ ] Seules les courbes de percentiles sont stockées, pas les trajectoires.
+- [ ] Seules les courbes de percentiles sont stockées, pas les trajectoires ; la seed et l'horizon (années, choisi par l'utilisateur, D6) le sont avec le résultat.
 
 ## Lot 4 — Worker
 
@@ -123,7 +124,7 @@ Critères d’acceptation :
 - **Fichiers** : `apps/web/src/features/projection/` (nouveau)
 
 Critères d’acceptation :
-- [ ] Médiane et bandes P10-P90 dans le temps.
+- [ ] Médiane et deux bandes imbriquées, P25-P75 et P10-P90, dans le temps (D7) ; sélecteur d'horizon en années (D6).
 - [ ] La probabilité de perte est affichée telle que reçue, avec la mention « scénarios construits sur l'historique ».
 
 ### T-08 · Catalogues API et composants

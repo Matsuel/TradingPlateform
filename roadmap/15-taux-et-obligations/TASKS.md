@@ -87,7 +87,8 @@ Critères d’acceptation :
 Critères d’acceptation :
 - [ ] Actualisation composée annuelle (D3) : PV = flux / (1 + r)^t.
 - [ ] Prix d'un zéro-coupon à 3 % sur 5 ans = 86,26 pour 100.
-- [ ] Duration de Macaulay et modifiée ; une hausse de 1 % des taux change le prix d'environ duration × 1 %.
+- [ ] Entrées : nominal, coupon annuel, maturité, taux ; zéro-coupon = coupon à 0 (D8).
+- [ ] Duration de Macaulay (années) et modifiée (D7) ; une hausse de 1 % des taux change le prix d'environ duration modifiée × 1 %.
 
 ### T-04 · Engine : interpolation linéaire de la courbe
 
@@ -129,6 +130,7 @@ Critères d’acceptation :
 
 Critères d’acceptation :
 - [ ] Courbe affichée telle que reçue.
+- [ ] Formulaire d'obligation : nominal, coupon annuel, maturité, taux (pris sur la courbe ou saisi, D8).
 - [ ] Prix et duration affichés telle que reçus du backend.
 
 ### T-08 · Catalogues API et composants

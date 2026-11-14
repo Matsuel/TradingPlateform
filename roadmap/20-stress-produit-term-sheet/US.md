@@ -24,6 +24,8 @@
 | D1 | Scénarios | Quatre chocs fixes, non paramétrables | Évite une configuration pour une valeur fixe ; une option « scénario personnalisé » reste COULD. |
 | D2 | Format de la fiche | Page web, pas de PDF | Pas de dépendance d'export en MVP ; un PDF viendra si besoin. |
 | D3 | Scénarios de performance | Favorable, neutre, défavorable calculés par le repricing | Les trois valeurs viennent du même moteur que le stress. |
+| D4 | Quatre chocs | Sous-jacent −20 %, volatilité +10 points, taux −1 point, taux +1 point | Validée le 2026-11-14. |
+| D5 | Scénarios de la fiche | Cours final +20 %, inchangé, −30 % à l'échéance ; payoff en % du nominal | Validée le 2026-11-14. |
 
 ---
 

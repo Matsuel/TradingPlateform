@@ -52,7 +52,7 @@ flowchart LR
 - **Fichiers** : `apps/backtest-engine/engine/stress.ts`, tests
 
 Critères d’acceptation :
-- [ ] Quatre scénarios fixes (D1) : sous-jacent −20 %, volatilité +10 points, taux +1 point, taux −1 point.
+- [ ] Quatre scénarios fixes (D1, D4) : sous-jacent −20 %, volatilité +10 points, taux −1 point, taux +1 point.
 - [ ] Le produit est repricé dans chaque scénario ; la variation est renvoyée.
 
 ## Lot 2 — Contrat
@@ -74,7 +74,7 @@ Critères d’acceptation :
 
 Critères d’acceptation :
 - [ ] La fiche est assemblée à partir des données du produit et des scénarios.
-- [ ] Les trois scénarios de performance (favorable, neutre, défavorable) sont renvoyés.
+- [ ] Les trois scénarios de performance sont renvoyés (D5) : cours final +20 %, inchangé, −30 % à l'échéance, payoff en % du nominal.
 
 ## Lot 4 — Écrans
 

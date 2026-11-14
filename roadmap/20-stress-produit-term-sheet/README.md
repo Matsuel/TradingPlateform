@@ -24,6 +24,8 @@ Moteur : repricing du produit dans quatre scénarios fixes. Core-backend assembl
 | D1 | **Scénarios** : Quatre chocs fixes, non paramétrables | Évite une configuration pour une valeur fixe ; une option « scénario personnalisé » reste COULD. | `US.md` (à valider) |
 | D2 | **Format de la fiche** : Page web, pas de PDF | Pas de dépendance d'export en MVP ; un PDF viendra si besoin. | `US.md` (à valider) |
 | D3 | **Scénarios de performance** : Favorable, neutre, défavorable calculés par le repricing | Les trois valeurs viennent du même moteur que le stress. | `US.md` (à valider) |
+| D4 | **Quatre chocs** : sous-jacent −20 %, volatilité +10 points, taux −1 point, taux +1 point | Un choc par facteur de risque, taux dans les deux sens. | Décision du 2026-11-14 |
+| D5 | **Scénarios de la fiche** : cours final +20 %, inchangé, −30 % à l'échéance ; payoff en % du nominal | Trois cours fixes, indépendants du Monte Carlo (14). | Décision du 2026-11-14 |
 
 ## Écarts au plan
 

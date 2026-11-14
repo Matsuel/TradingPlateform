@@ -65,7 +65,7 @@ Critères d’acceptation :
 - **Fichiers** : `apps/backtest-engine/engine/structured-mc.ts`
 
 Critères d’acceptation :
-- [ ] Dates d'observation, barrière de remboursement anticipé, coupon et barrière de capital.
+- [ ] Observation annuelle, rappel si sous-jacent ≥ 100 % du niveau initial avec coupon cumulé, barrière de capital 60 % à l'échéance, 5 ans par défaut ; niveaux modifiables (D6).
 - [ ] Chaque trajectoire donne le flux ; prix = moyenne actualisée.
 
 ### T-03 · Engine : juste valeur et marge
@@ -74,7 +74,7 @@ Critères d’acceptation :
 - **Fichiers** : `apps/backtest-engine/engine/structured.ts`
 
 Critères d’acceptation :
-- [ ] Marge = prix client − juste valeur, en devise et en pourcentage du prix client (D4).
+- [ ] Marge = prix client − juste valeur, en devise et en pourcentage du prix client (D4) ; prix client = nominal à 100 % (D5).
 - [ ] Le calcul vit ici, pas dans le web.
 
 ## Lot 2 — Contrat
@@ -106,7 +106,7 @@ Critères d’acceptation :
 - **Fichiers** : `apps/web/src/features/structured/` (nouveau)
 
 Critères d’acceptation :
-- [ ] Formulaire : type, maturité, sous-jacent, prix client.
+- [ ] Formulaire : type, maturité, sous-jacent ; niveaux de l'autocallable modifiables (D6). Pas de saisie du prix client (D5).
 - [ ] La participation et la marge sont celles reçues du backend, jamais calculées ici.
 
 ### T-07 · Décomposition affichée

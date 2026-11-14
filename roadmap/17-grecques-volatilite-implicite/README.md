@@ -4,7 +4,7 @@
 - **Roadmap** : Mois 9 — Mois 9 — Options (grecques, volatilité implicite, smile et surface)
 - **Période** : à fixer au démarrage de la feature
 - **Branche / PR** : `feat/grecques-volatilite-implicite` — PR à ouvrir
-- **Points** : 24 (MUST 19, SHOULD 5) — prévus
+- **Points** : 27 (MUST 22, SHOULD 5) — prévus
 - **Maquettes** : `37 · Grecques et smile` (créée, node `461:12922`)
 - **Écrans modifiés** : `36 · Calculateur d’option` (node `459:12719`) : bouton « Volatilité implicite » vers la page 37 — dessiné dans la copie `à modifier (F17)` ; l’original est mis à jour au codage
 - **Dépend de** : 16 (options vanilles).
@@ -24,6 +24,8 @@ Moteur : inversion de Black-Scholes et grecques (fonctions pures). Filtre de qua
 | D1 | **Volatilité implicite** : Calculée par le moteur (bisection) | Les données Yahoo sont incohérentes : sur SPY, 91 contrats sur 220 ont une IV nulle ou aberrante (14 juil. 2026, séance non confirmée). | `US.md` (à valider) |
 | D2 | **Filtre** : Prix nul, bid/ask nuls, IV hors [1 %, 300 %] écartés et comptés | Un filtre visible vaut mieux qu'un nettoyage silencieux. | `US.md` (à valider) |
 | D3 | **Surface** : Smile 2D par échéance, pas de surface 3D | Une courbe par échéance suffit pour voir le smile ; la 3D est coûteuse à lire et à tester. | `US.md` (à valider) |
+| D4 | **Smile** : 3 échéances, options hors de la monnaie (puts sous le spot, calls au-dessus) | Les plus liquides : volatilité implicite la moins bruitée. | Décision du 2026-11-14 |
+| D5 | **Route de chaîne** : créée en 17 (T-08, reprise de T-03 de la 16) | La 16 n'affiche pas de chaîne (16 D5). | Décision du 2026-11-14 |
 
 ## Écarts au plan
 

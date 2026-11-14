@@ -25,6 +25,10 @@ Worker `backtest-engine` : rendements journaliers historiques, bootstrap par blo
 | D2 | **Blocs** : 21 jours ouvrés, fixe | Conserve un peu d'enchaînement des jours sans paramètre à exposer. | `US.md` (à valider) |
 | D3 | **Stockage** : Percentiles seulement | 10 000 trajectoires × 1 260 jours ne se stockent pas ; on garde ce qui s'affiche. | `US.md` (à valider) |
 | D4 | **Transport** : Deux nouveaux topics Kafka | Le calcul est lourd, asynchrone : même patron que le backtest, rejeu géré par statut. | `US.md` (à valider) |
+| D5 | **Source** : blocs tirés sur les actifs ensemble, pondérés aux poids du backtest | Les mêmes jours sont tirés pour tous les actifs : les corrélations sont conservées (même base que la 13). | Décision du 2026-11-14 |
+| D6 | **Paramètres** : horizon choisi en années, 10 000 trajectoires et seed non exposées | Peu de réglages ; la seed est stockée avec le résultat pour rejouer. | Décision du 2026-11-14 |
+| D7 | **Percentiles stockés** : P5, P10, P25, P50, P75, P90, P95 par date | Deux bandes imbriquées (P10-P90, P25-P75) plus la médiane et des extrêmes. | Décision du 2026-11-14 |
+| D8 | **Probabilité de perte** : part des trajectoires dont la valeur finale est sous le capital initial (EUR) | Sans versements, le capital investi est le capital initial. | Décision du 2026-11-14 |
 
 ## Écarts au plan
 

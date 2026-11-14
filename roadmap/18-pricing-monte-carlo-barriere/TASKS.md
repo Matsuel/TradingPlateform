@@ -102,7 +102,7 @@ Critères d’acceptation :
 - **Fichiers** : `apps/core-backend/services/pricing.service.ts`
 
 Critères d’acceptation :
-- [ ] Validation zod ; seed et nombre de trajectoires absents de l'API (valeurs fixes).
+- [ ] Validation zod ; nombre de trajectoires borné à [10 000 ; 1 000 000], 100 000 par défaut (D4) ; seed absente de l'API, fixe et stockée avec le résultat.
 
 ## Lot 4 — Écrans
 
@@ -112,4 +112,4 @@ Critères d’acceptation :
 - **Fichiers** : `apps/web/src/features/pricing/`
 
 Critères d’acceptation :
-- [ ] Méthode et erreur standard affichées telles que reçues.
+- [ ] Méthode et erreur standard affichées telles que reçues ; réglage du nombre de trajectoires pour voir la convergence (D4).

@@ -24,6 +24,7 @@
 | D1 | Dynamique | GBM sous mesure neutre au risque (dérive r − q) | Standard pour le pricing ; le bootstrap de 14 sert à la projection, pas au pricing. |
 | D2 | Barrière | Surveillance quotidienne | Les barrières réelles sont souvent observées à la clôture ; une surveillance continue sous-estime le risque de dépassement. |
 | D3 | Validation | Écart inférieur à 3 erreurs standard vers Black-Scholes | Critère statistique, pas un seuil arbitraire en euros. |
+| D4 | Trajectoires | 100 000 par défaut, réglable de 10 000 à 1 000 000 ; seed fixe stockée | Validée le 2026-11-14. |
 
 ---
 

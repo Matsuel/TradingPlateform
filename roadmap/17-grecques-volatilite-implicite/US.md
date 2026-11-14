@@ -7,7 +7,7 @@
 | Couche | Existant | Manque |
 | --- | --- | --- |
 | `apps/backtest-engine/engine/options.ts` | Créé en 16 : Black-Scholes, payoffs, parité. | Inversion, grecques, filtre. |
-| `apps/market-service/` | Route de chaîne d'options (16 T-03), valeurs Yahoo indicatives. | Rien : source de la chaîne. |
+| `apps/market-service/` | search, details, defaults. | Route de chaîne d'options (T-08), valeurs Yahoo indicatives. |
 | `packages/contracts/src/pricing.ts` | Créé en 15, union `OPTION`. | Smile et grecques. |
 
 ## Hors périmètre
@@ -24,6 +24,8 @@
 | D1 | Volatilité implicite | Calculée par le moteur (bisection) | Les données Yahoo sont incohérentes : sur SPY, 91 contrats sur 220 ont une IV nulle ou aberrante (14 juil. 2026, séance non confirmée). |
 | D2 | Filtre | Prix nul, bid/ask nuls, IV hors [1 %, 300 %] écartés et comptés | Un filtre visible vaut mieux qu'un nettoyage silencieux. |
 | D3 | Surface | Smile 2D par échéance, pas de surface 3D | Une courbe par échéance suffit pour voir le smile ; la 3D est coûteuse à lire et à tester. |
+| D4 | Smile | 3 échéances, options hors de la monnaie | Les plus liquides, IV la moins bruitée. Validée le 2026-11-14. |
+| D5 | Route de chaîne | Créée en 17 (T-08, reprise de T-03 de la 16) | Validée le 2026-11-14. |
 
 ---
 
@@ -39,7 +41,7 @@ Critères d’acceptation :
 - [ ] La volatilité implicite est calculée par le moteur, pas copiée de Yahoo.
 - [ ] Les contrats sans prix exploitable sont écartés et leur nombre est affiché.
 
-Tâches : T-01, T-03, T-05 (détail dans `TASKS.md`).
+Tâches : T-01, T-03, T-05, T-08 (détail dans `TASKS.md`).
 
 ---
 
